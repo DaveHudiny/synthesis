@@ -92,6 +92,7 @@ download-rl() { #
     cd $PAYNT_ROOT/rl_approach
     pip3 install tensorflow # Potentially long installation.
     pip3 install tf_agents # It is essential to install tf_agents AFTER tensorflow
+    pip3 install dill # For saving objects with weak references
     git clone https://github.com/stevencarrau/safe_RL_POMDPs safe_rl
     
     git clone https://github.com/stevencarrau/shield_rl_gridworlds.git shield_gridworlds

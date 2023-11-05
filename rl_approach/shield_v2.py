@@ -89,8 +89,7 @@ class ManualInput:
         self.properties = [prop]
         self.constants = constants
 
-
-def improved_main(cfg=None) -> safe_rl.deep_policy.DeepAgent:
+def parse_args(cfg=None):
     if cfg:
         parser = argparse.ArgumentParser(
             description='The shielded POMDP simulator.')
@@ -148,6 +147,12 @@ def improved_main(cfg=None) -> safe_rl.deep_policy.DeepAgent:
         parser.add_argument('--goal-value', type=int, default=10)
 
         args = parser.parse_args()
+        return args
+
+
+def improved_main(cfg=None):
+    args = parse_args(cfg)
+    
     logging.basicConfig(filename=f'{args.logfile}',
                         filemode='w', level=logging.INFO)
     logging.getLogger("matplotlib").setLevel(logging.INFO)
@@ -242,9 +247,6 @@ def improved_main(cfg=None) -> safe_rl.deep_policy.DeepAgent:
         eval_model, _, _ = learn_model
     logger.info(model)
 
-    # if model.hash() != hash:
-    #    raise RuntimeError("Winning Region does not agree with Model")
-
     if compute_shield:
         winning_region = compute_winning_region(
             learn_model, raw_formula, initial)
@@ -287,7 +289,7 @@ def improved_main(cfg=None) -> safe_rl.deep_policy.DeepAgent:
                                                           eval_episodes=args.eval_episodes, eval_env=eval_executor, agent_arg=args.learning_method, 
                                                           hyper_param=hyper_param)
     print(result_fname)
-    return model
+    return model, learn_model, eval_executor
 
 
 if __name__ == "__main__":
