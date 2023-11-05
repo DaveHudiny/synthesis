@@ -8,4 +8,5 @@ experiments/
 rl_approach/gridworlds
 rl_approach/safe_rl
 rl_approach/shield_gridworlds
+rendering.log
 

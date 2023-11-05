@@ -107,6 +107,7 @@ setup-rl() {
     cd ..
     mv $PAYNT_ROOT/rl_approach/safe_rl/cfgs/SwitchShield.json $PAYNT_ROOT/rl_approach/safe_rl/cfgs/SwitchShieldx.json
     mkdir -p $PAYNT_ROOT/rl_approach/safe_rl/newvideos/NS/SWITCH
+    mkdir $PAYNT_ROOT/rl_approach/models
     cd ..
     envd
 }
