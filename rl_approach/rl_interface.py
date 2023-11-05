@@ -68,10 +68,33 @@ class RLInterface:
     def train_model(self):
         pass
 
+    def create_example_timestep(self):
+        discount = tf.constant([1.0], dtype=tf.float32)
+        observation = {
+            'mask': tf.constant([[False, False, False, False, False]], dtype=tf.bool),
+            'obs': tf.constant([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]], dtype=tf.int32)
+        }
+        reward = tf.constant([-1.0], dtype=tf.float32)
+        step_type = tf.constant([1], dtype=tf.int32)
+
+        # Create the TimeStep object
+        from tf_agents.trajectories import time_step
+
+        time_step = time_step.TimeStep(
+            step_type=step_type,
+            reward=reward,
+            discount=discount,
+            observation=observation
+        )
+
+        # Print the TimeStep
+        print(time_step)
+
 
 
 if __name__ == "__main__":
     interface = RLInterface()
-    interface.create_model()
-    interface.load_model("./models_rl/obstacle_model_ppo_500runs.pkl")
-    print(interface._model)
+    # interface.create_model()
+    # interface.load_model("./models_rl/obstacle_model_ppo_500runs.pkl")
+    # print(interface._model)
+    interface.create_example_timestep()
