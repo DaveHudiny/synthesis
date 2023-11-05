@@ -10,6 +10,8 @@ import dill
 
 import shield_v2
 import rl_simulator_v2 as rl_simulator
+import tensorflow as tf
+import tf_agents as tfa
 
 import logging
 logger = logging.getLogger(__name__)
@@ -20,6 +22,13 @@ def add_to_sys_argv_obstacle():
     sys.argv.append("-c")
     sys.argv.append("N=4")
 
+class StormState:
+    def __init__(self, discount, reward, observation, step_type):
+        self.discount = discount
+        self.reward = reward
+        self.observation = observation
+        self.step_type = step_type
+
 
 class RLInterface:
     def __init__(self):
@@ -27,9 +36,11 @@ class RLInterface:
         self._model = None
 
     def convert_state_storm_tensor(self, storm_state):
+        discount = ts.tensor(storm_state.discount)
+        tfa.trajectories.time_step.TimeStep(discount=discount, reward=reward, observation=observation, step_type=step_type)
         pass
 
-    def convert_state_tensor_storm_action(tensor_state):
+    def convert_state_tensor_storm_action(self, tensor_state):
         pass
 
     def save_model(self, path_to_model):
