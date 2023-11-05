@@ -67,6 +67,7 @@ def compute_avg_return(env, agent, policy, num_episodes=10, max_steps=100):
             action_step = policy.action(time_step)
             # Vykonání kroku v prostředí a pamatování si aktuálního stavu
             time_step = env.step(env.apply_action(action_step.action))
+            print(time_step)
             episode_return += time_step.reward[0]
             steps += 1
             if steps >= max_steps:

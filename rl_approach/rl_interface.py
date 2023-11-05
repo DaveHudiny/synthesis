@@ -61,8 +61,7 @@ class RLInterface:
 
     def create_model(self):
         add_to_sys_argv_obstacle()
-        self._model, _ = shield_v2.improved_main()
-        self.save_model(path_to_model="./models_rl/obstacle_model_ppo_500runs.pkl")
+        self._model, self.storm_model, self.tf_environment = shield_v2.improved_main()
         
 
     def train_model(self):
@@ -77,24 +76,18 @@ class RLInterface:
         reward = tf.constant([-1.0], dtype=tf.float32)
         step_type = tf.constant([1], dtype=tf.int32)
 
-        # Create the TimeStep object
-        from tf_agents.trajectories import time_step
-
-        time_step = time_step.TimeStep(
+        time_step = tfa.trajectories.time_step.TimeStep(
             step_type=step_type,
             reward=reward,
             discount=discount,
             observation=observation
         )
-
-        # Print the TimeStep
-        print(time_step)
+        return time_step
 
 
 
 if __name__ == "__main__":
     interface = RLInterface()
-    # interface.create_model()
-    # interface.load_model("./models_rl/obstacle_model_ppo_500runs.pkl")
-    # print(interface._model)
-    interface.create_example_timestep()
+    interface.create_model()
+    action = interface._model.agent.policy.action(interface.create_example_timestep())
+    print(action)
