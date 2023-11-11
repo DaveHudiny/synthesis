@@ -61,13 +61,15 @@ def compute_avg_return(env, agent, policy, num_episodes=10, max_steps=100):
         steps = 0
         while not time_step.is_last():
             actions = env._simulator.available_actions()  # Pole možných akcí
+            # print(env.get_choice_labels())
+            # print(time_step)
             safe_actions = env._shield.shielded_actions(
                 range(len(actions)))  # Shieldování
             # Výběr nejlepší akce dle aktuální naučené politiky
             action_step = policy.action(time_step)
+            # print(action_step.action)
             # Vykonání kroku v prostředí a pamatování si aktuálního stavu
             time_step = env.step(env.apply_action(action_step.action))
-            print(time_step)
             episode_return += time_step.reward[0]
             steps += 1
             if steps >= max_steps:
@@ -179,17 +181,24 @@ class TF_Environment(SimulationExecutor):
         # action_spec_count = [self._model.get_nr_available_actions(i) for i in range(1,self._model.nr_states)]
         self.action_indices = dict([[j, i]
                                    for i, j in enumerate(action_keywords)])
+        # print(self.action_indices)
         self.act_keywords = dict([[self.action_indices[i], i]
                                  for i in self.action_indices])
+        # print(self.act_keywords)
         self.nr_actions = len(action_keywords)
         self.valuations = valuations
         if valuations:
             self.keywords = self.get_observation_keywords()
+            # print(self.keywords)
             self.obs_length = len(self.keywords)
             obs_shape = np.array(self.observe()).shape
+            # print(obs_shape)
         else:
             self.obs_length = obs_length
+            # print("obs_length", self.obs_length)
+            # print(self.observe())
             obs_shape = np.array(self.observe()).shape
+            # print(obs_shape)
         self.act_spec = tf_agents.specs.BoundedTensorSpec(
             dtype='int32', name='action', minimum=0, maximum=self.nr_actions - 1, shape=tf.TensorShape(()))
         self.disc_spec = tf_agents.specs.BoundedTensorSpec(
@@ -211,6 +220,11 @@ class TF_Environment(SimulationExecutor):
         self.gain_ind = list(self._model.reward_models.keys()).index('gains')
         self.first = True
         self.maxsteps = maxsteps
+        # print(self._model)
+        # print(len(self._model.observations))
+        # print(np.unique(self._model.observations))
+        # print(len(np.unique(self._model.observations)))
+        # exit()
 
     def restart(self):
         self._simulator.restart()
@@ -412,6 +426,7 @@ class TF_Environment(SimulationExecutor):
                 return support.tolist()
             else:
                 return [self._simulator._report_observation()]
+            
 
     def cost_fn(self, rew_in):
         if len(rew_in) > 1:

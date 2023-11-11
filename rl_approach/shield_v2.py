@@ -1,4 +1,10 @@
 from rl_simulator_v2 import TF_Environment, solicit_input, compute_avg_return
+
+import sys
+
+# Add the path to the directory containing your modules
+sys.path.append('/home/david/Plocha/paynt/synthesis/rl_approach/safe_rl')
+
 from safe_rl.model_simulator import SimulationExecutor, SimulationWrapper
 import logging
 from gridstorm.plotter import Plotter
@@ -139,7 +145,7 @@ def parse_args(cfg=None):
             '--logfile', help="File to log to", default="rendering.log")
         parser.add_argument(
             '--noshield', help="Simulate without a shield", action='store_true')
-        parser.add_argument('--obs_level', default='BELIEF_SUPPORT')
+        parser.add_argument('--obs_level', default='OBSERVATION')
         parser.add_argument('--valuations', default=False)
         parser.add_argument('--learning_method', default='PPO')
         parser.add_argument('--eval-interval', type=int, default=100)

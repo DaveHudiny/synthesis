@@ -1,0 +1,4 @@
+Observation: 0. Action: 0. Action Keyword: placement
+Observation: 1. Action: 0. Action Keyword: placement
+Observation: 2. Action: 0. Action Keyword: placement
+Observation: 3. Action: 0. Action Keyword: placement
