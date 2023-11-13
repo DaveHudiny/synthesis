@@ -60,15 +60,10 @@ def compute_avg_return(env, agent, policy, num_episodes=10, max_steps=100):
         episode_return = 0.0
         steps = 0
         while not time_step.is_last():
-            actions = env._simulator.available_actions()  # Pole možných akcí
-            # print(env.get_choice_labels())
-            # print(time_step)
+            actions = env._simulator.available_actions()
             safe_actions = env._shield.shielded_actions(
-                range(len(actions)))  # Shieldování
-            # Výběr nejlepší akce dle aktuální naučené politiky
+                range(len(actions)))
             action_step = policy.action(time_step)
-            # print(action_step.action)
-            # Vykonání kroku v prostředí a pamatování si aktuálního stavu
             time_step = env.step(env.apply_action(action_step.action))
             episode_return += time_step.reward[0]
             steps += 1
@@ -129,6 +124,7 @@ def record_track(recorder, executor, agent, policy, maxsteps, no_tracks=1):
         recorder.start_path()
         recorder.record_state(state)
         recorder.record_belief(executor._shield.list_support())
+        state = None
         for n in range(maxsteps):
             actions = executor._simulator.available_actions()
             safe_actions = executor._shield.shielded_actions(
@@ -137,7 +133,8 @@ def record_track(recorder, executor, agent, policy, maxsteps, no_tracks=1):
                 f"Number of actions: {actions}. Safe action indices: {safe_actions}")
             time_step = executor.current_time_step()
             # agent(policy,time_step, allowed_actions=safe_actions)
-            action_step = policy.action(time_step)
+            action_step = policy.action(time_step, state)
+            state = action_step.state
             action = executor.apply_action(action_step.action)
             executor._simulator.step(action)
             state = executor._simulator._report_state()
