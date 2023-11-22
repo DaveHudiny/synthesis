@@ -160,6 +160,7 @@ class RLInterface:
         time_step = self.create_timestep(self.tf_environment.nr_actions)
         self.unique_observations = np.unique(self.storm_model.observations)
         limits_min, limits_max = self.generate_policy_step_states_limits()
+        observation_dict = {}
         for observation in self.unique_observations:
             time_step.observation['obs'] = tf.constant([[observation]], dtype=tf.int32)
             if method == "monte_carlo":
@@ -170,9 +171,11 @@ class RLInterface:
                       f"Action Keywords: {act_keys}")
                 file.write(f"Observation: {observation}. Action: {acts}. " +
                            f"Action Keyword: {act_keys}\n")
+                observation_dict[observation] = actions
             else:
                 print("No method specified.")
-            # print(action)
+        with open("obs_actions.pickle", "wb") as file_pickle:
+            pickle.dump(observation_dict, file_pickle)
     
     def evaluate_model_to_file(self, path_to_file):
         with open(path_to_file, "w") as file:
