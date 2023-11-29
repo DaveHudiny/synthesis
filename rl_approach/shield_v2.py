@@ -248,10 +248,19 @@ def improved_main(cfg=None):
     logger.info("Loading problem definition....")
     learn_model, prism_program, raw_formula = build_model(input)
     if eval_input:
-        eval_model, _, _ = build_model(eval_input)
+        eval_model, _, eval_raw_formula = build_model(eval_input)
     else:
         eval_model, _, _ = learn_model
     logger.info(model)
+    if hasattr(args, "fname"):
+        stormpy.export_to_drn(eval_model, f"eval_model_{args.fname}.drn")
+        with open(f"eval_model_{args.fname}.props", "w") as f:
+            f.write(eval_raw_formula)
+    else:
+        stormpy.export_to_drn(eval_model, "eval_model.drn")
+        with open("eval_model.props", "w") as f:
+            f.write(eval_raw_formula.__str__())
+    exit(0)
 
     if compute_shield:
         winning_region = compute_winning_region(

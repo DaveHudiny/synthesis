@@ -1,6 +1,7 @@
 import stormpy
 import stormpy.synthesis
 import stormpy.pomdp
+import pickle
 
 from ..quotient.models import MarkovChain
 from ..utils.profiler import Timer
@@ -500,6 +501,11 @@ class StormPOMDPControl:
     # main family contains only the actions considered by respective FSC (most usually Storm result)
     def get_main_restricted_family(self, family, result_dict):
 
+        with open("obs_actions.pickle", "rb") as file_pickle:
+            observation_dict = pickle.load(file_pickle)
+
+        # result_dict = observation_dict
+        logger.info("Result dictionary is based on result from RL interface")
         if result_dict == {}:
             return family
 

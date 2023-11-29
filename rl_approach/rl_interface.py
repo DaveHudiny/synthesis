@@ -126,7 +126,7 @@ class RLInterface:
         for observation in self.unique_observations:
             time_step.observation['obs'] = tf.constant([[observation]], dtype=tf.int32)
             action = self._model.agent.policy.action(time_step)
-            for i in range(10):
+            for i in range(3):
                 action = self._model.agent.policy.action(time_step, action.state)
                 actions.append(action)
             action = self._model.agent.policy.action(time_step)
