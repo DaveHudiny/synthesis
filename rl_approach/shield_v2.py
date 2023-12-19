@@ -3,7 +3,7 @@ from rl_simulator_v2 import TF_Environment, solicit_input, compute_avg_return
 import sys
 
 # Add the path to the directory containing your modules
-sys.path.append('/home/david/Plocha/paynt/synthesis/rl_approach/safe_rl')
+sys.path.append('./safe_rl')
 
 from safe_rl.model_simulator import SimulationExecutor, SimulationWrapper
 import logging
@@ -252,15 +252,14 @@ def improved_main(cfg=None):
     else:
         eval_model, _, _ = learn_model
     logger.info(model)
-    if hasattr(args, "fname"):
-        stormpy.export_to_drn(eval_model, f"eval_model_{args.fname}.drn")
-        with open(f"eval_model_{args.fname}.props", "w") as f:
-            f.write(eval_raw_formula)
-    else:
-        stormpy.export_to_drn(eval_model, "eval_model.drn")
-        with open("eval_model.props", "w") as f:
-            f.write(eval_raw_formula.__str__())
-    exit(0)
+    # if hasattr(args, "fname"):
+    #    stormpy.export_to_drn(eval_model, f"eval_model_{args.fname}.drn")
+    #    with open(f"eval_model_{args.fname}.props", "w") as f:
+    #         f.write(eval_raw_formula)
+    # else:
+    #     stormpy.export_to_drn(eval_model, "eval_model.drn")
+    #     with open("eval_model.props", "w") as f:
+    #         f.write(eval_raw_formula.__str__())
 
     if compute_shield:
         winning_region = compute_winning_region(

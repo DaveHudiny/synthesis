@@ -89,6 +89,7 @@ stormpy-build() {
 }
 
 download-rl() { # 
+    enva
     cd $PAYNT_ROOT/rl_approach
     pip3 install tensorflow # Potentially long installation.
     pip3 install tf_agents # It is essential to install tf_agents AFTER tensorflow
@@ -98,6 +99,7 @@ download-rl() { #
     git clone https://github.com/stevencarrau/shield_rl_gridworlds.git shield_gridworlds
     git clone https://github.com/sjunges/gridworld-by-storm.git gridworlds
     cd -
+    envd
 }
 
 setup-rl() {

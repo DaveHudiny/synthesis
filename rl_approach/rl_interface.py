@@ -5,7 +5,7 @@
 import sys
 
 import numpy as np
-sys.path.append('/home/david/Plocha/paynt/synthesis/rl_approach/safe_rl')
+sys.path.append('./safe_rl')
 
 import pickle
 import dill
