@@ -67,9 +67,6 @@ class RLInterface:
     #     tfa.trajectories.time_step.TimeStep(discount=discount, reward=reward, observation=observation, step_type=step_type)
     #     pass
 
-    def convert_state_tensor_storm_action(self, tensor_state):
-        pass
-
     def save_model(self, path_to_model):
         with open(path_to_model, "wb") as file:
             logger.debug(f"Saving model to {path_to_model}")
