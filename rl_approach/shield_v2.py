@@ -26,6 +26,8 @@ import stormpy.pomdp
 import random
 import os.path
 import inspect
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # from rlshield.noshield import NoShield
 # from rlshield.recorder import LoggingRecorder, VideoRecorder, StatsRecorder
@@ -151,6 +153,7 @@ def parse_args(cfg=None):
         parser.add_argument('--eval-interval', type=int, default=100)
         parser.add_argument('--eval-episodes', type=int, default=5)
         parser.add_argument('--goal-value', type=int, default=10)
+        parser.add_argument('--save-drn', action='store_true')
 
         args = parser.parse_args()
         return args
@@ -252,14 +255,14 @@ def improved_main(cfg=None):
     else:
         eval_model, _, _ = learn_model
     logger.info(model)
-    # if hasattr(args, "fname"):
-    #    stormpy.export_to_drn(eval_model, f"eval_model_{args.fname}.drn")
-    #    with open(f"eval_model_{args.fname}.props", "w") as f:
-    #         f.write(eval_raw_formula)
-    # else:
-    #     stormpy.export_to_drn(eval_model, "eval_model.drn")
-    #     with open("eval_model.props", "w") as f:
-    #         f.write(eval_raw_formula.__str__())
+    if hasattr(args, "fname"):
+        stormpy.export_to_drn(eval_model, f"./models_storm/{args.grid_model}_eval_model_{args.fname}.drn")
+        with open(f"./models_storm/{args.grid_model}_eval_model_{args.fname}.props", "w") as f:
+                f.write(eval_raw_formula)
+    else:
+        stormpy.export_to_drn(eval_model, f"./models_storm/{args.grid_model}_eval_model.drn")
+        with open(f"./models_storm/{args.grid_model}_eval_model.props", "w") as f:
+            f.write(eval_raw_formula.__str__())
 
     if compute_shield:
         winning_region = compute_winning_region(
