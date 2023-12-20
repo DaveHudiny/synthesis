@@ -1,0 +1,3352 @@
+// Exported by storm
+// Original model type: POMDP
+@type: POMDP
+@parameters
+
+@reward_models
+costs gains steps refuels 
+@nr_states
+342
+@nr_choices
+973
+@model
+state 0 {24} [0, 0, 0, 0] init notbad stationvisit
+//[!start	& fuel=10	& ax=0	& ay=0]
+	action placement [0, 0, 0, 0]
+		1 : 1
+state 1 {34} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=10	& ax=0	& ay=0]
+	action south [0, 0, 1, 0]
+		2 : 0.7
+		3 : 0.3
+	action east [0, 0, 1, 0]
+		4 : 0.7
+		5 : 0.3
+state 2 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		7 : 0.7
+		8 : 0.3
+	action east [0, 0, 1, 0]
+		9 : 0.7
+		10 : 0.3
+	action north [0, 0, 1, 0]
+		6 : 1
+state 3 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		8 : 0.7
+		12 : 0.3
+	action east [0, 0, 1, 0]
+		13 : 0.7
+		14 : 0.3
+	action north [0, 0, 1, 0]
+		6 : 0.3
+		11 : 0.7
+state 4 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		9 : 0.7
+		13 : 0.3
+	action east [0, 0, 1, 0]
+		15 : 0.7
+		16 : 0.3
+	action west [0, 0, 1, 0]
+		6 : 1
+state 5 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		10 : 0.7
+		14 : 0.3
+	action east [0, 0, 1, 0]
+		16 : 0.7
+		17 : 0.3
+	action west [0, 0, 1, 0]
+		6 : 0.3
+		18 : 0.7
+state 6 {29} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=8	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 7 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		21 : 0.7
+		22 : 0.3
+	action east [0, 0, 1, 0]
+		23 : 0.7
+		24 : 0.3
+	action north [0, 0, 1, 0]
+		19 : 0.7
+		20 : 0.3
+state 8 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		22 : 0.7
+		26 : 0.3
+	action east [0, 0, 1, 0]
+		27 : 0.7
+		28 : 0.3
+	action north [0, 0, 1, 0]
+		19 : 0.3
+		25 : 0.7
+state 9 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		23 : 0.7
+		27 : 0.3
+	action east [0, 0, 1, 0]
+		30 : 0.7
+		31 : 0.3
+	action north [0, 0, 1, 0]
+		29 : 1
+	action west [0, 0, 1, 0]
+		19 : 1
+state 10 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		24 : 0.7
+		28 : 0.3
+	action east [0, 0, 1, 0]
+		31 : 0.7
+		33 : 0.3
+	action north [0, 0, 1, 0]
+		32 : 1
+	action west [0, 0, 1, 0]
+		19 : 0.3
+		34 : 0.7
+state 11 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		21 : 0.3
+		25 : 0.7
+	action east [0, 0, 1, 0]
+		30 : 0.3
+		34 : 0.7
+	action north [0, 0, 1, 0]
+		20 : 1
+state 12 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		26 : 1
+	action east [0, 0, 1, 0]
+		35 : 0.7
+		36 : 0.3
+	action north [0, 0, 1, 0]
+		21 : 0.7
+		25 : 0.3
+state 13 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		27 : 0.7
+		35 : 0.3
+	action east [0, 0, 1, 0]
+		24 : 0.7
+		37 : 0.3
+	action north [0, 0, 1, 0]
+		29 : 0.3
+		34 : 0.7
+	action west [0, 0, 1, 0]
+		25 : 1
+state 14 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=8	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 15 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		24 : 0.3
+		30 : 0.7
+	action east [0, 0, 1, 0]
+		39 : 0.7
+		40 : 0.3
+	action west [0, 0, 1, 0]
+		20 : 0.3
+		29 : 0.7
+state 16 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		31 : 0.7
+		37 : 0.3
+	action east [0, 0, 1, 0]
+		40 : 0.7
+		41 : 0.3
+	action west [0, 0, 1, 0]
+		29 : 0.3
+		32 : 0.7
+state 17 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		33 : 0.7
+		42 : 0.3
+	action east [0, 0, 1, 0]
+		41 : 1
+	action west [0, 0, 1, 0]
+		32 : 0.3
+		39 : 0.7
+state 18 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		23 : 0.3
+		34 : 0.7
+	action east [0, 0, 1, 0]
+		32 : 0.7
+		39 : 0.3
+	action west [0, 0, 1, 0]
+		20 : 1
+state 19 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		44 : 0.7
+		45 : 0.3
+	action east [0, 0, 1, 0]
+		46 : 0.7
+		47 : 0.3
+	action north [0, 0, 1, 0]
+		43 : 1
+state 20 {29} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=7	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 21 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		49 : 0.7
+		50 : 0.3
+	action east [0, 0, 1, 0]
+		51 : 0.7
+		52 : 0.3
+	action north [0, 0, 1, 0]
+		44 : 0.7
+		48 : 0.3
+state 22 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		50 : 1
+	action east [0, 0, 1, 0]
+		53 : 0.7
+		54 : 0.3
+	action north [0, 0, 1, 0]
+		44 : 0.3
+		45 : 0.7
+state 23 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		51 : 0.7
+		53 : 0.3
+	action east [0, 0, 1, 0]
+		56 : 0.7
+		57 : 0.3
+	action north [0, 0, 1, 0]
+		46 : 0.7
+		55 : 0.3
+	action west [0, 0, 1, 0]
+		44 : 1
+state 24 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=7	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 25 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		45 : 0.7
+		49 : 0.3
+	action east [0, 0, 1, 0]
+		56 : 0.3
+		58 : 0.7
+	action north [0, 0, 1, 0]
+		43 : 0.3
+		48 : 0.7
+state 26 {21} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=0	& ay=5]
+	action east [0, 0, 1, 0]
+		59 : 0.7
+		60 : 0.3
+	action north [0, 0, 1, 0]
+		45 : 0.3
+		49 : 0.7
+state 27 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		53 : 0.7
+		59 : 0.3
+	action east [0, 0, 1, 0]
+		52 : 0.7
+		61 : 0.3
+	action north [0, 0, 1, 0]
+		46 : 0.3
+		58 : 0.7
+	action west [0, 0, 1, 0]
+		45 : 1
+state 28 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		54 : 0.7
+		60 : 0.3
+	action east [0, 0, 1, 0]
+		61 : 0.7
+		62 : 0.3
+	action north [0, 0, 1, 0]
+		47 : 0.3
+		56 : 0.7
+	action west [0, 0, 1, 0]
+		45 : 0.3
+		51 : 0.7
+state 29 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		46 : 0.7
+		58 : 0.3
+	action east [0, 0, 1, 0]
+		63 : 0.7
+		64 : 0.3
+	action west [0, 0, 1, 0]
+		43 : 1
+state 30 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		52 : 0.3
+		56 : 0.7
+	action east [0, 0, 1, 0]
+		65 : 0.7
+		66 : 0.3
+	action north [0, 0, 1, 0]
+		63 : 1
+	action west [0, 0, 1, 0]
+		46 : 0.7
+		48 : 0.3
+state 31 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		57 : 0.7
+		61 : 0.3
+	action east [0, 0, 1, 0]
+		66 : 0.7
+		67 : 0.3
+	action north [0, 0, 1, 0]
+		64 : 1
+	action west [0, 0, 1, 0]
+		46 : 0.3
+		47 : 0.7
+state 32 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		47 : 0.7
+		56 : 0.3
+	action east [0, 0, 1, 0]
+		64 : 0.7
+		68 : 0.3
+	action west [0, 0, 1, 0]
+		43 : 0.3
+		55 : 0.7
+state 33 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		62 : 0.3
+		69 : 0.7
+	action east [0, 0, 1, 0]
+		67 : 1
+	action north [0, 0, 1, 0]
+		68 : 1
+	action west [0, 0, 1, 0]
+		47 : 0.3
+		65 : 0.7
+state 34 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		51 : 0.3
+		58 : 0.7
+	action east [0, 0, 1, 0]
+		47 : 0.7
+		65 : 0.3
+	action north [0, 0, 1, 0]
+		55 : 1
+	action west [0, 0, 1, 0]
+		48 : 1
+state 35 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		59 : 1
+	action east [0, 0, 1, 0]
+		54 : 0.7
+		70 : 0.3
+	action north [0, 0, 1, 0]
+		51 : 0.7
+		58 : 0.3
+	action west [0, 0, 1, 0]
+		49 : 1
+state 36 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		60 : 1
+	action east [0, 0, 1, 0]
+		70 : 0.7
+		71 : 0.3
+	action north [0, 0, 1, 0]
+		52 : 0.7
+		56 : 0.3
+	action west [0, 0, 1, 0]
+		49 : 0.3
+		53 : 0.7
+state 37 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		61 : 0.7
+		70 : 0.3
+	action east [0, 0, 1, 0]
+		69 : 0.7
+		72 : 0.3
+	action north [0, 0, 1, 0]
+		64 : 0.3
+		65 : 0.7
+	action west [0, 0, 1, 0]
+		56 : 0.7
+		58 : 0.3
+state 38 {33} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=10	& ax=2	& ay=2]
+	action south [0, 0, 1, 0]
+		74 : 0.7
+		75 : 0.3
+	action east [0, 0, 1, 0]
+		76 : 0.7
+		77 : 0.3
+	action north [0, 0, 1, 0]
+		5 : 0.3
+		73 : 0.7
+	action west [0, 0, 1, 0]
+		3 : 0.3
+		78 : 0.7
+state 39 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		57 : 0.3
+		65 : 0.7
+	action east [0, 0, 1, 0]
+		68 : 0.7
+		79 : 0.3
+	action west [0, 0, 1, 0]
+		55 : 0.3
+		63 : 0.7
+state 40 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		66 : 0.7
+		69 : 0.3
+	action east [0, 0, 1, 0]
+		79 : 1
+	action west [0, 0, 1, 0]
+		63 : 0.3
+		64 : 0.7
+state 41 {26} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=5	& ay=0]
+	action south [0, 0, 1, 0]
+		67 : 0.7
+		72 : 0.3
+	action west [0, 0, 1, 0]
+		64 : 0.3
+		68 : 0.7
+state 42 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		62 : 0.7
+		71 : 0.3
+	action east [0, 0, 1, 0]
+		72 : 1
+	action north [0, 0, 1, 0]
+		66 : 0.7
+		68 : 0.3
+	action west [0, 0, 1, 0]
+		56 : 0.3
+		57 : 0.7
+state 43 {29} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=6	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 44 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		82 : 0.7
+		83 : 0.3
+	action east [0, 0, 1, 0]
+		84 : 0.7
+		85 : 0.3
+	action north [0, 0, 1, 0]
+		80 : 0.7
+		81 : 0.3
+state 45 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		83 : 0.7
+		87 : 0.3
+	action east [0, 0, 1, 0]
+		88 : 0.7
+		89 : 0.3
+	action north [0, 0, 1, 0]
+		80 : 0.3
+		86 : 0.7
+state 46 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		84 : 0.7
+		88 : 0.3
+	action east [0, 0, 1, 0]
+		91 : 0.7
+		92 : 0.3
+	action north [0, 0, 1, 0]
+		90 : 1
+	action west [0, 0, 1, 0]
+		80 : 1
+state 47 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		85 : 0.7
+		89 : 0.3
+	action east [0, 0, 1, 0]
+		92 : 0.7
+		94 : 0.3
+	action north [0, 0, 1, 0]
+		93 : 1
+	action west [0, 0, 1, 0]
+		80 : 0.3
+		95 : 0.7
+state 48 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		82 : 0.3
+		86 : 0.7
+	action east [0, 0, 1, 0]
+		91 : 0.3
+		95 : 0.7
+	action north [0, 0, 1, 0]
+		81 : 1
+state 49 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		87 : 1
+	action east [0, 0, 1, 0]
+		96 : 0.7
+		97 : 0.3
+	action north [0, 0, 1, 0]
+		82 : 0.7
+		86 : 0.3
+state 50 {21} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=0	& ay=5]
+	action east [0, 0, 1, 0]
+		98 : 0.7
+		99 : 0.3
+	action north [0, 0, 1, 0]
+		82 : 0.3
+		83 : 0.7
+state 51 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		96 : 0.7
+		98 : 0.3
+	action east [0, 0, 1, 0]
+		89 : 0.7
+		100 : 0.3
+	action north [0, 0, 1, 0]
+		84 : 0.7
+		95 : 0.3
+	action west [0, 0, 1, 0]
+		82 : 1
+state 52 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		97 : 0.7
+		99 : 0.3
+	action east [0, 0, 1, 0]
+		100 : 0.7
+		101 : 0.3
+	action north [0, 0, 1, 0]
+		85 : 0.7
+		91 : 0.3
+	action west [0, 0, 1, 0]
+		82 : 0.3
+		88 : 0.7
+state 53 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		98 : 1
+	action east [0, 0, 1, 0]
+		97 : 0.7
+		102 : 0.3
+	action north [0, 0, 1, 0]
+		84 : 0.3
+		88 : 0.7
+	action west [0, 0, 1, 0]
+		83 : 1
+state 54 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		99 : 1
+	action east [0, 0, 1, 0]
+		102 : 0.7
+		103 : 0.3
+	action north [0, 0, 1, 0]
+		85 : 0.3
+		89 : 0.7
+	action west [0, 0, 1, 0]
+		83 : 0.3
+		96 : 0.7
+state 55 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		84 : 0.3
+		95 : 0.7
+	action east [0, 0, 1, 0]
+		93 : 0.7
+		104 : 0.3
+	action west [0, 0, 1, 0]
+		81 : 1
+state 56 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=6	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 57 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		100 : 0.7
+		102 : 0.3
+	action east [0, 0, 1, 0]
+		105 : 0.7
+		106 : 0.3
+	action north [0, 0, 1, 0]
+		92 : 0.7
+		104 : 0.3
+	action west [0, 0, 1, 0]
+		84 : 0.3
+		85 : 0.7
+state 58 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		88 : 0.7
+		96 : 0.3
+	action east [0, 0, 1, 0]
+		85 : 0.7
+		107 : 0.3
+	action north [0, 0, 1, 0]
+		90 : 0.3
+		95 : 0.7
+	action west [0, 0, 1, 0]
+		86 : 1
+state 59 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		99 : 0.7
+		108 : 0.3
+	action north [0, 0, 1, 0]
+		88 : 0.3
+		96 : 0.7
+	action west [0, 0, 1, 0]
+		87 : 1
+state 60 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		108 : 0.7
+		109 : 0.3
+	action north [0, 0, 1, 0]
+		89 : 0.3
+		97 : 0.7
+	action west [0, 0, 1, 0]
+		87 : 0.3
+		98 : 0.7
+state 61 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=6	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 62 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		103 : 0.7
+		109 : 0.3
+	action east [0, 0, 1, 0]
+		111 : 1
+	action north [0, 0, 1, 0]
+		94 : 0.3
+		105 : 0.7
+	action west [0, 0, 1, 0]
+		89 : 0.3
+		100 : 0.7
+state 63 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		85 : 0.3
+		91 : 0.7
+	action east [0, 0, 1, 0]
+		104 : 0.7
+		112 : 0.3
+	action west [0, 0, 1, 0]
+		81 : 0.3
+		90 : 0.7
+state 64 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		92 : 0.7
+		107 : 0.3
+	action east [0, 0, 1, 0]
+		112 : 0.7
+		113 : 0.3
+	action west [0, 0, 1, 0]
+		90 : 0.3
+		93 : 0.7
+state 65 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		100 : 0.3
+		107 : 0.7
+	action east [0, 0, 1, 0]
+		94 : 0.7
+		114 : 0.3
+	action north [0, 0, 1, 0]
+		104 : 1
+	action west [0, 0, 1, 0]
+		91 : 0.7
+		95 : 0.3
+state 66 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		101 : 0.3
+		105 : 0.7
+	action east [0, 0, 1, 0]
+		114 : 1
+	action north [0, 0, 1, 0]
+		112 : 1
+	action west [0, 0, 1, 0]
+		91 : 0.3
+		92 : 0.7
+state 67 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		106 : 0.7
+		111 : 0.3
+	action north [0, 0, 1, 0]
+		113 : 1
+	action west [0, 0, 1, 0]
+		92 : 0.3
+		94 : 0.7
+state 68 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		94 : 0.7
+		105 : 0.3
+	action east [0, 0, 1, 0]
+		113 : 1
+	action west [0, 0, 1, 0]
+		93 : 0.3
+		104 : 0.7
+state 69 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		101 : 0.7
+		103 : 0.3
+	action east [0, 0, 1, 0]
+		106 : 1
+	action north [0, 0, 1, 0]
+		94 : 0.7
+		112 : 0.3
+	action west [0, 0, 1, 0]
+		85 : 0.3
+		107 : 0.7
+state 70 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		108 : 1
+	action east [0, 0, 1, 0]
+		103 : 0.7
+		115 : 0.3
+	action north [0, 0, 1, 0]
+		100 : 0.7
+		107 : 0.3
+	action west [0, 0, 1, 0]
+		96 : 0.3
+		97 : 0.7
+state 71 {11} [0, 0, 0, 0] traps
+//[start	& fuel=6	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		71 : 1
+state 72 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		111 : 0.7
+		115 : 0.3
+	action north [0, 0, 1, 0]
+		113 : 0.3
+		114 : 0.7
+	action west [0, 0, 1, 0]
+		105 : 0.7
+		107 : 0.3
+state 73 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		14 : 0.7
+		116 : 0.3
+	action east [0, 0, 1, 0]
+		117 : 0.7
+		118 : 0.3
+	action north [0, 0, 1, 0]
+		15 : 1
+	action west [0, 0, 1, 0]
+		9 : 0.7
+		11 : 0.3
+state 74 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		119 : 0.7
+		120 : 0.3
+	action east [0, 0, 1, 0]
+		121 : 0.7
+		122 : 0.3
+	action north [0, 0, 1, 0]
+		10 : 0.3
+		14 : 0.7
+	action west [0, 0, 1, 0]
+		8 : 0.3
+		123 : 0.7
+state 75 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		120 : 1
+	action east [0, 0, 1, 0]
+		124 : 0.7
+		125 : 0.3
+	action north [0, 0, 1, 0]
+		14 : 0.3
+		116 : 0.7
+	action west [0, 0, 1, 0]
+		12 : 0.3
+		126 : 0.7
+state 76 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		121 : 0.7
+		124 : 0.3
+	action east [0, 0, 1, 0]
+		127 : 0.7
+		128 : 0.3
+	action north [0, 0, 1, 0]
+		16 : 0.3
+		117 : 0.7
+	action west [0, 0, 1, 0]
+		13 : 0.3
+		14 : 0.7
+state 77 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		122 : 0.7
+		125 : 0.3
+	action east [0, 0, 1, 0]
+		128 : 1
+	action north [0, 0, 1, 0]
+		17 : 0.3
+		118 : 0.7
+	action west [0, 0, 1, 0]
+		14 : 0.3
+		129 : 0.7
+state 78 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		123 : 0.7
+		126 : 0.3
+	action east [0, 0, 1, 0]
+		14 : 0.7
+		129 : 0.3
+	action north [0, 0, 1, 0]
+		9 : 0.7
+		18 : 0.3
+	action west [0, 0, 1, 0]
+		7 : 1
+state 79 {26} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=5	& ay=0]
+	action south [0, 0, 1, 0]
+		106 : 0.3
+		114 : 0.7
+	action west [0, 0, 1, 0]
+		104 : 0.3
+		112 : 0.7
+state 80 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		131 : 0.7
+		132 : 0.3
+	action east [0, 0, 1, 0]
+		133 : 0.7
+		134 : 0.3
+	action north [0, 0, 1, 0]
+		130 : 1
+state 81 {29} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=5	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 82 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		136 : 0.7
+		137 : 0.3
+	action east [0, 0, 1, 0]
+		138 : 0.7
+		139 : 0.3
+	action north [0, 0, 1, 0]
+		131 : 0.7
+		135 : 0.3
+state 83 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		137 : 1
+	action east [0, 0, 1, 0]
+		140 : 0.7
+		141 : 0.3
+	action north [0, 0, 1, 0]
+		131 : 0.3
+		132 : 0.7
+state 84 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		138 : 0.7
+		140 : 0.3
+	action east [0, 0, 1, 0]
+		143 : 0.7
+		144 : 0.3
+	action north [0, 0, 1, 0]
+		133 : 0.7
+		142 : 0.3
+	action west [0, 0, 1, 0]
+		131 : 1
+state 85 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=5	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 86 {14} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		132 : 0.7
+		136 : 0.3
+	action east [0, 0, 1, 0]
+		143 : 0.3
+		145 : 0.7
+	action north [0, 0, 1, 0]
+		130 : 0.3
+		135 : 0.7
+state 87 {21} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=0	& ay=5]
+	action east [0, 0, 1, 0]
+		146 : 0.7
+		147 : 0.3
+	action north [0, 0, 1, 0]
+		132 : 0.3
+		136 : 0.7
+state 88 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		140 : 0.7
+		146 : 0.3
+	action east [0, 0, 1, 0]
+		139 : 0.7
+		148 : 0.3
+	action north [0, 0, 1, 0]
+		133 : 0.3
+		145 : 0.7
+	action west [0, 0, 1, 0]
+		132 : 1
+state 89 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		141 : 0.7
+		147 : 0.3
+	action east [0, 0, 1, 0]
+		148 : 0.7
+		149 : 0.3
+	action north [0, 0, 1, 0]
+		134 : 0.3
+		143 : 0.7
+	action west [0, 0, 1, 0]
+		132 : 0.3
+		138 : 0.7
+state 90 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		133 : 0.7
+		145 : 0.3
+	action east [0, 0, 1, 0]
+		150 : 0.7
+		151 : 0.3
+	action west [0, 0, 1, 0]
+		130 : 1
+state 91 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		139 : 0.3
+		143 : 0.7
+	action east [0, 0, 1, 0]
+		152 : 0.7
+		153 : 0.3
+	action north [0, 0, 1, 0]
+		150 : 1
+	action west [0, 0, 1, 0]
+		133 : 0.7
+		135 : 0.3
+state 92 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		144 : 0.7
+		148 : 0.3
+	action east [0, 0, 1, 0]
+		153 : 0.7
+		154 : 0.3
+	action north [0, 0, 1, 0]
+		151 : 1
+	action west [0, 0, 1, 0]
+		133 : 0.3
+		134 : 0.7
+state 93 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		134 : 0.7
+		143 : 0.3
+	action east [0, 0, 1, 0]
+		151 : 0.7
+		155 : 0.3
+	action west [0, 0, 1, 0]
+		130 : 0.3
+		142 : 0.7
+state 94 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		149 : 0.3
+		156 : 0.7
+	action east [0, 0, 1, 0]
+		154 : 1
+	action north [0, 0, 1, 0]
+		155 : 1
+	action west [0, 0, 1, 0]
+		134 : 0.3
+		152 : 0.7
+state 95 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		138 : 0.3
+		145 : 0.7
+	action east [0, 0, 1, 0]
+		134 : 0.7
+		152 : 0.3
+	action north [0, 0, 1, 0]
+		142 : 1
+	action west [0, 0, 1, 0]
+		135 : 1
+state 96 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		146 : 1
+	action east [0, 0, 1, 0]
+		141 : 0.7
+		157 : 0.3
+	action north [0, 0, 1, 0]
+		138 : 0.7
+		145 : 0.3
+	action west [0, 0, 1, 0]
+		136 : 1
+state 97 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		147 : 1
+	action east [0, 0, 1, 0]
+		157 : 0.7
+		158 : 0.3
+	action north [0, 0, 1, 0]
+		139 : 0.7
+		143 : 0.3
+	action west [0, 0, 1, 0]
+		136 : 0.3
+		140 : 0.7
+state 98 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		147 : 0.7
+		159 : 0.3
+	action north [0, 0, 1, 0]
+		138 : 0.3
+		140 : 0.7
+	action west [0, 0, 1, 0]
+		137 : 1
+state 99 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		159 : 0.7
+		160 : 0.3
+	action north [0, 0, 1, 0]
+		139 : 0.3
+		141 : 0.7
+	action west [0, 0, 1, 0]
+		137 : 0.3
+		146 : 0.7
+state 100 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=5	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 101 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		158 : 0.7
+		160 : 0.3
+	action east [0, 0, 1, 0]
+		161 : 1
+	action north [0, 0, 1, 0]
+		153 : 0.3
+		156 : 0.7
+	action west [0, 0, 1, 0]
+		139 : 0.3
+		148 : 0.7
+state 102 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		159 : 1
+	action east [0, 0, 1, 0]
+		158 : 0.7
+		162 : 0.3
+	action north [0, 0, 1, 0]
+		144 : 0.3
+		148 : 0.7
+	action west [0, 0, 1, 0]
+		140 : 0.3
+		141 : 0.7
+state 103 {11} [0, 0, 0, 0] traps
+//[start	& fuel=5	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		103 : 1
+state 104 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		144 : 0.3
+		152 : 0.7
+	action east [0, 0, 1, 0]
+		155 : 0.7
+		163 : 0.3
+	action west [0, 0, 1, 0]
+		142 : 0.3
+		150 : 0.7
+state 105 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		149 : 0.7
+		158 : 0.3
+	action east [0, 0, 1, 0]
+		164 : 1
+	action north [0, 0, 1, 0]
+		153 : 0.7
+		155 : 0.3
+	action west [0, 0, 1, 0]
+		143 : 0.3
+		144 : 0.7
+state 106 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		161 : 0.7
+		162 : 0.3
+	action north [0, 0, 1, 0]
+		154 : 0.7
+		163 : 0.3
+	action west [0, 0, 1, 0]
+		144 : 0.3
+		156 : 0.7
+state 107 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		148 : 0.7
+		157 : 0.3
+	action east [0, 0, 1, 0]
+		156 : 0.7
+		164 : 0.3
+	action north [0, 0, 1, 0]
+		151 : 0.3
+		152 : 0.7
+	action west [0, 0, 1, 0]
+		143 : 0.7
+		145 : 0.3
+state 108 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		160 : 0.7
+		165 : 0.3
+	action north [0, 0, 1, 0]
+		148 : 0.3
+		157 : 0.7
+	action west [0, 0, 1, 0]
+		146 : 0.3
+		147 : 0.7
+state 109 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		165 : 1
+	action north [0, 0, 1, 0]
+		149 : 0.3
+		158 : 0.7
+	action west [0, 0, 1, 0]
+		147 : 0.3
+		159 : 0.7
+state 110 {33} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=10	& ax=3	& ay=3]
+	action south [0, 0, 1, 0]
+		167 : 0.7
+		168 : 0.3
+	action east [0, 0, 1, 0]
+		169 : 0.7
+		170 : 0.3
+	action north [0, 0, 1, 0]
+		76 : 0.7
+		166 : 0.3
+	action west [0, 0, 1, 0]
+		74 : 0.7
+		171 : 0.3
+state 111 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		162 : 0.7
+		165 : 0.3
+	action north [0, 0, 1, 0]
+		154 : 0.3
+		164 : 0.7
+	action west [0, 0, 1, 0]
+		148 : 0.3
+		149 : 0.7
+state 112 {5} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		153 : 0.7
+		156 : 0.3
+	action east [0, 0, 1, 0]
+		163 : 1
+	action west [0, 0, 1, 0]
+		150 : 0.3
+		151 : 0.7
+state 113 {26} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=5	& ay=0]
+	action south [0, 0, 1, 0]
+		154 : 0.7
+		164 : 0.3
+	action west [0, 0, 1, 0]
+		151 : 0.3
+		155 : 0.7
+state 114 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		161 : 0.3
+		164 : 0.7
+	action north [0, 0, 1, 0]
+		163 : 1
+	action west [0, 0, 1, 0]
+		152 : 0.3
+		153 : 0.7
+state 115 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=5	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		165 : 1
+	action north [0, 0, 1, 0]
+		161 : 0.7
+		164 : 0.3
+	action west [0, 0, 1, 0]
+		157 : 0.3
+		158 : 0.7
+state 116 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		36 : 0.7
+		172 : 0.3
+	action east [0, 0, 1, 0]
+		173 : 0.7
+		174 : 0.3
+	action north [0, 0, 1, 0]
+		24 : 0.7
+		30 : 0.3
+	action west [0, 0, 1, 0]
+		21 : 0.3
+		27 : 0.7
+state 117 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		37 : 0.7
+		173 : 0.3
+	action east [0, 0, 1, 0]
+		33 : 0.7
+		175 : 0.3
+	action north [0, 0, 1, 0]
+		39 : 1
+	action west [0, 0, 1, 0]
+		30 : 0.7
+		34 : 0.3
+state 118 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		42 : 0.7
+		174 : 0.3
+	action east [0, 0, 1, 0]
+		175 : 1
+	action north [0, 0, 1, 0]
+		40 : 1
+	action west [0, 0, 1, 0]
+		30 : 0.3
+		31 : 0.7
+state 119 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		172 : 1
+	action east [0, 0, 1, 0]
+		176 : 0.7
+		177 : 0.3
+	action north [0, 0, 1, 0]
+		24 : 0.3
+		28 : 0.7
+	action west [0, 0, 1, 0]
+		22 : 0.3
+		35 : 0.7
+state 120 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		178 : 0.7
+		179 : 0.3
+	action north [0, 0, 1, 0]
+		28 : 0.3
+		36 : 0.7
+	action west [0, 0, 1, 0]
+		26 : 0.3
+		180 : 0.7
+state 121 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=8	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 122 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		177 : 0.7
+		179 : 0.3
+	action east [0, 0, 1, 0]
+		181 : 1
+	action north [0, 0, 1, 0]
+		33 : 0.3
+		42 : 0.7
+	action west [0, 0, 1, 0]
+		28 : 0.3
+		173 : 0.7
+state 123 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		35 : 0.7
+		180 : 0.3
+	action east [0, 0, 1, 0]
+		28 : 0.7
+		173 : 0.3
+	action north [0, 0, 1, 0]
+		23 : 0.7
+		34 : 0.3
+	action west [0, 0, 1, 0]
+		21 : 1
+state 124 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		178 : 1
+	action east [0, 0, 1, 0]
+		177 : 0.7
+		182 : 0.3
+	action north [0, 0, 1, 0]
+		37 : 0.3
+		173 : 0.7
+	action west [0, 0, 1, 0]
+		35 : 0.3
+		36 : 0.7
+state 125 {11} [0, 0, 0, 0] traps
+//[start	& fuel=8	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		125 : 1
+state 126 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		180 : 1
+	action east [0, 0, 1, 0]
+		36 : 0.7
+		176 : 0.3
+	action north [0, 0, 1, 0]
+		23 : 0.3
+		27 : 0.7
+	action west [0, 0, 1, 0]
+		22 : 1
+state 127 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		174 : 0.7
+		177 : 0.3
+	action east [0, 0, 1, 0]
+		183 : 1
+	action north [0, 0, 1, 0]
+		33 : 0.7
+		40 : 0.3
+	action west [0, 0, 1, 0]
+		24 : 0.3
+		37 : 0.7
+state 128 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		181 : 0.7
+		182 : 0.3
+	action north [0, 0, 1, 0]
+		41 : 0.3
+		175 : 0.7
+	action west [0, 0, 1, 0]
+		37 : 0.3
+		42 : 0.7
+state 129 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		173 : 0.7
+		176 : 0.3
+	action east [0, 0, 1, 0]
+		42 : 0.7
+		183 : 0.3
+	action north [0, 0, 1, 0]
+		31 : 0.7
+		39 : 0.3
+	action west [0, 0, 1, 0]
+		23 : 0.3
+		24 : 0.7
+state 130 {30} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=4	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 131 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		186 : 0.7
+		187 : 0.3
+	action east [0, 0, 1, 0]
+		188 : 0.7
+		189 : 0.3
+	action north [0, 0, 1, 0]
+		184 : 0.7
+		185 : 0.3
+state 132 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		187 : 0.7
+		191 : 0.3
+	action east [0, 0, 1, 0]
+		192 : 0.7
+		193 : 0.3
+	action north [0, 0, 1, 0]
+		184 : 0.3
+		190 : 0.7
+state 133 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		188 : 0.7
+		192 : 0.3
+	action east [0, 0, 1, 0]
+		195 : 0.7
+		196 : 0.3
+	action north [0, 0, 1, 0]
+		194 : 1
+	action west [0, 0, 1, 0]
+		184 : 1
+state 134 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		189 : 0.7
+		193 : 0.3
+	action east [0, 0, 1, 0]
+		196 : 0.7
+		198 : 0.3
+	action north [0, 0, 1, 0]
+		197 : 1
+	action west [0, 0, 1, 0]
+		184 : 0.3
+		199 : 0.7
+state 135 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		186 : 0.3
+		190 : 0.7
+	action east [0, 0, 1, 0]
+		195 : 0.3
+		199 : 0.7
+	action north [0, 0, 1, 0]
+		185 : 1
+state 136 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		191 : 1
+	action east [0, 0, 1, 0]
+		200 : 0.7
+		201 : 0.3
+	action north [0, 0, 1, 0]
+		186 : 0.7
+		190 : 0.3
+state 137 {18} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=0	& ay=5]
+	action east [0, 0, 1, 0]
+		202 : 0.7
+		203 : 0.3
+	action north [0, 0, 1, 0]
+		186 : 0.3
+		187 : 0.7
+state 138 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		200 : 0.7
+		202 : 0.3
+	action east [0, 0, 1, 0]
+		193 : 0.7
+		204 : 0.3
+	action north [0, 0, 1, 0]
+		188 : 0.7
+		199 : 0.3
+	action west [0, 0, 1, 0]
+		186 : 1
+state 139 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		201 : 0.7
+		203 : 0.3
+	action east [0, 0, 1, 0]
+		204 : 0.7
+		205 : 0.3
+	action north [0, 0, 1, 0]
+		189 : 0.7
+		195 : 0.3
+	action west [0, 0, 1, 0]
+		186 : 0.3
+		192 : 0.7
+state 140 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		202 : 1
+	action east [0, 0, 1, 0]
+		201 : 0.7
+		206 : 0.3
+	action north [0, 0, 1, 0]
+		188 : 0.3
+		192 : 0.7
+	action west [0, 0, 1, 0]
+		187 : 1
+state 141 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		203 : 1
+	action east [0, 0, 1, 0]
+		206 : 0.7
+		207 : 0.3
+	action north [0, 0, 1, 0]
+		189 : 0.3
+		193 : 0.7
+	action west [0, 0, 1, 0]
+		187 : 0.3
+		200 : 0.7
+state 142 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		188 : 0.3
+		199 : 0.7
+	action east [0, 0, 1, 0]
+		197 : 0.7
+		208 : 0.3
+	action west [0, 0, 1, 0]
+		185 : 1
+state 143 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=4	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 144 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		204 : 0.7
+		206 : 0.3
+	action east [0, 0, 1, 0]
+		209 : 0.7
+		210 : 0.3
+	action north [0, 0, 1, 0]
+		196 : 0.7
+		208 : 0.3
+	action west [0, 0, 1, 0]
+		188 : 0.3
+		189 : 0.7
+state 145 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		192 : 0.7
+		200 : 0.3
+	action east [0, 0, 1, 0]
+		189 : 0.7
+		211 : 0.3
+	action north [0, 0, 1, 0]
+		194 : 0.3
+		199 : 0.7
+	action west [0, 0, 1, 0]
+		190 : 1
+state 146 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		203 : 0.7
+		212 : 0.3
+	action north [0, 0, 1, 0]
+		192 : 0.3
+		200 : 0.7
+	action west [0, 0, 1, 0]
+		191 : 1
+state 147 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		212 : 0.7
+		213 : 0.3
+	action north [0, 0, 1, 0]
+		193 : 0.3
+		201 : 0.7
+	action west [0, 0, 1, 0]
+		191 : 0.3
+		202 : 0.7
+state 148 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=4	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 149 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		207 : 0.7
+		213 : 0.3
+	action east [0, 0, 1, 0]
+		214 : 1
+	action north [0, 0, 1, 0]
+		198 : 0.3
+		209 : 0.7
+	action west [0, 0, 1, 0]
+		193 : 0.3
+		204 : 0.7
+state 150 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		189 : 0.3
+		195 : 0.7
+	action east [0, 0, 1, 0]
+		208 : 0.7
+		215 : 0.3
+	action west [0, 0, 1, 0]
+		185 : 0.3
+		194 : 0.7
+state 151 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		196 : 0.7
+		211 : 0.3
+	action east [0, 0, 1, 0]
+		215 : 0.7
+		216 : 0.3
+	action west [0, 0, 1, 0]
+		194 : 0.3
+		197 : 0.7
+state 152 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		204 : 0.3
+		211 : 0.7
+	action east [0, 0, 1, 0]
+		198 : 0.7
+		217 : 0.3
+	action north [0, 0, 1, 0]
+		208 : 1
+	action west [0, 0, 1, 0]
+		195 : 0.7
+		199 : 0.3
+state 153 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		205 : 0.3
+		209 : 0.7
+	action east [0, 0, 1, 0]
+		217 : 1
+	action north [0, 0, 1, 0]
+		215 : 1
+	action west [0, 0, 1, 0]
+		195 : 0.3
+		196 : 0.7
+state 154 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		210 : 0.7
+		214 : 0.3
+	action north [0, 0, 1, 0]
+		216 : 1
+	action west [0, 0, 1, 0]
+		196 : 0.3
+		198 : 0.7
+state 155 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		198 : 0.7
+		209 : 0.3
+	action east [0, 0, 1, 0]
+		216 : 1
+	action west [0, 0, 1, 0]
+		197 : 0.3
+		208 : 0.7
+state 156 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		205 : 0.7
+		207 : 0.3
+	action east [0, 0, 1, 0]
+		210 : 1
+	action north [0, 0, 1, 0]
+		198 : 0.7
+		215 : 0.3
+	action west [0, 0, 1, 0]
+		189 : 0.3
+		211 : 0.7
+state 157 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		212 : 1
+	action east [0, 0, 1, 0]
+		207 : 0.7
+		218 : 0.3
+	action north [0, 0, 1, 0]
+		204 : 0.7
+		211 : 0.3
+	action west [0, 0, 1, 0]
+		200 : 0.3
+		201 : 0.7
+state 158 {23} [0, 0, 0, 0] traps
+//[start	& fuel=4	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		158 : 1
+state 159 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		213 : 0.7
+		219 : 0.3
+	action north [0, 0, 1, 0]
+		204 : 0.3
+		206 : 0.7
+	action west [0, 0, 1, 0]
+		202 : 0.3
+		203 : 0.7
+state 160 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		219 : 1
+	action north [0, 0, 1, 0]
+		205 : 0.3
+		207 : 0.7
+	action west [0, 0, 1, 0]
+		203 : 0.3
+		212 : 0.7
+state 161 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		218 : 0.7
+		219 : 0.3
+	action north [0, 0, 1, 0]
+		210 : 0.7
+		217 : 0.3
+	action west [0, 0, 1, 0]
+		204 : 0.3
+		205 : 0.7
+state 162 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		219 : 1
+	action north [0, 0, 1, 0]
+		210 : 0.3
+		214 : 0.7
+	action west [0, 0, 1, 0]
+		206 : 0.3
+		207 : 0.7
+state 163 {28} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=5	& ay=0]
+	action south [0, 0, 1, 0]
+		210 : 0.3
+		217 : 0.7
+	action west [0, 0, 1, 0]
+		208 : 0.3
+		215 : 0.7
+state 164 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=4	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		214 : 0.7
+		218 : 0.3
+	action north [0, 0, 1, 0]
+		216 : 0.3
+		217 : 0.7
+	action west [0, 0, 1, 0]
+		209 : 0.7
+		211 : 0.3
+state 165 {8} [0, 0, 0, 0] goal notbad
+//[start	& fuel=4	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		165 : 1
+state 166 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		121 : 0.3
+		129 : 0.7
+	action east [0, 0, 1, 0]
+		118 : 0.7
+		220 : 0.3
+	action north [0, 0, 1, 0]
+		16 : 1
+	action west [0, 0, 1, 0]
+		9 : 0.3
+		10 : 0.7
+state 167 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		221 : 1
+	action east [0, 0, 1, 0]
+		125 : 0.7
+		222 : 0.3
+	action north [0, 0, 1, 0]
+		121 : 0.7
+		129 : 0.3
+	action west [0, 0, 1, 0]
+		119 : 0.7
+		126 : 0.3
+state 168 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		223 : 0.7
+		224 : 0.3
+	action north [0, 0, 1, 0]
+		121 : 0.3
+		124 : 0.7
+	action west [0, 0, 1, 0]
+		120 : 0.7
+		225 : 0.3
+state 169 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		125 : 0.7
+		223 : 0.3
+	action east [0, 0, 1, 0]
+		226 : 1
+	action north [0, 0, 1, 0]
+		118 : 0.3
+		127 : 0.7
+	action west [0, 0, 1, 0]
+		116 : 0.3
+		121 : 0.7
+state 170 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		222 : 0.7
+		224 : 0.3
+	action north [0, 0, 1, 0]
+		128 : 0.7
+		220 : 0.3
+	action west [0, 0, 1, 0]
+		121 : 0.3
+		122 : 0.7
+state 171 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=9	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		126 : 0.7
+		225 : 0.3
+	action east [0, 0, 1, 0]
+		116 : 0.7
+		121 : 0.3
+	action north [0, 0, 1, 0]
+		9 : 0.3
+		13 : 0.7
+	action west [0, 0, 1, 0]
+		8 : 1
+state 172 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		227 : 0.7
+		228 : 0.3
+	action north [0, 0, 1, 0]
+		52 : 0.3
+		54 : 0.7
+	action west [0, 0, 1, 0]
+		50 : 0.3
+		59 : 0.7
+state 173 {7} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=7	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 174 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		71 : 0.7
+		228 : 0.3
+	action east [0, 0, 1, 0]
+		229 : 1
+	action north [0, 0, 1, 0]
+		66 : 0.3
+		69 : 0.7
+	action west [0, 0, 1, 0]
+		52 : 0.3
+		61 : 0.7
+state 175 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		72 : 0.7
+		229 : 0.3
+	action north [0, 0, 1, 0]
+		79 : 1
+	action west [0, 0, 1, 0]
+		65 : 0.3
+		66 : 0.7
+state 176 {0} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		227 : 1
+	action east [0, 0, 1, 0]
+		71 : 0.7
+		230 : 0.3
+	action north [0, 0, 1, 0]
+		57 : 0.3
+		61 : 0.7
+	action west [0, 0, 1, 0]
+		53 : 0.3
+		54 : 0.7
+state 177 {11} [0, 0, 0, 0] traps
+//[start	& fuel=7	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		177 : 1
+state 178 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		228 : 0.7
+		231 : 0.3
+	action north [0, 0, 1, 0]
+		61 : 0.3
+		70 : 0.7
+	action west [0, 0, 1, 0]
+		59 : 0.3
+		60 : 0.7
+state 179 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		231 : 1
+	action north [0, 0, 1, 0]
+		62 : 0.3
+		71 : 0.7
+	action west [0, 0, 1, 0]
+		60 : 0.3
+		227 : 0.7
+state 180 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		60 : 0.7
+		227 : 0.3
+	action north [0, 0, 1, 0]
+		51 : 0.3
+		53 : 0.7
+	action west [0, 0, 1, 0]
+		50 : 1
+state 181 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		230 : 0.7
+		231 : 0.3
+	action north [0, 0, 1, 0]
+		67 : 0.3
+		72 : 0.7
+	action west [0, 0, 1, 0]
+		61 : 0.3
+		62 : 0.7
+state 182 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		231 : 1
+	action north [0, 0, 1, 0]
+		72 : 0.3
+		229 : 0.7
+	action west [0, 0, 1, 0]
+		70 : 0.3
+		71 : 0.7
+state 183 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=7	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		229 : 0.7
+		230 : 0.3
+	action north [0, 0, 1, 0]
+		67 : 0.7
+		79 : 0.3
+	action west [0, 0, 1, 0]
+		57 : 0.3
+		69 : 0.7
+state 184 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		233 : 0.7
+		234 : 0.3
+	action east [0, 0, 1, 0]
+		235 : 0.7
+		236 : 0.3
+	action north [0, 0, 1, 0]
+		232 : 1
+state 185 {30} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=3	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 186 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		238 : 0.7
+		239 : 0.3
+	action east [0, 0, 1, 0]
+		240 : 0.7
+		241 : 0.3
+	action north [0, 0, 1, 0]
+		233 : 0.7
+		237 : 0.3
+state 187 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		239 : 1
+	action east [0, 0, 1, 0]
+		242 : 0.7
+		243 : 0.3
+	action north [0, 0, 1, 0]
+		233 : 0.3
+		234 : 0.7
+state 188 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		240 : 0.7
+		242 : 0.3
+	action east [0, 0, 1, 0]
+		245 : 0.7
+		246 : 0.3
+	action north [0, 0, 1, 0]
+		235 : 0.7
+		244 : 0.3
+	action west [0, 0, 1, 0]
+		233 : 1
+state 189 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=3	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 190 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		234 : 0.7
+		238 : 0.3
+	action east [0, 0, 1, 0]
+		245 : 0.3
+		247 : 0.7
+	action north [0, 0, 1, 0]
+		232 : 0.3
+		237 : 0.7
+state 191 {18} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=0	& ay=5]
+	action east [0, 0, 1, 0]
+		248 : 0.7
+		249 : 0.3
+	action north [0, 0, 1, 0]
+		234 : 0.3
+		238 : 0.7
+state 192 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		242 : 0.7
+		248 : 0.3
+	action east [0, 0, 1, 0]
+		241 : 0.7
+		250 : 0.3
+	action north [0, 0, 1, 0]
+		235 : 0.3
+		247 : 0.7
+	action west [0, 0, 1, 0]
+		234 : 1
+state 193 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		243 : 0.7
+		249 : 0.3
+	action east [0, 0, 1, 0]
+		250 : 0.7
+		251 : 0.3
+	action north [0, 0, 1, 0]
+		236 : 0.3
+		245 : 0.7
+	action west [0, 0, 1, 0]
+		234 : 0.3
+		240 : 0.7
+state 194 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		235 : 0.7
+		247 : 0.3
+	action east [0, 0, 1, 0]
+		252 : 0.7
+		253 : 0.3
+	action west [0, 0, 1, 0]
+		232 : 1
+state 195 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		241 : 0.3
+		245 : 0.7
+	action east [0, 0, 1, 0]
+		254 : 0.7
+		255 : 0.3
+	action north [0, 0, 1, 0]
+		252 : 1
+	action west [0, 0, 1, 0]
+		235 : 0.7
+		237 : 0.3
+state 196 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		246 : 0.7
+		250 : 0.3
+	action east [0, 0, 1, 0]
+		255 : 0.7
+		256 : 0.3
+	action north [0, 0, 1, 0]
+		253 : 1
+	action west [0, 0, 1, 0]
+		235 : 0.3
+		236 : 0.7
+state 197 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		236 : 0.7
+		245 : 0.3
+	action east [0, 0, 1, 0]
+		253 : 0.7
+		257 : 0.3
+	action west [0, 0, 1, 0]
+		232 : 0.3
+		244 : 0.7
+state 198 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		251 : 0.3
+		258 : 0.7
+	action east [0, 0, 1, 0]
+		256 : 1
+	action north [0, 0, 1, 0]
+		257 : 1
+	action west [0, 0, 1, 0]
+		236 : 0.3
+		254 : 0.7
+state 199 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		240 : 0.3
+		247 : 0.7
+	action east [0, 0, 1, 0]
+		236 : 0.7
+		254 : 0.3
+	action north [0, 0, 1, 0]
+		244 : 1
+	action west [0, 0, 1, 0]
+		237 : 1
+state 200 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		248 : 1
+	action east [0, 0, 1, 0]
+		243 : 0.7
+		259 : 0.3
+	action north [0, 0, 1, 0]
+		240 : 0.7
+		247 : 0.3
+	action west [0, 0, 1, 0]
+		238 : 1
+state 201 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		249 : 1
+	action east [0, 0, 1, 0]
+		259 : 0.7
+		260 : 0.3
+	action north [0, 0, 1, 0]
+		241 : 0.7
+		245 : 0.3
+	action west [0, 0, 1, 0]
+		238 : 0.3
+		242 : 0.7
+state 202 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		249 : 0.7
+		261 : 0.3
+	action north [0, 0, 1, 0]
+		240 : 0.3
+		242 : 0.7
+	action west [0, 0, 1, 0]
+		239 : 1
+state 203 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		261 : 0.7
+		262 : 0.3
+	action north [0, 0, 1, 0]
+		241 : 0.3
+		243 : 0.7
+	action west [0, 0, 1, 0]
+		239 : 0.3
+		248 : 0.7
+state 204 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=3	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 205 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		260 : 0.7
+		262 : 0.3
+	action east [0, 0, 1, 0]
+		263 : 1
+	action north [0, 0, 1, 0]
+		255 : 0.3
+		258 : 0.7
+	action west [0, 0, 1, 0]
+		241 : 0.3
+		250 : 0.7
+state 206 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		261 : 1
+	action east [0, 0, 1, 0]
+		260 : 0.7
+		264 : 0.3
+	action north [0, 0, 1, 0]
+		246 : 0.3
+		250 : 0.7
+	action west [0, 0, 1, 0]
+		242 : 0.3
+		243 : 0.7
+state 207 {23} [0, 0, 0, 0] traps
+//[start	& fuel=3	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		207 : 1
+state 208 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		246 : 0.3
+		254 : 0.7
+	action east [0, 0, 1, 0]
+		257 : 0.7
+		265 : 0.3
+	action west [0, 0, 1, 0]
+		244 : 0.3
+		252 : 0.7
+state 209 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		251 : 0.7
+		260 : 0.3
+	action east [0, 0, 1, 0]
+		266 : 1
+	action north [0, 0, 1, 0]
+		255 : 0.7
+		257 : 0.3
+	action west [0, 0, 1, 0]
+		245 : 0.3
+		246 : 0.7
+state 210 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		263 : 0.7
+		264 : 0.3
+	action north [0, 0, 1, 0]
+		256 : 0.7
+		265 : 0.3
+	action west [0, 0, 1, 0]
+		246 : 0.3
+		258 : 0.7
+state 211 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		250 : 0.7
+		259 : 0.3
+	action east [0, 0, 1, 0]
+		258 : 0.7
+		266 : 0.3
+	action north [0, 0, 1, 0]
+		253 : 0.3
+		254 : 0.7
+	action west [0, 0, 1, 0]
+		245 : 0.7
+		247 : 0.3
+state 212 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		262 : 0.7
+		267 : 0.3
+	action north [0, 0, 1, 0]
+		250 : 0.3
+		259 : 0.7
+	action west [0, 0, 1, 0]
+		248 : 0.3
+		249 : 0.7
+state 213 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		267 : 1
+	action north [0, 0, 1, 0]
+		251 : 0.3
+		260 : 0.7
+	action west [0, 0, 1, 0]
+		249 : 0.3
+		261 : 0.7
+state 214 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		264 : 0.7
+		267 : 0.3
+	action north [0, 0, 1, 0]
+		256 : 0.3
+		266 : 0.7
+	action west [0, 0, 1, 0]
+		250 : 0.3
+		251 : 0.7
+state 215 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		255 : 0.7
+		258 : 0.3
+	action east [0, 0, 1, 0]
+		265 : 1
+	action west [0, 0, 1, 0]
+		252 : 0.3
+		253 : 0.7
+state 216 {28} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=5	& ay=0]
+	action south [0, 0, 1, 0]
+		256 : 0.7
+		266 : 0.3
+	action west [0, 0, 1, 0]
+		253 : 0.3
+		257 : 0.7
+state 217 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		263 : 0.3
+		266 : 0.7
+	action north [0, 0, 1, 0]
+		265 : 1
+	action west [0, 0, 1, 0]
+		254 : 0.3
+		255 : 0.7
+state 218 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=3	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		267 : 1
+	action north [0, 0, 1, 0]
+		263 : 0.7
+		266 : 0.3
+	action west [0, 0, 1, 0]
+		259 : 0.3
+		260 : 0.7
+state 219 {8} [0, 0, 0, 0] goal notbad
+//[start	& fuel=3	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		219 : 1
+state 220 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		181 : 0.3
+		183 : 0.7
+	action north [0, 0, 1, 0]
+		41 : 1
+	action west [0, 0, 1, 0]
+		31 : 0.3
+		33 : 0.7
+state 221 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		179 : 0.7
+		268 : 0.3
+	action north [0, 0, 1, 0]
+		173 : 0.3
+		176 : 0.7
+	action west [0, 0, 1, 0]
+		172 : 0.7
+		180 : 0.3
+state 222 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		268 : 1
+	action north [0, 0, 1, 0]
+		181 : 0.7
+		183 : 0.3
+	action west [0, 0, 1, 0]
+		176 : 0.3
+		177 : 0.7
+state 223 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		268 : 1
+	action north [0, 0, 1, 0]
+		174 : 0.3
+		177 : 0.7
+	action west [0, 0, 1, 0]
+		172 : 0.3
+		178 : 0.7
+state 224 {17} [0, 0, 0, 0] goal notbad
+//[start	& fuel=8	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		224 : 1
+state 225 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		172 : 0.7
+		178 : 0.3
+	action north [0, 0, 1, 0]
+		27 : 0.3
+		35 : 0.7
+	action west [0, 0, 1, 0]
+		26 : 1
+state 226 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=8	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		182 : 0.7
+		268 : 0.3
+	action north [0, 0, 1, 0]
+		175 : 0.3
+		183 : 0.7
+	action west [0, 0, 1, 0]
+		173 : 0.3
+		174 : 0.7
+state 227 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		109 : 0.7
+		269 : 0.3
+	action north [0, 0, 1, 0]
+		100 : 0.3
+		102 : 0.7
+	action west [0, 0, 1, 0]
+		98 : 0.3
+		99 : 0.7
+state 228 {12} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		269 : 1
+	action north [0, 0, 1, 0]
+		101 : 0.3
+		103 : 0.7
+	action west [0, 0, 1, 0]
+		99 : 0.3
+		108 : 0.7
+state 229 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		115 : 0.7
+		269 : 0.3
+	action north [0, 0, 1, 0]
+		106 : 0.7
+		114 : 0.3
+	action west [0, 0, 1, 0]
+		100 : 0.3
+		101 : 0.7
+state 230 {15} [0, 0, 0, 0] notbad
+//[start	& fuel=6	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		269 : 1
+	action north [0, 0, 1, 0]
+		106 : 0.3
+		111 : 0.7
+	action west [0, 0, 1, 0]
+		102 : 0.3
+		103 : 0.7
+state 231 {17} [0, 0, 0, 0] goal notbad
+//[start	& fuel=6	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		231 : 1
+state 232 {30} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=2	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 233 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		272 : 0.7
+		273 : 0.3
+	action east [0, 0, 1, 0]
+		274 : 0.7
+		275 : 0.3
+	action north [0, 0, 1, 0]
+		270 : 0.7
+		271 : 0.3
+state 234 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		273 : 0.7
+		277 : 0.3
+	action east [0, 0, 1, 0]
+		278 : 0.7
+		279 : 0.3
+	action north [0, 0, 1, 0]
+		270 : 0.3
+		276 : 0.7
+state 235 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		274 : 0.7
+		278 : 0.3
+	action east [0, 0, 1, 0]
+		281 : 0.7
+		282 : 0.3
+	action north [0, 0, 1, 0]
+		280 : 1
+	action west [0, 0, 1, 0]
+		270 : 1
+state 236 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		275 : 0.7
+		279 : 0.3
+	action east [0, 0, 1, 0]
+		282 : 0.7
+		284 : 0.3
+	action north [0, 0, 1, 0]
+		283 : 1
+	action west [0, 0, 1, 0]
+		270 : 0.3
+		285 : 0.7
+state 237 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		272 : 0.3
+		276 : 0.7
+	action east [0, 0, 1, 0]
+		281 : 0.3
+		285 : 0.7
+	action north [0, 0, 1, 0]
+		271 : 1
+state 238 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		277 : 1
+	action east [0, 0, 1, 0]
+		286 : 0.7
+		287 : 0.3
+	action north [0, 0, 1, 0]
+		272 : 0.7
+		276 : 0.3
+state 239 {18} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=0	& ay=5]
+	action east [0, 0, 1, 0]
+		288 : 0.7
+		289 : 0.3
+	action north [0, 0, 1, 0]
+		272 : 0.3
+		273 : 0.7
+state 240 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		286 : 0.7
+		288 : 0.3
+	action east [0, 0, 1, 0]
+		279 : 0.7
+		290 : 0.3
+	action north [0, 0, 1, 0]
+		274 : 0.7
+		285 : 0.3
+	action west [0, 0, 1, 0]
+		272 : 1
+state 241 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		287 : 0.7
+		289 : 0.3
+	action east [0, 0, 1, 0]
+		290 : 0.7
+		291 : 0.3
+	action north [0, 0, 1, 0]
+		275 : 0.7
+		281 : 0.3
+	action west [0, 0, 1, 0]
+		272 : 0.3
+		278 : 0.7
+state 242 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		288 : 1
+	action east [0, 0, 1, 0]
+		287 : 0.7
+		292 : 0.3
+	action north [0, 0, 1, 0]
+		274 : 0.3
+		278 : 0.7
+	action west [0, 0, 1, 0]
+		273 : 1
+state 243 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		289 : 1
+	action east [0, 0, 1, 0]
+		292 : 0.7
+		293 : 0.3
+	action north [0, 0, 1, 0]
+		275 : 0.3
+		279 : 0.7
+	action west [0, 0, 1, 0]
+		273 : 0.3
+		286 : 0.7
+state 244 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		274 : 0.3
+		285 : 0.7
+	action east [0, 0, 1, 0]
+		283 : 0.7
+		294 : 0.3
+	action west [0, 0, 1, 0]
+		271 : 1
+state 245 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=2	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 246 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		290 : 0.7
+		292 : 0.3
+	action east [0, 0, 1, 0]
+		295 : 0.7
+		296 : 0.3
+	action north [0, 0, 1, 0]
+		282 : 0.7
+		294 : 0.3
+	action west [0, 0, 1, 0]
+		274 : 0.3
+		275 : 0.7
+state 247 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		278 : 0.7
+		286 : 0.3
+	action east [0, 0, 1, 0]
+		275 : 0.7
+		297 : 0.3
+	action north [0, 0, 1, 0]
+		280 : 0.3
+		285 : 0.7
+	action west [0, 0, 1, 0]
+		276 : 1
+state 248 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		289 : 0.7
+		298 : 0.3
+	action north [0, 0, 1, 0]
+		278 : 0.3
+		286 : 0.7
+	action west [0, 0, 1, 0]
+		277 : 1
+state 249 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		298 : 0.7
+		299 : 0.3
+	action north [0, 0, 1, 0]
+		279 : 0.3
+		287 : 0.7
+	action west [0, 0, 1, 0]
+		277 : 0.3
+		288 : 0.7
+state 250 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=2	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 251 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		293 : 0.7
+		299 : 0.3
+	action east [0, 0, 1, 0]
+		300 : 1
+	action north [0, 0, 1, 0]
+		284 : 0.3
+		295 : 0.7
+	action west [0, 0, 1, 0]
+		279 : 0.3
+		290 : 0.7
+state 252 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		275 : 0.3
+		281 : 0.7
+	action east [0, 0, 1, 0]
+		294 : 0.7
+		301 : 0.3
+	action west [0, 0, 1, 0]
+		271 : 0.3
+		280 : 0.7
+state 253 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		282 : 0.7
+		297 : 0.3
+	action east [0, 0, 1, 0]
+		301 : 0.7
+		302 : 0.3
+	action west [0, 0, 1, 0]
+		280 : 0.3
+		283 : 0.7
+state 254 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		290 : 0.3
+		297 : 0.7
+	action east [0, 0, 1, 0]
+		284 : 0.7
+		303 : 0.3
+	action north [0, 0, 1, 0]
+		294 : 1
+	action west [0, 0, 1, 0]
+		281 : 0.7
+		285 : 0.3
+state 255 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		291 : 0.3
+		295 : 0.7
+	action east [0, 0, 1, 0]
+		303 : 1
+	action north [0, 0, 1, 0]
+		301 : 1
+	action west [0, 0, 1, 0]
+		281 : 0.3
+		282 : 0.7
+state 256 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		296 : 0.7
+		300 : 0.3
+	action north [0, 0, 1, 0]
+		302 : 1
+	action west [0, 0, 1, 0]
+		282 : 0.3
+		284 : 0.7
+state 257 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		284 : 0.7
+		295 : 0.3
+	action east [0, 0, 1, 0]
+		302 : 1
+	action west [0, 0, 1, 0]
+		283 : 0.3
+		294 : 0.7
+state 258 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		291 : 0.7
+		293 : 0.3
+	action east [0, 0, 1, 0]
+		296 : 1
+	action north [0, 0, 1, 0]
+		284 : 0.7
+		301 : 0.3
+	action west [0, 0, 1, 0]
+		275 : 0.3
+		297 : 0.7
+state 259 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		298 : 1
+	action east [0, 0, 1, 0]
+		293 : 0.7
+		304 : 0.3
+	action north [0, 0, 1, 0]
+		290 : 0.7
+		297 : 0.3
+	action west [0, 0, 1, 0]
+		286 : 0.3
+		287 : 0.7
+state 260 {23} [0, 0, 0, 0] traps
+//[start	& fuel=2	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		260 : 1
+state 261 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		299 : 0.7
+		305 : 0.3
+	action north [0, 0, 1, 0]
+		290 : 0.3
+		292 : 0.7
+	action west [0, 0, 1, 0]
+		288 : 0.3
+		289 : 0.7
+state 262 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		305 : 1
+	action north [0, 0, 1, 0]
+		291 : 0.3
+		293 : 0.7
+	action west [0, 0, 1, 0]
+		289 : 0.3
+		298 : 0.7
+state 263 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		304 : 0.7
+		305 : 0.3
+	action north [0, 0, 1, 0]
+		296 : 0.7
+		303 : 0.3
+	action west [0, 0, 1, 0]
+		290 : 0.3
+		291 : 0.7
+state 264 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		305 : 1
+	action north [0, 0, 1, 0]
+		296 : 0.3
+		300 : 0.7
+	action west [0, 0, 1, 0]
+		292 : 0.3
+		293 : 0.7
+state 265 {28} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=5	& ay=0]
+	action south [0, 0, 1, 0]
+		296 : 0.3
+		303 : 0.7
+	action west [0, 0, 1, 0]
+		294 : 0.3
+		301 : 0.7
+state 266 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=2	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		300 : 0.7
+		304 : 0.3
+	action north [0, 0, 1, 0]
+		302 : 0.3
+		303 : 0.7
+	action west [0, 0, 1, 0]
+		295 : 0.7
+		297 : 0.3
+state 267 {8} [0, 0, 0, 0] goal notbad
+//[start	& fuel=2	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		267 : 1
+state 268 {17} [0, 0, 0, 0] goal notbad
+//[start	& fuel=7	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		268 : 1
+state 269 {17} [0, 0, 0, 0] goal notbad
+//[start	& fuel=5	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		269 : 1
+state 270 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=0	& ay=1]
+	action south [0, 0, 1, 0]
+		307 : 0.7
+		308 : 0.3
+	action east [0, 0, 1, 0]
+		309 : 0.7
+		310 : 0.3
+	action north [0, 0, 1, 0]
+		306 : 1
+state 271 {30} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=1	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 272 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=0	& ay=3]
+	action south [0, 0, 1, 0]
+		312 : 0.7
+		313 : 0.3
+	action east [0, 0, 1, 0]
+		314 : 0.7
+		315 : 0.3
+	action north [0, 0, 1, 0]
+		307 : 0.7
+		311 : 0.3
+state 273 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=0	& ay=4]
+	action south [0, 0, 1, 0]
+		313 : 1
+	action east [0, 0, 1, 0]
+		316 : 0.7
+		317 : 0.3
+	action north [0, 0, 1, 0]
+		307 : 0.3
+		308 : 0.7
+state 274 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=1	& ay=2]
+	action south [0, 0, 1, 0]
+		314 : 0.7
+		316 : 0.3
+	action east [0, 0, 1, 0]
+		319 : 0.7
+		320 : 0.3
+	action north [0, 0, 1, 0]
+		309 : 0.7
+		318 : 0.3
+	action west [0, 0, 1, 0]
+		307 : 1
+state 275 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=1	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 276 {10} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=0	& ay=2]
+	action south [0, 0, 1, 0]
+		308 : 0.7
+		312 : 0.3
+	action east [0, 0, 1, 0]
+		319 : 0.3
+		321 : 0.7
+	action north [0, 0, 1, 0]
+		306 : 0.3
+		311 : 0.7
+state 277 {18} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=0	& ay=5]
+	action east [0, 0, 1, 0]
+		322 : 0.7
+		323 : 0.3
+	action north [0, 0, 1, 0]
+		308 : 0.3
+		312 : 0.7
+state 278 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=1	& ay=3]
+	action south [0, 0, 1, 0]
+		316 : 0.7
+		322 : 0.3
+	action east [0, 0, 1, 0]
+		315 : 0.7
+		324 : 0.3
+	action north [0, 0, 1, 0]
+		309 : 0.3
+		321 : 0.7
+	action west [0, 0, 1, 0]
+		308 : 1
+state 279 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=2	& ay=3]
+	action south [0, 0, 1, 0]
+		317 : 0.7
+		323 : 0.3
+	action east [0, 0, 1, 0]
+		324 : 0.7
+		325 : 0.3
+	action north [0, 0, 1, 0]
+		310 : 0.3
+		319 : 0.7
+	action west [0, 0, 1, 0]
+		308 : 0.3
+		314 : 0.7
+state 280 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=1	& ay=0]
+	action south [0, 0, 1, 0]
+		309 : 0.7
+		321 : 0.3
+	action east [0, 0, 1, 0]
+		326 : 0.7
+		327 : 0.3
+	action west [0, 0, 1, 0]
+		306 : 1
+state 281 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=2	& ay=1]
+	action south [0, 0, 1, 0]
+		315 : 0.3
+		319 : 0.7
+	action east [0, 0, 1, 0]
+		328 : 0.7
+		329 : 0.3
+	action north [0, 0, 1, 0]
+		326 : 1
+	action west [0, 0, 1, 0]
+		309 : 0.7
+		311 : 0.3
+state 282 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=3	& ay=1]
+	action south [0, 0, 1, 0]
+		320 : 0.7
+		324 : 0.3
+	action east [0, 0, 1, 0]
+		329 : 0.7
+		330 : 0.3
+	action north [0, 0, 1, 0]
+		327 : 1
+	action west [0, 0, 1, 0]
+		309 : 0.3
+		310 : 0.7
+state 283 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=2	& ay=0]
+	action south [0, 0, 1, 0]
+		310 : 0.7
+		319 : 0.3
+	action east [0, 0, 1, 0]
+		327 : 0.7
+		331 : 0.3
+	action west [0, 0, 1, 0]
+		306 : 0.3
+		318 : 0.7
+state 284 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=4	& ay=1]
+	action south [0, 0, 1, 0]
+		325 : 0.3
+		332 : 0.7
+	action east [0, 0, 1, 0]
+		330 : 1
+	action north [0, 0, 1, 0]
+		331 : 1
+	action west [0, 0, 1, 0]
+		310 : 0.3
+		328 : 0.7
+state 285 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=1	& ay=1]
+	action south [0, 0, 1, 0]
+		314 : 0.3
+		321 : 0.7
+	action east [0, 0, 1, 0]
+		310 : 0.7
+		328 : 0.3
+	action north [0, 0, 1, 0]
+		318 : 1
+	action west [0, 0, 1, 0]
+		311 : 1
+state 286 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=1	& ay=4]
+	action south [0, 0, 1, 0]
+		322 : 1
+	action east [0, 0, 1, 0]
+		317 : 0.7
+		333 : 0.3
+	action north [0, 0, 1, 0]
+		314 : 0.7
+		321 : 0.3
+	action west [0, 0, 1, 0]
+		312 : 1
+state 287 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=2	& ay=4]
+	action south [0, 0, 1, 0]
+		323 : 1
+	action east [0, 0, 1, 0]
+		333 : 0.7
+		334 : 0.3
+	action north [0, 0, 1, 0]
+		315 : 0.7
+		319 : 0.3
+	action west [0, 0, 1, 0]
+		312 : 0.3
+		316 : 0.7
+state 288 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=1	& ay=5]
+	action east [0, 0, 1, 0]
+		323 : 0.7
+		335 : 0.3
+	action north [0, 0, 1, 0]
+		314 : 0.3
+		316 : 0.7
+	action west [0, 0, 1, 0]
+		313 : 1
+state 289 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=2	& ay=5]
+	action east [0, 0, 1, 0]
+		335 : 0.7
+		336 : 0.3
+	action north [0, 0, 1, 0]
+		315 : 0.3
+		317 : 0.7
+	action west [0, 0, 1, 0]
+		313 : 0.3
+		322 : 0.7
+state 290 {9} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=1	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 291 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=4	& ay=3]
+	action south [0, 0, 1, 0]
+		334 : 0.7
+		336 : 0.3
+	action east [0, 0, 1, 0]
+		337 : 1
+	action north [0, 0, 1, 0]
+		329 : 0.3
+		332 : 0.7
+	action west [0, 0, 1, 0]
+		315 : 0.3
+		324 : 0.7
+state 292 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=3	& ay=4]
+	action south [0, 0, 1, 0]
+		335 : 1
+	action east [0, 0, 1, 0]
+		334 : 0.7
+		338 : 0.3
+	action north [0, 0, 1, 0]
+		320 : 0.3
+		324 : 0.7
+	action west [0, 0, 1, 0]
+		316 : 0.3
+		317 : 0.7
+state 293 {23} [0, 0, 0, 0] traps
+//[start	& fuel=1	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		293 : 1
+state 294 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=3	& ay=0]
+	action south [0, 0, 1, 0]
+		320 : 0.3
+		328 : 0.7
+	action east [0, 0, 1, 0]
+		331 : 0.7
+		339 : 0.3
+	action west [0, 0, 1, 0]
+		318 : 0.3
+		326 : 0.7
+state 295 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=4	& ay=2]
+	action south [0, 0, 1, 0]
+		325 : 0.7
+		334 : 0.3
+	action east [0, 0, 1, 0]
+		340 : 1
+	action north [0, 0, 1, 0]
+		329 : 0.7
+		331 : 0.3
+	action west [0, 0, 1, 0]
+		319 : 0.3
+		320 : 0.7
+state 296 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=5	& ay=2]
+	action south [0, 0, 1, 0]
+		337 : 0.7
+		338 : 0.3
+	action north [0, 0, 1, 0]
+		330 : 0.7
+		339 : 0.3
+	action west [0, 0, 1, 0]
+		320 : 0.3
+		332 : 0.7
+state 297 {1} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=3	& ay=2]
+	action south [0, 0, 1, 0]
+		324 : 0.7
+		333 : 0.3
+	action east [0, 0, 1, 0]
+		332 : 0.7
+		340 : 0.3
+	action north [0, 0, 1, 0]
+		327 : 0.3
+		328 : 0.7
+	action west [0, 0, 1, 0]
+		319 : 0.7
+		321 : 0.3
+state 298 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=3	& ay=5]
+	action east [0, 0, 1, 0]
+		336 : 0.7
+		341 : 0.3
+	action north [0, 0, 1, 0]
+		324 : 0.3
+		333 : 0.7
+	action west [0, 0, 1, 0]
+		322 : 0.3
+		323 : 0.7
+state 299 {4} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=4	& ay=5]
+	action east [0, 0, 1, 0]
+		341 : 1
+	action north [0, 0, 1, 0]
+		325 : 0.3
+		334 : 0.7
+	action west [0, 0, 1, 0]
+		323 : 0.3
+		335 : 0.7
+state 300 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=5	& ay=3]
+	action south [0, 0, 1, 0]
+		338 : 0.7
+		341 : 0.3
+	action north [0, 0, 1, 0]
+		330 : 0.3
+		340 : 0.7
+	action west [0, 0, 1, 0]
+		324 : 0.3
+		325 : 0.7
+state 301 {3} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=4	& ay=0]
+	action south [0, 0, 1, 0]
+		329 : 0.7
+		332 : 0.3
+	action east [0, 0, 1, 0]
+		339 : 1
+	action west [0, 0, 1, 0]
+		326 : 0.3
+		327 : 0.7
+state 302 {28} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=5	& ay=0]
+	action south [0, 0, 1, 0]
+		330 : 0.7
+		340 : 0.3
+	action west [0, 0, 1, 0]
+		327 : 0.3
+		331 : 0.7
+state 303 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=5	& ay=1]
+	action south [0, 0, 1, 0]
+		337 : 0.3
+		340 : 0.7
+	action north [0, 0, 1, 0]
+		339 : 1
+	action west [0, 0, 1, 0]
+		328 : 0.3
+		329 : 0.7
+state 304 {2} [0, 0, 0, 0] notbad
+//[start	& fuel=1	& ax=5	& ay=4]
+	action south [0, 0, 1, 0]
+		341 : 1
+	action north [0, 0, 1, 0]
+		337 : 0.7
+		340 : 0.3
+	action west [0, 0, 1, 0]
+		333 : 0.3
+		334 : 0.7
+state 305 {8} [0, 0, 0, 0] goal notbad
+//[start	& fuel=1	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		305 : 1
+state 306 {27} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=0	& ax=0	& ay=0]
+	action refuel [0, 0, 0, 1]
+		1 : 1
+state 307 {20} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=0	& ay=2]
+	action __NOLABEL__ [0, 0, 0, 0]
+		307 : 1
+state 308 {20} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=0	& ay=3]
+	action __NOLABEL__ [0, 0, 0, 0]
+		308 : 1
+state 309 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=1	& ay=1]
+	action __NOLABEL__ [0, 0, 0, 0]
+		309 : 1
+state 310 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=2	& ay=1]
+	action __NOLABEL__ [0, 0, 0, 0]
+		310 : 1
+state 311 {20} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=0	& ay=1]
+	action __NOLABEL__ [0, 0, 0, 0]
+		311 : 1
+state 312 {20} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=0	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		312 : 1
+state 313 {19} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=0	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		313 : 1
+state 314 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=1	& ay=3]
+	action __NOLABEL__ [0, 0, 0, 0]
+		314 : 1
+state 315 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=2	& ay=3]
+	action __NOLABEL__ [0, 0, 0, 0]
+		315 : 1
+state 316 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=1	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		316 : 1
+state 317 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=2	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		317 : 1
+state 318 {6} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=1	& ay=0]
+	action __NOLABEL__ [0, 0, 0, 0]
+		318 : 1
+state 319 {35} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=0	& ax=2	& ay=2]
+	action refuel [0, 0, 0, 1]
+		38 : 1
+state 320 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=3	& ay=2]
+	action __NOLABEL__ [0, 0, 0, 0]
+		320 : 1
+state 321 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=1	& ay=2]
+	action __NOLABEL__ [0, 0, 0, 0]
+		321 : 1
+state 322 {22} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=1	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		322 : 1
+state 323 {22} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=2	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		323 : 1
+state 324 {35} [0, 0, 0, 0] notbad stationvisit
+//[start	& fuel=0	& ax=3	& ay=3]
+	action refuel [0, 0, 0, 1]
+		110 : 1
+state 325 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=4	& ay=3]
+	action __NOLABEL__ [0, 0, 0, 0]
+		325 : 1
+state 326 {6} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=2	& ay=0]
+	action __NOLABEL__ [0, 0, 0, 0]
+		326 : 1
+state 327 {6} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=3	& ay=0]
+	action __NOLABEL__ [0, 0, 0, 0]
+		327 : 1
+state 328 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=3	& ay=1]
+	action __NOLABEL__ [0, 0, 0, 0]
+		328 : 1
+state 329 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=4	& ay=1]
+	action __NOLABEL__ [0, 0, 0, 0]
+		329 : 1
+state 330 {13} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=5	& ay=1]
+	action __NOLABEL__ [0, 0, 0, 0]
+		330 : 1
+state 331 {6} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=4	& ay=0]
+	action __NOLABEL__ [0, 0, 0, 0]
+		331 : 1
+state 332 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=4	& ay=2]
+	action __NOLABEL__ [0, 0, 0, 0]
+		332 : 1
+state 333 {25} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=3	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		333 : 1
+state 334 {16} [0, 0, 0, 0] traps
+//[start	& fuel=0	& ax=4	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		334 : 1
+state 335 {22} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=3	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		335 : 1
+state 336 {22} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=4	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		336 : 1
+state 337 {13} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=5	& ay=3]
+	action __NOLABEL__ [0, 0, 0, 0]
+		337 : 1
+state 338 {13} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=5	& ay=4]
+	action __NOLABEL__ [0, 0, 0, 0]
+		338 : 1
+state 339 {32} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=5	& ay=0]
+	action __NOLABEL__ [0, 0, 0, 0]
+		339 : 1
+state 340 {13} [0, 0, 0, 0]
+//[start	& fuel=0	& ax=5	& ay=2]
+	action __NOLABEL__ [0, 0, 0, 0]
+		340 : 1
+state 341 {31} [0, 0, 0, 0] goal
+//[start	& fuel=0	& ax=5	& ay=5]
+	action __NOLABEL__ [0, 0, 0, 0]
+		341 : 1
