@@ -4,7 +4,7 @@ observables
 start
 endobservables
 
-const int N = 5;
+const int N = 100;
 
 const int axMAX = N-1;
 const int ayMAX = N-1;
@@ -64,7 +64,8 @@ rewards "costs"
     [south] true : 1;
     [west] true : 1;
     [east] true : 1;
-    crash = true:100; 
+    crash = true:100;
+    done=true : -100;
 endrewards
 
 rewards "gains"

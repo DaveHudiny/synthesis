@@ -4,9 +4,9 @@ observables
 start, dx, dy, turn
 endobservables
 
-const int RADIUS;
+const int RADIUS=2;
 
-const int N;
+const int N=10;
 const int xMAX = N-1;
 const int yMAX = N-1;
 const int aXMAX = xMAX;
@@ -79,6 +79,8 @@ rewards "costs"
     [west] true : 0.1;
     [east] true : 0.1;
     [scan] true : 0.1;
+    [placement] true: -11.75;
+    done=true:-10;
     crash = true:00; 
 endrewards
 

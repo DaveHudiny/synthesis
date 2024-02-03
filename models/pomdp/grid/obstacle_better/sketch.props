@@ -1,2 +1,5 @@
 // Pmax=? ["notbad" U "goal"]
-R{"costs"}min=? [ F "goal" ]
+// R{"costs"}min=? [ F "goal" ]
+// label "overall_reward" = gains - costs;
+R{"costs"}min=? [F "goal"]
+

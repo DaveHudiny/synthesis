@@ -125,8 +125,8 @@ class Statistic:
 
         super_quotient_states = self.quotient.quotient_mdp.nr_states
         super_quotient_actions = self.quotient.quotient_mdp.nr_choices
-
-        design_space = f"number of holes: {self.quotient.design_space.num_holes}, family size: {self.quotient.design_space.size}, super quotient: {super_quotient_states} states / {super_quotient_actions} actions"
+        design_space = f"A lot"
+        # design_space = f"number of holes: {self.quotient.design_space.num_holes}, family size: {self.quotient.design_space.size}, super quotient: {super_quotient_states} states / {super_quotient_actions} actions"
         timing = f"method: {self.synthesizer.method_name}, synthesis time: {round(self.synthesis_time.time, 2)} s"
 
         family_stats = ""

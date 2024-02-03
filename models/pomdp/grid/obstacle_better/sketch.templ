@@ -4,7 +4,7 @@ observables
 start
 endobservables
 
-const int N = 5;
+const int N = 6;
 const int axMAX = N-1;
 const int ayMAX = N-1;
 const int axMIN = 0;
@@ -56,14 +56,15 @@ endmodule
 
 label "goal" = done;
 label "traps" = crash;
-label "notbad" =  !crash;
+label "notbad" = !crash;
 
 rewards "costs"
     [north] true : 1;
     [south] true : 1;
     [west] true : 1;
     [east] true : 1;
-    crash = true:100; 
+    crash = true: 100; 
+    done=true : -100;
 endrewards
 
 rewards "gains"

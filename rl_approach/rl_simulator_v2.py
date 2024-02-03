@@ -175,27 +175,19 @@ class TF_Environment(SimulationExecutor):
             for a_i in range(n_act):
                 action_keywords = action_keywords.union(
                     self._model.choice_labeling.get_labels_of_choice(self._model.get_choice_index(s_i, a_i)))
-        # action_spec_count = [self._model.get_nr_available_actions(i) for i in range(1,self._model.nr_states)]
         self.action_indices = dict([[j, i]
                                    for i, j in enumerate(action_keywords)])
-        # print(self.action_indices)
         self.act_keywords = dict([[self.action_indices[i], i]
                                  for i in self.action_indices])
-        # print(self.act_keywords)
         self.nr_actions = len(action_keywords)
         self.valuations = valuations
         if valuations:
             self.keywords = self.get_observation_keywords()
-            # print(self.keywords)
             self.obs_length = len(self.keywords)
             obs_shape = np.array(self.observe()).shape
-            # print(obs_shape)
         else:
             self.obs_length = obs_length
-            # print("obs_length", self.obs_length)
-            # print(self.observe())
             obs_shape = np.array(self.observe()).shape
-            # print(obs_shape)
         self.act_spec = tf_agents.specs.BoundedTensorSpec(
             dtype='int32', name='action', minimum=0, maximum=self.nr_actions - 1, shape=tf.TensorShape(()))
         self.disc_spec = tf_agents.specs.BoundedTensorSpec(
@@ -209,19 +201,12 @@ class TF_Environment(SimulationExecutor):
         self.time_step_spec = ts.TimeStep(
             discount=self.disc_spec, observation=self.obs_spec, reward=self.rew_spec, step_type=self.step_spec)
         replay_config = {'mem_size': obs_length, 'obs_dims': self.obs_length}
-        # self.replay_memory = ReplayMemory(replay_config)
-        # self.replay_memory.initial_add(self.observe())
         self.step_count = 0
         self.episode_count = 0
         self.cost_ind = list(self._model.reward_models.keys()).index('costs')
         self.gain_ind = list(self._model.reward_models.keys()).index('gains')
         self.first = True
         self.maxsteps = maxsteps
-        # print(self._model)
-        # print(len(self._model.observations))
-        # print(np.unique(self._model.observations))
-        # print(len(np.unique(self._model.observations)))
-        # exit()
 
     def restart(self):
         self._simulator.restart()
@@ -394,7 +379,7 @@ class TF_Environment(SimulationExecutor):
         # record_track(recorder,eval_env,RL_agent.agent,RL_agent.agent.policy,self.maxsteps,3)
         eval_env.reset_violation_count()
         compute_avg_return(eval_env, RL_agent.agent,
-                           RL_agent.agent.policy, 50, max_steps=self.maxsteps)
+                           RL_agent.agent.policy, num_eval_episodes, max_steps=self.maxsteps)
         print(f'Violations during Learning: {self.no_violations}')
         print(f'Violations after Learning: {eval_env.no_violations}')
         return returns, episodes_list, RL_agent
