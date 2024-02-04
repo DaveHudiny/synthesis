@@ -135,7 +135,7 @@ def parse_args(cfg=None):
             '--maxsteps', '-s', help="Maximal number of steps", type=int, default=100)
         # parser.add_argument('--maxrendering', '-r', help='Maximal length of a rendering', type=int, default=100)
         parser.add_argument('--max-runs', '-NN',
-                            help="Number of runs", type=int, default=5000)
+                            help="Number of runs", type=int, default=50)
         parser.add_argument('--nr-finisher-runs', '-N', type=int, default=1)
         parser.add_argument('--video-path', help="Path for the video")
         parser.add_argument('--stats-path', help="Path for recording stats")
@@ -265,17 +265,7 @@ def improved_main(cfg=None):
             with open(f"./models_storm/{args.grid_model}_eval_model.props", "w") as f:
                 f.write(eval_raw_formula.__str__())
 
-    if compute_shield:
-        winning_region = compute_winning_region(
-            learn_model, raw_formula, initial)
-
-    if winning_region is not None:
-        otf_shield = construct_otf_shield(learn_model, winning_region)
-    elif args.noshield:
-        otf_shield = NoShield()
-    else:
-        logger.warning("No winning region: Shielding disabled.")
-        otf_shield = NoShield()
+    otf_shield = NoShield()
 
     tracker = Tracker(learn_model, otf_shield)
 
