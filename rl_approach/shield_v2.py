@@ -133,7 +133,6 @@ def parse_args(cfg=None):
                             help="Load a winning region")
         parser.add_argument(
             '--maxsteps', '-s', help="Maximal number of steps", type=int, default=100)
-        # parser.add_argument('--maxrendering', '-r', help='Maximal length of a rendering', type=int, default=100)
         parser.add_argument('--max-runs', '-NN',
                             help="Number of runs", type=int, default=50)
         parser.add_argument('--nr-finisher-runs', '-N', type=int, default=1)
