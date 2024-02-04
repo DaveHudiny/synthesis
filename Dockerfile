@@ -1,58 +1,26 @@
-# the docker image can be built by executing:
-# docker build -t <image-name> .
-# to enable multi-thread compilation, use --build-arg threads=<value>
+FROM movesrwth/stormpy:ci
 
-FROM ubuntu
-MAINTAINER Roman Andriushchenko <iandri@fit.vut.cz>
-ARG threads=1
+# Additional arguments for compiling payntbind
+ARG setup_args=""
+# Number of threads to use for parallel compilation
+ARG no_threads=2
 
-
-# execute bash when running the container
-ENTRYPOINT ["/bin/bash"]
-
-# to prevent texlive from asking our geographical area
-ENV DEBIAN_FRONTEND noninteractive
+WORKDIR /opt/
 
 # install dependencies
-RUN apt update
-RUN apt install -y build-essential git automake cmake libboost-all-dev libcln-dev libgmp-dev libginac-dev libglpk-dev libhwloc-dev libz3-dev libxerces-c-dev libeigen3-dev   maven uuid-dev python3-dev libffi-dev libssl-dev python3-pip python3-venv   vim texlive-pictures
-RUN pip3 install pytest pytest-runner pytest-cov numpy scipy pysmt z3-solver click toml Cython scikit-build
+RUN apt-get update -qq
+RUN apt-get install -y graphviz
+RUN pip install click z3-solver graphviz
 
+# build paynt
+WORKDIR /opt/paynt
+COPY . .
+WORKDIR /opt/paynt/payntbind
+RUN python setup.py build_ext $setup_args -j $no_threads develop
 
-# main directory
-WORKDIR /synthesis
+WORKDIR /opt/paynt
 
-# download everything
-# using --depth 1 to make the download faster and the image smaller
-WORKDIR /synthesis/prerequisites
-RUN git clone --depth 1 https://github.com/moves-rwth/pycarl.git pycarl
-RUN git clone --depth 1 --branch cvc5-1.0.0 https://github.com/cvc5/cvc5.git cvc5
-WORKDIR /synthesis
-RUN git clone --depth 1 https://github.com/moves-rwth/storm.git storm
-RUN git clone --depth 1 --branch synthesis https://github.com/randriu/stormpy.git stormpy
-RUN git clone --depth 1 https://github.com/randriu/synthesis.git paynt
+# (optional) install paynt
+RUN pip install -e .
 
-
-# build storm
-WORKDIR /synthesis/storm/build
-RUN cmake ..
-RUN make storm-main storm-pomdp --jobs $threads
-ENV PATH="/synthesis/storm/build/bin:$PATH"
-
-# build pycarl
-WORKDIR /synthesis/prerequisites/pycarl
-RUN python3 setup.py build_ext --jobs $threads develop
-
-# building cvc5 is slow and hybrid is rarely used, so you may skip it and use z3 instead
-#WORKDIR /synthesis/prerequisites/cvc5
-#RUN ./configure.sh --prefix="." --auto-download --python-bindings
-#WORKDIR /synthesis/prerequisites/cvc5/build
-#RUN make --jobs $threads
-#RUN make install
-
-# build stormpy
-WORKDIR /synthesis/stormpy
-RUN python3 setup.py build_ext --storm-dir /synthesis/storm/build --jobs $threads develop
-
-# set the initial folder
-WORKDIR /synthesis/paynt
+# TODO tests

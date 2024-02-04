@@ -1,14 +1,19 @@
 import stormpy
+import payntbind
 
 from paynt.parser.prism_parser import PrismParser
 from paynt.parser.pomdp_parser import PomdpParser
-from paynt.quotient.quotient_pomdp import POMDPQuotientContainer
-from paynt.quotient.quotient_decpomdp import DecPomdpQuotientContainer
 
 import paynt.quotient.models
+
 import paynt.quotient.quotient
+import paynt.quotient.pomdp
+import paynt.quotient.decpomdp
 import paynt.quotient.mdp_family
 import paynt.quotient.pomdp_family
+import paynt.verification.property
+
+import uuid
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,9 +29,6 @@ def substitute_suffix(string, delimiter, replacer):
     return output_string
 
 def make_rewards_action_based(model):
-
-    import stormpy
-
     tm = model.transition_matrix
     for name,reward_model in model.reward_models.items():
         assert not reward_model.has_transition_rewards, "Paynt does not support transition rewards"
@@ -44,7 +46,7 @@ def make_rewards_action_based(model):
             for action in range(tm.get_row_group_start(state),tm.get_row_group_end(state)):
                 action_reward[action] += state_reward
 
-        model.remove_reward_model(name)
+        payntbind.synthesis.remove_reward_model(model,name)
         new_reward_model = stormpy.storage.SparseRewardModel(optional_state_action_reward_vector=action_reward)
         model.add_reward_model(name, new_reward_model)
 
@@ -62,6 +64,7 @@ class Sketch:
         prism = None
         explicit_quotient = None
         specification = None
+        family = None
         coloring = None
         jani_unfolder = None
         decpomdp_manager = None
@@ -75,7 +78,7 @@ class Sketch:
         filetype = None
         try:
             logger.info(f"assuming sketch in PRISM format...")
-            prism, explicit_quotient, specification, coloring, jani_unfolder, obs_evaluator = PrismParser.read_prism(
+            prism, explicit_quotient, specification, family, coloring, jani_unfolder, obs_evaluator = PrismParser.read_prism(
                         sketch_path, properties_path, relative_error, discount_factor)
             filetype = "prism"
         except SyntaxError:
@@ -91,7 +94,7 @@ class Sketch:
         if filetype is None:
             try:
                 logger.info(f"assuming sketch in Cassandra format...")
-                decpomdp_manager = stormpy.synthesis.parse_decpomdp(sketch_path)
+                decpomdp_manager = payntbind.synthesis.parse_decpomdp(sketch_path)
                 if decpomdp_manager is None:
                     raise SyntaxError
                 logger.info("applying discount factor transformation...")
@@ -120,7 +123,7 @@ class Sketch:
                 prop = specification.all_properties()[0]
                 reward_name = prop.formula.reward_name
                 target_label = str(prop.formula.subformula.subformula)
-                subpomdp_builder = stormpy.synthesis.SubPomdpBuilder(explicit_quotient, reward_name, target_label)
+                subpomdp_builder = payntbind.synthesis.SubPomdpBuilder(explicit_quotient, reward_name, target_label)
                 subpomdp_builder.set_discount_factor(discount_factor)
                 initial_distribution = {explicit_quotient.initial_states[0] : 1}
                 relevant_observations = stormpy.storage.BitVector(explicit_quotient.nr_observations,True)
@@ -129,6 +132,7 @@ class Sketch:
                 logger.debug('WARNING: discount factor transformation has not been properly tested')
              
         paynt.quotient.models.MarkovChain.initialize(specification)
+        paynt.verification.property.Property.initialize()
         
         make_rewards_action_based(explicit_quotient)
         logger.debug("constructed explicit quotient having {} states and {} actions".format(
@@ -145,8 +149,61 @@ class Sketch:
             logger.info("export OK, aborting...")
             exit(0)
 
-        return Sketch.build_quotient_container(prism, jani_unfolder, explicit_quotient, coloring, specification, obs_evaluator, decpomdp_manager)
+        return Sketch.build_quotient_container(prism, jani_unfolder, explicit_quotient, family, coloring, specification, obs_evaluator, decpomdp_manager)
+    
 
+    @classmethod
+    def load_sketch_as_all_in_one(cls, sketch_path, properties_path):
+        if not os.path.isfile(sketch_path):
+            raise ValueError(f"the sketch file {sketch_path} does not exist")
+        logger.info(f"loading sketch from {sketch_path} ...")
+        logger.info(f"all in one approach so assuming input in PRISM format...")
+        try:
+            prism, hole_definitions = PrismParser.load_sketch_prism(sketch_path)
+            expression_parser = stormpy.storage.ExpressionParser(prism.expression_manager)
+            expression_parser.set_identifier_mapping(dict())
+            prism_model_type = {
+                stormpy.storage.PrismModelType.DTMC:"DTMC",
+                stormpy.storage.PrismModelType.MDP:"MDP",
+                stormpy.storage.PrismModelType.POMDP:"POMDP"
+            }[prism.model_type]
+            logger.debug("PRISM model type: " + prism_model_type)
+
+            hole_expressions = None
+            family = None
+            if len(hole_definitions) > 0:
+                logger.info("processing hole definitions...")
+                prism, hole_expressions, family = PrismParser.parse_holes(prism, expression_parser, hole_definitions)
+
+            specification = PrismParser.parse_specification(properties_path, 0, 1, prism)
+
+            prism = prism.replace_variable_initialization_by_init_expression()
+            expression_manager = prism.expression_manager
+            for index, hole in enumerate(hole_definitions):
+                # TODO add support for double holes
+                assert hole[1] == 'int', "all in one approach only works with integer holes"
+                var = prism.get_constant(hole[0])
+                var_values = [x.evaluate_as_int() for x in hole_expressions[index]]
+                prism = prism.replace_constant_by_variable(var, expression_manager.create_integer(min(var_values)), expression_manager.create_integer(max(var_values)))
+                var_options = [stormpy.Expression.Eq(var.expression_variable.get_expression(), expression_manager.create_integer(val)) for val in var_values]
+                prism.update_initial_states_expression(stormpy.Expression.And(prism.initial_states_expression, stormpy.Expression.Disjunction(var_options)))
+
+            # TODO investigate why we have to print and load the prism program again for all in one construction to work
+            tmp_path = sketch_path + str(uuid.uuid4())
+            with open(tmp_path, 'w') as f:
+                print(prism, end="", file=f)
+            try:
+                prism = stormpy.parse_prism_program(tmp_path, prism_compat=True)
+                os.remove(tmp_path)
+            except:
+                os.remove(tmp_path)
+                raise SyntaxError
+
+        except SyntaxError as e:
+            logger.error(f"all in one approach supports only input in PRISM format!")
+            raise e
+        
+        return prism, specification, family
     
     @classmethod
     def export(cls, export, sketch_path, jani_unfolder, explicit_quotient):
@@ -166,20 +223,20 @@ class Sketch:
 
 
     @classmethod
-    def build_quotient_container(cls, prism, jani_unfolder, explicit_quotient, coloring, specification, obs_evaluator, decpomdp_manager):
+    def build_quotient_container(cls, prism, jani_unfolder, explicit_quotient, family, coloring, specification, obs_evaluator, decpomdp_manager):
         if jani_unfolder is not None:
             if prism.model_type == stormpy.storage.PrismModelType.DTMC:
-                quotient_container = paynt.quotient.quotient.DtmcQuotientContainer(explicit_quotient, coloring, specification)
+                quotient_container = paynt.quotient.quotient.DtmcFamilyQuotient(explicit_quotient, family, coloring, specification)
             elif prism.model_type == stormpy.storage.PrismModelType.MDP:
-                quotient_container = paynt.quotient.mdp_family.MdpFamilyQuotientContainer(explicit_quotient, coloring, specification)
+                quotient_container = paynt.quotient.mdp_family.MdpFamilyQuotient(explicit_quotient, family, coloring, specification)
             elif prism.model_type == stormpy.storage.PrismModelType.POMDP:
-                quotient_container = paynt.quotient.pomdp_family.PomdpFamilyQuotientContainer(explicit_quotient, coloring, specification, obs_evaluator)
+                quotient_container = paynt.quotient.pomdp_family.PomdpFamilyQuotient(explicit_quotient, family, coloring, specification, obs_evaluator)
         else:
             assert explicit_quotient.is_nondeterministic_model
             if decpomdp_manager is not None and decpomdp_manager.num_agents > 1:
-                quotient_container = DecPomdpQuotientContainer(decpomdp_manager, specification)
+                quotient_container = paynt.quotient.decpomdp.DecPomdpQuotient(decpomdp_manager, specification)
             else:
-                quotient_container = POMDPQuotientContainer(explicit_quotient, specification, decpomdp_manager)
+                quotient_container = paynt.quotient.pomdp.PomdpQuotient(explicit_quotient, specification, decpomdp_manager)
         return quotient_container
 
 

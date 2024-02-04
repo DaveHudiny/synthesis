@@ -1,6 +1,6 @@
 __pycache__/
+*.egg-info/
 
-env/
 prerequisites/
 storm/
 stormpy/
@@ -10,4 +10,4 @@ rl_approach/safe_rl
 rl_approach/shield_gridworlds
 rl_approach/models_rl
 rendering.log
-
+env/

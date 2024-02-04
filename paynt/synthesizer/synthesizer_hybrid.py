@@ -1,7 +1,8 @@
-from .synthesizer import Synthesizer
-from .synthesizer_ar import SynthesizerAR
-from .synthesizer_cegis import SynthesizerCEGIS
-from ..quotient.smt import SmtSolver
+import paynt.synthesizer.synthesizer
+import paynt.synthesizer.synthesizer_ar
+import paynt.synthesizer.synthesizer_cegis
+
+import paynt.family.smt
 
 from ..utils.profiler import Timer
 
@@ -85,16 +86,16 @@ class StageControl:
         return False
 
 
-class SynthesizerHybrid(SynthesizerAR, SynthesizerCEGIS):
+class SynthesizerHybrid(paynt.synthesizer.synthesizer_ar.SynthesizerAR, paynt.synthesizer.synthesizer_cegis.SynthesizerCEGIS):
 
     @property
     def method_name(self):
         return "hybrid"
 
-    def synthesize_assignment(self, family):
+    def synthesize_one(self, family):
 
         self.conflict_generator.initialize()
-        smt_solver = SmtSolver(self.quotient.design_space)
+        smt_solver = paynt.family.smt.SmtSolver(self.quotient.design_space)
 
         # AR-CEGIS loop
         satisfying_assignment = None
@@ -129,8 +130,7 @@ class SynthesizerHybrid(SynthesizerAR, SynthesizerCEGIS):
                 scheduler_selection = family.analysis_result.optimality_result.primary_selection
             else:
                 scheduler_selection = family.analysis_result.constraints_result.results[0].primary_selection
-            priority_subfamily = family.copy()
-            priority_subfamily.assume_options(scheduler_selection)
+            priority_subfamily = family.assume_options_copy(scheduler_selection)
 
             # explore family assignments
             family_explored = False
@@ -161,7 +161,7 @@ class SynthesizerHybrid(SynthesizerAR, SynthesizerCEGIS):
             if family_explored:
                 continue
         
-            subfamilies = self.quotient.split(family, Synthesizer.incomplete_search)
+            subfamilies = self.quotient.split(family, paynt.synthesizer.synthesizer.Synthesizer.incomplete_search)
             families = families + subfamilies
 
         return satisfying_assignment

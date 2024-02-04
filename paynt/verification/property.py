@@ -1,4 +1,5 @@
 import stormpy
+import payntbind
 
 import math
 import operator
@@ -16,13 +17,41 @@ def construct_reward_property(reward_name, minimizing, target_label):
 
 
 class Property:
-
-    # model checking precision
-    mc_precision = 1e-4
-    # precision for comparing floats
-    float_precision = 1e-10
-    
     ''' Wrapper over a stormpy property. '''
+    
+    # model checking environment (method & precision)
+    environment = None
+    # model checking precision
+    model_checking_precision = 1e-4
+    
+    @classmethod
+    def set_model_checking_precision(cls, precision):
+        cls.model_checking_precision = precision
+        payntbind.synthesis.set_precision_native(cls.environment.solver_environment.native_solver_environment, precision)
+        payntbind.synthesis.set_precision_minmax(cls.environment.solver_environment.minmax_solver_environment, precision)
+
+    @classmethod
+    def initialize(cls):
+        cls.environment = stormpy.Environment()
+        cls.set_model_checking_precision(cls.model_checking_precision)
+
+        se = cls.environment.solver_environment
+        se.set_linear_equation_solver_type(stormpy.EquationSolverType.native)
+        # se.set_linear_equation_solver_type(stormpy.EquationSolverType.gmmxx)
+        # se.set_linear_equation_solver_type(stormpy.EquationSolverType.eigen)
+
+        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.policy_iteration
+        se.minmax_solver_environment.method = stormpy.MinMaxMethod.value_iteration
+        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.sound_value_iteration
+        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.interval_iteration
+        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.optimistic_value_iteration
+        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.topological
+
+    @staticmethod
+    def above_model_checking_precision(a, b):
+        return abs(a-b) > Property.model_checking_precision
+
+    
     def __init__(self, prop, discount_factor=1):
         self.property = prop
         self.discount_factor = discount_factor
@@ -40,6 +69,10 @@ class Property:
 
         # set threshold
         self.threshold = rf.threshold_expr.evaluate_as_double()
+        if self.minimizing:
+            self.threshold_plus_precision = self.threshold + Property.model_checking_precision
+        else:
+            self.threshold_plus_precision = self.threshold - Property.model_checking_precision
 
         # construct quantitative formula (without bound) for explicit model checking
         # set optimality type
@@ -76,37 +109,6 @@ class Property:
     def maximizing(self):
         return not self.minimizing
 
-    def property_copy(self):
-        formula_copy = self.property.raw_formula.clone()
-        property_copy = stormpy.core.Property(self.property.name, formula_copy)
-        return property_copy
-
-    def copy(self):
-        return Property(self.property_copy(), self.discount_factor)
-
-    @staticmethod
-    def above_mc_precision(a, b):
-        return abs(a-b) > Property.mc_precision
-
-    @staticmethod
-    def above_float_precision(a, b):
-        return abs(a-b) > Property.float_precision
-
-    def meets_op(self, a, b):
-        ''' For constraints, we do not want to distinguish between small differences. '''
-        # return not Property.above_float_precision(a,b) or self.op(a,b)
-        return self.op(a,b)
-
-    def meets_threshold(self, value):
-        return self.meets_op(value, self.threshold)
-
-    def result_valid(self, value):
-        return not self.reward or value != math.inf
-
-    def satisfies_threshold(self, value):
-        ''' check if DTMC model checking result satisfies the property '''
-        return self.result_valid(value) and self.meets_threshold(value)
-
     @property
     def is_until(self):
         return self.formula.subformula.is_until_formula
@@ -115,9 +117,26 @@ class Property:
         if not self.is_until:
             return
         logger.info("converting until formula to eventually...")
-        formula = stormpy.synthesis.transform_until_to_eventually(self.property.raw_formula)
+        formula = payntbind.synthesis.transform_until_to_eventually(self.property.raw_formula)
         prop = stormpy.core.Property("", formula)
         self.__init__(prop, self.discount_factor)
+
+    def property_copy(self):
+        formula_copy = self.property.raw_formula.clone()
+        property_copy = stormpy.core.Property(self.property.name, formula_copy)
+        return property_copy
+
+    def copy(self):
+        return Property(self.property_copy(), self.discount_factor)
+
+    def result_valid(self, value):
+        return not self.reward or value != math.inf
+
+    def satisfies_threshold(self, value):
+        return self.result_valid(value) and self.op(value, self.threshold)
+
+    def satisfies_threshold_within_precision(self, value):
+        return self.result_valid(value) and self.op(value, self.threshold_plus_precision)
 
     @property
     def can_be_improved(self):
@@ -125,7 +144,6 @@ class Property:
 
     def negate(self):
         negated_formula = self.property.raw_formula.clone()
-        prop_negated = self.copy()
         negated_formula.comparison_type = {
             stormpy.ComparisonType.LESS:    stormpy.ComparisonType.GEQ,
             stormpy.ComparisonType.LEQ:     stormpy.ComparisonType.GREATER,
@@ -135,6 +153,35 @@ class Property:
         stormpy_property_negated = stormpy.core.Property(self.property.name, negated_formula)
         property_negated = Property(stormpy_property_negated,self.discount_factor)
         return property_negated
+
+    def get_target_label(self):
+        target = self.formula.subformula.subformula
+        if isinstance(target, stormpy.logic.AtomicLabelFormula):
+            target_label = target.label
+        elif isinstance(target, stormpy.logic.AtomicExpressionFormula):
+            target_label = str(target)
+        else:
+            raise ValueError(f"unknown type of target expression {str(target)}, expected atomic label or atomic expression")
+        return target_label
+
+    def get_reward_name(self):
+        assert self.reward
+        return self.formula.reward_name
+    
+    def transform_to_optimality_formula(self, prism):
+        direction = "min" if self.minimizing else "max"
+        if self.reward:
+            if isinstance(self.formula.subformula.subformula, stormpy.logic.AtomicLabelFormula):
+                formula_str = f"R{{\"{self.get_reward_name()}\"}}{direction}=? [F \"{self.get_target_label()}\"]"
+            else:
+                formula_str = f"R{{\"{self.get_reward_name()}\"}}{direction}=? [F {self.get_target_label()}]"
+        else:
+            if isinstance(self.formula.subformula.subformula, stormpy.logic.AtomicLabelFormula):
+                formula_str = f"P{direction}=? [F \"{self.get_target_label()}\"]"
+            else:
+                formula_str = f"P{direction}=? [F {self.get_target_label()}]"
+        formula = stormpy.parse_properties_for_prism_program(formula_str, prism)[0]
+        return formula
 
 
 
@@ -152,11 +199,9 @@ class OptimalityProperty(Property):
         if rf.optimality_type == stormpy.OptimizationDirection.Minimize:
             self.minimizing = True
             self.op = operator.lt
-            self.threshold = math.inf
         else:
             self.minimizing = False
             self.op = operator.gt
-            self.threshold = -math.inf
 
         # construct quantitative formula (without bound) for explicit model checking
         self.formula = rf.clone()
@@ -165,6 +210,9 @@ class OptimalityProperty(Property):
         # additional optimality stuff
         self.optimum = None
         self.epsilon = epsilon
+
+        self.reset()
+
 
     def __str__(self):
         eps = f"[eps = {self.epsilon}]" if self.epsilon > 0 else ""
@@ -175,10 +223,14 @@ class OptimalityProperty(Property):
 
     def reset(self):
         self.optimum = None
+        if self.minimizing:
+            self.threshold = math.inf
+        else:
+            self.threshold = -math.inf
 
     def meets_op(self, a, b):
         ''' For optimality objective, we want to accept improvements above model checking precision. '''
-        return b is None or (Property.above_mc_precision(a,b) and self.op(a,b))
+        return b is None or (Property.above_model_checking_precision(a,b) and self.op(a,b))
 
     def satisfies_threshold(self, value):
         return self.result_valid(value) and self.meets_op(value, self.threshold)
@@ -188,7 +240,6 @@ class OptimalityProperty(Property):
 
     def update_optimum(self, optimum):
         # assert self.improves_optimum(optimum)
-        #logger.debug(f"New opt = {optimum}.")
         self.optimum = optimum
         if self.minimizing:
             self.threshold = optimum * (1 - self.epsilon)
@@ -198,15 +249,15 @@ class OptimalityProperty(Property):
     def suboptimal_value(self):
         assert self.optimum is not None
         if self.minimizing:
-            return self.optimum * (1 + self.mc_precision)
+            return self.optimum * (1 + self.model_checking_precision)
         else:
-            return self.optimum * (1 - self.mc_precision)
+            return self.optimum * (1 - self.model_checking_precision)
 
     def transform_until_to_eventually(self):
         if not self.is_until:
             return
         logger.info("converting until formula to eventually...")
-        formula = stormpy.synthesis.transform_until_to_eventually(self.property.raw_formula)
+        formula = payntbind.synthesis.transform_until_to_eventually(self.property.raw_formula)
         prop = stormpy.core.Property("", formula)
         self.__init__(prop, self.discount_factor, self.epsilon)
 
@@ -215,7 +266,15 @@ class OptimalityProperty(Property):
         return not( not self.reward and self.minimizing and self.threshold == 0 )
 
     def negate(self):
-        raise TypeError("negation of optimality properties is not supported")
+        negated_formula = self.property.raw_formula.clone()
+        negate_optimality_type = {
+            stormpy.OptimizationDirection.Minimize:    stormpy.OptimizationDirection.Maximize,
+            stormpy.OptimizationDirection.Maximize:    stormpy.OptimizationDirection.Minimize
+        }[negated_formula.optimality_type]
+        negated_formula.set_optimality_type(negate_optimality_type)
+        stormpy_property_negated = stormpy.core.Property(self.property.name, negated_formula)
+        property_negated = OptimalityProperty(stormpy_property_negated,self.discount_factor,self.epsilon)
+        return property_negated
 
 
 class DoubleOptimalityProperty(OptimalityProperty):
@@ -293,9 +352,6 @@ class Specification:
     @property
     def is_single_property(self):
         return self.num_properties == 1
-
-    def all_constraint_indices(self):
-        return [i for i,_ in enumerate(self.constraints)]
 
     def all_properties(self):
         properties = [c for c in self.constraints]
