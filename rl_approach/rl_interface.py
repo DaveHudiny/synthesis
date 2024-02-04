@@ -215,6 +215,7 @@ class RLInterface:
         limits_min, limits_max = self.generate_policy_step_states_limits()
         policy_function = tf.function(self._model.agent.policy.action)
         observation_dict = {}
+        observation_memory_size = {}
         logger.debug("Evaluating model.")
         for observation in tqdm(self.unique_observations):
             time_step.observation['obs'] = tf.constant(
@@ -224,6 +225,8 @@ class RLInterface:
             _, memory = self.memory_estimation(action_stats_dict)
             # self.print_triplet(observation, actions, memory, file)
             observation_dict[observation] = actions
+            observation_memory_size[observation] = memory
+
         logger.debug("Evaluation finished.")
         with open("obs_actions.pickle", "wb") as file_pickle:
             pickle.dump(observation_dict, file_pickle)
