@@ -1,6 +1,8 @@
 import stormpy
 import stormpy.pomdp
 import payntbind
+import numpy as np
+import pickle
 
 from ..quotient.models import MarkovChain
 from ..utils.profiler import Timer
@@ -526,7 +528,11 @@ class StormPOMDPControl:
     # returns the main family that will be explored first
     # main family contains only the actions considered by respective FSC (most usually Storm result)
     def get_main_restricted_family(self, family, result_dict):
-
+        
+        # with open("./rl_oracle/obs_actions.pickle", "rb") as f:
+        #     obs_actions = pickle.load(f)
+        
+        # result_dict = obs_actions
         if result_dict == {}:
             return family
 
@@ -545,7 +551,7 @@ class StormPOMDPControl:
 
                 restricted_family.hole_set_options(hole,selected_actions)
 
-        logger.info("Main family based on data from Storm: reduced design space from {} to {}".format(family.size, restricted_family.size))
+        # logger.info("Main family based on data from Storm: reduced design space from {} to {}".format(family.size, restricted_family.size))
 
         return restricted_family
 
@@ -554,7 +560,6 @@ class StormPOMDPControl:
     # creating this restrictions list saves some memory compared to constructing all of the families
     # corresponding families are then created only when needed
     def get_subfamilies_restrictions(self, family, result_dict):
-
         if result_dict == {}:
             return {}
 

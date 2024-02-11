@@ -1,6 +1,8 @@
 import stormpy
 import stormpy.pomdp
 import payntbind
+import pickle
+import numpy as np
 
 import paynt.family.family
 import paynt.quotient.quotient
@@ -117,8 +119,12 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             self.pomdp_manager = payntbind.synthesis.PomdpManagerAposteriori(self.pomdp)
 
         # do initial unfolding
-        self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
+        # print(PomdpQuotient.initial_memory_size)
+        # self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
         # self.set_global_memory_size(PomdpQuotient.initial_memory_size)
+        with open("./rl_oracle/obs_memory.pickle", "rb") as f:
+            obs_memory_dict = pickle.load(f)
+            self.set_memory_from_dict(obs_memory_dict)
 
     
     @property
