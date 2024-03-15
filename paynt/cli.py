@@ -128,6 +128,10 @@ def setup_logger(log_path = None):
 )
 
 @click.option(
+    "--constraint-bound", type=click.FLOAT, help="bound for creating constrained POMDP for cassandra models",
+)
+
+@click.option(
     "--ce-generator", type=click.Choice(["dtmc", "mdp"]), default="dtmc", show_default=True,
     help="counterexample generator",
 )
@@ -145,6 +149,7 @@ def paynt_run(
     export_fsc_storm, export_fsc_paynt, export_evaluation,
     all_in_one,
     mdp_split_wrt_mdp, mdp_discard_unreachable_choices, mdp_use_randomized_abstraction,
+    constraint_bound,
     ce_generator,
     profiling
 ):
@@ -177,7 +182,7 @@ def paynt_run(
     sketch_path = os.path.join(project, sketch)
     properties_path = os.path.join(project, props)
     if all_in_one is None:
-        quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path,  properties_path, export, relative_error, discount_factor, precision)
+        quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, discount_factor, precision, constraint_bound)
         synthesizer = paynt.synthesizer.synthesizer.Synthesizer.choose_synthesizer(quotient, method, fsc_synthesis, storm_control)
         synthesizer.run(optimum_threshold, export_evaluation)
     else:
@@ -186,9 +191,28 @@ def paynt_run(
         all_in_one_analysis.run()
     if profiling:
         profiler.disable()
-        stats = profiler.create_stats()
-        pstats.Stats(profiler).sort_stats('tottime').print_stats(20)
+        print_profiler_stats(profiler)
 
+def print_profiler_stats(profiler):
+    stats = pstats.Stats(profiler)
+    NUM_LINES = 20
+
+    logger.debug("cProfiler info:")
+    stats.sort_stats('tottime').print_stats(NUM_LINES)
+
+    logger.debug("percentage breakdown:")
+    entries = [ (key,data[2]) for key,data in stats.stats.items()]
+    entries = sorted(entries, key=lambda x : x[1], reverse=True)
+    entries = entries[:NUM_LINES]
+    for key,data in entries:
+        module,line,method = key
+        if module == "~":
+            callee = method
+        else:
+            callee = f"{module}:{line}({method})"
+        percentage = round(data / stats.total_tt * 100,1)
+        percentage = str(percentage).ljust(4)
+        print(f"{percentage} %  {callee}")
 
 def main():
     setup_logger()
