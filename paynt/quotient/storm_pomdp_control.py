@@ -4,6 +4,8 @@ import payntbind
 import numpy as np
 import pickle
 
+from decimal import Decimal
+
 from ..quotient.models import MarkovChain
 from ..utils.profiler import Timer
 
@@ -529,10 +531,15 @@ class StormPOMDPControl:
     # main family contains only the actions considered by respective FSC (most usually Storm result)
     def get_main_restricted_family(self, family, result_dict):
         
-        # with open("./rl_oracle/obs_actions.pickle", "rb") as f:
-        #     obs_actions = pickle.load(f)
-        
-        # result_dict = obs_actions
+        rl_dict = False
+
+        if rl_dict:
+            with open("./refactor_models/evade/DQN_obs_action_dict.pickle", "rb") as f:
+                obs_actions = pickle.load(f)
+            with open("./refactor_models/evade/labels.pickle", "rb") as f:
+                action_keywords = pickle.load(f)
+            result_dict = obs_actions
+
         if result_dict == {}:
             return family
 
@@ -540,18 +547,34 @@ class StormPOMDPControl:
         # go through each observation of interest
         for obs in range(self.quotient.observations):
             for hole in self.quotient.observation_action_holes[obs]:
-
                 if obs in result_dict.keys():
-                    selected_actions = [action for action in family.hole_options(hole) if action in result_dict[obs]]
+                    if rl_dict:
+                        suggested_actions = []
+                        for action in result_dict[obs]:
+                            keyword = action_keywords[action]
+                            for label in family.hole_to_option_labels[hole]:
+                                if keyword in label:
+                                    suggested_actions.append(family.hole_to_option_labels[hole].index(label))
+                        selected_actions = [action for action in family.hole_options(hole) if action in suggested_actions]
+                    else:
+                        selected_actions = [action for action in family.hole_options(hole) if action in result_dict[obs]]
+                    if len(selected_actions) == 0:
+                        print("Observation: ", obs, "Hole: ", hole, "Suggested actions: ", suggested_actions)
+                        print(family.hole_to_option_labels[hole])
+                        print(family.hole_name(hole))
+                        selected_actions = [family.hole_options(hole)[0]]
+                        exit(0)
                 else:
                     selected_actions = [family.hole_options(hole)[0]]
+
 
                 if len(selected_actions) == 0:
                     return None
 
-                restricted_family.hole_set_options(hole,selected_actions)
-
-        # logger.info("Main family based on data from Storm: reduced design space from {} to {}".format(family.size, restricted_family.size))
+                restricted_family.hole_set_options(hole, selected_actions)
+        family_size = '%.2E' % Decimal(family.size)
+        restricted_family_size = '%.2E' % Decimal(restricted_family.size)
+        logger.info("Main family based on data from Storm: reduced design space from {} to {}".format(family_size, restricted_family_size))
 
         return restricted_family
 

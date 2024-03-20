@@ -379,15 +379,19 @@ class SynthesizerPOMDP:
         '''
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
         opt = self.quotient.specification.optimality.optimum
+        start_time = time.time()
+        time_limit = 30
         while True:
-            
+
+            if time.time() - start_time > time_limit:
+                return assignment
             logger.info("Synthesizing optimal k={} controller ...".format(mem_size) )
             if unfold_imperfect_only:
                 self.quotient.set_imperfect_memory_size(mem_size)
             else:
                 self.quotient.set_global_memory_size(mem_size)
             
-            self.synthesize(self.quotient.design_space)
+            assignment = self.synthesize(self.quotient.design_space)
 
             opt_old = opt
             opt = self.quotient.specification.optimality.optimum
@@ -396,6 +400,8 @@ class SynthesizerPOMDP:
             # if opt_old == opt and opt is not None:
             #     break
             mem_size += 1
+
+        return assignment
 
             #break
     
@@ -637,7 +643,7 @@ class SynthesizerPOMDP:
             # run Storm and then use the obtained result to enhance PAYNT synthesis
             else:
                 self.storm_control.get_storm_result()
-                self.strategy_storm(unfold_imperfect_only=True, unfold_storm=self.storm_control.unfold_storm)
+                return self.strategy_storm(unfold_imperfect_only=True, unfold_storm=self.storm_control.unfold_storm)
 
             print("\n------------------------------------\n")
             print("PAYNT results: ")

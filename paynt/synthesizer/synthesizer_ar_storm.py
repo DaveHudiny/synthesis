@@ -4,6 +4,7 @@ from ..quotient.storm_pomdp_control import StormPOMDPControl
 from os import makedirs
 
 from time import sleep
+import time
 
 import logging
 logger = logging.getLogger(__name__)
@@ -111,7 +112,6 @@ class SynthesizerARStorm(Synthesizer):
 
 
     def synthesize_one(self, family):
-
         self.quotient.discarded = 0
 
         satisfying_assignment = None
@@ -122,6 +122,7 @@ class SynthesizerARStorm(Synthesizer):
         families = [family]
 
         while families:
+
 
             # check whether PAYNT should be paused
             if self.s_queue is not None:

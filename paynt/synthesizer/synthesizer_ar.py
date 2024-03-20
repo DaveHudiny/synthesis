@@ -1,6 +1,8 @@
 import paynt.synthesizer.synthesizer
 import paynt.quotient.pomdp
 
+import time
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -9,6 +11,12 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
     @property
     def method_name(self):
         return "AR"
+    
+    @property
+    def start_time(self):
+        if not hasattr(self, "_start_time"):
+            self._start_time = time.time()
+        return self._start_time
 
     
     def verify_family(self, family):
@@ -37,11 +45,19 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
 
     def synthesize_one(self, family):
         # return self.synthesize_one_experimental(family)
-
         satisfying_assignment = None
         families = [family]
 
+        time_limit = 30
+        iterator = 0
+
+
         while families:
+
+            evaluation_time = time.time() - self.start_time
+            if evaluation_time > time_limit:
+                logger.info("Time limit reached")
+                return satisfying_assignment
 
             family = families.pop(-1)
 
@@ -56,6 +72,9 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
             # undecided
             subfamilies = self.quotient.split(family, paynt.synthesizer.synthesizer.Synthesizer.incomplete_search)
             families = families + subfamilies
+            if iterator >= 100:
+                return satisfying_assignment
+            iterator += 1
 
         return satisfying_assignment
 

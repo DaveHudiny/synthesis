@@ -14,7 +14,6 @@
                 "--project",
                 "./drn_models/evade_8/",
                 "--fsc-synthesis",
-                "--storm-pomdp"
             ]
         }
     ]
