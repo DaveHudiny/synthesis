@@ -123,7 +123,6 @@ class SynthesizerARStorm(Synthesizer):
 
         while families:
 
-
             # check whether PAYNT should be paused
             if self.s_queue is not None:
                 # if the queue is non empty, pause for PAYNT was requested

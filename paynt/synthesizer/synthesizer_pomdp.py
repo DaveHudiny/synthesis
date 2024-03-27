@@ -380,11 +380,11 @@ class SynthesizerPOMDP:
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
         opt = self.quotient.specification.optimality.optimum
         start_time = time.time()
-        time_limit = 30
+        time_limit = 10
+        assignment_last = None
         while True:
-
             if time.time() - start_time > time_limit:
-                return assignment
+                return assignment_last
             logger.info("Synthesizing optimal k={} controller ...".format(mem_size) )
             if unfold_imperfect_only:
                 self.quotient.set_imperfect_memory_size(mem_size)
@@ -392,7 +392,8 @@ class SynthesizerPOMDP:
                 self.quotient.set_global_memory_size(mem_size)
             
             assignment = self.synthesize(self.quotient.design_space)
-
+            if assignment is not None:
+                assignment_last = assignment
             opt_old = opt
             opt = self.quotient.specification.optimality.optimum
 
@@ -660,7 +661,7 @@ class SynthesizerPOMDP:
         else:
             # self.strategy_expected_uai()
             # self.strategy_iterative(unfold_imperfect_only=False)
-            self.strategy_iterative(unfold_imperfect_only=True)
+            return self.strategy_iterative(unfold_imperfect_only=True)
 
 
         

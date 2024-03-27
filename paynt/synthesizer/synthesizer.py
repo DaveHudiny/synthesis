@@ -158,4 +158,4 @@ class Synthesizer:
         if isinstance(self.quotient, paynt.quotient.mdp_family.MdpFamilyQuotient):
             self.evaluate(export_filename_base=export_evaluation)
         else:
-            self.synthesize(optimum_threshold=optimum_threshold)
+            return self.synthesize(optimum_threshold=optimum_threshold)
