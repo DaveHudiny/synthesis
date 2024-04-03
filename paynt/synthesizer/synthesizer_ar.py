@@ -47,7 +47,7 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
         satisfying_assignment = None
         families = [family]
 
-        time_limit = 30
+        time_limit = 60
         iterator = 0
 
 
@@ -71,9 +71,6 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
             # undecided
             subfamilies = self.quotient.split(family, paynt.synthesizer.synthesizer.Synthesizer.incomplete_search)
             families = families + subfamilies
-            if iterator >= 100:
-                return satisfying_assignment
-            iterator += 1
 
         return satisfying_assignment
 
