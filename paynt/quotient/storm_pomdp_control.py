@@ -530,12 +530,16 @@ class StormPOMDPControl:
     # main family contains only the actions considered by respective FSC (most usually Storm result)
     def get_main_restricted_family(self, family, result_dict):
         
-        rl_dict = False
+        rl_dict = True
 
         if rl_dict:
-            with open("./refactor_models/evade/DQN_obs_action_dict.pickle", "rb") as f:
+            # with open("./refactor_models/rocks-16/obs_action_dict.pickle", "rb") as f:
+            #     obs_actions = pickle.load(f)
+            # with open("./refactor_models/rocks-16/labels.pickle", "rb") as f:
+            #     action_keywords = pickle.load(f)
+            with open("./obs_action_dict.pickle", "rb") as f:
                 obs_actions = pickle.load(f)
-            with open("./refactor_models/evade/labels.pickle", "rb") as f:
+            with open("./labels.pickle", "rb") as f:
                 action_keywords = pickle.load(f)
             result_dict = obs_actions
 

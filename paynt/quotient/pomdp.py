@@ -123,14 +123,19 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             self.pomdp_manager = payntbind.synthesis.PomdpManager(self.pomdp)
         else:
             self.pomdp_manager = payntbind.synthesis.PomdpManagerAposteriori(self.pomdp)
-
+        mem_dict = False
         # do initial unfolding
         # print(PomdpQuotient.initial_memory_size)
-        self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
+        # self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
         # self.set_global_memory_size(PomdpQuotient.initial_memory_size)
-        # with open("./rl_oracle/obs_memory.pickle", "rb") as f:
-        #     obs_memory_dict = pickle.load(f)
-        #     self.set_memory_from_dict(obs_memory_dict)
+        if not mem_dict:
+            self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
+        else:
+            with open("./memory_dict.pickle", "rb") as f:
+                obs_memory_dict = pickle.load(f)
+                for key in obs_memory_dict.keys():
+                    obs_memory_dict[key] += 1
+                self.set_memory_from_dict(obs_memory_dict)
 
     
     @property
