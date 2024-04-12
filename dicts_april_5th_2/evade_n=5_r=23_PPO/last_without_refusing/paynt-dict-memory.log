@@ -1,0 +1,442 @@
+2024-04-12 11:26:41,675 - cli.py - This is Paynt version 0.1.0.
+2024-04-12 11:26:41,675 - sketch.py - loading sketch from april_models//evade_n=5_r=23/sketch.templ ...
+2024-04-12 11:26:41,675 - sketch.py - assuming sketch in PRISM format...
+2024-04-12 11:26:41,758 - prism_parser.py - PRISM model type: POMDP
+2024-04-12 11:26:41,758 - prism_parser.py - loading properties from april_models//evade_n=5_r=23/sketch.props ...
+2024-04-12 11:26:41,761 - prism_parser.py - found the following specification: optimality: R[exp]{"steps"}min=? [F "goal"] 
+2024-04-12 11:26:42,053 - sketch.py - sketch parsing OK
+2024-04-12 11:26:42,053 - sketch.py - converting state rewards 'steps' to state-action rewards
+2024-04-12 11:26:42,055 - sketch.py - constructed explicit quotient having 1961 states and 5801 actions
+2024-04-12 11:26:42,055 - sketch.py - found the following specification optimality: R[exp]{"steps"}min=? [F "goal"] 
+2024-04-12 11:26:42,061 - pomdp.py - constructed POMDP having 981 observations.
+2024-04-12 11:26:42,160 - pomdp.py - unfolding 6-FSC template into POMDP ...
+2024-04-12 11:26:42,174 - pomdp.py - constructed quotient MDP having 4126 states and 30248 actions.
+2024-04-12 11:26:42,174 - pomdp.py - creating coloring ...
+2024-04-12 11:26:42,234 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-04-12 11:26:42,234 - synthesizer_pomdp.py - Storm settings: iterative - (None, None, None), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (False, False), use_storm_cutoffs - False
+2024-04-12 11:26:42,235 - storm_pomdp_control.py - starting Storm POMDP analysis
+Finished exploring under-approximation MDP.
+Start analysis...
+2024-04-12 11:26:42,263 - storm_pomdp_control.py - Storm POMDP analysis completed
+-----------Storm-----------               
+Value = 17.0 | Time elapsed = 0.0s | FSC size = 3906
+FSC (dot) = digraph model {
+	0 [ label = "0: {__extra, target}" ];
+	1 [ label = "1: {[!start	& !turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=4]
+cutoff, init, sched_0}" ];
+	"0c" [shape = "point"]
+	0 -> "0c" [label= "{loop}"];
+	"0c" -> 0 [ label= "1" ];
+	"1c" [shape = "point"]
+	1 -> "1c" [label= "{sched_0}"];
+	"1c" -> 0 [ label= "1" ];
+}
+
+
+2024-04-12 11:26:42,308 - synthesizer_pomdp.py - Synthesizing optimal k=1 controller ...
+2024-04-12 11:26:42,310 - pomdp.py - unfolding 1-FSC template into POMDP ...
+2024-04-12 11:26:42,312 - pomdp.py - constructed quotient MDP having 1961 states and 5801 actions.
+2024-04-12 11:26:42,312 - pomdp.py - creating coloring ...
+2024-04-12 11:26:42,321 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to 1.01E+82
+2024-04-12 11:26:42,322 - synthesizer.py - synthesis initiated, design space: 1e335
+2024-04-12 11:26:42,326 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:42,326 - synthesizer.py - A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=south, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=south, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=south, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=west, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=1	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=east, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=1	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=south, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=east, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=south, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=1	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=south, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=south, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=1	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=south, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=south, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=south, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=south, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=west, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=south, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=east, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=south, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=south, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=east, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=south, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=south, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=south, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=south, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=south, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=south, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=south, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=south, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=south, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=south, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=south, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=east, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=south, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=1	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=south, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=east, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=south, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=west, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=south, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=1	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=east, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=1	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=east, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=south, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=south, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=south, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=east, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=1	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=south, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=south, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=east, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=east, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=south, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=west, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=south, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=west, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=east, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=east, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=south, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=east, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=west, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=east, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=east, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=1	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=east, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=south, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=west, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=east, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=east, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=south, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=west, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=east, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=east, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=1	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=east, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=south, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=east, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=east, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=south, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=east, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=south, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=west, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=west, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=south, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=east, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=east, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=south, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=south, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=east, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=south, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=1	& seedx=4	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=east, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=south, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=south, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=1	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=south, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=south, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=east, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=east, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=south, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=south, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=east, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=east, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=east, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=east, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=1	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=south, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=south, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=south, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=south, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=west, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=1	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=south, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=east, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=north, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=1	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=east, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=south, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=south, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=south, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=1	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=south, A([start	& turn	& dx=1	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=north, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=south, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=3	& amdone=0	& hascrash=1	& seedx=3	& seedy=3],0)=east, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=east, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=south, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=south, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=1	& seedx=4	& seedy=3],0)=south, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=south, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=south, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=east, A([start	& turn	& dx=3	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=south, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=3],0)=east, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=east, A([start	& turn	& dx=4	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=south, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=east, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=2	& seedy=1],0)=north, A([start	& turn	& dx=4	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=1],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=0	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=east, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=2],0)=north, A([start	& turn	& dx=3	& dy=4	& amdone=0	& hascrash=0	& seedx=1	& seedy=2],0)=east, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=1	& seedx=0	& seedy=1],0)=east, A([start	& turn	& dx=4	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=1	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=4	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=north, A([start	& turn	& dx=4	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=1],0)=south, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=2	& dy=0	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=2	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=3	& amdone=0	& hascrash=0	& seedx=1	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=2	& seedy=3],0)=east, A([start	& turn	& dx=2	& dy=2	& amdone=0	& hascrash=0	& seedx=4	& seedy=4],0)=north, A([start	& turn	& dx=1	& dy=1	& amdone=0	& hascrash=0	& seedx=1	& seedy=4],0)=north, A([start	& turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=3],0)=east, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=1	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=3	& amdone=0	& hascrash=0	& seedx=2	& seedy=4],0)=east, A([start	& turn	& dx=0	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)=north, A([start	& turn	& dx=1	& dy=2	& amdone=0	& hascrash=0	& seedx=0	& seedy=3],0)=north, A([start	& turn	& dx=2	& dy=4	& amdone=0	& hascrash=0	& seedx=3	& seedy=2],0)=east, A([start	& turn	& dx=0	& dy=4	& amdone=0	& hascrash=0	& seedx=2	& seedy=2],0)=north
+2024-04-12 11:26:42,328 - synthesizer.py - double-checking specification satisfiability:  : 32.24508686494843
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 480, family size: 1e335, quotient: 1961 states / 5801 actions
+explored: 0 %
+MDP stats: avg MDP size: 1148, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:42,341 - synthesizer_pomdp.py - Synthesizing optimal k=2 controller ...
+2024-04-12 11:26:42,341 - pomdp.py - unfolding 2-FSC template into POMDP ...
+2024-04-12 11:26:42,346 - pomdp.py - constructed quotient MDP having 3921 states and 23202 actions.
+2024-04-12 11:26:42,346 - pomdp.py - creating coloring ...
+2024-04-12 11:26:42,384 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:42,385 - synthesizer.py - synthesis initiated, design space: 1e1261
+2024-04-12 11:26:42,392 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:42,393 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.01 s
+number of holes: 2921, family size: 1e1261, quotient: 3921 states / 23202 actions
+explored: 0 %
+MDP stats: avg MDP size: 2295, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:42,394 - synthesizer_pomdp.py - Synthesizing optimal k=3 controller ...
+2024-04-12 11:26:42,395 - pomdp.py - unfolding 3-FSC template into POMDP ...
+2024-04-12 11:26:42,412 - pomdp.py - constructed quotient MDP having 5881 states and 52203 actions.
+2024-04-12 11:26:42,412 - pomdp.py - creating coloring ...
+2024-04-12 11:26:42,491 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:42,492 - synthesizer.py - synthesis initiated, design space: 1e2409
+2024-04-12 11:26:42,510 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:42,511 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.02 s
+number of holes: 4381, family size: 1e2409, quotient: 5881 states / 52203 actions
+explored: 0 %
+MDP stats: avg MDP size: 3442, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:42,512 - synthesizer_pomdp.py - Synthesizing optimal k=4 controller ...
+2024-04-12 11:26:42,515 - pomdp.py - unfolding 4-FSC template into POMDP ...
+2024-04-12 11:26:42,542 - pomdp.py - constructed quotient MDP having 7841 states and 92804 actions.
+2024-04-12 11:26:42,543 - pomdp.py - creating coloring ...
+2024-04-12 11:26:42,713 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:42,715 - synthesizer.py - synthesis initiated, design space: 1e3702
+2024-04-12 11:26:42,743 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:42,743 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.03 s
+number of holes: 5841, family size: 1e3702, quotient: 7841 states / 92804 actions
+explored: 0 %
+MDP stats: avg MDP size: 4589, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:42,745 - synthesizer_pomdp.py - Synthesizing optimal k=5 controller ...
+2024-04-12 11:26:42,750 - pomdp.py - unfolding 5-FSC template into POMDP ...
+2024-04-12 11:26:42,814 - pomdp.py - constructed quotient MDP having 9801 states and 145005 actions.
+2024-04-12 11:26:42,814 - pomdp.py - creating coloring ...
+2024-04-12 11:26:43,051 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:43,054 - synthesizer.py - synthesis initiated, design space: 1e5103
+2024-04-12 11:26:43,096 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:43,096 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.04 s
+number of holes: 7301, family size: 1e5103, quotient: 9801 states / 145005 actions
+explored: 0 %
+MDP stats: avg MDP size: 5736, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:43,098 - synthesizer_pomdp.py - Synthesizing optimal k=6 controller ...
+2024-04-12 11:26:43,106 - pomdp.py - unfolding 6-FSC template into POMDP ...
+2024-04-12 11:26:43,190 - pomdp.py - constructed quotient MDP having 11761 states and 208806 actions.
+2024-04-12 11:26:43,191 - pomdp.py - creating coloring ...
+2024-04-12 11:26:43,581 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:43,584 - synthesizer.py - synthesis initiated, design space: 1e6589
+2024-04-12 11:26:43,643 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:43,643 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.05 s
+number of holes: 8761, family size: 1e6589, quotient: 11761 states / 208806 actions
+explored: 0 %
+MDP stats: avg MDP size: 6883, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:43,645 - synthesizer_pomdp.py - Synthesizing optimal k=7 controller ...
+2024-04-12 11:26:43,656 - pomdp.py - unfolding 7-FSC template into POMDP ...
+2024-04-12 11:26:43,778 - pomdp.py - constructed quotient MDP having 13721 states and 284207 actions.
+2024-04-12 11:26:43,779 - pomdp.py - creating coloring ...
+2024-04-12 11:26:44,271 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:44,274 - synthesizer.py - synthesis initiated, design space: 1e8146
+2024-04-12 11:26:44,353 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:44,354 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.07 s
+number of holes: 10221, family size: 1e8146, quotient: 13721 states / 284207 actions
+explored: 0 %
+MDP stats: avg MDP size: 8030, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:44,357 - synthesizer_pomdp.py - Synthesizing optimal k=8 controller ...
+2024-04-12 11:26:44,371 - pomdp.py - unfolding 8-FSC template into POMDP ...
+2024-04-12 11:26:44,576 - pomdp.py - constructed quotient MDP having 15681 states and 371208 actions.
+2024-04-12 11:26:44,576 - pomdp.py - creating coloring ...
+2024-04-12 11:26:45,226 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:45,229 - synthesizer.py - synthesis initiated, design space: 1e9765
+2024-04-12 11:26:45,331 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:45,332 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.1 s
+number of holes: 11681, family size: 1e9765, quotient: 15681 states / 371208 actions
+explored: 0 %
+MDP stats: avg MDP size: 9177, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:45,335 - synthesizer_pomdp.py - Synthesizing optimal k=9 controller ...
+2024-04-12 11:26:45,353 - pomdp.py - unfolding 9-FSC template into POMDP ...
+2024-04-12 11:26:45,561 - pomdp.py - constructed quotient MDP having 17641 states and 469809 actions.
+2024-04-12 11:26:45,561 - pomdp.py - creating coloring ...
+2024-04-12 11:26:46,355 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:46,359 - synthesizer.py - synthesis initiated, design space: 1e11436
+2024-04-12 11:26:46,486 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:46,486 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.12 s
+number of holes: 13141, family size: 1e11436, quotient: 17641 states / 469809 actions
+explored: 0 %
+MDP stats: avg MDP size: 10324, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:46,490 - synthesizer_pomdp.py - Synthesizing optimal k=10 controller ...
+2024-04-12 11:26:46,517 - pomdp.py - unfolding 10-FSC template into POMDP ...
+2024-04-12 11:26:46,812 - pomdp.py - constructed quotient MDP having 19601 states and 580010 actions.
+2024-04-12 11:26:46,812 - pomdp.py - creating coloring ...
+2024-04-12 11:26:47,828 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:47,833 - synthesizer.py - synthesis initiated, design space: 1e13156
+2024-04-12 11:26:47,993 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:47,994 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.15 s
+number of holes: 14601, family size: 1e13156, quotient: 19601 states / 580010 actions
+explored: 0 %
+MDP stats: avg MDP size: 11471, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:47,998 - synthesizer_pomdp.py - Synthesizing optimal k=11 controller ...
+2024-04-12 11:26:48,050 - pomdp.py - unfolding 11-FSC template into POMDP ...
+2024-04-12 11:26:48,394 - pomdp.py - constructed quotient MDP having 21561 states and 701811 actions.
+2024-04-12 11:26:48,394 - pomdp.py - creating coloring ...
+2024-04-12 11:26:49,824 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:49,829 - synthesizer.py - synthesis initiated, design space: 1e14917
+2024-04-12 11:26:50,025 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:50,025 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.18 s
+number of holes: 16061, family size: 1e14917, quotient: 21561 states / 701811 actions
+explored: 0 %
+MDP stats: avg MDP size: 12618, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:50,030 - synthesizer_pomdp.py - Synthesizing optimal k=12 controller ...
+2024-04-12 11:26:50,068 - pomdp.py - unfolding 12-FSC template into POMDP ...
+2024-04-12 11:26:50,512 - pomdp.py - constructed quotient MDP having 23521 states and 835212 actions.
+2024-04-12 11:26:50,513 - pomdp.py - creating coloring ...
+2024-04-12 11:26:51,893 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:51,898 - synthesizer.py - synthesis initiated, design space: 1e16718
+2024-04-12 11:26:52,130 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:52,130 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.22 s
+number of holes: 17521, family size: 1e16718, quotient: 23521 states / 835212 actions
+explored: 0 %
+MDP stats: avg MDP size: 13765, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:52,135 - synthesizer_pomdp.py - Synthesizing optimal k=13 controller ...
+2024-04-12 11:26:52,205 - pomdp.py - unfolding 13-FSC template into POMDP ...
+2024-04-12 11:26:52,676 - pomdp.py - constructed quotient MDP having 25481 states and 980213 actions.
+2024-04-12 11:26:52,676 - pomdp.py - creating coloring ...
+2024-04-12 11:26:54,661 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:54,667 - synthesizer.py - synthesis initiated, design space: 1e18554
+2024-04-12 11:26:54,936 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:54,936 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.25 s
+number of holes: 18981, family size: 1e18554, quotient: 25481 states / 980213 actions
+explored: 0 %
+MDP stats: avg MDP size: 14912, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:54,942 - synthesizer_pomdp.py - Synthesizing optimal k=14 controller ...
+2024-04-12 11:26:54,994 - pomdp.py - unfolding 14-FSC template into POMDP ...
+2024-04-12 11:26:55,465 - pomdp.py - constructed quotient MDP having 27441 states and 1136814 actions.
+2024-04-12 11:26:55,466 - pomdp.py - creating coloring ...
+2024-04-12 11:26:57,633 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:26:57,639 - synthesizer.py - synthesis initiated, design space: 1e20423
+2024-04-12 11:26:57,949 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:26:57,949 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.29 s
+number of holes: 20441, family size: 1e20423, quotient: 27441 states / 1136814 actions
+explored: 0 %
+MDP stats: avg MDP size: 16059, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:26:57,955 - synthesizer_pomdp.py - Synthesizing optimal k=15 controller ...
+2024-04-12 11:26:58,048 - pomdp.py - unfolding 15-FSC template into POMDP ...
+2024-04-12 11:26:58,595 - pomdp.py - constructed quotient MDP having 29401 states and 1305015 actions.
+2024-04-12 11:26:58,596 - pomdp.py - creating coloring ...
+2024-04-12 11:27:01,137 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:27:01,143 - synthesizer.py - synthesis initiated, design space: 1e22322
+2024-04-12 11:27:01,509 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:27:01,509 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.34 s
+number of holes: 21901, family size: 1e22322, quotient: 29401 states / 1305015 actions
+explored: 0 %
+MDP stats: avg MDP size: 17206, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:27:01,516 - synthesizer_pomdp.py - Synthesizing optimal k=16 controller ...
+2024-04-12 11:27:01,583 - pomdp.py - unfolding 16-FSC template into POMDP ...
+2024-04-12 11:27:02,321 - pomdp.py - constructed quotient MDP having 31361 states and 1484816 actions.
+2024-04-12 11:27:02,321 - pomdp.py - creating coloring ...
+2024-04-12 11:27:05,154 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:27:05,161 - synthesizer.py - synthesis initiated, design space: 1e24249
+2024-04-12 11:27:05,572 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:27:05,572 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.39 s
+number of holes: 23361, family size: 1e24249, quotient: 31361 states / 1484816 actions
+explored: 0 %
+MDP stats: avg MDP size: 18353, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:27:05,579 - synthesizer_pomdp.py - Synthesizing optimal k=17 controller ...
+2024-04-12 11:27:05,765 - pomdp.py - unfolding 17-FSC template into POMDP ...
+2024-04-12 11:27:06,443 - pomdp.py - constructed quotient MDP having 33321 states and 1676217 actions.
+2024-04-12 11:27:06,443 - pomdp.py - creating coloring ...
+2024-04-12 11:27:10,275 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:27:10,282 - synthesizer.py - synthesis initiated, design space: 1e26204
+2024-04-12 11:27:10,759 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:27:10,759 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.45 s
+number of holes: 24821, family size: 1e26204, quotient: 33321 states / 1676217 actions
+explored: 0 %
+MDP stats: avg MDP size: 19500, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:27:10,767 - synthesizer_pomdp.py - Synthesizing optimal k=18 controller ...
+2024-04-12 11:27:10,851 - pomdp.py - unfolding 18-FSC template into POMDP ...
+2024-04-12 11:27:11,795 - pomdp.py - constructed quotient MDP having 35281 states and 1879218 actions.
+2024-04-12 11:27:11,795 - pomdp.py - creating coloring ...
+2024-04-12 11:27:15,045 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:27:15,053 - synthesizer.py - synthesis initiated, design space: 1e28183
+2024-04-12 11:27:15,586 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:27:15,586 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.5 s
+number of holes: 26281, family size: 1e28183, quotient: 35281 states / 1879218 actions
+explored: 0 %
+MDP stats: avg MDP size: 20647, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:27:15,594 - synthesizer_pomdp.py - Synthesizing optimal k=19 controller ...
+2024-04-12 11:27:15,736 - pomdp.py - unfolding 19-FSC template into POMDP ...
+2024-04-12 11:27:16,899 - pomdp.py - constructed quotient MDP having 37241 states and 2093819 actions.
+2024-04-12 11:27:16,899 - pomdp.py - creating coloring ...
+2024-04-12 11:27:21,148 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:27:21,156 - synthesizer.py - synthesis initiated, design space: 1e30186
+2024-04-12 11:27:21,754 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:27:21,754 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.56 s
+number of holes: 27741, family size: 1e30186, quotient: 37241 states / 2093819 actions
+explored: 0 %
+MDP stats: avg MDP size: 21794, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:27:21,763 - synthesizer_pomdp.py - Synthesizing optimal k=20 controller ...
+2024-04-12 11:27:21,865 - pomdp.py - unfolding 20-FSC template into POMDP ...
+2024-04-12 11:27:22,817 - pomdp.py - constructed quotient MDP having 39201 states and 2320020 actions.
+2024-04-12 11:27:22,818 - pomdp.py - creating coloring ...
+2024-04-12 11:27:27,157 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:27:27,166 - synthesizer.py - synthesis initiated, design space: 1e32211
+2024-04-12 11:27:27,826 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:27:27,826 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.62 s
+number of holes: 29201, family size: 1e32211, quotient: 39201 states / 2320020 actions
+explored: 0 %
+MDP stats: avg MDP size: 22941, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:27:27,835 - synthesizer_pomdp.py - Synthesizing optimal k=21 controller ...
+2024-04-12 11:27:28,013 - pomdp.py - unfolding 21-FSC template into POMDP ...
+2024-04-12 11:27:29,226 - pomdp.py - constructed quotient MDP having 41161 states and 2557821 actions.
+2024-04-12 11:27:29,227 - pomdp.py - creating coloring ...
+2024-04-12 11:27:34,925 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 11:27:34,934 - synthesizer.py - synthesis initiated, design space: 1e34258
+2024-04-12 11:27:35,650 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 11:27:35,650 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.68 s
+number of holes: 30661, family size: 1e34258, quotient: 41161 states / 2557821 actions
+explored: 0 %
+MDP stats: avg MDP size: 24088, iterations: 1
+
+optimum: 32.245087
+--------------------
+2024-04-12 11:27:35,660 - synthesizer_pomdp.py - Synthesizing optimal k=22 controller ...
+2024-04-12 11:27:35,781 - pomdp.py - unfolding 22-FSC template into POMDP ...
+2024-04-12 11:27:36,916 - pomdp.py - constructed quotient MDP having 43121 states and 2807222 actions.
+2024-04-12 11:27:36,917 - pomdp.py - creating coloring ...
+Observation:  0 Hole:  0 Suggested actions:  []
+['north', 'south', 'east', 'west', 'scan']
+A([start	& turn	& dx=3	& dy=1	& amdone=0	& hascrash=0	& seedx=0	& seedy=1],0)

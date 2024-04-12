@@ -1,0 +1,14 @@
+2024-04-12 11:30:49,355 - cli.py - This is Paynt version 0.1.0.
+2024-04-12 11:30:49,356 - sketch.py - loading sketch from april_models//network-3-8-20/sketch.templ ...
+2024-04-12 11:30:49,356 - sketch.py - assuming sketch in PRISM format...
+2024-04-12 11:30:49,382 - prism_parser.py - PRISM model type: POMDP
+2024-04-12 11:30:49,382 - prism_parser.py - loading properties from april_models//network-3-8-20/sketch.props ...
+ WARN (FormulaParserGrammar.cpp:328): Identifier `T' coincides with a reserved keyword or operator. Property expressions using the variable or constant 'T' might not be parsed correctly.
+ WARN (FormulaParserGrammar.cpp:328): Identifier `T' coincides with a reserved keyword or operator. Property expressions using the variable or constant 'T' might not be parsed correctly.
+ WARN (FormulaParserGrammar.cpp:328): Identifier `T' coincides with a reserved keyword or operator. Property expressions using the variable or constant 'T' might not be parsed correctly.
+ WARN (FormulaParserGrammar.cpp:328): Identifier `T' coincides with a reserved keyword or operator. Property expressions using the variable or constant 'T' might not be parsed correctly.
+2024-04-12 11:30:49,387 - prism_parser.py - found the following specification: optimality: R[exp]{"dropped_packets"}min=? [F (((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))] 
+2024-04-12 11:30:49,582 - sketch.py - sketch parsing OK
+2024-04-12 11:30:49,582 - sketch.py - constructed explicit quotient having 17253 states and 30597 actions
+2024-04-12 11:30:49,582 - sketch.py - found the following specification optimality: R[exp]{"dropped_packets"}min=? [F (((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))] 
+2024-04-12 11:30:49,594 - pomdp.py - constructed POMDP having 2205 observations.
