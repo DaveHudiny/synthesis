@@ -123,7 +123,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             self.pomdp_manager = payntbind.synthesis.PomdpManager(self.pomdp)
         else:
             self.pomdp_manager = payntbind.synthesis.PomdpManagerAposteriori(self.pomdp)
-        mem_dict = True
+        mem_dict = False
         # do initial unfolding
         # print(PomdpQuotient.initial_memory_size)
         # self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)

@@ -528,20 +528,21 @@ class StormPOMDPControl:
 
     # returns the main family that will be explored first
     # main family contains only the actions considered by respective FSC (most usually Storm result)
-    def get_main_restricted_family(self, family, result_dict):
-        
-        rl_dict = True
 
-        if rl_dict:
-            # with open("./refactor_models/rocks-16/obs_action_dict.pickle", "rb") as f:
-            #     obs_actions = pickle.load(f)
-            # with open("./refactor_models/rocks-16/labels.pickle", "rb") as f:
-            #     action_keywords = pickle.load(f)
-            with open("./obs_action_dict.pickle", "rb") as f:
-                obs_actions = pickle.load(f)
-            with open("./labels.pickle", "rb") as f:
-                action_keywords = pickle.load(f)
-            result_dict = obs_actions
+    def convert_rl_dict_to_paynt(self, family, result_dict, action_keywords):
+        paynt_dict = {}
+        for obs in result_dict.keys():
+            # print(self.quotient.action_labels_at_observation[obs])
+            suggested_actions = []
+            for action in result_dict[obs]:
+                keyword = action_keywords[action]
+                for label in self.quotient.action_labels_at_observation[obs]:
+                    if keyword in label:
+                        suggested_actions.append(self.quotient.action_labels_at_observation[obs].index(label))
+            paynt_dict[obs] = suggested_actions
+        return paynt_dict
+
+    def get_main_restricted_family(self, family, result_dict, action_keywords=None):
 
         if result_dict == {}:
             return family
@@ -551,18 +552,9 @@ class StormPOMDPControl:
         for obs in range(self.quotient.observations):
             for hole in self.quotient.observation_action_holes[obs]:
                 if obs in result_dict.keys():
-                    if rl_dict:
-                        suggested_actions = []
-                        for action in result_dict[obs]:
-                            keyword = action_keywords[action]
-                            for label in family.hole_to_option_labels[hole]:
-                                if keyword in label:
-                                    suggested_actions.append(family.hole_to_option_labels[hole].index(label))
-                        selected_actions = [action for action in family.hole_options(hole) if action in suggested_actions]
-                    else:
-                        selected_actions = [action for action in family.hole_options(hole) if action in result_dict[obs]]
+                    selected_actions = [action for action in family.hole_options(hole) if action in result_dict[obs]]
                     if len(selected_actions) == 0:
-                        print("Observation: ", obs, "Hole: ", hole, "Suggested actions: ", suggested_actions)
+                        print("Observation: ", obs, "Hole: ", hole, "Suggested actions: ", selected_actions)
                         print(family.hole_to_option_labels[hole])
                         print(family.hole_name(hole))
                         selected_actions = [family.hole_options(hole)[0]]
@@ -597,6 +589,9 @@ class StormPOMDPControl:
 
             act_obs_holes = self.quotient.observation_action_holes[observ]
             restricted_holes_list.extend(act_obs_holes)
+        with open("restricted_holes_list2.txt", "w") as f:
+            for item in restricted_holes_list:
+                f.write("%s\n" % item)
 
         for hole in restricted_holes_list:
 

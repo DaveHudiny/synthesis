@@ -22,6 +22,8 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
+import pickle
+
 
 class SynthesizerPOMDP:
 
@@ -295,29 +297,44 @@ class SynthesizerPOMDP:
 
             family = self.quotient.design_space
 
+            rl_dict = True
+            action_keywords = None
+
+            if rl_dict:
+                with open("./obs_action_dict.pickle", "rb") as f:
+                    obs_actions = pickle.load(f)
+                with open("./labels.pickle", "rb") as f:
+                    action_keywords = pickle.load(f)
+                print(len(obs_actions))
+                
+                obs_actions = self.storm_control.convert_rl_dict_to_paynt(family, obs_actions, action_keywords)
+                print(len(obs_actions))
+                self.storm_control.result_dict = obs_actions
+                self.storm_control.result_dict_no_cutoffs = obs_actions
+
             # if Storm's result is better, use it to obtain main family that considers only the important actions
             if self.storm_control.is_storm_better:
                 # consider the cut-off schedulers actions
                 if self.storm_control.use_cutoffs:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict)
+                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict, action_keywords)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
                         subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict)
                 # only consider the induced DTMC actions without cut-off states
                 else:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict_no_cutoffs)
+                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict_no_cutoffs, action_keywords)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
                         subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict_no_cutoffs)
+
 
                 subfamilies = self.storm_control.get_subfamilies(subfamily_restrictions, family)
             # if PAYNT is better continue normally
             else:
                 main_family = family
                 subfamilies = []
-
             self.synthesizer.subfamilies_buffer = subfamilies
             self.synthesizer.main_family = main_family
 

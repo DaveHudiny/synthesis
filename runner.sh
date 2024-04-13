@@ -28,7 +28,8 @@ run_with_dictionary() {
                     cp $folder/labels.pickle ./labels.pickle
                     cp $folder/obs_action_dict.pickle ./obs_action_dict.pickle
                     cp $folder/memory_dict.pickle ./memory_dict.pickle
-                    timeout $3 python3 paynt.py --fsc-synthesis --storm-pomdp --project $1/$entry > "$folder/paynt-dict-memory.log" --unfold-strategy-storm paynt
+                    echo "Running timeout $3 python3 paynt.py --fsc-synthesis --storm-pomdp --project $1/$entry > $folder/paynt-dict.log"
+                    timeout $3 python3 paynt.py --fsc-synthesis --storm-pomdp --project $1/$entry > "$folder/paynt-dict-not-prunning.log"
                     echo "Finished Paynt on model $entry with dictionary from $folder"
                     counter=$((counter+1))
                 fi

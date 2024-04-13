@@ -1,0 +1,1022 @@
+2024-04-12 20:47:08,932 - cli.py - This is Paynt version 0.1.0.
+2024-04-12 20:47:08,932 - sketch.py - loading sketch from april_models//evade_n=5_r=23/sketch.templ ...
+2024-04-12 20:47:08,932 - sketch.py - assuming sketch in PRISM format...
+2024-04-12 20:47:08,959 - prism_parser.py - PRISM model type: POMDP
+2024-04-12 20:47:08,959 - prism_parser.py - loading properties from april_models//evade_n=5_r=23/sketch.props ...
+2024-04-12 20:47:08,964 - prism_parser.py - found the following specification: optimality: R[exp]{"steps"}min=? [F "goal"] 
+2024-04-12 20:47:09,054 - sketch.py - sketch parsing OK
+2024-04-12 20:47:09,054 - sketch.py - converting state rewards 'steps' to state-action rewards
+2024-04-12 20:47:09,056 - sketch.py - constructed explicit quotient having 1961 states and 5801 actions
+2024-04-12 20:47:09,056 - sketch.py - found the following specification optimality: R[exp]{"steps"}min=? [F "goal"] 
+2024-04-12 20:47:09,061 - pomdp.py - constructed POMDP having 981 observations.
+2024-04-12 20:47:09,153 - pomdp.py - unfolding 1-FSC template into POMDP ...
+2024-04-12 20:47:09,155 - pomdp.py - constructed quotient MDP having 1961 states and 5801 actions.
+2024-04-12 20:47:09,155 - pomdp.py - creating coloring ...
+2024-04-12 20:47:09,180 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-04-12 20:47:09,180 - synthesizer_pomdp.py - Storm settings: iterative - (None, None, None), get_storm_result - None, storm_options - cutoff, prune_storm - True, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-04-12 20:47:09,182 - storm_pomdp_control.py - starting Storm POMDP analysis
+Finished exploring under-approximation MDP.
+Start analysis...
+2024-04-12 20:47:09,219 - storm_pomdp_control.py - Storm POMDP analysis completed
+-----------Storm-----------               
+Value = 17.0 | Time elapsed = 0.0s | FSC size = 3906
+FSC (dot) = digraph model {
+	0 [ label = "0: {__extra, target}" ];
+	1 [ label = "1: {[!start	& !turn	& dx=0	& dy=0	& amdone=0	& hascrash=0	& seedx=3	& seedy=4]
+cutoff, init, sched_0}" ];
+	"0c" [shape = "point"]
+	0 -> "0c" [label= "{loop}"];
+	"0c" -> 0 [ label= "1" ];
+	"1c" [shape = "point"]
+	1 -> "1c" [label= "{sched_0}"];
+	"1c" -> 0 [ label= "1" ];
+}
+
+
+286
+286
+2024-04-12 20:47:09,234 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to 5.71E+14
+2024-04-12 20:47:09,235 - synthesizer.py - synthesis initiated, design space: 1e335
+2024-04-12 20:47:09,236 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,236 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 480, family size: 1e335, quotient: 1961 states / 5801 actions
+explored: 0 %
+MDP stats: avg MDP size: 662, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,236 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,237 - pomdp.py - unfolding 3-FSC template into POMDP ...
+2024-04-12 20:47:09,238 - pomdp.py - constructed quotient MDP having 2069 states and 7877 actions.
+2024-04-12 20:47:09,238 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:09,251 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to 4.12E+98
+2024-04-12 20:47:09,251 - synthesizer.py - synthesis initiated, design space: 1e436
+2024-04-12 20:47:09,252 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,252 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 703, family size: 1e436, quotient: 2069 states / 7877 actions
+explored: 0 %
+MDP stats: avg MDP size: 740, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,253 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,253 - pomdp.py - unfolding 4-FSC template into POMDP ...
+2024-04-12 20:47:09,257 - pomdp.py - constructed quotient MDP having 2640 states and 16218 actions.
+2024-04-12 20:47:09,257 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:09,285 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:09,286 - synthesizer.py - synthesis initiated, design space: 1e811
+2024-04-12 20:47:09,289 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,289 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 1582, family size: 1e811, quotient: 2640 states / 16218 actions
+explored: 0 %
+MDP stats: avg MDP size: 1051, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,290 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,291 - pomdp.py - unfolding 5-FSC template into POMDP ...
+2024-04-12 20:47:09,296 - pomdp.py - constructed quotient MDP having 3211 states and 28165 actions.
+2024-04-12 20:47:09,296 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:09,337 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:09,338 - synthesizer.py - synthesis initiated, design space: 1e1212
+2024-04-12 20:47:09,343 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,343 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 2022, family size: 1e1212, quotient: 3211 states / 28165 actions
+explored: 0 %
+MDP stats: avg MDP size: 1362, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,344 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,346 - pomdp.py - unfolding 6-FSC template into POMDP ...
+2024-04-12 20:47:09,354 - pomdp.py - constructed quotient MDP having 3782 states and 43718 actions.
+2024-04-12 20:47:09,354 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:09,418 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:09,419 - synthesizer.py - synthesis initiated, design space: 1e1640
+2024-04-12 20:47:09,427 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,427 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.01 s
+number of holes: 2462, family size: 1e1640, quotient: 3782 states / 43718 actions
+explored: 0 %
+MDP stats: avg MDP size: 1673, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,428 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,430 - pomdp.py - unfolding 7-FSC template into POMDP ...
+2024-04-12 20:47:09,441 - pomdp.py - constructed quotient MDP having 4353 states and 62877 actions.
+2024-04-12 20:47:09,441 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:09,539 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:09,540 - synthesizer.py - synthesis initiated, design space: 1e2089
+2024-04-12 20:47:09,552 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,552 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.01 s
+number of holes: 2902, family size: 1e2089, quotient: 4353 states / 62877 actions
+explored: 0 %
+MDP stats: avg MDP size: 1984, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,553 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,556 - pomdp.py - unfolding 8-FSC template into POMDP ...
+2024-04-12 20:47:09,572 - pomdp.py - constructed quotient MDP having 4924 states and 85642 actions.
+2024-04-12 20:47:09,573 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:09,696 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:09,697 - synthesizer.py - synthesis initiated, design space: 1e2558
+2024-04-12 20:47:09,714 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,714 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.02 s
+number of holes: 3342, family size: 1e2558, quotient: 4924 states / 85642 actions
+explored: 0 %
+MDP stats: avg MDP size: 2295, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,715 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,720 - pomdp.py - unfolding 9-FSC template into POMDP ...
+2024-04-12 20:47:09,753 - pomdp.py - constructed quotient MDP having 5495 states and 112013 actions.
+2024-04-12 20:47:09,753 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:09,916 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:09,917 - synthesizer.py - synthesis initiated, design space: 1e3044
+2024-04-12 20:47:09,939 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:09,939 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.02 s
+number of holes: 3782, family size: 1e3044, quotient: 5495 states / 112013 actions
+explored: 0 %
+MDP stats: avg MDP size: 2606, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:09,940 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:09,946 - pomdp.py - unfolding 10-FSC template into POMDP ...
+2024-04-12 20:47:09,988 - pomdp.py - constructed quotient MDP having 6066 states and 141990 actions.
+2024-04-12 20:47:09,988 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:10,191 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:10,193 - synthesizer.py - synthesis initiated, design space: 1e3545
+2024-04-12 20:47:10,221 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:10,222 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.03 s
+number of holes: 4222, family size: 1e3545, quotient: 6066 states / 141990 actions
+explored: 0 %
+MDP stats: avg MDP size: 2917, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:10,223 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:10,231 - pomdp.py - unfolding 11-FSC template into POMDP ...
+2024-04-12 20:47:10,296 - pomdp.py - constructed quotient MDP having 6637 states and 175573 actions.
+2024-04-12 20:47:10,297 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:10,548 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:10,549 - synthesizer.py - synthesis initiated, design space: 1e4059
+2024-04-12 20:47:10,586 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:10,586 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.04 s
+number of holes: 4662, family size: 1e4059, quotient: 6637 states / 175573 actions
+explored: 0 %
+MDP stats: avg MDP size: 3228, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:10,588 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:10,597 - pomdp.py - unfolding 12-FSC template into POMDP ...
+2024-04-12 20:47:10,682 - pomdp.py - constructed quotient MDP having 7208 states and 212762 actions.
+2024-04-12 20:47:10,683 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:10,993 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:10,994 - synthesizer.py - synthesis initiated, design space: 1e4585
+2024-04-12 20:47:11,039 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:11,039 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.04 s
+number of holes: 5102, family size: 1e4585, quotient: 7208 states / 212762 actions
+explored: 0 %
+MDP stats: avg MDP size: 3539, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:11,041 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:11,052 - pomdp.py - unfolding 13-FSC template into POMDP ...
+2024-04-12 20:47:11,155 - pomdp.py - constructed quotient MDP having 7779 states and 253557 actions.
+2024-04-12 20:47:11,155 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:11,520 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:11,522 - synthesizer.py - synthesis initiated, design space: 1e5123
+2024-04-12 20:47:11,577 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:11,577 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.05 s
+number of holes: 5542, family size: 1e5123, quotient: 7779 states / 253557 actions
+explored: 0 %
+MDP stats: avg MDP size: 3850, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:11,579 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:11,592 - pomdp.py - unfolding 14-FSC template into POMDP ...
+2024-04-12 20:47:11,711 - pomdp.py - constructed quotient MDP having 8350 states and 297958 actions.
+2024-04-12 20:47:11,711 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:12,142 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:12,144 - synthesizer.py - synthesis initiated, design space: 1e5670
+2024-04-12 20:47:12,210 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:12,210 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.06 s
+number of holes: 5982, family size: 1e5670, quotient: 8350 states / 297958 actions
+explored: 0 %
+MDP stats: avg MDP size: 4161, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:12,212 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:12,227 - pomdp.py - unfolding 15-FSC template into POMDP ...
+2024-04-12 20:47:12,401 - pomdp.py - constructed quotient MDP having 8921 states and 345965 actions.
+2024-04-12 20:47:12,401 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:12,846 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:12,848 - synthesizer.py - synthesis initiated, design space: 1e6227
+2024-04-12 20:47:12,929 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:12,929 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.08 s
+number of holes: 6422, family size: 1e6227, quotient: 8921 states / 345965 actions
+explored: 0 %
+MDP stats: avg MDP size: 4472, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:12,931 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:12,949 - pomdp.py - unfolding 16-FSC template into POMDP ...
+2024-04-12 20:47:13,135 - pomdp.py - constructed quotient MDP having 9492 states and 397578 actions.
+2024-04-12 20:47:13,136 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:13,695 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:13,697 - synthesizer.py - synthesis initiated, design space: 1e6792
+2024-04-12 20:47:13,788 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:13,788 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.09 s
+number of holes: 6862, family size: 1e6792, quotient: 9492 states / 397578 actions
+explored: 0 %
+MDP stats: avg MDP size: 4783, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:13,791 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:13,812 - pomdp.py - unfolding 17-FSC template into POMDP ...
+2024-04-12 20:47:14,036 - pomdp.py - constructed quotient MDP having 10063 states and 452797 actions.
+2024-04-12 20:47:14,037 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:14,682 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:14,685 - synthesizer.py - synthesis initiated, design space: 1e7366
+2024-04-12 20:47:14,794 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:14,794 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.11 s
+number of holes: 7302, family size: 1e7366, quotient: 10063 states / 452797 actions
+explored: 0 %
+MDP stats: avg MDP size: 5094, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:14,797 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:14,818 - pomdp.py - unfolding 18-FSC template into POMDP ...
+2024-04-12 20:47:15,030 - pomdp.py - constructed quotient MDP having 10634 states and 511622 actions.
+2024-04-12 20:47:15,030 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:15,745 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:15,747 - synthesizer.py - synthesis initiated, design space: 1e7947
+2024-04-12 20:47:15,874 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:15,874 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.12 s
+number of holes: 7742, family size: 1e7947, quotient: 10634 states / 511622 actions
+explored: 0 %
+MDP stats: avg MDP size: 5405, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:15,877 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:15,901 - pomdp.py - unfolding 19-FSC template into POMDP ...
+2024-04-12 20:47:16,130 - pomdp.py - constructed quotient MDP having 11205 states and 574053 actions.
+2024-04-12 20:47:16,130 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:17,010 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:17,013 - synthesizer.py - synthesis initiated, design space: 1e8536
+2024-04-12 20:47:17,158 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:17,158 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.14 s
+number of holes: 8182, family size: 1e8536, quotient: 11205 states / 574053 actions
+explored: 0 %
+MDP stats: avg MDP size: 5716, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:17,161 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:17,188 - pomdp.py - unfolding 20-FSC template into POMDP ...
+2024-04-12 20:47:17,456 - pomdp.py - constructed quotient MDP having 11776 states and 640090 actions.
+2024-04-12 20:47:17,457 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:18,373 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:18,376 - synthesizer.py - synthesis initiated, design space: 1e9131
+2024-04-12 20:47:18,542 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:18,543 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.16 s
+number of holes: 8622, family size: 1e9131, quotient: 11776 states / 640090 actions
+explored: 0 %
+MDP stats: avg MDP size: 6027, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:18,545 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:18,574 - pomdp.py - unfolding 21-FSC template into POMDP ...
+2024-04-12 20:47:18,868 - pomdp.py - constructed quotient MDP having 12347 states and 709733 actions.
+2024-04-12 20:47:18,868 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:19,878 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:19,881 - synthesizer.py - synthesis initiated, design space: 1e9733
+2024-04-12 20:47:20,071 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:20,071 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.19 s
+number of holes: 9062, family size: 1e9733, quotient: 12347 states / 709733 actions
+explored: 0 %
+MDP stats: avg MDP size: 6338, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:20,074 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:20,107 - pomdp.py - unfolding 22-FSC template into POMDP ...
+2024-04-12 20:47:20,422 - pomdp.py - constructed quotient MDP having 12918 states and 782982 actions.
+2024-04-12 20:47:20,422 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:21,510 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:21,513 - synthesizer.py - synthesis initiated, design space: 1e10341
+2024-04-12 20:47:21,728 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:21,728 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.21 s
+number of holes: 9502, family size: 1e10341, quotient: 12918 states / 782982 actions
+explored: 0 %
+MDP stats: avg MDP size: 6649, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:21,731 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:21,767 - pomdp.py - unfolding 23-FSC template into POMDP ...
+2024-04-12 20:47:22,189 - pomdp.py - constructed quotient MDP having 13489 states and 859837 actions.
+2024-04-12 20:47:22,190 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:23,286 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:23,289 - synthesizer.py - synthesis initiated, design space: 1e10955
+2024-04-12 20:47:23,528 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:23,528 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.23 s
+number of holes: 9942, family size: 1e10955, quotient: 13489 states / 859837 actions
+explored: 0 %
+MDP stats: avg MDP size: 6960, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:23,531 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:23,570 - pomdp.py - unfolding 24-FSC template into POMDP ...
+2024-04-12 20:47:23,989 - pomdp.py - constructed quotient MDP having 14060 states and 940298 actions.
+2024-04-12 20:47:23,990 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:25,417 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:25,420 - synthesizer.py - synthesis initiated, design space: 1e11574
+2024-04-12 20:47:25,691 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:25,691 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.26 s
+number of holes: 10382, family size: 1e11574, quotient: 14060 states / 940298 actions
+explored: 0 %
+MDP stats: avg MDP size: 7271, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:25,695 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:25,738 - pomdp.py - unfolding 25-FSC template into POMDP ...
+2024-04-12 20:47:26,137 - pomdp.py - constructed quotient MDP having 14631 states and 1024365 actions.
+2024-04-12 20:47:26,138 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:27,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:27,670 - synthesizer.py - synthesis initiated, design space: 1e12199
+2024-04-12 20:47:27,972 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:27,972 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.3 s
+number of holes: 10822, family size: 1e12199, quotient: 14631 states / 1024365 actions
+explored: 0 %
+MDP stats: avg MDP size: 7582, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:27,976 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:28,022 - pomdp.py - unfolding 26-FSC template into POMDP ...
+2024-04-12 20:47:28,465 - pomdp.py - constructed quotient MDP having 15202 states and 1112038 actions.
+2024-04-12 20:47:28,465 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:30,001 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:30,004 - synthesizer.py - synthesis initiated, design space: 1e12829
+2024-04-12 20:47:30,339 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:30,339 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.33 s
+number of holes: 11262, family size: 1e12829, quotient: 15202 states / 1112038 actions
+explored: 0 %
+MDP stats: avg MDP size: 7893, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:30,343 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:30,393 - pomdp.py - unfolding 27-FSC template into POMDP ...
+2024-04-12 20:47:30,942 - pomdp.py - constructed quotient MDP having 15773 states and 1203317 actions.
+2024-04-12 20:47:30,942 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:32,757 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:32,761 - synthesizer.py - synthesis initiated, design space: 1e13464
+2024-04-12 20:47:33,133 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:33,133 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.36 s
+number of holes: 11702, family size: 1e13464, quotient: 15773 states / 1203317 actions
+explored: 0 %
+MDP stats: avg MDP size: 8204, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:33,137 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:33,191 - pomdp.py - unfolding 28-FSC template into POMDP ...
+2024-04-12 20:47:33,722 - pomdp.py - constructed quotient MDP having 16344 states and 1298202 actions.
+2024-04-12 20:47:33,722 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:35,567 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:35,571 - synthesizer.py - synthesis initiated, design space: 1e14103
+2024-04-12 20:47:35,981 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:35,981 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.4 s
+number of holes: 12142, family size: 1e14103, quotient: 16344 states / 1298202 actions
+explored: 0 %
+MDP stats: avg MDP size: 8515, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:35,985 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:36,042 - pomdp.py - unfolding 29-FSC template into POMDP ...
+2024-04-12 20:47:36,598 - pomdp.py - constructed quotient MDP having 16915 states and 1396693 actions.
+2024-04-12 20:47:36,598 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:38,537 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:38,541 - synthesizer.py - synthesis initiated, design space: 1e14748
+2024-04-12 20:47:38,992 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:38,992 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.44 s
+number of holes: 12582, family size: 1e14748, quotient: 16915 states / 1396693 actions
+explored: 0 %
+MDP stats: avg MDP size: 8826, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:38,996 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:39,058 - pomdp.py - unfolding 30-FSC template into POMDP ...
+2024-04-12 20:47:39,760 - pomdp.py - constructed quotient MDP having 17486 states and 1498790 actions.
+2024-04-12 20:47:39,761 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:41,852 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:41,856 - synthesizer.py - synthesis initiated, design space: 1e15396
+2024-04-12 20:47:42,351 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:42,352 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.49 s
+number of holes: 13022, family size: 1e15396, quotient: 17486 states / 1498790 actions
+explored: 0 %
+MDP stats: avg MDP size: 9137, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:42,356 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:42,422 - pomdp.py - unfolding 31-FSC template into POMDP ...
+2024-04-12 20:47:43,182 - pomdp.py - constructed quotient MDP having 18057 states and 1604493 actions.
+2024-04-12 20:47:43,183 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:45,453 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:45,457 - synthesizer.py - synthesis initiated, design space: 1e16049
+2024-04-12 20:47:45,999 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:45,999 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.53 s
+number of holes: 13462, family size: 1e16049, quotient: 18057 states / 1604493 actions
+explored: 0 %
+MDP stats: avg MDP size: 9448, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:46,003 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:46,073 - pomdp.py - unfolding 32-FSC template into POMDP ...
+2024-04-12 20:47:46,733 - pomdp.py - constructed quotient MDP having 18628 states and 1713802 actions.
+2024-04-12 20:47:46,733 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:49,323 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:49,327 - synthesizer.py - synthesis initiated, design space: 1e16706
+2024-04-12 20:47:49,918 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:49,918 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.58 s
+number of holes: 13902, family size: 1e16706, quotient: 18628 states / 1713802 actions
+explored: 0 %
+MDP stats: avg MDP size: 9759, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:49,922 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:49,997 - pomdp.py - unfolding 33-FSC template into POMDP ...
+2024-04-12 20:47:50,724 - pomdp.py - constructed quotient MDP having 19199 states and 1826717 actions.
+2024-04-12 20:47:50,725 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:53,296 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:53,300 - synthesizer.py - synthesis initiated, design space: 1e17367
+2024-04-12 20:47:53,944 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:53,944 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.63 s
+number of holes: 14342, family size: 1e17367, quotient: 19199 states / 1826717 actions
+explored: 0 %
+MDP stats: avg MDP size: 10070, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:53,949 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:54,029 - pomdp.py - unfolding 34-FSC template into POMDP ...
+2024-04-12 20:47:54,782 - pomdp.py - constructed quotient MDP having 19770 states and 1943238 actions.
+2024-04-12 20:47:54,782 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:47:57,708 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:47:57,713 - synthesizer.py - synthesis initiated, design space: 1e18032
+2024-04-12 20:47:58,409 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:47:58,409 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.68 s
+number of holes: 14782, family size: 1e18032, quotient: 19770 states / 1943238 actions
+explored: 0 %
+MDP stats: avg MDP size: 10381, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:47:58,414 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:47:58,498 - pomdp.py - unfolding 35-FSC template into POMDP ...
+2024-04-12 20:47:59,306 - pomdp.py - constructed quotient MDP having 20341 states and 2063365 actions.
+2024-04-12 20:47:59,306 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:02,198 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:02,203 - synthesizer.py - synthesis initiated, design space: 1e18700
+2024-04-12 20:48:02,958 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:02,958 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.74 s
+number of holes: 15222, family size: 1e18700, quotient: 20341 states / 2063365 actions
+explored: 0 %
+MDP stats: avg MDP size: 10692, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:02,963 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:03,051 - pomdp.py - unfolding 36-FSC template into POMDP ...
+2024-04-12 20:48:04,045 - pomdp.py - constructed quotient MDP having 20912 states and 2187098 actions.
+2024-04-12 20:48:04,046 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:07,093 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:07,098 - synthesizer.py - synthesis initiated, design space: 1e19372
+2024-04-12 20:48:07,908 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:07,908 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.8 s
+number of holes: 15662, family size: 1e19372, quotient: 20912 states / 2187098 actions
+explored: 0 %
+MDP stats: avg MDP size: 11003, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:07,913 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:08,005 - pomdp.py - unfolding 37-FSC template into POMDP ...
+2024-04-12 20:48:09,034 - pomdp.py - constructed quotient MDP having 21483 states and 2314437 actions.
+2024-04-12 20:48:09,034 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:12,575 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:12,580 - synthesizer.py - synthesis initiated, design space: 1e20048
+2024-04-12 20:48:13,456 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:13,456 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.86 s
+number of holes: 16102, family size: 1e20048, quotient: 21483 states / 2314437 actions
+explored: 0 %
+MDP stats: avg MDP size: 11314, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:13,462 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:13,558 - pomdp.py - unfolding 38-FSC template into POMDP ...
+2024-04-12 20:48:14,512 - pomdp.py - constructed quotient MDP having 22054 states and 2445382 actions.
+2024-04-12 20:48:14,513 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:18,079 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:18,083 - synthesizer.py - synthesis initiated, design space: 1e20727
+2024-04-12 20:48:19,027 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:19,027 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 0.93 s
+number of holes: 16542, family size: 1e20727, quotient: 22054 states / 2445382 actions
+explored: 0 %
+MDP stats: avg MDP size: 11625, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:19,033 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:19,134 - pomdp.py - unfolding 39-FSC template into POMDP ...
+2024-04-12 20:48:20,375 - pomdp.py - constructed quotient MDP having 22625 states and 2579933 actions.
+2024-04-12 20:48:20,376 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:23,867 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:23,872 - synthesizer.py - synthesis initiated, design space: 1e21410
+2024-04-12 20:48:24,886 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:24,886 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.0 s
+number of holes: 16982, family size: 1e21410, quotient: 22625 states / 2579933 actions
+explored: 0 %
+MDP stats: avg MDP size: 11936, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:24,892 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:24,999 - pomdp.py - unfolding 40-FSC template into POMDP ...
+2024-04-12 20:48:26,230 - pomdp.py - constructed quotient MDP having 23196 states and 2718090 actions.
+2024-04-12 20:48:26,231 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:30,248 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:30,253 - synthesizer.py - synthesis initiated, design space: 1e22096
+2024-04-12 20:48:31,339 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:31,339 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.07 s
+number of holes: 17422, family size: 1e22096, quotient: 23196 states / 2718090 actions
+explored: 0 %
+MDP stats: avg MDP size: 12247, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:31,345 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:31,458 - pomdp.py - unfolding 41-FSC template into POMDP ...
+2024-04-12 20:48:32,766 - pomdp.py - constructed quotient MDP having 23767 states and 2859853 actions.
+2024-04-12 20:48:32,767 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:36,958 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:36,963 - synthesizer.py - synthesis initiated, design space: 1e22784
+2024-04-12 20:48:38,127 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:38,127 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.15 s
+number of holes: 17862, family size: 1e22784, quotient: 23767 states / 2859853 actions
+explored: 0 %
+MDP stats: avg MDP size: 12558, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:38,133 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:38,277 - pomdp.py - unfolding 42-FSC template into POMDP ...
+2024-04-12 20:48:39,671 - pomdp.py - constructed quotient MDP having 24338 states and 3005222 actions.
+2024-04-12 20:48:39,672 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:43,835 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:43,840 - synthesizer.py - synthesis initiated, design space: 1e23477
+2024-04-12 20:48:45,082 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:45,082 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.22 s
+number of holes: 18302, family size: 1e23477, quotient: 24338 states / 3005222 actions
+explored: 0 %
+MDP stats: avg MDP size: 12869, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:45,088 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:45,212 - pomdp.py - unfolding 43-FSC template into POMDP ...
+2024-04-12 20:48:46,851 - pomdp.py - constructed quotient MDP having 24909 states and 3154197 actions.
+2024-04-12 20:48:46,851 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:51,151 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:51,156 - synthesizer.py - synthesis initiated, design space: 1e24172
+2024-04-12 20:48:52,483 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:48:52,483 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.31 s
+number of holes: 18742, family size: 1e24172, quotient: 24909 states / 3154197 actions
+explored: 0 %
+MDP stats: avg MDP size: 13180, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:48:52,489 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:48:52,619 - pomdp.py - unfolding 44-FSC template into POMDP ...
+2024-04-12 20:48:54,033 - pomdp.py - constructed quotient MDP having 25480 states and 3306778 actions.
+2024-04-12 20:48:54,033 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:48:59,171 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:48:59,176 - synthesizer.py - synthesis initiated, design space: 1e24870
+2024-04-12 20:49:00,590 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:49:00,590 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.39 s
+number of holes: 19182, family size: 1e24870, quotient: 25480 states / 3306778 actions
+explored: 0 %
+MDP stats: avg MDP size: 13491, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:49:00,596 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:49:00,732 - pomdp.py - unfolding 45-FSC template into POMDP ...
+2024-04-12 20:49:02,005 - pomdp.py - constructed quotient MDP having 26051 states and 3462965 actions.
+2024-04-12 20:49:02,006 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:49:07,441 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:49:07,447 - synthesizer.py - synthesis initiated, design space: 1e25570
+2024-04-12 20:49:08,952 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:49:08,952 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.48 s
+number of holes: 19622, family size: 1e25570, quotient: 26051 states / 3462965 actions
+explored: 0 %
+MDP stats: avg MDP size: 13802, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:49:08,958 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:49:09,100 - pomdp.py - unfolding 46-FSC template into POMDP ...
+2024-04-12 20:49:10,461 - pomdp.py - constructed quotient MDP having 26622 states and 3622758 actions.
+2024-04-12 20:49:10,462 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:49:15,853 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:49:15,859 - synthesizer.py - synthesis initiated, design space: 1e26274
+2024-04-12 20:49:17,459 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:49:17,459 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.58 s
+number of holes: 20062, family size: 1e26274, quotient: 26622 states / 3622758 actions
+explored: 0 %
+MDP stats: avg MDP size: 14113, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:49:17,465 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:49:17,614 - pomdp.py - unfolding 47-FSC template into POMDP ...
+2024-04-12 20:49:19,244 - pomdp.py - constructed quotient MDP having 27193 states and 3786157 actions.
+2024-04-12 20:49:19,244 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:49:25,339 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:49:25,345 - synthesizer.py - synthesis initiated, design space: 1e26980
+2024-04-12 20:49:27,045 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:49:27,045 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.68 s
+number of holes: 20502, family size: 1e26980, quotient: 27193 states / 3786157 actions
+explored: 0 %
+MDP stats: avg MDP size: 14424, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:49:27,052 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:49:27,205 - pomdp.py - unfolding 48-FSC template into POMDP ...
+2024-04-12 20:49:28,713 - pomdp.py - constructed quotient MDP having 27764 states and 3953162 actions.
+2024-04-12 20:49:28,714 - pomdp.py - creating coloring ...
+286
+286
+2024-04-12 20:49:35,246 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from INF to INF
+2024-04-12 20:49:35,254 - synthesizer.py - synthesis initiated, design space: 1e27690
+2024-04-12 20:49:37,129 - synthesizer.py - synthesis finished, printing synthesized assignment below:
+2024-04-12 20:49:37,129 - synthesizer.py - None
+--------------------
+Synthesis summary:
+optimality objective: R[exp]{"steps"}min=? [F "goal"] 
+
+method: AR, synthesis time: 1.85 s
+number of holes: 20942, family size: 1e27690, quotient: 27764 states / 3953162 actions
+explored: 0 %
+MDP stats: avg MDP size: 14735, iterations: 1
+
+feasible: no
+--------------------
+2024-04-12 20:49:37,138 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-04-12 20:49:37,303 - pomdp.py - unfolding 49-FSC template into POMDP ...
+2024-04-12 20:49:38,854 - pomdp.py - constructed quotient MDP having 28335 states and 4123773 actions.
+2024-04-12 20:49:38,855 - pomdp.py - creating coloring ...
