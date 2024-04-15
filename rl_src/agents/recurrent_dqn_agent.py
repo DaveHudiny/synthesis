@@ -23,11 +23,8 @@ class Recurrent_DQN_agent(FatherAgent):
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
         if agent_settings is None:
-            # layer_params = (400, 200)
-            # self.fc_layer_params = layer_params
             preprocessing_layers = [tf.keras.layers.Dense(
-                200, activation='relu') for _ in range(2)]
-            # dense_layers = [tf.keras.layers.Dense(num_units, activation='relu') for num_units in self.fc_layer_params]
+                100, activation='relu') for _ in range(2)]
             q_values_layer = tf.keras.layers.Dense(
                 units=len(environment.action_keywords),
                 activation=None,
@@ -37,7 +34,7 @@ class Recurrent_DQN_agent(FatherAgent):
             )
             q_net = sequential.Sequential([q_values_layer])
             lstm1 = tf.keras.layers.LSTM(
-                64, return_sequences=True, return_state=True, activation='tanh', dtype=tf.float32)
+                50, return_sequences=True, return_state=True, activation='tanh', dtype=tf.float32)
             self.q_net = sequential.Sequential(
                 preprocessing_layers + [lstm1, q_net])
         else:

@@ -26,11 +26,8 @@ class Stochastic_DQN(FatherAgent):
         optimizer = tf.keras.optimizers.Adam(
             learning_rate=args.learning_rate, clipnorm=1.0)
 
-        # layer_params = (400, 200)
-        # self.fc_layer_params = layer_params
         preprocessing_layers = [tf.keras.layers.Dense(
             200, activation='relu') for _ in range(2)]
-        # dense_layers = [tf.keras.layers.Dense(num_units, activation='relu') for num_units in self.fc_layer_params]
         q_values_layer = tf.keras.layers.Dense(
             units=len(environment.action_keywords),
             activation=None,

@@ -253,9 +253,9 @@ class SynthesizerPOMDP:
             self.storm_control.result_dict_no_cutoffs = obs_actions
         elif rl_dict:
             obs_actions = interpretation_result[0]
-            memory_dict = interpretation_result[1]
+            self.memory_dict = interpretation_result[1]
             action_keywords = interpretation_result[2]
-            prioritizer = interpretation_result[3]
+            self.prioritizer = interpretation_result[3]
             obs_actions = self.storm_control.convert_rl_dict_to_paynt(
                 family, obs_actions, action_keywords)
             self.storm_control.result_dict = obs_actions
@@ -263,15 +263,16 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, fsc_synthesis_time_limit = 10, load_rl_dict = False):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, cycling_time = 30, load_rl_dict = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
         self.synthesizer.storm_control = self.storm_control
+        first_run = True
         if fsc_cycling:
-            first_run = True
-            current_time = fsc_synthesis_time_limit
+            
+            current_time = cycling_time
             start_time = time.time()
 
         interpretation_result = None
@@ -280,11 +281,13 @@ class SynthesizerPOMDP:
             args = ArgsEmulator()
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
             rl_synthesiser.train_agent(500)
-            interpretation_result = rl_synthesiser.interpret_agent()
+            interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
 
         while True:
         # for x in range(2):
+            if load_rl_dict or rl_dict:
+                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
 
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
@@ -294,7 +297,10 @@ class SynthesizerPOMDP:
             # unfold memory according to the best result
             if unfold_storm:
                 if mem_size > 1:
-                    obs_memory_dict = {}
+                    if rl_dict:
+                        obs_memory_dict = self.memory_dict
+                    else:
+                        obs_memory_dict = {}
                     if self.storm_control.is_storm_better:
                         if self.storm_control.is_memory_needed():
                             obs_memory_dict = self.storm_control.memory_vector
@@ -332,10 +338,7 @@ class SynthesizerPOMDP:
 
             family = self.quotient.design_space
 
-            action_keywords = None
-
-            if load_rl_dict or rl_dict:
-                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
+            self.action_keywords = None
 
 
             # if Storm's result is better, use it to obtain main family that considers only the important actions
@@ -364,16 +367,17 @@ class SynthesizerPOMDP:
             self.synthesizer.subfamilies_buffer = subfamilies
             self.synthesizer.main_family = main_family
 
-            if fsc_cycling:
-                assignment = self.synthesize(family, timer = current_time)
-                fsc = self.quotient.assignment_to_fsc(assignment)
-            else:
-                assignment = self.synthesize(family)
+            if not first_run:
+                if fsc_cycling:
+                    assignment = self.synthesize(family, timer = current_time)
+                    fsc = self.quotient.assignment_to_fsc(assignment)
+                else:
+                    assignment = self.synthesize(family)
 
-            if assignment is not None:
-                self.storm_control.latest_paynt_result = assignment
-                self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
-                self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
+                if assignment is not None:
+                    self.storm_control.latest_paynt_result = assignment
+                    self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
+                    self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
 
 
             self.storm_control.update_data()

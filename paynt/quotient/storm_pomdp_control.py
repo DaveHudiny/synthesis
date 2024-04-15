@@ -554,9 +554,7 @@ class StormPOMDPControl:
                 if obs in result_dict.keys():
                     selected_actions = [action for action in family.hole_options(hole) if action in result_dict[obs]]
                     if len(selected_actions) == 0:
-                        print("Observation: ", obs, "Hole: ", hole, "Suggested actions: ", selected_actions)
-                        print(family.hole_to_option_labels[hole])
-                        print(family.hole_name(hole))
+                        logger.info("No actions found for observation {} in the result dictionary".format(obs))
                         selected_actions = [family.hole_options(hole)[0]]
                         exit(0)
                 else:

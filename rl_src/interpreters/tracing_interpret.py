@@ -6,6 +6,10 @@ from agents.father_agent import FatherAgent
 import numpy as np
 import tensorflow as tf
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ResultInfo:
     def __init__(self):
@@ -84,9 +88,9 @@ class TracingInterpret(Interpret):
             obs_action_sums_dict[obs] = 0
         for obs in obs_act_dict:
             obs_action_sums_dict[obs] = sum(obs_act_dict[obs].values())
-        print("Number of observations after interpretation:", len(
+        logger.info("Number of observations after interpretation:", len(
             obs_act_dict), "Number of observations in total:", nr_observations)
-        print("Number of observations with more than 1 action:", len(
+        logger.info("Number of observations with more than 1 action:", len(
             [k for k, v in obs_action_sums_dict.items() if v > 1]))
         plt.hist(obs_action_sums_dict.values(),
                  bins=15, align='left', rwidth=0.8)
@@ -128,8 +132,6 @@ class TracingInterpret(Interpret):
             memory_dict[obs] = len(action_stats_dict_filtered.keys())
             if memory_dict[obs] <= 0:
                 memory_dict[obs] = 1
-        # print("Dictionary of observation to actions:", obs_act_dict)
-        # print("Dictionary of observation to memory:", memory_dict)
         return obs_act_dict, memory_dict
 
     def update_obs_act_dict(self, observation, action):
@@ -207,8 +209,8 @@ class TracingInterpret(Interpret):
             result_info.update_ending_stats(steps, self.environment._max_steps, time_step.is_last(),
                                             self.environment.simulator._report_labels())
 
-        print(f"{result_info}")
-        print("Average reward without goal:", np.mean(step_rewards))
-        print("Average final reward:", np.mean(final_rewards))
+        logger.info(f"{result_info}")
+        logger.info("Average reward without goal:", np.mean(step_rewards))
+        logger.info("Average final reward:", np.mean(final_rewards))
 
         return self.obs_act_dict

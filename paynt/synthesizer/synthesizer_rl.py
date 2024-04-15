@@ -23,7 +23,7 @@ class Synthesizer_RL:
     def train_agent(self, iterations : int):
         self.initializer.agent.train_agent(iterations)
 
-    def interpret_agent(self, best : bool, with_refusing : bool = False, greedy : bool = True):
+    def interpret_agent(self, best : bool = False, with_refusing : bool = False, greedy : bool = True):
         self.initializer.agent.load_agent(best)
         if greedy: # Works only with agents which use policy wrapping (in our case only PPO)
             self.initializer.agent.set_agent_evaluation()
