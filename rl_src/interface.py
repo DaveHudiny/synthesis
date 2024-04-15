@@ -78,10 +78,10 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
         f.write(str(initializer.agent.losses))
 
 
-def run_experiments(name_of_experiment="results_of_interpretation"):
-    for model in os.listdir("./models"):
-        prism_model = f"./models/{model}/sketch.templ"
-        prism_properties = f"./models/{model}/sketch.props"
+def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models"):
+    for model in os.listdir(f"{path_to_models}"):
+        prism_model = f"{path_to_models}/{model}/sketch.templ"
+        prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["PPO", "DQN", "DDQN"]:
             # if model in ["rocks-16", "evade", "network-3-8-20", "mba-small", "obstacle", "obstacles-uniform", "mba", "refuel-20", "intercept", "grid-large-30-5"]:

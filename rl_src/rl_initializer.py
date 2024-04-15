@@ -246,8 +246,6 @@ class Initializer:
             logging.error(e)
             return
 
-        # with open(self.args.log_dir + "/" + self.args.log_filename, "w") as f:
-        #         f.write("Logging started\n")
         if not os.path.exists(self.args.log_dir):
             os.makedirs(self.args.log_dir)  
         logging.basicConfig(filename=self.args.log_dir + "/" + self.args.log_filename,
