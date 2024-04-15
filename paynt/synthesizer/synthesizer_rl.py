@@ -6,6 +6,8 @@ import tensorflow as tf
 
 from tf_agents.environments import tf_py_environment
 
+from paynt.quotient.fsc import FSC
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,6 +32,9 @@ class Synthesizer_RL:
         else:
             self.initializer.agent.set_agent_evaluation(epsilon_greedy = True)
         return self.interpret.get_dictionary(self.initializer.agent, with_refusing)
+    
+    def train_agent_with_fsc(self, iterations : int, fsc : FSC):
+        pass
 
 
 

@@ -255,7 +255,7 @@ class SynthesizerPOMDP:
             obs_actions = interpretation_result[0]
             self.memory_dict = interpretation_result[1]
             action_keywords = interpretation_result[2]
-            self.prioritizer = interpretation_result[3]
+            self.priority_list = interpretation_result[3]
             obs_actions = self.storm_control.convert_rl_dict_to_paynt(
                 family, obs_actions, action_keywords)
             self.storm_control.result_dict = obs_actions
@@ -263,7 +263,7 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, cycling_time = 30, load_rl_dict = False):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, cycling_time = 30, load_rl_dict = False, rl_mem = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -274,20 +274,17 @@ class SynthesizerPOMDP:
             
             current_time = cycling_time
             start_time = time.time()
-
         interpretation_result = None
         
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator()
+            args = ArgsEmulator(load_agent=False)
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
-            rl_synthesiser.train_agent(500)
+            rl_synthesiser.train_agent(0)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
 
         while True:
         # for x in range(2):
-            if load_rl_dict or rl_dict:
-                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
 
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
@@ -295,12 +292,9 @@ class SynthesizerPOMDP:
             paynt.quotient.pomdp.PomdpQuotient.current_family_index = mem_size
 
             # unfold memory according to the best result
-            if unfold_storm:
+            if not rl_mem and unfold_storm:
                 if mem_size > 1:
-                    if rl_dict:
-                        obs_memory_dict = self.memory_dict
-                    else:
-                        obs_memory_dict = {}
+                    obs_memory_dict = {}
                     if self.storm_control.is_storm_better:
                         if self.storm_control.is_memory_needed():
                             obs_memory_dict = self.storm_control.memory_vector
@@ -329,6 +323,13 @@ class SynthesizerPOMDP:
                                 obs_memory_dict[obs] = 1
                         logger.info(f'Increase memory in all imperfect observation')
                     self.quotient.set_memory_from_dict(obs_memory_dict)
+            elif rl_mem:
+                logger.info("Adding memory nodes based on RL interpretation.")
+                priority_list_len = len(self.priority_list)
+                priorities = self.priority_list[:(priority_list_len)/10]
+                for i in range(len(priorities)):
+                    self.memory_dict[priorities[i]] += 1
+                self.quotient.set_memory_from_dict(self.memory_dict)
             else:
                 logger.info("Synthesizing optimal k={} controller ...".format(mem_size) )
                 if unfold_imperfect_only:
@@ -338,6 +339,9 @@ class SynthesizerPOMDP:
 
             family = self.quotient.design_space
 
+            if load_rl_dict or rl_dict:
+                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
+
             self.action_keywords = None
 
 
@@ -345,14 +349,14 @@ class SynthesizerPOMDP:
             if self.storm_control.is_storm_better:
                 # consider the cut-off schedulers actions
                 if self.storm_control.use_cutoffs:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict, action_keywords)
+                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
                         subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict)
                 # only consider the induced DTMC actions without cut-off states
                 else:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict_no_cutoffs, action_keywords)
+                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict_no_cutoffs)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
@@ -379,7 +383,7 @@ class SynthesizerPOMDP:
                     self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
                     self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
 
-
+            first_run = False
             self.storm_control.update_data()
 
             mem_size += 1

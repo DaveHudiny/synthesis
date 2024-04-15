@@ -122,6 +122,8 @@ class TracingInterpret(Interpret):
             obs_act_dict_counts[obs] = {
                 k: v for k, v in obs_act_dict_counts[obs].items() if v > 1}
             numpy_values = np.array(list(obs_act_dict_counts[obs].values()))
+            if len(numpy_values) == 0:
+                continue
             mean = np.mean(numpy_values)
             std = np.std(numpy_values)
             threshold = mean - memory_greediness * std
@@ -197,8 +199,8 @@ class TracingInterpret(Interpret):
                 reward += time_step.reward
             reward -= time_step.reward # Removing the last reward (goal)
             goal_reward = time_step.reward
-            step_rewards.append(reward)
-            final_rewards.append(goal_reward)
+            step_rewards.append(reward.numpy())
+            final_rewards.append(goal_reward.numpy())
             if with_refusing:
                 labels = self.environment.simulator._report_labels()
                 if time_step.is_last() and ('goal' in labels or 'done' in labels):
@@ -210,7 +212,7 @@ class TracingInterpret(Interpret):
                                             self.environment.simulator._report_labels())
 
         logger.info(f"{result_info}")
-        logger.info("Average reward without goal:", np.mean(step_rewards))
-        logger.info("Average final reward:", np.mean(final_rewards))
+        logger.info(f"Average reward without goal: {np.mean(step_rewards)}")
+        logger.info(f"Average final reward: {np.mean(final_rewards)}")
 
         return self.obs_act_dict

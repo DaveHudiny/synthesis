@@ -149,7 +149,7 @@ class FatherAgent(AbstractAgent):
         if self.args.paynt_fsc_imitation:
             self.init_fsc_policy_driver(self.tf_environment)
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=batch_size, num_steps=self.traj_num_steps).prefetch(16)
+            num_parallel_calls=4, sample_batch_size=batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(16)
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.best_iteration_final = 0.0
@@ -249,6 +249,6 @@ class FatherAgent(AbstractAgent):
         latest_checkpoint = manager.latest_checkpoint
         if latest_checkpoint:
             checkpoint.restore(latest_checkpoint)
-            logger.info("Loaded data from checkpoint:", latest_checkpoint)
+            logger.info(f"Loaded data from checkpoint: {latest_checkpoint}")
         else:
             logger.info("No data for loading.")

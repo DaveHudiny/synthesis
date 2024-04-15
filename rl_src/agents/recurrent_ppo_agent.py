@@ -28,6 +28,21 @@ from agents.policies.fsc_policy import FSC_Policy
 
 import logging
 
+from tf_agents.networks import network
+
+class Q_Values_FSC(network.Network):
+    def __init__(self, input_tensor_spec, output_tensor_spec, qFSC):
+        super(Q_Values_FSC, self).__init__(
+            input_tensor_spec=input_tensor_spec, state_spec=(), name="Q_Values_FSC")
+        self.qFSC = qFSC
+        self._output_tensor_spec = output_tensor_spec
+
+    def call(self, observation, step_type, network_state, training=False):
+        q_values = self.qFSC.get_q_values(observation)
+        return q_values, network_state
+
+
+
 
 class PPO_Logits_Driver:
     def __init__(self, collect_policy, tf_environment, traj_num_steps, observers):
