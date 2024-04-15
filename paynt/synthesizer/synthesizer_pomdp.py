@@ -241,23 +241,23 @@ class SynthesizerPOMDP:
         self.synthesis_terminate = True
         paynt_thread.join()
 
-    
     def set_advices_from_rl(self, interpretation_result = None, load_rl_dict = True, rl_dict = False, family = None):
         if load_rl_dict:
-                with open("./obs_action_dict.pickle", "rb") as f:
-                    obs_actions = pickle.load(f)
-                with open("./labels.pickle", "rb") as f:
-                    action_keywords = pickle.load(f)
-                obs_actions = self.storm_control.convert_rl_dict_to_paynt(family, obs_actions, action_keywords)
-                self.storm_control.result_dict = obs_actions
-                self.storm_control.result_dict_no_cutoffs = obs_actions
+            with open("./obs_action_dict.pickle", "rb") as f:
+                obs_actions = pickle.load(f)
+            with open("./labels.pickle", "rb") as f:
+                action_keywords = pickle.load(f)
+            obs_actions = self.storm_control.convert_rl_dict_to_paynt(
+                family, obs_actions, action_keywords)
+            self.storm_control.result_dict = obs_actions
+            self.storm_control.result_dict_no_cutoffs = obs_actions
         elif rl_dict:
             obs_actions = interpretation_result[0]
             memory_dict = interpretation_result[1]
             action_keywords = interpretation_result[2]
             prioritizer = interpretation_result[3]
-
-            obs_actions = self.storm_control.convert_rl_dict_to_paynt(family, obs_actions, action_keywords)
+            obs_actions = self.storm_control.convert_rl_dict_to_paynt(
+                family, obs_actions, action_keywords)
             self.storm_control.result_dict = obs_actions
             self.storm_control.result_dict_no_cutoffs = obs_actions
 
