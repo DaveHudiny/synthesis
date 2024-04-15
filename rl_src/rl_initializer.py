@@ -1,6 +1,14 @@
+# File: rl_initializer.py
+# Description: Initializer for Reinforcement Learning Approach
+# Author: David Hudak
+
+
 import rl_parser
 
 import logging
+
+logger = logging.getLogger(__name__)
+
 import os
 
 
@@ -24,9 +32,9 @@ import pickle
 
 
 class ArgsEmulator:
-    def __init__(self, prism_model: str, prism_properties: str, constants: str = "", discount_factor: float = 0.75,
+    def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 1.6e-5, max_steps: int = 300, evaluation_episodes: int = 20,
-                 batch_size: int = 32, trajectory_num_steps: int = 16, nr_runs: int = 5000, evaluation_goal: int = 300,
+                 batch_size: int = 64, trajectory_num_steps: int = 16, nr_runs: int = 5000, evaluation_goal: int = 300,
                  interpretation_method: str = "Tracing", log_dir: str = "logs", log_filename: str = "log.txt", learning_method: str = "DQN",
                  save_model_drn: bool = False, save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
                  buffer_size: int = 10000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
@@ -35,8 +43,8 @@ class ArgsEmulator:
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
-        prism_model (str): The path to the prism model file.
-        prism_properties (str): The path to the prism properties file.
+        prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
+        prism_properties (str): The path to the prism properties file. Defaults to None -- must be set, if not used inside of Paynt.
         constants (str, optional): The constants for the model. Syntax looks like: "C1=10,C2=60". See Prism template for definable constants. Defaults to "".
         discount_factor (float, optional): The discount factor for the environment. Defaults to 1.0.
         encoding_method (str, optional): The encoding method for the observations. Defaults to "Valuations". Other possible selections are "One-Hot" and "Integer".
@@ -115,14 +123,14 @@ class ArgsEmulator:
 
 
 class Initializer:
-    def __init__(self, args: ArgsEmulator = None):
+    def __init__(self, args: ArgsEmulator = None, pomdp_model=None, agent=None):
         if args is None:
             self.parser = rl_parser.Parser()
             self.args = self.parser.args
         else:
             self.args = args
-        self.pomdp_model = None
-        self.agent = None
+        self.pomdp_model = pomdp_model
+        self.agent = agent
 
     def asserts(self):
         if self.args.prism_model and not self.args.prism_properties:
@@ -166,19 +174,19 @@ class Initializer:
 
     def initialize_environment(self):
         self.initialize_prism_model()
-        logging.info("Model initialized")
+        logger.info("Model initialized")
         self.environment = Environment_Wrapper(self.pomdp_model, self.args)
         self.tf_environment = tf_py_environment.TFPyEnvironment(
             self.environment)
-        logging.info("Environment initialized")
+        logger.info("Environment initialized")
 
     def select_best_starting_weights(self):
-        logging.info("Selecting best starting weights")
+        logger.info("Selecting best starting weights")
         best_cumulative_return, best_average_last_episode_return = compute_average_return(
             self.agent.select_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
         self.agent.save_agent()
         for i in range(self.args.restart_weights):
-            logging.info(f"Restarting weights {i + 1}")
+            logger.info(f"Restarting weights {i + 1}")
             self.agent.reset_weights()
             cumulative_return, average_last_episode_return = compute_average_return(
                 self.agent.select_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
@@ -190,10 +198,10 @@ class Initializer:
                 if cumulative_return > best_cumulative_return:
                     best_cumulative_return = cumulative_return
                     self.agent.save_agent()
-        logging.info(f"Best cumulative return: {best_cumulative_return}")
-        logging.info(
+        logger.info(f"Best cumulative return: {best_cumulative_return}")
+        logger.info(
             f"Best average last episode return: {best_average_last_episode_return}")
-        logging.info("Agent with best ")
+        logger.info("Agent with best ")
         self.agent.load_agent()
 
     def select_agent_type(self, learning_method=None):
@@ -218,6 +226,8 @@ class Initializer:
         elif learning_method == "Stochastic_DQN":
             self.agent = Stochastic_DQN(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
+        elif learning_method == "FSC":
+            pass
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
@@ -243,13 +253,13 @@ class Initializer:
         try:
             self.asserts()
         except ValueError as e:
-            logging.error(e)
+            logger.error(e)
             return
 
-        if not os.path.exists(self.args.log_dir):
-            os.makedirs(self.args.log_dir)  
-        logging.basicConfig(filename=self.args.log_dir + "/" + self.args.log_filename,
-                            level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+        # if not os.path.exists(self.args.log_dir):
+        #     os.makedirs(self.args.log_dir)  
+        # logger.basicConfig(filename=self.args.log_dir + "/" + self.args.log_filename,
+        #                     level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
         if self.args.save_model_drn:
             self.save_model_drn()
@@ -258,10 +268,12 @@ class Initializer:
         self.agent.train_agent(self.args.nr_runs)
         self.agent.save_agent()
         result = {}
+        logger.info("Training finished")
         if self.args.interpretation_method == "Tracing":
             interpret = TracingInterpret(self.environment, self.tf_environment,
                                          self.args.encoding_method, self.environment._possible_observations, self.args.using_logits)
             for quality in ["last", "best"]:
+                logger.info(f"Interpreting agent with {quality} quality")
                 if with_refusing == None:
                     self.agent.load_agent(quality == "best")
                     result[f"{quality}_with_refusing"] = interpret.get_dictionary(
@@ -270,11 +282,15 @@ class Initializer:
                         self.agent, with_refusing=False)
                 else:
                     result = interpret.get_dictionary(self.agent, with_refusing)
-            self.tf_environment.close()
         else:
             raise ValueError(
                 "Interpretation method not recognized or implemented yet.")
         return result
+    
+    def __del__(self):
+        self.tf_environment.close()
+        if self.agent is not None:
+            self.agent.save_agent()
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ import paynt.synthesizer.synthesizer_ar
 from .synthesizer_ar_storm import SynthesizerARStorm
 from .synthesizer_hybrid import SynthesizerHybrid
 from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
+from .synthesizer_rl import Synthesizer_RL
 
 import paynt.quotient.quotient
 import paynt.quotient.pomdp
@@ -23,6 +24,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 import pickle
+
+from rl_src.rl_initializer import ArgsEmulator
 
 
 class SynthesizerPOMDP:
@@ -55,10 +58,10 @@ class SynthesizerPOMDP:
                 self.synthesizer.saynt_timer = self.saynt_timer
                 self.storm_control.saynt_timer = self.saynt_timer
 
-    def synthesize(self, family, print_stats=True):
+    def synthesize(self, family, print_stats=True, timer = None):
         synthesizer = self.synthesizer(self.quotient)
         family.constraint_indices = self.quotient.design_space.constraint_indices
-        assignment = synthesizer.synthesize(family, keep_optimum=True, print_stats=print_stats)
+        assignment = synthesizer.synthesize(family, keep_optimum=True, print_stats=print_stats, timer=timer)
         self.total_iters += synthesizer.stat.iterations_mdp
         return assignment
 
@@ -240,13 +243,20 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = False, fsc_cycling = True, fsc_synthesis_time_limit = 10):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
-
         self.synthesizer.storm_control = self.storm_control
+        if fsc_cycling:
+            first_run = True
+
+        current_time = fsc_synthesis_time_limit
+        start_time = time.time()
+        args = ArgsEmulator()
+        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
+        rl_synthesiser.train_agent(3000)
 
         while True:
         # for x in range(2):
@@ -297,7 +307,6 @@ class SynthesizerPOMDP:
 
             family = self.quotient.design_space
 
-            rl_dict = True
             action_keywords = None
 
             if rl_dict:
@@ -305,10 +314,7 @@ class SynthesizerPOMDP:
                     obs_actions = pickle.load(f)
                 with open("./labels.pickle", "rb") as f:
                     action_keywords = pickle.load(f)
-                print(len(obs_actions))
-                
                 obs_actions = self.storm_control.convert_rl_dict_to_paynt(family, obs_actions, action_keywords)
-                print(len(obs_actions))
                 self.storm_control.result_dict = obs_actions
                 self.storm_control.result_dict_no_cutoffs = obs_actions
 
@@ -338,7 +344,11 @@ class SynthesizerPOMDP:
             self.synthesizer.subfamilies_buffer = subfamilies
             self.synthesizer.main_family = main_family
 
-            assignment = self.synthesize(family)
+            if fsc_cycling:
+                assignment = self.synthesize(family, timer = current_time)
+                fsc = self.quotient.assignment_to_fsc(assignment)
+            else:
+                assignment = self.synthesize(family)
 
             if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment

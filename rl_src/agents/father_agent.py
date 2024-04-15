@@ -18,6 +18,8 @@ from agents.policies.fsc_policy import FSC_Policy, FSC
 
 import logging
 
+logger = logging.getLogger(__name__)
+
 from tf_agents.policies import py_tf_eager_policy
 
 
@@ -147,14 +149,14 @@ class FatherAgent(AbstractAgent):
         if self.args.paynt_fsc_imitation:
             self.init_fsc_policy_driver(self.tf_environment)
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=batch_size, num_steps=self.traj_num_steps).prefetch(3)
+            num_parallel_calls=4, sample_batch_size=batch_size, num_steps=self.traj_num_steps).prefetch(16)
         self.iterator = iter(self.dataset)
-        logging.info("Training agent")
+        logger.info("Training agent")
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
         self.agent.train = common.function(self.agent.train)
 
-        print('Random Average Return = {0}'.format(compute_average_return(
+        logger.info('Random Average Return = {0}'.format(compute_average_return(
               self.select_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
         for i in range(num_iterations):
             if False:
@@ -165,10 +167,11 @@ class FatherAgent(AbstractAgent):
                 self.driver.run()
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss
+            train_loss = train_loss.numpy()
             self.agent.train_step_counter.assign_add(1)
-            self.losses.append(train_loss.numpy())
+            self.losses.append(train_loss)
             if i % 10 == 0:
-                print(f"Step: {i}, Training loss: {train_loss}", train_loss)
+                logger.info(f"Step: {i}, Training loss: {train_loss}")
             if i % 100 == 0:
                 self.evaluate_agent()
         self.evaluate_agent(True)
@@ -192,8 +195,8 @@ class FatherAgent(AbstractAgent):
             if self.best_iteration_steps < average_return:
                 self.best_iteration_steps = average_return
                 self.save_agent(True)
-        print('Average Return Before Final = {0}'.format(average_return))
-        print('Average Final Return = {0}'.format(average_episode_return))
+        logger.info('Average Return without Virtual Goal = {0}'.format(average_return))
+        logger.info('Average Virtual Goal Value = {0}'.format(average_episode_return))
         self.stats_without_ending.append(average_return)
         self.stats_with_ending.append(average_episode_return)
     
@@ -246,6 +249,6 @@ class FatherAgent(AbstractAgent):
         latest_checkpoint = manager.latest_checkpoint
         if latest_checkpoint:
             checkpoint.restore(latest_checkpoint)
-            print("Loaded data from checkpoint:", latest_checkpoint)
+            logger.info("Loaded data from checkpoint:", latest_checkpoint)
         else:
-            print("No data for loading.")
+            logger.info("No data for loading.")

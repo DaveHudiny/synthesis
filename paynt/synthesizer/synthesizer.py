@@ -112,7 +112,7 @@ class Synthesizer:
         ''' to be overridden '''
         pass
 
-    def synthesize(self, family=None, optimum_threshold=None, keep_optimum=False, return_all=False, print_stats=True):
+    def synthesize(self, family=None, optimum_threshold=None, keep_optimum=False, return_all=False, print_stats=True, timer = None):
         '''
         :param family family of assignment to search in
         :param optimum_threshold known bound on the optimum value
@@ -133,7 +133,10 @@ class Synthesizer:
         logger.info("synthesis initiated, design space: {}".format(family.size_or_order))
         self.quotient.discarded = 0
         self.stat.start(family)
-        assignment = self.synthesize_one(family)
+        if timer is not None:
+            assignment = self.synthesize_one(family, timer)
+        else:
+            assignment = self.synthesize_one(family)
         if assignment is not None and assignment.size > 1 and not return_all:
             assignment = assignment.pick_any()
         self.stat.finished_synthesis(assignment)

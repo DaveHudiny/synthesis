@@ -56,6 +56,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
         self.last_action = 0
         self.visited_states = []
+        self.empty_reward = False
 
     def select_reward_shaping_function(self):
         if self.args.reward_shaping_model is None:
@@ -193,7 +194,11 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self._num_steps = 0
         stepino = self.simulator.restart()
         observation = stepino[0]
-        reward = tf.constant(stepino[1][0], dtype=tf.float32)
+        if stepino[1] == []:
+            self.empty_reward = True
+            reward = tf.constant(-1.0, dtype=tf.float32)
+        else:
+            reward = tf.constant(stepino[1][0], dtype=tf.float32)
         if not self.action_filtering:
             mask = self.compute_mask()
             observation_vector = self.create_encoding(observation)
@@ -256,17 +261,17 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             self._current_time_step = ts.transition(
                 observation=self.get_observation(), reward=self.reward, discount=self.discount)
         elif self.simulator.is_done() and ("goal" in labels or "done" in labels or "((x = 2) & (y = 0))" in labels):
-            print("Goal reached!")
+            # print("Goal reached!")
             self._finished = True
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.goal_value)
         elif self.simulator.is_done() and "traps" in labels:
-            print("Trapped!")
+            # print("Trapped!")
             self._finished = True
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.antigoal_value)
         else:  # Ended, but not in goal state :/
-            print(f"Ended, but not in a goal state {labels}")
+            # print(f"Ended, but not in a goal state {labels}")
             self._finished = True
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.antigoal_value)
@@ -325,6 +330,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             return self._current_time_step
 
         stepino, penalty = self._do_step(action)
+        simulator_reward = stepino[1][-1] if not self.empty_reward else -1.0
 
         if "traps" in list(self.simulator._report_labels()):
             self.reward = self.antigoal_value
@@ -335,10 +341,10 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 self.reward = self.goal_value / 10
             else:
                 self.reward = tf.constant(
-                    -stepino[1][-1] + penalty, dtype=tf.float32)
+                    simulator_reward + penalty, dtype=tf.float32)
         else:
             self.reward = tf.constant(
-                -stepino[1][-1] + penalty, dtype=tf.float32)
+                simulator_reward + penalty, dtype=tf.float32)
         return self.evaluate_simulator()
 
     def current_time_step(self) -> ts.TimeStep:

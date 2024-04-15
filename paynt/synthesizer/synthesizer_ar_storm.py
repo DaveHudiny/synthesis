@@ -113,7 +113,7 @@ class SynthesizerARStorm(Synthesizer):
 
 
 
-    def synthesize_one(self, family):
+    def synthesize_one(self, family, timer = None):
         self.quotient.discarded = 0
 
         satisfying_assignment = None
@@ -122,9 +122,12 @@ class SynthesizerARStorm(Synthesizer):
             family = self.main_family
 
         families = [family]
-
+        start_time = time.time()
         while families:
-
+            if satisfying_assignment is not None and timer is not None and time.time() - start_time > timer:
+                logger.info("Time limit reached")
+                return satisfying_assignment
+            
             # check whether PAYNT should be paused
             if self.s_queue is not None:
                 # if the queue is non empty, pause for PAYNT was requested
