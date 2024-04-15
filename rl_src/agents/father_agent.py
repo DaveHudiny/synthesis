@@ -125,8 +125,8 @@ class FatherAgent(AbstractAgent):
     def get_initial_state(self, batch_size=None):
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
-        self.fsc_policy = FSC_Policy(tf_environment, self.fsc,
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc : FSC = None):
+        self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec=self.agent.policy.info_spec)
@@ -136,8 +136,12 @@ class FatherAgent(AbstractAgent):
             tf_environment,
             eager,
             observers=[self.replay_buffer.add_batch],
-            num_steps=self.traj_num_steps
+            num_steps=self.traj_num_steps * 3
         )
+    
+    def del_fsc_policy_driver(self):
+        del self.fsc_driver
+        del self.fsc_policy
 
     def select_evaluated_policy(self):
         if self.wrapper is None:
@@ -147,7 +151,7 @@ class FatherAgent(AbstractAgent):
 
     def train_agent(self, num_iterations, batch_size=32):
         if self.args.paynt_fsc_imitation:
-            self.init_fsc_policy_driver(self.tf_environment)
+            self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(
             num_parallel_calls=4, sample_batch_size=batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(16)
         self.iterator = iter(self.dataset)
@@ -155,13 +159,13 @@ class FatherAgent(AbstractAgent):
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
         self.agent.train = common.function(self.agent.train)
-
-        logger.info('Random Average Return = {0}'.format(compute_average_return(
-              self.select_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
+        if self.agent.train_step_counter.numpy() == 0:
+            logger.info('Random Average Return = {0}'.format(compute_average_return(
+                self.select_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
         for i in range(num_iterations):
             if False:
                 self.random_driver.run()
-            if self.args.paynt_fsc_imitation and i < self.args.fsc_policy_max_iteration:
+            if (self.args.paynt_fsc_imitation or hasattr(self, "fsc_driver")) and i < self.args.fsc_policy_max_iteration:
                 self.fsc_driver.run()
             else:
                 self.driver.run()

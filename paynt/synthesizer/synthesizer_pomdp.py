@@ -241,6 +241,38 @@ class SynthesizerPOMDP:
         self.synthesis_terminate = True
         paynt_thread.join()
 
+    def set_memory_original(self, mem_size):
+        if mem_size > 1:
+            obs_memory_dict = {}
+            if self.storm_control.is_storm_better:
+                if self.storm_control.is_memory_needed():
+                    obs_memory_dict = self.storm_control.memory_vector
+                    logger.info(f'Added memory nodes for observation based on Storm data')
+                else:
+                    # consider the cut-off schedulers actions when updating memory
+                    if self.storm_control.unfold_cutoff:
+                        for obs in range(self.quotient.observations):
+                            if obs in self.storm_control.result_dict:
+                                obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
+                            else:
+                                obs_memory_dict[obs] = self.quotient.observation_memory_size[obs]
+                    # only consider the induced DTMC without cut-off states
+                    else:
+                        for obs in range(self.quotient.observations):
+                            if obs in self.storm_control.result_dict_no_cutoffs:
+                                obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
+                            else:
+                                obs_memory_dict[obs] = self.quotient.observation_memory_size[obs]
+                    logger.info(f'Added memory nodes for observation based on Storm data')
+            else:
+                for obs in range(self.quotient.observations):
+                    if self.quotient.observation_states[obs]>1:
+                        obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
+                    else:
+                        obs_memory_dict[obs] = 1
+                logger.info(f'Increase memory in all imperfect observation')
+            self.quotient.set_memory_from_dict(obs_memory_dict)
+
     def set_advices_from_rl(self, interpretation_result = None, load_rl_dict = True, rl_dict = False, family = None):
         if load_rl_dict:
             with open("./obs_action_dict.pickle", "rb") as f:
@@ -263,7 +295,8 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, cycling_time = 30, load_rl_dict = False, rl_mem = False):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = False, fsc_cycling = True, 
+                       cycling_time = 10, load_rl_dict = False, rl_mem = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -271,7 +304,6 @@ class SynthesizerPOMDP:
         self.synthesizer.storm_control = self.storm_control
         first_run = True
         if fsc_cycling:
-            
             current_time = cycling_time
             start_time = time.time()
         interpretation_result = None
@@ -279,12 +311,17 @@ class SynthesizerPOMDP:
         if rl_dict and not load_rl_dict:
             args = ArgsEmulator(load_agent=False)
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
-            rl_synthesiser.train_agent(0)
+            rl_synthesiser.train_agent(300)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
 
         while True:
         # for x in range(2):
+            if rl_dict and fsc_cycling and not first_run:
+                current_time = cycling_time
+                rl_synthesiser.train_agent_with_fsc(200, fsc)
+                rl_synthesiser.train_agent(100)
+                interpretation_result = rl_synthesiser.interpret_agent(best=True)
 
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
@@ -293,36 +330,7 @@ class SynthesizerPOMDP:
 
             # unfold memory according to the best result
             if not rl_mem and unfold_storm:
-                if mem_size > 1:
-                    obs_memory_dict = {}
-                    if self.storm_control.is_storm_better:
-                        if self.storm_control.is_memory_needed():
-                            obs_memory_dict = self.storm_control.memory_vector
-                            logger.info(f'Added memory nodes for observation based on Storm data')
-                        else:
-                            # consider the cut-off schedulers actions when updating memory
-                            if self.storm_control.unfold_cutoff:
-                                for obs in range(self.quotient.observations):
-                                    if obs in self.storm_control.result_dict:
-                                        obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
-                                    else:
-                                        obs_memory_dict[obs] = self.quotient.observation_memory_size[obs]
-                            # only consider the induced DTMC without cut-off states
-                            else:
-                                for obs in range(self.quotient.observations):
-                                    if obs in self.storm_control.result_dict_no_cutoffs:
-                                        obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
-                                    else:
-                                        obs_memory_dict[obs] = self.quotient.observation_memory_size[obs]
-                            logger.info(f'Added memory nodes for observation based on Storm data')
-                    else:
-                        for obs in range(self.quotient.observations):
-                            if self.quotient.observation_states[obs]>1:
-                                obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
-                            else:
-                                obs_memory_dict[obs] = 1
-                        logger.info(f'Increase memory in all imperfect observation')
-                    self.quotient.set_memory_from_dict(obs_memory_dict)
+                self.set_memory_original(mem_size)
             elif rl_mem:
                 logger.info("Adding memory nodes based on RL interpretation.")
                 priority_list_len = len(self.priority_list)
@@ -371,17 +379,16 @@ class SynthesizerPOMDP:
             self.synthesizer.subfamilies_buffer = subfamilies
             self.synthesizer.main_family = main_family
 
-            if not first_run:
-                if fsc_cycling:
-                    assignment = self.synthesize(family, timer = current_time)
-                    fsc = self.quotient.assignment_to_fsc(assignment)
-                else:
-                    assignment = self.synthesize(family)
+            if fsc_cycling:
+                assignment = self.synthesize(family, timer = current_time)
+                fsc = self.quotient.assignment_to_fsc(assignment)
+            else:
+                assignment = self.synthesize(family)
 
-                if assignment is not None:
-                    self.storm_control.latest_paynt_result = assignment
-                    self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
-                    self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
+            if assignment is not None:
+                self.storm_control.latest_paynt_result = assignment
+                self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
+                self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
 
             first_run = False
             self.storm_control.update_data()

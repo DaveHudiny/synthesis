@@ -34,7 +34,9 @@ class Synthesizer_RL:
         return self.interpret.get_dictionary(self.initializer.agent, with_refusing)
     
     def train_agent_with_fsc(self, iterations : int, fsc : FSC):
-        pass
+        self.initializer.agent.init_fsc_policy_driver(self.initializer.tf_environment, fsc)
+        self.initializer.agent.train_agent(iterations)
+        self.initializer.agent.del_fsc_policy_driver()
 
 
 
