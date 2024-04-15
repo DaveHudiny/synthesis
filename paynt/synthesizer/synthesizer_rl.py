@@ -1,5 +1,6 @@
 from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.rl_initializer import ArgsEmulator, Initializer
+from rl_src.interpreters.tracing_interpret import TracingInterpret
 
 import tensorflow as tf
 
@@ -17,6 +18,18 @@ class Synthesizer_RL:
         self.initializer.tf_environment = tf_py_environment.TFPyEnvironment(self.initializer.environment)
         logger.info("RL Environment initialized")
         self.initializer.initialize_agent()
+        self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment, self.initializer.args.encoding_method)
     
     def train_agent(self, iterations : int):
         self.initializer.agent.train_agent(iterations)
+
+    def interpret_agent(self, best : bool, with_refusing : bool = False, greedy : bool = True):
+        self.initializer.agent.load_agent(best)
+        if greedy: # Works only with agents which use policy wrapping (in our case only PPO)
+            self.initializer.agent.set_agent_evaluation()
+        else:
+            self.initializer.agent.set_agent_evaluation(epsilon_greedy = True)
+        return self.interpret.get_dictionary(self.initializer.agent, with_refusing)
+
+
+

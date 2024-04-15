@@ -241,9 +241,29 @@ class SynthesizerPOMDP:
         self.synthesis_terminate = True
         paynt_thread.join()
 
+    
+    def set_advices_from_rl(self, interpretation_result = None, load_rl_dict = True, rl_dict = False, family = None):
+        if load_rl_dict:
+                with open("./obs_action_dict.pickle", "rb") as f:
+                    obs_actions = pickle.load(f)
+                with open("./labels.pickle", "rb") as f:
+                    action_keywords = pickle.load(f)
+                obs_actions = self.storm_control.convert_rl_dict_to_paynt(family, obs_actions, action_keywords)
+                self.storm_control.result_dict = obs_actions
+                self.storm_control.result_dict_no_cutoffs = obs_actions
+        elif rl_dict:
+            obs_actions = interpretation_result[0]
+            memory_dict = interpretation_result[1]
+            action_keywords = interpretation_result[2]
+            prioritizer = interpretation_result[3]
+
+            obs_actions = self.storm_control.convert_rl_dict_to_paynt(family, obs_actions, action_keywords)
+            self.storm_control.result_dict = obs_actions
+            self.storm_control.result_dict_no_cutoffs = obs_actions
+
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = False, fsc_cycling = True, fsc_synthesis_time_limit = 10):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, fsc_synthesis_time_limit = 10, load_rl_dict = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -251,12 +271,17 @@ class SynthesizerPOMDP:
         self.synthesizer.storm_control = self.storm_control
         if fsc_cycling:
             first_run = True
+            current_time = fsc_synthesis_time_limit
+            start_time = time.time()
 
-        current_time = fsc_synthesis_time_limit
-        start_time = time.time()
-        args = ArgsEmulator()
-        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
-        rl_synthesiser.train_agent(3000)
+        interpretation_result = None
+        
+        if rl_dict and not load_rl_dict:
+            args = ArgsEmulator()
+            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
+            rl_synthesiser.train_agent(500)
+            interpretation_result = rl_synthesiser.interpret_agent()
+
 
         while True:
         # for x in range(2):
@@ -309,14 +334,9 @@ class SynthesizerPOMDP:
 
             action_keywords = None
 
-            if rl_dict:
-                with open("./obs_action_dict.pickle", "rb") as f:
-                    obs_actions = pickle.load(f)
-                with open("./labels.pickle", "rb") as f:
-                    action_keywords = pickle.load(f)
-                obs_actions = self.storm_control.convert_rl_dict_to_paynt(family, obs_actions, action_keywords)
-                self.storm_control.result_dict = obs_actions
-                self.storm_control.result_dict_no_cutoffs = obs_actions
+            if load_rl_dict or rl_dict:
+                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
+
 
             # if Storm's result is better, use it to obtain main family that considers only the important actions
             if self.storm_control.is_storm_better:
