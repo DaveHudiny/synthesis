@@ -8,8 +8,12 @@ import rl_parser
 import logging
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 import os
+import sys
+
+sys.path.append("../")
 
 
 from environment.pomdp_builder import *
@@ -30,16 +34,57 @@ import pickle
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
+def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
+    """ Save dictionaries for Paynt oracle.
+    Args:
+        name_of_experiment (str): Name of the experiment.
+        model (str): The name of the model.
+        learning_method (str): The learning method.
+        refusing_typ (str): Whether to use refusing when interpreting.
+        obs_action_dict (dict): The observation-action dictionary.
+        memory_dict (dict): The memory dictionary.
+        labels (dict): The labels dictionary.
+    """
+    if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}"):
+        os.makedirs(
+            f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}")
+    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/obs_action_dict.pickle", "wb") as f:
+        pickle.dump(obs_action_dict, f)
+    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/memory_dict.pickle", "wb") as f:
+        pickle.dump(memory_dict, f)
+    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/labels.pickle", "wb") as f:
+        pickle.dump(labels, f)
+
+def save_statistics(name_of_experiment, model, learning_method, stats_without_ending, stats_with_ending, losses):
+    """ Save statistics for Paynt oracle.
+    Args:
+        name_of_experiment (str): Name of the experiment.
+        model (str): The name of the model.
+        learning_method (str): The learning method.
+        stats_without_ending (list): The statistics without virtual goal.
+        stats_with_ending (list): The statistics with virtual goal.
+        losses (list): The losses.
+    """
+    if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
+        os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
+    with open(f"{name_of_experiment}/{model}_{learning_method}/average_return_without_final.txt", "w") as f:
+        f.write(str(stats_without_ending))
+    with open(f"{name_of_experiment}/{model}_{learning_method}/average_return_with_final.txt", "w") as f:
+        f.write(str(stats_with_ending))
+    with open(f"{name_of_experiment}/{model}_{learning_method}/losses.txt", "w") as f:
+        f.write(str(losses))
+
 
 class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 1.6e-5, max_steps: int = 300, evaluation_episodes: int = 20,
                  batch_size: int = 64, trajectory_num_steps: int = 16, nr_runs: int = 5000, evaluation_goal: int = 300,
-                 interpretation_method: str = "Tracing", log_dir: str = "logs", log_filename: str = "log.txt", learning_method: str = "DQN",
-                 save_model_drn: bool = False, save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
+                 interpretation_method: str = "Tracing", learning_method: str = "DQN",
+                 save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
                  buffer_size: int = 10000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
-                 reward_shaping_model: str = "evade", agent_name="test", using_logits=False, paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100):
+                 reward_shaping_model: str = "evade", agent_name="test", using_logits=False, paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
@@ -57,10 +102,7 @@ class ArgsEmulator:
         evaluation_goal (int, optional): The evaluation goal. Defaults to 10.
         interpretation_method (str, optional): The interpretation method. Defaults to "Tracing". Other possible selection is "Model-Free", 
                                                but it is not fully functional yet.
-        log_dir (str, optional): The log directory. Defaults to "logs".
-        log_filename (str, optional): The log filename. Defaults to "log.txt".
         learning_method (str, optional): The learning method. Choices are ["DQN", "DDQN", "PPO"]. Defaults to "DQN".
-        save_model_drn (bool, optional): Save environment model to drn file. If set, the file will be saved to the specified file. Defaults to False.
         save_agent (bool, optional): Save agent model during training. Defaults to False.
         load_agent (bool, optional): Load agent model during training. Defaults to False.
         seed (int, optional): Seed for reproducibility. Defaults to 123456.
@@ -82,7 +124,10 @@ class ArgsEmulator:
         paynt_fsc_imitation (bool, optional): Use extracted FSC from Paynt for improving data collection and imitation learning. Defaults to False.
         paynt_fsc_json (str, optional): JSON file with extracted FSC from Paynt. Defaults to None.
         fsc_policy_max_iteration (int, optional): If --paynt-fsc-imitation is selected, this parameter defines the maximum number of iterations for FSC policy training. Defaults to 100.
-
+        interpretation_folder (str, optional): The folder for interpretation. Defaults to "interpretation".
+        experiment_name (str, optional): The name of the experiment. Defaults to "experiment".
+        with_refusing (bool, optional): Whether to use refusing when interpreting. Defaults to None.
+        set_ppo_on_policy (bool, optional): Set PPO to on-policy. With other methods, this parameter has no effect. Defaults to False.
         """
         self.prism_model = prism_model
         self.prism_properties = prism_properties
@@ -98,10 +143,7 @@ class ArgsEmulator:
         self.nr_runs = nr_runs
         self.evaluation_goal = evaluation_goal
         self.interpretation_method = interpretation_method
-        self.log_dir = log_dir
-        self.log_filename = log_filename
         self.learning_method = learning_method
-        self.save_model_drn = save_model_drn
         self.save_agent = save_agent
         self.load_agent = load_agent
         self.seed = seed
@@ -120,6 +162,10 @@ class ArgsEmulator:
         self.paynt_fsc_imitation = paynt_fsc_imitation
         self.paynt_fsc_json = paynt_fsc_json
         self.fsc_policy_max_iteration = fsc_policy_max_iteration
+        self.interpretation_folder = interpretation_folder
+        self.experiment_name = experiment_name
+        self.with_refusing = with_refusing
+        self.set_ppo_onpolicy = set_ppo_on_policy
 
 
 class Initializer:
@@ -155,11 +201,6 @@ class Initializer:
             self.args.prism_model, properties, self.args.constants)
         self.pomdp_model = POMDP_builder.build_model(
             pomdp_args)
-
-    def save_model_drn(self):
-        stormpy.export_to_drn(self.pomdp_model, f"{args.save_model_drn}.drn")
-        with open(f"{args.save_model_drn}.props", "w") as f:
-            f.write(self.raw_formula.__str__())
 
     def run_agent(self):
         num_steps = 10
@@ -256,16 +297,12 @@ class Initializer:
             logger.error(e)
             return
 
-        # if not os.path.exists(self.args.log_dir):
-        #     os.makedirs(self.args.log_dir)  
-        # logger.basicConfig(filename=self.args.log_dir + "/" + self.args.log_filename,
-        #                     level=logging.INFO, format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-
-        if self.args.save_model_drn:
-            self.save_model_drn()
         self.initialize_environment()
         self.initialize_agent()
-        self.agent.train_agent(self.args.nr_runs)
+        if self.args.learning_method == "PPO" and self.args.set_ppo_on_policy:
+            self.agent.train_agent_onpolicy(self.args.nr_runs)
+        else:
+            self.agent.train_agent(self.args.nr_runs)
         self.agent.save_agent()
         result = {}
         logger.info("Training finished")
@@ -295,4 +332,18 @@ class Initializer:
 
 if __name__ == "__main__":
     initializer = Initializer()
-    initializer.main()
+    args = initializer.parser.args
+    result = initializer.main(args.with_refusing)
+    if args.with_refusing is None:
+        save_dictionaries(args.experiment_directory, args.agent_name,
+                        args.learning_method, "best", result["best_with_refusing"][0], result["best_with_refusing"][1], result["best_with_refusing"][2])
+        save_dictionaries(args.experiment_directory, args.agent_name,
+                            args.learning_method, "last", result["last_with_refusing"][0], result["last_with_refusing"][1], result["last_with_refusing"][2])
+        save_statistics(args.experiment_directory, args.agent_name, args.learning_method, initializer.agent.stats_without_ending,
+                        initializer.agent.stats_with_ending, initializer.agent.losses)
+    else:
+        save_dictionaries(args.experiment_directory, args.agent_name,
+                        args.learning_method, args.with_refusing, result[0], result[1], result[2])
+        save_statistics(args.experiment_directory, args.agent_name, args.learning_method, initializer.agent.stats_without_ending,
+                        initializer.agent.stats_with_ending, initializer.agent.losses)
+    

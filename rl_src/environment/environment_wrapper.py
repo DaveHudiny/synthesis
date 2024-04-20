@@ -330,21 +330,13 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             return self._current_time_step
 
         stepino, penalty = self._do_step(action)
-        simulator_reward = stepino[1][-1] if not self.empty_reward else -1.0
+        simulator_reward = stepino[1][-1] if not self.empty_reward else 1.0
 
         if "traps" in list(self.simulator._report_labels()):
             self.reward = self.antigoal_value
-        elif "stationvisit" in list(self.simulator._report_labels()):
-            ax, ay = self.get_coordinates()
-            if (ax, ay) not in self.visited_states:
-                self.visited_states.append((ax, ay))
-                self.reward = self.goal_value / 10
-            else:
-                self.reward = tf.constant(
-                    simulator_reward + penalty, dtype=tf.float32)
         else:
             self.reward = tf.constant(
-                simulator_reward + penalty, dtype=tf.float32)
+                -simulator_reward + penalty, dtype=tf.float32)
         return self.evaluate_simulator()
 
     def current_time_step(self) -> ts.TimeStep:

@@ -25,8 +25,12 @@ from agents.policies.stochastic_ppo_collector_policy import Stochastic_PPO_Colle
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.fsc_policy import FSC_Policy
 
+from paynt.quotient.fsc import FSC
+
 
 import logging
+
+logger = logging.getLogger(__name__)
 
 from tf_agents.networks import network
 
@@ -38,8 +42,8 @@ class Q_Values_FSC(network.Network):
         self._output_tensor_spec = output_tensor_spec
 
     def call(self, observation, step_type, network_state, training=False):
-        q_values = self.qFSC.get_q_values(observation)
-        return q_values, network_state
+        print(self._output_tensor_spec.maximum)
+        return [0, 0, 0, 0, 0], network_state
 
 
 
@@ -68,7 +72,8 @@ class PPO_Logits_Driver:
 
 
 class Recurrent_PPO_agent(FatherAgent):
-    def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
+    def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
+                 args, load=False, agent_folder=None, fsc_critic_flag : bool = False, fsc_critic : FSC = None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(
@@ -79,23 +84,27 @@ class Recurrent_PPO_agent(FatherAgent):
         else:
             action_spec = tf_environment.action_spec()
 
-        actor_net = self.create_recurrent_actor_net_demasked(
+        self.actor_net = self.create_recurrent_actor_net_demasked(
             tf_environment, action_spec)
-        value_net = self.create_recurrent_value_net_demasked(
-            tf_environment, action_spec)
+        
+        if fsc_critic_flag:
+            self.value_net = Q_Values_FSC(tf_environment.time_step_spec(), action_spec, fsc_critic)
+        else:
+            self.value_net = self.create_recurrent_value_net_demasked(
+                tf_environment, action_spec)
         
         time_step_spec = tf_environment.time_step_spec()
         time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
+
         self.agent = ppo_agent.PPOAgent(
             time_step_spec,
             action_spec,
             optimizer,
-            actor_net=actor_net,
-            value_net=value_net,
+            actor_net=self.actor_net,
+            value_net=self.value_net,
             num_epochs=25,
             train_step_counter=train_step_counter,
             greedy_eval=False,
-            entropy_regularization=0.1,
             discount_factor=0.9,
         )
         self.agent.initialize()
@@ -106,6 +115,28 @@ class Recurrent_PPO_agent(FatherAgent):
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(), is_greedy=False)
         if load:
             self.load_agent()
+
+
+    def train_agent_onpolicy(self, iterations: int):
+        for i in range(iterations):
+            time_step = self.tf_environment.reset()
+            policy_state = self.wrapper.get_initial_state(self.tf_environment.batch_size)
+            self.set_agent_training()
+            while not time_step.is_last():
+                action_step = self.wrapper.action(time_step, policy_state)
+                next_time_step = self.tf_environment.step(action_step.action)
+                traj = trajectory.from_transition(
+                    time_step, action_step, next_time_step)
+                traj = traj._replace(observation=traj.observation["observation"])
+                train_loss = self.agent.train(traj)
+                time_step = next_time_step
+                policy_state = action_step.state
+                train_loss = train_loss.numpy()
+                self.agent.train_step_counter.assign_add(1)
+            logger.info(f"Step: {i}, Training loss: {train_loss}")
+            self.set_agent_evaluation()
+            self.evaluate_agent()
+
 
     def demasked_observer(self):
         def _add_batch(item: Trajectory):
@@ -133,12 +164,11 @@ class Recurrent_PPO_agent(FatherAgent):
             observers=[observer],
             num_steps=self.traj_num_steps)
         
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
-        self.fsc_policy = FSC_Policy(tf_environment, self.fsc,
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None):
+        self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec=self.agent.collect_policy.info_spec)
-        self.fsc_policy.action(self.tf_environment.reset(), self.fsc_policy.get_initial_state(self.tf_environment.batch_size))
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.demasked_observer()

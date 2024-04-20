@@ -295,7 +295,7 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = False, fsc_cycling = True, 
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = True, 
                        cycling_time = 10, load_rl_dict = False, rl_mem = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
@@ -309,7 +309,7 @@ class SynthesizerPOMDP:
         interpretation_result = None
         
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False)
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Integer")
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
             rl_synthesiser.train_agent(300)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)

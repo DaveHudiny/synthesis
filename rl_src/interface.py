@@ -1,4 +1,4 @@
-from rl_initializer import Initializer, ArgsEmulator
+from rl_initializer import Initializer, ArgsEmulator, save_dictionaries, save_statistics
 
 import pickle
 import os
@@ -16,28 +16,6 @@ def get_dictionaries(args, with_refusing=False):
     initializer = Initializer(args)
     dictionaries = initializer.main(with_refusing=with_refusing)
     return dictionaries
-
-
-def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
-    """ Save dictionaries for Paynt oracle.
-    Args:
-        name_of_experiment (str): Name of the experiment.
-        model (str): The name of the model.
-        learning_method (str): The learning method.
-        refusing_typ (str): Whether to use refusing when interpreting.
-        obs_action_dict (dict): The observation-action dictionary.
-        memory_dict (dict): The memory dictionary.
-        labels (dict): The labels dictionary.
-    """
-    if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}"):
-        os.makedirs(
-            f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}")
-    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/obs_action_dict.pickle", "wb") as f:
-        pickle.dump(obs_action_dict, f)
-    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/memory_dict.pickle", "wb") as f:
-        pickle.dump(memory_dict, f)
-    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/labels.pickle", "wb") as f:
-        pickle.dump(labels, f)
 
 
 def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", refusing=None, name_of_experiment="results_of_interpretation"):
@@ -69,13 +47,9 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
             labels = dicts[2]
             save_dictionaries(name_of_experiment, model, learning_method,
                               refusing, obs_action_dict, memory_dict, labels)
-
-    with open(f"{name_of_experiment}/{model}_{learning_method}/average_return_without_final.txt", "w") as f:
-        f.write(str(initializer.agent.stats_without_ending))
-    with open(f"{name_of_experiment}/{model}_{learning_method}/average_return_with_final.txt", "w") as f:
-        f.write(str(initializer.agent.stats_with_ending))
-    with open(f"{name_of_experiment}/{model}_{learning_method}/losses.txt", "w") as f:
-        f.write(str(initializer.agent.losses))
+            
+    save_statistics(name_of_experiment, model, learning_method, initializer.agent.stats_without_ending, 
+                    initializer.agent.stats_with_ending, initializer.agent.losses)
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models"):

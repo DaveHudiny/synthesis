@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 from tf_agents.policies import py_tf_eager_policy
 
+import os
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class AgentSettings:
     def __init__(self, preprocessing_layers=[150, 150], lstm_units=[100], postprocessing_layers=[]):
@@ -149,11 +151,11 @@ class FatherAgent(AbstractAgent):
         else:
             return self.wrapper
 
-    def train_agent(self, num_iterations, batch_size=32):
+    def train_agent(self, num_iterations):
         if self.args.paynt_fsc_imitation:
             self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(16)
+            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.best_iteration_final = 0.0

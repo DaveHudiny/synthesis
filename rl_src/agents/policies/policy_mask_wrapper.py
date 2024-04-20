@@ -63,7 +63,6 @@ class Policy_Mask_Wrapper(TFPolicy):
         logits = tf.compat.v2.where(
             tf.cast(mask, tf.bool), logits, almost_neg_inf
         )
-
         distribution = tfp.distributions.Categorical(
             logits=logits
         )
