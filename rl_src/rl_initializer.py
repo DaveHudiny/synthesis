@@ -8,7 +8,6 @@ import rl_parser
 import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 import os
 import sys
@@ -331,6 +330,7 @@ class Initializer:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     initializer = Initializer()
     args = initializer.parser.args
     result = initializer.main(args.with_refusing)

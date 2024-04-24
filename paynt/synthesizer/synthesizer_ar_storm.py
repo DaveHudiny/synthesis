@@ -124,7 +124,7 @@ class SynthesizerARStorm(Synthesizer):
         families = [family]
         start_time = time.time()
         while families:
-            if satisfying_assignment is not None and timer is not None and time.time() - start_time > timer:
+            if timer is not None and time.time() - start_time > timer:
                 logger.info("Time limit reached")
                 return satisfying_assignment
             

@@ -27,6 +27,7 @@ import pickle
 
 from rl_src.rl_initializer import ArgsEmulator
 
+from time import sleep
 
 class SynthesizerPOMDP:
 
@@ -295,8 +296,8 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = False, fsc_cycling = True, 
-                       cycling_time = 5, load_rl_dict = False, rl_mem = False):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = True, 
+                       cycling_time = 60, load_rl_dict = False, rl_mem = True):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -309,7 +310,7 @@ class SynthesizerPOMDP:
         interpretation_result = None
         
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Integer")
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations")
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
             rl_synthesiser.train_agent(300)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
@@ -319,22 +320,31 @@ class SynthesizerPOMDP:
         # for x in range(2):
             if rl_dict and fsc_cycling and not first_run:
                 current_time = cycling_time
-                rl_synthesiser.train_agent_with_fsc(200, fsc)
-                rl_synthesiser.train_agent(100)
-                interpretation_result = rl_synthesiser.interpret_agent(best=True)
+                if fsc is not None:
+                    logger.info("Training agent with FSC.")
+                    rl_synthesiser.train_agent_with_fsc(100, fsc)
+                else:
+                    logger.info("FSC is None. Training agent without FSC.")
+                logger.info("Training agent for {} iterations.".format(500))
+                rl_synthesiser.train_agent(500)
+                interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
             
             paynt.quotient.pomdp.PomdpQuotient.current_family_index = mem_size
 
+            self.memory_dict = interpretation_result[1]
+            self.priority_list = interpretation_result[3]
+
             # unfold memory according to the best result
             if not rl_mem and unfold_storm:
                 self.set_memory_original(mem_size)
-            elif rl_mem:
+            elif rl_mem and not first_run:
                 logger.info("Adding memory nodes based on RL interpretation.")
-                priority_list_len = len(self.priority_list)
-                priorities = self.priority_list[:(priority_list_len)/10]
+                
+                priority_list_len = int(math.ceil(len(self.priority_list) / 10))
+                priorities = self.priority_list[:priority_list_len]
                 for i in range(len(priorities)):
                     self.memory_dict[priorities[i]] += 1
                 self.quotient.set_memory_from_dict(self.memory_dict)
@@ -349,8 +359,6 @@ class SynthesizerPOMDP:
 
             if load_rl_dict or rl_dict:
                 self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
-
-            self.action_keywords = None
 
 
             # if Storm's result is better, use it to obtain main family that considers only the important actions
@@ -381,7 +389,11 @@ class SynthesizerPOMDP:
 
             if fsc_cycling:
                 assignment = self.synthesize(family, timer = current_time)
-                fsc = self.quotient.assignment_to_fsc(assignment)
+                try:
+                    fsc = self.quotient.assignment_to_fsc(assignment)
+                except:
+                    logger.info("FSC could not be created from the assignment. Probably no improvement.")
+                    sleep(5)
             else:
                 assignment = self.synthesize(family)
 

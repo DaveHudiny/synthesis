@@ -152,10 +152,6 @@ class Recurrent_PPO_agent(FatherAgent):
             logger.info(f"Step: {i}, Training loss: {train_loss.loss}")
             if i % 100 == 0:
                 self.evaluate_agent()
-        
-
-            
-
 
     def train_agent_onpolicy(self, iterations: int):
         for i in range(iterations):
@@ -206,19 +202,27 @@ class Recurrent_PPO_agent(FatherAgent):
             num_steps=self.traj_num_steps)
         
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None):
+        parallel_policy = self.wrapper
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
-                                     info_spec=self.agent.collect_policy.info_spec)
+                                     info_spec=self.agent.collect_policy.info_spec,
+                                     parallel_policy=parallel_policy)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.demasked_observer()
-        self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        self.driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
             tf_environment,
             eager,
             observers=[observer],
-            num_steps=self.traj_num_steps
+            num_episodes=1
         )
+        # self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        #     tf_environment,
+        #     eager,
+        #     observers=[observer],
+        #     num_steps=self.traj_num_steps
+        # )
     
     def create_recurrent_actor_net_demasked(self, tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
         preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')

@@ -134,16 +134,20 @@ class FatherAgent(AbstractAgent):
                                      info_spec=self.agent.policy.info_spec)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
-        self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        
+        self.fsc_driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
             tf_environment,
             eager,
             observers=[self.replay_buffer.add_batch],
-            num_steps=self.traj_num_steps * 3
+            num_episodes=1
         )
-    
-    def del_fsc_policy_driver(self):
-        del self.fsc_driver
-        del self.fsc_policy
+
+        # self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        #     tf_environment,
+        #     eager,
+        #     observers=[self.replay_buffer.add_batch],
+        #     num_steps=self.traj_num_steps * 3
+        # )
 
     def select_evaluated_policy(self):
         if self.wrapper is None:
@@ -164,6 +168,7 @@ class FatherAgent(AbstractAgent):
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
                 self.select_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
+        self.driver.run() # Because sometimes the FSC driver does not provide enough data.
         for i in range(num_iterations):
             if False:
                 self.random_driver.run()

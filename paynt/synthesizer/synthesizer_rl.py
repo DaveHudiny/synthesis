@@ -25,18 +25,17 @@ class Synthesizer_RL:
     def train_agent(self, iterations : int):
         self.initializer.agent.train_agent_off_policy(iterations)
 
-    def interpret_agent(self, best : bool = False, with_refusing : bool = False, greedy : bool = True):
+    def interpret_agent(self, best : bool = False, with_refusing : bool = False, greedy : bool = False):
         self.initializer.agent.load_agent(best)
         if greedy: # Works only with agents which use policy wrapping (in our case only PPO)
-            self.initializer.agent.set_agent_evaluation()
+            self.initializer.agent.set_agent_training()
         else:
-            self.initializer.agent.set_agent_evaluation(epsilon_greedy = True)
+            self.initializer.agent.set_agent_evaluation()
         return self.interpret.get_dictionary(self.initializer.agent, with_refusing)
     
     def train_agent_with_fsc(self, iterations : int, fsc : FSC):
         self.initializer.agent.init_fsc_policy_driver(self.initializer.tf_environment, fsc)
         self.initializer.agent.train_agent_off_policy(iterations)
-        self.initializer.agent.del_fsc_policy_driver()
 
 
 

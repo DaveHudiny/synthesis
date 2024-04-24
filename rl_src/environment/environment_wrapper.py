@@ -20,6 +20,9 @@ import argparse
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 
 class Environment_Wrapper(py_environment.PyEnvironment):
     def __init__(self, stormpy_model: storage.SparsePomdp, args: argparse.Namespace):
@@ -94,11 +97,18 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             observation_spec = tensor_spec.TensorSpec(
                 shape=tf.TensorShape((1,)), dtype=tf.float32, name="observation"),
         elif self.encoding_method == "Valuations":
-            json_example = self.stormpy_model.observation_valuations.get_json(
-                0)
-            parse_data = json.loads(str(json_example))
-            observation_spec = tensor_spec.TensorSpec(shape=(
-                len(parse_data) + OBSERVATION_SIZE,), dtype=tf.float32, name="observation"),
+            try:
+                json_example = self.stormpy_model.observation_valuations.get_json(
+                    0)
+                parse_data = json.loads(str(json_example))
+                observation_spec = tensor_spec.TensorSpec(shape=(
+                    len(parse_data) + OBSERVATION_SIZE,), dtype=tf.float32, name="observation"),
+            except:
+                logging.error("Valuation encoding not possible, using one-hot encoding instead.")
+                observation_spec = tensor_spec.TensorSpec(shape=(
+                    len(self._possible_observations),), dtype=tf.float32, name="observation"),
+                self.args = "One-Hot"
+
         else:
             raise ValueError("Encoding method not recognized")
         return observation_spec[0]

@@ -4,6 +4,8 @@ from tf_agents.policies.tf_policy import TFPolicy
 from tf_agents.trajectories.policy_step import PolicyStep
 from tf_agents.specs.tensor_spec import TensorSpec
 from tf_agents.specs.array_spec import ArraySpec
+from tf_agents.utils import common
+from tf_agents.trajectories.time_step import StepType
 
 import tensorflow as tf
 
@@ -139,7 +141,7 @@ class FSC:
 class FSC_Policy(TFPolicy):
     def __init__(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC,
                  observation_and_action_constraint_splitter=None, tf_action_keywords=[],
-                 info_spec=None):
+                 info_spec=None, parallel_policy : TFPolicy = None):
         """Implementation of FSC policy based on FSC object obtained from Paynt (or elsewhere).
 
         Args:
@@ -152,7 +154,8 @@ class FSC_Policy(TFPolicy):
                                          policy_state_spec=TensorSpec(
                                              shape=(), dtype=tf.int32),
                                          observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
-                                         info_spec=info_spec)
+                                         info_spec=info_spec,
+                                        )
         self._time_step_spec = tf_environment._time_step_spec
         self._action_spec = tf_environment._action_spec
         self._observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
@@ -165,8 +168,13 @@ class FSC_Policy(TFPolicy):
         self._fsc_action_labels = tf.constant(
             self._fsc.action_labels, dtype=tf.string)
         self.tf_action_labels = tf.constant(tf_action_keywords, dtype=tf.string)
+        if parallel_policy is not None:
+            self._parallel_policy = parallel_policy
+            self._parallel_policy_function = common.function(parallel_policy.action)
+            self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
 
     def _get_initial_state(self, batch_size):
+        self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
         return tf.constant([0], dtype=tf.int32)
 
     def _distribution(self, time_step, policy_state):
@@ -181,7 +189,8 @@ class FSC_Policy(TFPolicy):
         tf_action_number = tf.argmax(
             tf.cast(tf.equal(self.tf_action_labels, keyword), tf.int32), output_type=tf.int32)
         return tf_action_number
-
+    
+    @tf.function
     def _action(self, time_step, policy_state, seed):
         observation = time_step.observation["integer"]
         int_policy_state = tf.squeeze(policy_state[0])
@@ -191,11 +200,15 @@ class FSC_Policy(TFPolicy):
         new_policy_state = self._fsc.update_function[int_policy_state][observation]
         if self._info_spec is None or self._info_spec == ():
             policy_info = ()
-        else:
-            one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) / 2.0
-            one_hot_encoding_with_alternative = tf.where(one_hot_encoding == 0.0, -1.0, one_hot_encoding)
-            one_hot_encoding = tf.cast([one_hot_encoding_with_alternative], tf.float32, name="CategoricalProjectionNetwork_logits")
-            policy_info = {"dist_params": {"logits": one_hot_encoding}}
+        elif self._parallel_policy is not None:
+            parallel_policy_step = self._parallel_policy.action(time_step, self._hidden_ppo_state, seed)
+            self._hidden_ppo_state = parallel_policy_step.state
+            policy_info = parallel_policy_step.info
+            if policy_info == ():
+                one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) / 2.0
+                one_hot_encoding_with_alternative = tf.where(one_hot_encoding == 0.0, -1.0, one_hot_encoding)
+                one_hot_encoding = tf.cast([one_hot_encoding_with_alternative], tf.float32, name="CategoricalProjectionNetwork_logits")
+                policy_info = {"dist_params": {"logits": one_hot_encoding}}
         
         policy_step = PolicyStep(action=tf.convert_to_tensor(
             [action_number], dtype=tf.int32), state=new_policy_state, info=policy_info)
