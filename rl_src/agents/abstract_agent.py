@@ -9,7 +9,7 @@ class AbstractAgent(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    def train_agent(self, num_iterations):
+    def train_agent_off_policy(self, num_iterations):
         raise NotImplementedError
     
     @abstractmethod

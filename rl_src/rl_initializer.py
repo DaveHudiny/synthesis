@@ -300,9 +300,9 @@ class Initializer:
         self.initialize_environment()
         self.initialize_agent()
         if self.args.learning_method == "PPO" and self.args.set_ppo_on_policy:
-            self.agent.train_agent_onpolicy(self.args.nr_runs)
+            self.agent.train_agent_on_policy(self.args.nr_runs)
         else:
-            self.agent.train_agent(self.args.nr_runs)
+            self.agent.train_agent_off_policy(self.args.nr_runs)
         self.agent.save_agent()
         result = {}
         logger.info("Training finished")

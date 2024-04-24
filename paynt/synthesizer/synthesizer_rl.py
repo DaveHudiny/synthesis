@@ -23,7 +23,7 @@ class Synthesizer_RL:
         self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment, self.initializer.args.encoding_method)
     
     def train_agent(self, iterations : int):
-        self.initializer.agent.train_agent(iterations)
+        self.initializer.agent.train_agent_off_policy(iterations)
 
     def interpret_agent(self, best : bool = False, with_refusing : bool = False, greedy : bool = True):
         self.initializer.agent.load_agent(best)
@@ -35,7 +35,7 @@ class Synthesizer_RL:
     
     def train_agent_with_fsc(self, iterations : int, fsc : FSC):
         self.initializer.agent.init_fsc_policy_driver(self.initializer.tf_environment, fsc)
-        self.initializer.agent.train_agent(iterations)
+        self.initializer.agent.train_agent_off_policy(iterations)
         self.initializer.agent.del_fsc_policy_driver()
 
 

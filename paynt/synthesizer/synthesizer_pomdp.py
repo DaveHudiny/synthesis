@@ -295,8 +295,8 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = True, 
-                       cycling_time = 10, load_rl_dict = False, rl_mem = False):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = False, fsc_cycling = True, 
+                       cycling_time = 5, load_rl_dict = False, rl_mem = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''

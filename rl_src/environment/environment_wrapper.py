@@ -261,7 +261,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             self._current_time_step = ts.transition(
                 observation=self.get_observation(), reward=self.reward, discount=self.discount)
         elif self.simulator.is_done() and ("goal" in labels or "done" in labels or "((x = 2) & (y = 0))" in labels):
-            # print("Goal reached!")
+            print("Goal reached!")
             self._finished = True
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.goal_value)

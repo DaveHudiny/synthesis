@@ -151,7 +151,7 @@ class FatherAgent(AbstractAgent):
         else:
             return self.wrapper
 
-    def train_agent(self, num_iterations):
+    def train_agent_off_policy(self, num_iterations):
         if self.args.paynt_fsc_imitation:
             self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(

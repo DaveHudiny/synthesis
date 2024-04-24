@@ -7,6 +7,8 @@ import tf_agents
 from tf_agents.environments import tf_py_environment
 from tf_agents.agents.ppo import ppo_agent
 
+from tf_agents.utils import common
+
 from tf_agents.networks import actor_distribution_network, value_network
 from tf_agents.networks import network
 from tf_agents.networks import encoding_network
@@ -21,11 +23,16 @@ from tf_agents.trajectories import trajectory
 from tf_agents.trajectories import Trajectory
 from tf_agents.trajectories import policy_step
 
+
+
 from agents.policies.stochastic_ppo_collector_policy import Stochastic_PPO_Collector_Policy
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.fsc_policy import FSC_Policy
 
 from paynt.quotient.fsc import FSC
+
+from tf_agents.trajectories.time_step import StepType
+from tf_agents.specs import tensor_spec
 
 
 import logging
@@ -41,8 +48,14 @@ class Q_Values_FSC(network.Network):
         self.qFSC = qFSC
         self._output_tensor_spec = output_tensor_spec
 
+    def get_initial_state(self, batch_size=None):
+        return tensor_spec.zero_spec_nest(
+            0, outer_dims=None if batch_size is None else [batch_size],
+        )
+
     def call(self, observation, step_type, network_state, training=False):
-        print(self._output_tensor_spec.maximum)
+        if step_type == StepType.FIRST:
+            network_state = self.qFSC.reset()
         return [0, 0, 0, 0, 0], network_state
 
 
@@ -116,11 +129,39 @@ class Recurrent_PPO_agent(FatherAgent):
         if load:
             self.load_agent()
 
+    def train_agent_on_policy(self, iterations: int):
+        """Trains agent with PPO algorithm by the principle of using gather all on replay buffer and clearing it after each iteration.
+
+        Args:
+            iterations (int): Number of iterations to train agent.
+        """
+        self.agent.train = common.function(self.agent.train)
+        self.best_iteration_final = 0.0
+        self.best_iteration_steps = -tf.float32.min
+        dataset = self.replay_buffer.as_dataset(
+                sample_batch_size=self.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=True)
+        iterator = iter(dataset)
+
+        self.replay_buffer.clear()
+        for i in range(iterations):
+            self.driver.run()
+            experience, _ = next(iterator)
+            # print(experience)
+            train_loss = self.agent.train(experience)
+            self.replay_buffer.clear()
+            logger.info(f"Step: {i}, Training loss: {train_loss.loss}")
+            if i % 100 == 0:
+                self.evaluate_agent()
+        
+
+            
+
 
     def train_agent_onpolicy(self, iterations: int):
         for i in range(iterations):
             time_step = self.tf_environment.reset()
             policy_state = self.wrapper.get_initial_state(self.tf_environment.batch_size)
+            
             self.set_agent_training()
             while not time_step.is_last():
                 action_step = self.wrapper.action(time_step, policy_state)
