@@ -297,7 +297,7 @@ class SynthesizerPOMDP:
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
     def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = True, 
-                       cycling_time = 60, load_rl_dict = False, rl_mem = True):
+                       cycling_time = 10, load_rl_dict = False, rl_mem = True, fsc_combining = True):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -312,17 +312,28 @@ class SynthesizerPOMDP:
         if rl_dict and not load_rl_dict:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations")
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
-            rl_synthesiser.train_agent(300)
+            rl_synthesiser.train_agent(10)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
 
         while True:
         # for x in range(2):
-            if rl_dict and fsc_cycling and not first_run:
+            if rl_dict and fsc_cycling and not first_run and not fsc_combining:
                 current_time = cycling_time
                 if fsc is not None:
                     logger.info("Training agent with FSC.")
-                    rl_synthesiser.train_agent_with_fsc(100, fsc)
+                    rl_synthesiser.train_agent_with_fsc_data(100, fsc)
+                else:
+                    logger.info("FSC is None. Training agent without FSC.")
+                logger.info("Training agent for {} iterations.".format(500))
+                rl_synthesiser.train_agent(500)
+                interpretation_result = rl_synthesiser.interpret_agent(best=False)
+
+            if not first_run and fsc_combining:
+                current_time = cycling_time
+                if fsc is not None:
+                    logger.info("Training agent with FSC.")
+                    rl_synthesiser.train_agent_combined_with_fsc(100, fsc)
                 else:
                     logger.info("FSC is None. Training agent without FSC.")
                 logger.info("Training agent for {} iterations.".format(500))

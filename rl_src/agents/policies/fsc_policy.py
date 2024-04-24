@@ -168,13 +168,18 @@ class FSC_Policy(TFPolicy):
         self._fsc_action_labels = tf.constant(
             self._fsc.action_labels, dtype=tf.string)
         self.tf_action_labels = tf.constant(tf_action_keywords, dtype=tf.string)
+        self._parallel_policy = parallel_policy
         if parallel_policy is not None:
-            self._parallel_policy = parallel_policy
             self._parallel_policy_function = common.function(parallel_policy.action)
             self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
 
+    tf.function
+    def _set_hidden_ppo_state(self):
+        if self._parallel_policy is not None:
+            self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
+
     def _get_initial_state(self, batch_size):
-        self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
+        self._set_hidden_ppo_state()
         return tf.constant([0], dtype=tf.int32)
 
     def _distribution(self, time_step, policy_state):
