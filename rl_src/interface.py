@@ -3,6 +3,11 @@ from rl_initializer import Initializer, ArgsEmulator, save_dictionaries, save_st
 import pickle
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(level=logging.INFO)
 
 def get_dictionaries(args, with_refusing=False):
     """ Get dictionaries for Paynt oracle.
@@ -18,13 +23,16 @@ def get_dictionaries(args, with_refusing=False):
     return dictionaries
 
 
-def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", refusing=None, name_of_experiment="results_of_interpretation"):
+def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", refusing=None, 
+                          name_of_experiment="results_of_interpretation", encoding_method="Valuations"):
     """ Run a single experiment for Paynt oracle.
     Args:
         args (ArgsEmulator): Arguments for the initialization.
         model (str, optional): The name of the model. Defaults to "network-3-8-20".
         learning_method (str, optional): The learning method. Defaults to "PPO".
         refusing (bool, optional): Whether to use refusing when interpreting. Defaults to False.
+        name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
+        encoding_method (str, optional): The encoding method. Defaults to "Valuations".
     """
     refusing = None
     initializer = Initializer(args)
@@ -49,7 +57,7 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
                               refusing, obs_action_dict, memory_dict, labels)
             
     save_statistics(name_of_experiment, model, learning_method, initializer.agent.stats_without_ending, 
-                    initializer.agent.stats_with_ending, initializer.agent.losses)
+                    initializer.agent.stats_with_ending, initializer.agent.losses, args.evaluation_goal)
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models"):
@@ -57,24 +65,23 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
-        for learning_method in ["PPO", "DQN", "DDQN"]:
-            # if model in ["rocks-16", "evade", "network-3-8-20", "mba-small", "obstacle", "obstacles-uniform", "mba", "refuel-20", "intercept", "grid-large-30-5"]:
-            #     continue
-            if not model in ["intercept"] or learning_method != "PPO":
-                continue
-            print(
-                f"Running {model} with {learning_method} and refusing set to: {refusing}")
-            args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
-                                restart_weights=3, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
-                                nr_runs=4000, encoding_method="Valuations", paynt_fsc_imitation=False, fsc_policy_max_iteration=500,
-                                paynt_fsc_json=f"./FSC_experimental_{model}.json", agent_name=model, load_agent=False, max_steps=100, evaluation_goal=100, evaluation_antigoal=-100)
+        if "evade" in model:
+            continue
 
-            run_single_experiment(
-                args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
+        for learning_method in ["PPO", "DQN"]:
+            for encoding_method in ["Integer", "Valuations", "One-Hot"]:
+                logger.info(f"Running {model} with {learning_method} and refusing set to: {refusing}")
+                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
+                                    restart_weights=0, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
+                                    nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, 
+                                    max_steps=150, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=16)
+
+                run_single_experiment(
+                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")
 
 
 if __name__ == "__main__":
-    run_experiments("5th_april_2024_mba")
+    run_experiments("observation_valuations_experiment", "models_reduced")
     # args = ArgsEmulator(prism_model="./models/grid-large-30-5/sketch.templ", prism_properties="./models/grid-large-30-5/sketch.props",
     #                             restart_weights=3, learning_method="PPO", using_logits=False, action_filtering=False, reward_shaping=False,
     #                             nr_runs=4000, encoding_method="Valuations", paynt_fsc_imitation=False, fsc_policy_max_iteration=600, trajectory_num_steps=50,

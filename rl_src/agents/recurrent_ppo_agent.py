@@ -146,34 +146,11 @@ class Recurrent_PPO_agent(FatherAgent):
         for i in range(iterations):
             self.driver.run()
             experience, _ = next(iterator)
-            # print(experience)
             train_loss = self.agent.train(experience)
             self.replay_buffer.clear()
             logger.info(f"Step: {i}, Training loss: {train_loss.loss}")
             if i % 100 == 0:
                 self.evaluate_agent()
-
-    def train_agent_onpolicy(self, iterations: int):
-        for i in range(iterations):
-            time_step = self.tf_environment.reset()
-            policy_state = self.wrapper.get_initial_state(self.tf_environment.batch_size)
-            
-            self.set_agent_training()
-            while not time_step.is_last():
-                action_step = self.wrapper.action(time_step, policy_state)
-                next_time_step = self.tf_environment.step(action_step.action)
-                traj = trajectory.from_transition(
-                    time_step, action_step, next_time_step)
-                traj = traj._replace(observation=traj.observation["observation"])
-                train_loss = self.agent.train(traj)
-                time_step = next_time_step
-                policy_state = action_step.state
-                train_loss = train_loss.numpy()
-                self.agent.train_step_counter.assign_add(1)
-            logger.info(f"Step: {i}, Training loss: {train_loss}")
-            self.set_agent_evaluation()
-            self.evaluate_agent()
-
 
     def demasked_observer(self):
         def _add_batch(item: Trajectory):

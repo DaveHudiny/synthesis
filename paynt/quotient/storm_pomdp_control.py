@@ -587,9 +587,6 @@ class StormPOMDPControl:
 
             act_obs_holes = self.quotient.observation_action_holes[observ]
             restricted_holes_list.extend(act_obs_holes)
-        with open("restricted_holes_list2.txt", "w") as f:
-            for item in restricted_holes_list:
-                f.write("%s\n" % item)
 
         for hole in restricted_holes_list:
 

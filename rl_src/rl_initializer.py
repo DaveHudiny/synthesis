@@ -54,7 +54,7 @@ def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, 
     with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/labels.pickle", "wb") as f:
         pickle.dump(labels, f)
 
-def save_statistics(name_of_experiment, model, learning_method, stats_without_ending, stats_with_ending, losses):
+def save_statistics(name_of_experiment, model, learning_method, stats_without_ending, stats_with_ending, losses, goal_value = 150):
     """ Save statistics for Paynt oracle.
     Args:
         name_of_experiment (str): Name of the experiment.
@@ -72,15 +72,17 @@ def save_statistics(name_of_experiment, model, learning_method, stats_without_en
         f.write(str(stats_with_ending))
     with open(f"{name_of_experiment}/{model}_{learning_method}/losses.txt", "w") as f:
         f.write(str(losses))
+    with open(f"{name_of_experiment}/{model}_{learning_method}/goal_value.txt", "w") as f:
+        f.write(str(goal_value))
 
 
 class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 1.6e-5, max_steps: int = 300, evaluation_episodes: int = 20,
-                 batch_size: int = 64, trajectory_num_steps: int = 16, nr_runs: int = 5000, evaluation_goal: int = 300,
+                 batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 5000, evaluation_goal: int = 300,
                  interpretation_method: str = "Tracing", learning_method: str = "DQN",
                  save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
-                 buffer_size: int = 10000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
+                 buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", using_logits=False, paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False):
@@ -164,7 +166,7 @@ class ArgsEmulator:
         self.interpretation_folder = interpretation_folder
         self.experiment_name = experiment_name
         self.with_refusing = with_refusing
-        self.set_ppo_onpolicy = set_ppo_on_policy
+        self.set_ppo_on_policy = set_ppo_on_policy
 
 
 class Initializer:
