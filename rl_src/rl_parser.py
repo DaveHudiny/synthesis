@@ -75,6 +75,8 @@ class Parser:
             "--paynt-fsc-json", type=str, help="JSON file with extracted FSC from Paynt")
         self.agent_group.add_argument(
             "--agent-name", type=str, default="agent", help="Name of the agent")
+        self.agent_group.add_argument(
+            "--evaluate-random-policy", action="store_true", help="Evaluate random policy. If set, the agent will not be trained and only evaluates on random policy.")
 
     def learning_parameters_parser(self):
         """Parses the learning parameters. The parameters are added to the learning group, which describes information for learning process."""

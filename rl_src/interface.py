@@ -65,19 +65,19 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
-        if "evade" in model:
+        if "intercept" not in model:
             continue
+        for i in range(10, 15):
+            for learning_method in ["PPO"]:
+                for encoding_method in ["Integer", "Valuations", "One-Hot"]:
+                    logger.info(f"Running iteration {i} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
+                    args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
+                                        restart_weights=0, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
+                                        nr_runs=1000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=True,
+                                        max_steps=100, evaluation_goal=100, evaluation_antigoal=-100, trajectory_num_steps=16)
 
-        for learning_method in ["PPO", "DQN"]:
-            for encoding_method in ["Integer", "Valuations", "One-Hot"]:
-                logger.info(f"Running {model} with {learning_method} and refusing set to: {refusing}")
-                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
-                                    restart_weights=0, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
-                                    nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, 
-                                    max_steps=150, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=16)
-
-                run_single_experiment(
-                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")
+                    run_single_experiment(
+                        args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}_{i}")
 
 
 if __name__ == "__main__":

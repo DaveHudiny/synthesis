@@ -23,11 +23,11 @@ from tf_agents.environments import tf_py_environment
 from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
 from agents.recurrent_ppo_agent import Recurrent_PPO_agent
-from agents.stochastic_dqn import Stochastic_DQN
 from interpreters.model_free_interpret import ModelFreeInterpret, ModelInfo
 from interpreters.tracing_interpret import TracingInterpret
 
 from agents.policies.fsc_policy import FSC_Policy, FSC
+from agents.random_agent import RandomTFPAgent
 
 import pickle
 
@@ -85,7 +85,8 @@ class ArgsEmulator:
                  buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", using_logits=False, paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
-                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False):
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False, 
+                 evaluate_random_policy : bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
@@ -167,6 +168,7 @@ class ArgsEmulator:
         self.experiment_name = experiment_name
         self.with_refusing = with_refusing
         self.set_ppo_on_policy = set_ppo_on_policy
+        self.evaluate_random_policy = evaluate_random_policy
 
 
 class Initializer:
@@ -225,13 +227,13 @@ class Initializer:
     def select_best_starting_weights(self):
         logger.info("Selecting best starting weights")
         best_cumulative_return, best_average_last_episode_return = compute_average_return(
-            self.agent.select_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
+            self.agent.get_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
         self.agent.save_agent()
         for i in range(self.args.restart_weights):
             logger.info(f"Restarting weights {i + 1}")
             self.agent.reset_weights()
             cumulative_return, average_last_episode_return = compute_average_return(
-                self.agent.select_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
+                self.agent.get_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
             if average_last_episode_return > best_average_last_episode_return:
                 best_cumulative_return = cumulative_return
                 best_average_last_episode_return = average_last_episode_return
@@ -265,9 +267,6 @@ class Initializer:
         elif learning_method == "PPO":
             self.agent = Recurrent_PPO_agent(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
-        elif learning_method == "Stochastic_DQN":
-            self.agent = Stochastic_DQN(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "FSC":
             pass
         else:
@@ -297,8 +296,23 @@ class Initializer:
         except ValueError as e:
             logger.error(e)
             return
-
         self.initialize_environment()
+        if self.args.evaluate_random_policy: # Evaluate random policy
+            self.agent = RandomTFPAgent(self.environment, self.tf_environment, self.args, load=False)
+            interpret = TracingInterpret(self.environment, self.tf_environment,
+                                         self.args.encoding_method, self.environment._possible_observations, self.args.using_logits)
+            results = {}
+            for refusing in [True, False]:
+                result = interpret.get_dictionary(self.agent, refusing)
+                if refusing:
+                    results["best_with_refusing"] = result
+                    results["last_with_refusing"] = result
+                else:
+                    results["best_without_refusing"] = result
+                    results["last_without_refusing"] = result
+            exit(0)
+            return results
+
         self.initialize_agent()
         if self.args.learning_method == "PPO" and self.args.set_ppo_on_policy:
             self.agent.train_agent_on_policy(self.args.nr_runs)

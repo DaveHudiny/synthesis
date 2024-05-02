@@ -173,7 +173,7 @@ class TracingInterpret(Interpret):
         if self.using_logits:
             policy = tf.function(agent.compute_logit_policy)
         else:
-            policy = tf.function(agent.select_evaluated_policy().action)
+            policy = tf.function(agent.get_evaluated_policy().action)
         result_info = ResultInfo()
         step_rewards = []
         final_rewards = []
@@ -197,12 +197,13 @@ class TracingInterpret(Interpret):
                     self.update_obs_act_dict(observation, action)
                 steps += 1
                 reward += time_step.reward
+            labels = self.environment.simulator._report_labels()
             reward -= time_step.reward # Removing the last reward (goal)
             goal_reward = time_step.reward
             step_rewards.append(reward.numpy())
             final_rewards.append(goal_reward.numpy())
             if with_refusing:
-                labels = self.environment.simulator._report_labels()
+                
                 if time_step.is_last() and ('goal' in labels or 'done' in labels):
                     self.obs_act_dict = self.merge_dicts(
                         self.obs_act_dict, self.aux_obs_act_dict)

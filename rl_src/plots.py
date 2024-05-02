@@ -133,19 +133,19 @@ def plots_new(name, max_reward, load_files=load_files):
         return
 
     plot_final_rewards(rewards_final, learning_algorithms=learning_algorithms,
-                       title=name + " (higher = better)", max_reward=max_reward, save_file="./imgs/" + name + "_final_rewards.png")
+                       title=name + " (higher = better)", max_reward=max_reward, save_file="./imgs/" + name + "_final_rewards.pdf")
     plot_cumulative_rewards(rewards_without_final,
                             learning_algorithms=learning_algorithms, title=name +
                             " cumulative reward without goal (higher = better)",
-                            save_file="./imgs/" + name + "_cumulative_rewards.png")
+                            save_file="./imgs/" + name + "_cumulative_rewards.pdf")
     plot_losses(labels, learning_algorithms=learning_algorithms,
-                title=name + " loss function (lower = better)", smoothing=False, save_file="./imgs/" + name + "_losses.png")
+                title=name + " loss function (lower = better)", smoothing=False, save_file="./imgs/" + name + "_losses.pdf")
     plot_losses(labels, learning_algorithms=learning_algorithms, title=name +
                 " loss function (lower = better) with averaging with window = 5",
-                smoothing=True, window_size=5, save_file="./imgs/" + name + "_losses_windowed_5.png")
+                smoothing=True, window_size=5, save_file="./imgs/" + name + "_losses_windowed_5.pdf")
     plot_losses(labels, learning_algorithms=learning_algorithms, title=name +
                 " loss function (lower = better) with averaging with window = 30",
-                smoothing=True, window_size=30, save_file="./imgs/" + name + "_losses_windowed_30.png")
+                smoothing=True, window_size=30, save_file="./imgs/" + name + "_losses_windowed_30.pdf")
 
 
 if __name__ == "__main__":

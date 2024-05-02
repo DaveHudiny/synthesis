@@ -7,4 +7,4 @@
    $ source prerequisites/venv/bin/activate
    $ pip install tensorflow==2.15
    $ pip install tf_agents
-   $ pip install tqdm dill matplotlib
+   $ pip install tqdm dill matplotlib pandas seaborn

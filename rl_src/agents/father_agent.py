@@ -149,7 +149,7 @@ class FatherAgent(AbstractAgent):
         #     num_steps=self.traj_num_steps * 3
         # )
 
-    def select_evaluated_policy(self):
+    def get_evaluated_policy(self):
         if self.wrapper is None:
             return self.agent.policy
         else:
@@ -159,7 +159,7 @@ class FatherAgent(AbstractAgent):
         if self.args.paynt_fsc_imitation:
             self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
+            num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.best_iteration_final = 0.0
@@ -167,7 +167,7 @@ class FatherAgent(AbstractAgent):
         self.agent.train = common.function(self.agent.train)
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
-                self.select_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
+                self.get_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
         self.driver.run() # Because sometimes the FSC driver does not provide enough data.
         for i in range(num_iterations):
             if False:
@@ -196,7 +196,7 @@ class FatherAgent(AbstractAgent):
         else:
             evaluation_episodes = self.evaluation_episodes
         average_return, average_episode_return = compute_average_return(
-                self.select_evaluated_policy(), self.tf_environment, evaluation_episodes, self.args.using_logits)
+                self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.args.using_logits)
         self.set_agent_training()
         if self.best_iteration_final < average_episode_return:
             self.best_iteration_final = average_episode_return

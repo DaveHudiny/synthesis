@@ -3,3 +3,4 @@ __pycache__/
 
 prerequisites/
 trained_agents/
+rl_src/encoding_methods/
