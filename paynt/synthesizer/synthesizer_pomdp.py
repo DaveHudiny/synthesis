@@ -297,7 +297,7 @@ class SynthesizerPOMDP:
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
     def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = True, 
-                       cycling_time = 10, load_rl_dict = False, rl_mem = True, fsc_combining = True):
+                       cycling_time = 60, load_rl_dict = False, rl_mem = True, fsc_combining = True):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -308,32 +308,20 @@ class SynthesizerPOMDP:
             current_time = cycling_time
             start_time = time.time()
         interpretation_result = None
-        
         if rl_dict and not load_rl_dict:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations")
-            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
-            rl_synthesiser.train_agent(10)
+            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=fsc_combining)
+            rl_synthesiser.train_agent(500)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
 
         while True:
         # for x in range(2):
-            if rl_dict and fsc_cycling and not first_run and not fsc_combining:
+            if rl_dict and fsc_cycling and not first_run:
                 current_time = cycling_time
                 if fsc is not None:
                     logger.info("Training agent with FSC.")
-                    rl_synthesiser.train_agent_with_fsc_data(100, fsc)
-                else:
-                    logger.info("FSC is None. Training agent without FSC.")
-                logger.info("Training agent for {} iterations.".format(500))
-                rl_synthesiser.train_agent(500)
-                interpretation_result = rl_synthesiser.interpret_agent(best=False)
-
-            if not first_run and fsc_combining:
-                current_time = cycling_time
-                if fsc is not None:
-                    logger.info("Training agent with FSC.")
-                    rl_synthesiser.train_agent_combined_with_fsc(100, fsc)
+                    rl_synthesiser.train_agent_with_fsc_data(100, fsc, soft_decision=fsc_combining)
                 else:
                     logger.info("FSC is None. Training agent without FSC.")
                 logger.info("Training agent for {} iterations.".format(500))
@@ -344,12 +332,12 @@ class SynthesizerPOMDP:
                 self.storm_control.parse_results(self.quotient)
             
             paynt.quotient.pomdp.PomdpQuotient.current_family_index = mem_size
-
-            self.memory_dict = interpretation_result[1]
-            self.priority_list = interpretation_result[3]
+            if interpretation_result is not None:
+                self.memory_dict = interpretation_result[1]
+                self.priority_list = interpretation_result[3]
 
             # unfold memory according to the best result
-            if not rl_mem and unfold_storm:
+            if (not rl_mem or interpretation_result is None) and unfold_storm:
                 self.set_memory_original(mem_size)
             elif rl_mem and not first_run:
                 logger.info("Adding memory nodes based on RL interpretation.")
@@ -368,7 +356,7 @@ class SynthesizerPOMDP:
 
             family = self.quotient.design_space
 
-            if load_rl_dict or rl_dict:
+            if (load_rl_dict or rl_dict) and interpretation_result is not None:
                 self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
 
 
@@ -404,7 +392,7 @@ class SynthesizerPOMDP:
                     fsc = self.quotient.assignment_to_fsc(assignment)
                 except:
                     logger.info("FSC could not be created from the assignment. Probably no improvement.")
-                    sleep(5)
+                    rl_synthesiser.update_fsc_multiplier(0.5)
             else:
                 assignment = self.synthesize(family)
 

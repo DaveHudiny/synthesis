@@ -168,7 +168,8 @@ class FatherAgent(AbstractAgent):
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
                 self.get_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
-        self.driver.run() # Because sometimes the FSC driver does not provide enough data.
+        for _ in range(5): # Because sometimes FSC driver does not sample enough trajectories to start learning.
+            self.driver.run()
         for i in range(num_iterations):
             if False:
                 self.random_driver.run()

@@ -248,7 +248,7 @@ class Initializer:
         logger.info("Agent with best ")
         self.agent.load_agent()
 
-    def select_agent_type(self, learning_method=None):
+    def select_agent_type(self, learning_method=None, fsc_pre_init=False):
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
         
         Args:
@@ -266,17 +266,21 @@ class Initializer:
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "PPO":
             self.agent = Recurrent_PPO_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder, 
+                fsc_pre_init=fsc_pre_init)
         elif learning_method == "FSC":
             pass
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
 
-    def initialize_agent(self):
+    def initialize_agent(self, fsc_pre_init=False):
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
-        It is important to have previously initialized self.environment, self.tf_environment and self.args."""
-        self.select_agent_type()
+        It is important to have previously initialized self.environment, self.tf_environment and self.args.
+        
+        Args:
+            fsc_pre_init (bool, optional): Whether to pre-initialize the FSC. Defaults to False."""
+        self.select_agent_type(fsc_pre_init=fsc_pre_init)
         if self.args.restart_weights > 0:
             self.select_best_starting_weights()
 

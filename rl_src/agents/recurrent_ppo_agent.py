@@ -86,7 +86,8 @@ class PPO_Logits_Driver:
 
 class Recurrent_PPO_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
-                 args, load=False, agent_folder=None, fsc_critic_flag : bool = False, fsc_critic : FSC = None):
+                 args, load=False, agent_folder=None, fsc_critic_flag : bool = False, fsc_critic : FSC = None,
+                 fsc_pre_init : bool = False):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(
@@ -125,7 +126,9 @@ class Recurrent_PPO_agent(FatherAgent):
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
         self.init_ppo_collector_driver(tf_environment)
-        self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(), is_greedy=False)
+        self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
+                                           is_greedy=False, fsc_pre_init=fsc_pre_init,
+                                           number_of_possible_observations=len(self.environment._possible_observations))
         if load:
             self.load_agent()
 
@@ -178,13 +181,15 @@ class Recurrent_PPO_agent(FatherAgent):
             observers=[observer],
             num_steps=self.traj_num_steps)
         
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None):
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
+                               fsc_multiplier: float = 2.0):
         parallel_policy = self.wrapper
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec=self.agent.collect_policy.info_spec,
-                                     parallel_policy=parallel_policy)
+                                     parallel_policy=parallel_policy, soft_decision=soft_decision,
+                                     soft_decision_multiplier=fsc_multiplier)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.demasked_observer()

@@ -7,6 +7,8 @@ from tf_agents.specs.array_spec import ArraySpec
 from tf_agents.utils import common
 from tf_agents.trajectories.time_step import StepType
 
+import tensorflow_probability as tfp
+
 import tensorflow as tf
 
 
@@ -141,7 +143,8 @@ class FSC:
 class FSC_Policy(TFPolicy):
     def __init__(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC,
                  observation_and_action_constraint_splitter=None, tf_action_keywords=[],
-                 info_spec=None, parallel_policy : TFPolicy = None):
+                 info_spec=None, parallel_policy : TFPolicy = None, soft_decision = False,
+                 soft_decision_multiplier : float = 2.0):
         """Implementation of FSC policy based on FSC object obtained from Paynt (or elsewhere).
 
         Args:
@@ -149,6 +152,9 @@ class FSC_Policy(TFPolicy):
             fsc (FSC): FSC object (usually obtained from Paynt).
             observation_and_action_constraint_splitter (func, optional): Splits observations to pure observations and masks. Defaults to None.
             tf_action_keywords (list, optional): List of action keywords. Should be in order of actions, which the tf_environment work with. Defaults to [].
+            info_spec (tuple, optional): Information specification. Defaults to None.
+            parallel_policy (TFPolicy, optional): Parallel stochastic policy, which generates logits. Defaults to None.
+            soft_decision (bool, optional): If True, the policy will use the parallel policy to make a decision combined with its FSC. Defaults to False.
         """
         super(FSC_Policy, self).__init__(tf_environment._time_step_spec, tf_environment._action_spec,
                                          policy_state_spec=TensorSpec(
@@ -172,6 +178,8 @@ class FSC_Policy(TFPolicy):
         if parallel_policy is not None:
             self._parallel_policy_function = common.function(parallel_policy.action)
             self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
+        self._soft_decision = soft_decision
+        self._fsc_update_coef = soft_decision_multiplier
 
     tf.function
     def _set_hidden_ppo_state(self):
@@ -206,9 +214,18 @@ class FSC_Policy(TFPolicy):
         if self._info_spec is None or self._info_spec == ():
             policy_info = ()
         elif self._parallel_policy is not None:
-            parallel_policy_step = self._parallel_policy.action(time_step, self._hidden_ppo_state, seed)
-            self._hidden_ppo_state = parallel_policy_step.state
-            policy_info = parallel_policy_step.info
+            if self._soft_decision:
+                distribution = self._parallel_policy.distribution(time_step, self._hidden_ppo_state)
+                self._hidden_ppo_state = distribution.state
+                policy_info = distribution.info
+                logits = distribution.action.logits
+                one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) * self._fsc_update_coef
+                updated_logits = logits + one_hot_encoding
+                action_number = tfp.distributions.Categorical(logits=updated_logits).sample()[0]
+            else:
+                parallel_policy_step = self._parallel_policy_function(time_step, self._hidden_ppo_state, seed)
+                self._hidden_ppo_state = parallel_policy_step.state
+                policy_info = parallel_policy_step.info
             if policy_info == ():
                 one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) / 2.0
                 one_hot_encoding_with_alternative = tf.where(one_hot_encoding == 0.0, -1.0, one_hot_encoding)
