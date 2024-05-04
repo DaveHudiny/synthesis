@@ -152,7 +152,7 @@ if __name__ == "__main__":
     reward_dictionary = {
         "evade": 300.0,
         "evade_n=5_r=23": 300.0,
-        "rocks-16": 300.0,
+        "rocks-16": 150.0,
         "network-3-8-20": 50.0,
         "mba-small": 600.0,
         "obstacle": 50.0,

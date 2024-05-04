@@ -297,19 +297,20 @@ class SynthesizerPOMDP:
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
     def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = True, 
-                       cycling_time = 60, load_rl_dict = False, rl_mem = True, fsc_combining = True):
+                       cycling_time = 60, load_rl_dict = False, rl_mem = True, fsc_combining = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
         self.synthesizer.storm_control = self.storm_control
         first_run = True
+        current_time = None
         if fsc_cycling:
             current_time = cycling_time
             start_time = time.time()
         interpretation_result = None
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", max_steps=500, restart_weights=0)
+            args = ArgsEmulator(load_agent=False, learning_method="Stochastic_PPO", encoding_method="Valuations", max_steps=200, restart_weights=0)
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=fsc_combining)
             rl_synthesiser.train_agent(500)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
@@ -342,7 +343,7 @@ class SynthesizerPOMDP:
             elif rl_mem and not first_run:
                 logger.info("Adding memory nodes based on RL interpretation.")
                 
-                priority_list_len = int(math.ceil(len(self.priority_list) / 10))
+                priority_list_len = int(math.ceil(len(self.priority_list) / 2))
                 priorities = self.priority_list[:priority_list_len]
                 for i in range(len(priorities)):
                     self.memory_dict[priorities[i]] += 1

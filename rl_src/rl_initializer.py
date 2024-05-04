@@ -86,7 +86,7 @@ class ArgsEmulator:
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", using_logits=False, paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False, 
-                 evaluate_random_policy : bool = False):
+                 evaluate_random_policy : bool = False, prefer_stochastic : bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
@@ -130,6 +130,7 @@ class ArgsEmulator:
         experiment_name (str, optional): The name of the experiment. Defaults to "experiment".
         with_refusing (bool, optional): Whether to use refusing when interpreting. Defaults to None.
         set_ppo_on_policy (bool, optional): Set PPO to on-policy. With other methods, this parameter has no effect. Defaults to False.
+        prefer_stochastic (bool, optional): Prefer stochastic actions (in case of PPO) for evaluation. Defaults to False.
         """
         self.prism_model = prism_model
         self.prism_properties = prism_properties
@@ -169,6 +170,7 @@ class ArgsEmulator:
         self.with_refusing = with_refusing
         self.set_ppo_on_policy = set_ppo_on_policy
         self.evaluate_random_policy = evaluate_random_policy
+        self.prefer_stochastic = prefer_stochastic
 
 
 class Initializer:
@@ -268,8 +270,11 @@ class Initializer:
             self.agent = Recurrent_PPO_agent(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder, 
                 fsc_pre_init=fsc_pre_init)
-        elif learning_method == "FSC":
-            pass
+        elif learning_method == "Stochastic_PPO":
+            self.args.prefer_stochastic = True
+            self.agent = Recurrent_PPO_agent(
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder, 
+                fsc_pre_init=fsc_pre_init)
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
@@ -332,6 +337,10 @@ class Initializer:
                 logger.info(f"Interpreting agent with {quality} quality")
                 if with_refusing == None:
                     self.agent.load_agent(quality == "best")
+                    if self.args.learning_method == "PPO" and self.args.prefer_stochastic:
+                        self.agent.set_agent_training()
+                    elif self.args.learning_method == "PPO":
+                        self.agent.set_agent_evaluation()
                     result[f"{quality}_with_refusing"] = interpret.get_dictionary(
                         self.agent, with_refusing=True)
                     result[f"{quality}_without_refusing"] = interpret.get_dictionary(

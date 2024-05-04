@@ -67,7 +67,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         refusing = None
         if "rocks" not in model:
             continue
-        for learning_method in ["DQN", "DDQN", "PPO"]:
+        for learning_method in ["PPO", "Stochastic_PPO"]:
             for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,

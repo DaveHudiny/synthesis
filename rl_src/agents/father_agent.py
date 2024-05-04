@@ -191,13 +191,17 @@ class FatherAgent(AbstractAgent):
         self.replay_buffer.clear()
 
     def evaluate_agent(self, last=False):
-        self.set_agent_evaluation()
+        if self.args.prefer_stochastic:
+            self.set_agent_training()
+        else:
+            self.set_agent_evaluation()
         if last:
             evaluation_episodes = self.evaluation_episodes * 2
         else:
             evaluation_episodes = self.evaluation_episodes
         average_return, average_episode_return = compute_average_return(
                 self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.args.using_logits, self.environment)
+        
         self.set_agent_training()
         if self.best_iteration_final < average_episode_return:
             self.best_iteration_final = average_episode_return
@@ -250,9 +254,9 @@ class FatherAgent(AbstractAgent):
             checkpoint, agent_folder, max_to_keep=5)
         manager.save()
 
-    def load_agent(self, last=False):
+    def load_agent(self, best=False):
         checkpoint = tf.train.Checkpoint(agent=self.agent)
-        if last:
+        if best:
             agent_folder = self.agent_folder + "/best"
         else:
             agent_folder = self.agent_folder

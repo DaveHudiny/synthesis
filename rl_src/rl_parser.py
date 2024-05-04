@@ -64,19 +64,27 @@ class Parser:
     def agent_parameters_parser(self):
         """Parses the agent parameters. The parameters are added to the agent group, which describes information for agent generation."""
         self.agent_group.add_argument("--learning-method", type=str,
-                                      default="DQN", choices=["DQN", "DDQN", "PPO"], help="Learning method")
+                                      default="DQN", choices=["DQN", "DDQN", "PPO", "Stochastic_PPO"],
+                                      help="Learning method, stochastic PPO sets also prefer-stochastic flag.")
         self.agent_group.add_argument(
             "--agent-folder", type=str, help="Agent folder")
         self.agent_group.add_argument(
-            "--using_logits", action="store_true", help="Using logits, compatibile with PPO.")
+            "--using_logits", action="store_true",
+            help="Using logits, compatibile with PPO.")
         self.agent_group.add_argument(
-            "--paynt-fsc-imitation", action="store_true", help="Use extracted FSC from Paynt for improving data collection and imitation learning")
+            "--paynt-fsc-imitation", action="store_true",
+            help="Use extracted FSC from Paynt for improving data collection and imitation learning")
         self.agent_group.add_argument(
             "--paynt-fsc-json", type=str, help="JSON file with extracted FSC from Paynt")
         self.agent_group.add_argument(
-            "--agent-name", type=str, default="agent", help="Name of the agent")
+            "--agent-name", type=str, default="agent",
+            help="Name of the agent")
         self.agent_group.add_argument(
-            "--evaluate-random-policy", action="store_true", help="Evaluate random policy. If set, the agent will not be trained and only evaluates on random policy.")
+            "--evaluate-random-policy", action="store_true",
+            help="Evaluate random policy. If set, the agent will not be trained and only evaluates on random policy.")
+        self.agent_group.add_argument(
+            "--prefer-stochastic", action="store_true",
+            help="Prefer stochastic actions. If set, the agent will prefer stochastic actions over deterministic in case of PPO for evaluation.")
 
     def learning_parameters_parser(self):
         """Parses the learning parameters. The parameters are added to the learning group, which describes information for learning process."""
@@ -84,23 +92,32 @@ class Parser:
         self.learning_group.add_argument("--learning-rate", type=float, default=1e-4,
                                          help="Learning rate")
         self.learning_group.add_argument(
-            "--max-steps", type=int, default=300, help="Maximum steps per episode")
+            "--max-steps", type=int, default=300,
+            help="Maximum steps per episode")
         self.learning_group.add_argument(
-            "--batch-size", type=int, default=64, help="Batch size")
+            "--batch-size", type=int, default=64,
+            help="Batch size")
         self.learning_group.add_argument(
-            "--num-steps", type=int, default=25, help="Number of steps for each sample trajectory. Used for training the agent.")
+            "--num-steps", type=int, default=25,
+            help="Number of steps for each sample trajectory. Used for training the agent.")
         self.learning_group.add_argument(
-            "--nr-runs", type=int, default=1000, help="Number of runs")
+            "--nr-runs", type=int, default=1000,
+            help="Number of runs")
         self.learning_group.add_argument(
-            "--seed", type=int, default=123456, help="Seed for reproducibility")
+            "--seed", type=int, default=123456,
+            help="Seed for reproducibility")
         self.learning_group.add_argument(
-            "--buffer-size", type=int, default=10000, help="Buffer size for the replay buffer")
+            "--buffer-size", type=int, default=10000,
+            help="Buffer size for the replay buffer")
         self.learning_group.add_argument(
-            "--restart-weights", type=int, default=0, help="Number of restarts of weights before starting learning")
+            "--restart-weights", type=int, default=0,
+            help="Number of restarts of weights before starting learning")
         self.learning_group.add_argument(
-            "--fsc-policy-max-iteration", type=int, default=100, help="If --paynt-fsc-imitation is selected, this parameter defines the maximum number of iterations for FSC policy training.")
+            "--fsc-policy-max-iteration", type=int, default=100,
+            help="If --paynt-fsc-imitation is selected, this parameter defines the maximum number of iterations for FSC policy training.")
         self.learning_group.add_argument(
-            "--set-ppo-on-policy", action="store_true", help="Set PPO to on-policy. With other methods, this parameter has no effect.")
+            "--set-ppo-on-policy", action="store_true",
+            help="Set PPO to on-policy. With other methods, this parameter has no effect.")
 
     def logger_parser(self):
         """Parses the logger parameters. The parameters are added to the logger group, which describes information for logging."""
