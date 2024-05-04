@@ -127,7 +127,7 @@ class FatherAgent(AbstractAgent):
     def get_initial_state(self, batch_size=None):
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc : FSC = None):
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc : FSC = None, soft_decision=False, fsc_multiplier=2.0):
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
@@ -167,7 +167,7 @@ class FatherAgent(AbstractAgent):
         self.agent.train = common.function(self.agent.train)
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
-                self.get_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits)))
+                self.get_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits, self.environment)))
         for _ in range(5): # Because sometimes FSC driver does not sample enough trajectories to start learning.
             self.driver.run()
         for i in range(num_iterations):
@@ -197,7 +197,7 @@ class FatherAgent(AbstractAgent):
         else:
             evaluation_episodes = self.evaluation_episodes
         average_return, average_episode_return = compute_average_return(
-                self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.args.using_logits)
+                self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.args.using_logits, self.environment)
         self.set_agent_training()
         if self.best_iteration_final < average_episode_return:
             self.best_iteration_final = average_episode_return

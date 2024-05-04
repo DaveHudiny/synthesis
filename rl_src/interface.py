@@ -65,47 +65,19 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
-        if "intercept" not in model:
+        if "rocks" not in model:
             continue
-        for i in range(10, 15):
-            for learning_method in ["PPO"]:
-                for encoding_method in ["Integer", "Valuations", "One-Hot"]:
-                    logger.info(f"Running iteration {i} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
-                    args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
-                                        restart_weights=0, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
-                                        nr_runs=1000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=True,
-                                        max_steps=100, evaluation_goal=100, evaluation_antigoal=-100, trajectory_num_steps=16)
+        for learning_method in ["DQN", "DDQN", "PPO"]:
+            for encoding_method in ["Valuations"]:
+                logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
+                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
+                                    restart_weights=0, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
+                                    nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    max_steps=150, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=25)
 
-                    run_single_experiment(
-                        args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}_{i}")
+                run_single_experiment(
+                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")
 
 
 if __name__ == "__main__":
-    run_experiments("observation_valuations_experiment", "models_reduced")
-    # args = ArgsEmulator(prism_model="./models/grid-large-30-5/sketch.templ", prism_properties="./models/grid-large-30-5/sketch.props",
-    #                             restart_weights=3, learning_method="PPO", using_logits=False, action_filtering=False, reward_shaping=False,
-    #                             nr_runs=4000, encoding_method="Valuations", paynt_fsc_imitation=False, fsc_policy_max_iteration=600, trajectory_num_steps=50,
-    #                             paynt_fsc_json=f"./FSC_experimental_grid-large-30-5.json", agent_name="grid-large-30-5", load_agent=False, max_steps=600)
-    # run_single_experiment(args, model="grid-large-30-5", learning_method="PPO", refusing=None, name_of_experiment="longer_episodes")
-    exit(0)
-    args = ArgsEmulator(prism_model="./models/grid/sketch.templ", prism_properties="./models/rocks-16/sketch.props",
-                        restart_weights=0, learning_method="PPO", using_logits=False, action_filtering=False, reward_shaping=False,
-                        nr_runs=1000, encoding_method="Valuations", paynt_fsc_imitation=False, fsc_policy_max_iteration=500,
-                        paynt_fsc_json="./FSC_experimental_refuel_9.json", agent_name="rocks-16", load_agent=False,
-                        max_steps=400)
-
-    dicts = get_dictionaries(args, False)
-    obs_action_dict = dicts[0]
-    memory_dict = dicts[1]
-    labels = dicts[2]
-
-    agent_type = args.learning_method
-    experiment_name = args.prism_model.split("/")[-2]
-    if not os.path.exists(f"results_of_interpretation/{experiment_name}"):
-        os.makedirs(f"results_of_interpretation/{experiment_name}")
-    with open(f"results_of_interpretation/{experiment_name}/{agent_type}_obs_action_dict.pickle", "wb") as f:
-        pickle.dump(obs_action_dict, f)
-    with open(f"results_of_interpretation/{experiment_name}/{agent_type}_memory_dict.pickle", "wb") as f:
-        pickle.dump(memory_dict, f)
-    with open(f"results_of_interpretation/{experiment_name}/{agent_type}_labels.pickle", "wb") as f:
-        pickle.dump(labels, f)
+    run_experiments("rocks-16-repaired", "models")

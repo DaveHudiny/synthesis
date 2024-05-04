@@ -57,10 +57,10 @@ class TracingInterpret(Interpret):
 
     def create_observation_prioritizer_by_sorting(self, obs_act_dict_counts):
         """Creates the observation prioritizer by sorting the observations.
-        
+
         Args:
             obs_act_dict_counts (dict): The dictionary of observations to actions with counts.
-            
+
         Returns:
             list: The list of indices of observations sorted by the variance of actions."""
         obs_variances = []
@@ -69,15 +69,15 @@ class TracingInterpret(Interpret):
             std = np.std(numpy_values)
             obs_variances.append(std)
         return np.argsort(obs_variances)
-        
 
     def get_dictionary(self, agent=None, with_refusing=True):
         obs_act_stats_dict = self.compute_observation_action_dictionary(
             agent=agent, with_refusing=with_refusing)
         obs_act_dict, memory_dict = self.compute_cutted_dictionary(
             obs_act_stats_dict, cut_actions=False, memory_greediness=0.5)
-        prioritizer = self.create_observation_prioritizer_by_sorting(obs_act_stats_dict)
-        
+        prioritizer = self.create_observation_prioritizer_by_sorting(
+            obs_act_stats_dict)
+
         return obs_act_dict, memory_dict, self.environment.act_to_keywords, prioritizer
 
     def plot_histogram(self, obs_act_dict):
@@ -183,7 +183,7 @@ class TracingInterpret(Interpret):
             steps = 0
             self.aux_obs_act_dict = {}
             reward = 0
-            
+
             while not time_step.is_last():
                 action_step = policy(time_step, policy_state)
                 policy_state = action_step.state
@@ -198,16 +198,18 @@ class TracingInterpret(Interpret):
                 steps += 1
                 reward += time_step.reward
             labels = self.environment.simulator._report_labels()
-            reward -= time_step.reward # Removing the last reward (goal)
+            if 'goal' in labels:
+                reward -= self.environment.goal_value
+            else:
+                reward -= time_step.reward  # Removing the last reward (goal)
             goal_reward = time_step.reward
             step_rewards.append(reward.numpy())
             final_rewards.append(goal_reward.numpy())
             if with_refusing:
-                
+
                 if time_step.is_last() and ('goal' in labels or 'done' in labels):
                     self.obs_act_dict = self.merge_dicts(
                         self.obs_act_dict, self.aux_obs_act_dict)
-                    
 
             result_info.update_ending_stats(steps, self.environment._max_steps, time_step.is_last(),
                                             self.environment.simulator._report_labels())

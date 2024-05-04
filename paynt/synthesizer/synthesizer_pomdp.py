@@ -309,7 +309,7 @@ class SynthesizerPOMDP:
             start_time = time.time()
         interpretation_result = None
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations")
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", max_steps=500, restart_weights=0)
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=fsc_combining)
             rl_synthesiser.train_agent(500)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
@@ -324,8 +324,8 @@ class SynthesizerPOMDP:
                     rl_synthesiser.train_agent_with_fsc_data(100, fsc, soft_decision=fsc_combining)
                 else:
                     logger.info("FSC is None. Training agent without FSC.")
-                logger.info("Training agent for {} iterations.".format(500))
-                rl_synthesiser.train_agent(500)
+                logger.info("Training agent for {} iterations.".format(300))
+                rl_synthesiser.train_agent(300)
                 interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
             if self.storm_control.is_storm_better == False:
@@ -390,6 +390,7 @@ class SynthesizerPOMDP:
                 assignment = self.synthesize(family, timer = current_time)
                 try:
                     fsc = self.quotient.assignment_to_fsc(assignment)
+                    rl_synthesiser.update_fsc_multiplier(2)
                 except:
                     logger.info("FSC could not be created from the assignment. Probably no improvement.")
                     rl_synthesiser.update_fsc_multiplier(0.5)

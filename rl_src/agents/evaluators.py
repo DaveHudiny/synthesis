@@ -4,8 +4,10 @@ from tf_agents.policies import py_tf_eager_policy
 
 from tf_agents.utils import common
 
+from environment.environment_wrapper import Environment_Wrapper
 
-def compute_average_return(policy, tf_environment, num_episodes=10, using_logits=False):
+
+def compute_average_return(policy, tf_environment, num_episodes=10, using_logits=False, environment : Environment_Wrapper = None):
     total_return = 0.0
     episode_return = 0.0
     policy_function = tf.function(policy.action)
@@ -26,9 +28,13 @@ def compute_average_return(policy, tf_environment, num_episodes=10, using_logits
             policy_state = action_step.state
             time_step = tf_environment.step(action)
             total_return += time_step.reward
-        total_return -= time_step.reward
-        episode_return += time_step.reward
+        if environment is not None:
+            total_return -= environment.virtual_value
+            episode_return += environment.virtual_value
+        else:
+            total_return -= time_step.reward
+            episode_return += time_step.reward
 
     avg_return = total_return / num_episodes
     avg_episode_return = episode_return / num_episodes
-    return avg_return.numpy()[0], avg_episode_return.numpy()[0]
+    return avg_return.numpy()[0], avg_episode_return.numpy()
