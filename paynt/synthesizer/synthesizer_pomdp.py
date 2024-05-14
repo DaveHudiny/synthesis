@@ -243,6 +243,11 @@ class SynthesizerPOMDP:
         paynt_thread.join()
 
     def set_memory_original(self, mem_size):
+        """ Set memory size based on the original PAYNT implementation.
+
+        Args:
+            mem_size (int): Memory size for condition.
+        """ 
         if mem_size > 1:
             obs_memory_dict = {}
             if self.storm_control.is_storm_better:
@@ -275,6 +280,14 @@ class SynthesizerPOMDP:
             self.quotient.set_memory_from_dict(obs_memory_dict)
 
     def set_advices_from_rl(self, interpretation_result = None, load_rl_dict = True, rl_dict = False, family = None):
+        """ Set advices from RL interpretation.
+        
+        Args:
+            interpretation_result (tuple, optional): Tuple of dictionaries (obs_act_dict, memory_dict, labels). Defaults to None.
+            load_rl_dict (bool, optional): Whether to load RL interpretation from a file. Defaults to True.
+            rl_dict (bool, optional): Whether to use RL interpretation. Defaults to False.
+            family (paynt.quotient.quotient.QuotientFamily, optional): Family of the POMDP. Defaults to None.
+        """
         if load_rl_dict:
             with open("./obs_action_dict.pickle", "rb") as f:
                 obs_actions = pickle.load(f)
@@ -296,8 +309,9 @@ class SynthesizerPOMDP:
 
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = True, 
-                       cycling_time = 60, load_rl_dict = False, rl_mem = True, fsc_combining = False):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, 
+                       cycling_time = 60, load_rl_dict = True, fsc_combining = False, 
+                       rl_pretrain_iter = 500, rl_fsc_iter = 100, rl_fsc_multiplier = 2, rl_train_iter = 300):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -307,26 +321,24 @@ class SynthesizerPOMDP:
         current_time = None
         if fsc_cycling:
             current_time = cycling_time
-            start_time = time.time()
         interpretation_result = None
         if rl_dict and not load_rl_dict:
             args = ArgsEmulator(load_agent=False, learning_method="Stochastic_PPO", encoding_method="Valuations", max_steps=200, restart_weights=0)
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=fsc_combining)
-            rl_synthesiser.train_agent(500)
+            rl_synthesiser.train_agent(rl_pretrain_iter)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
 
         while True:
-        # for x in range(2):
             if rl_dict and fsc_cycling and not first_run:
                 current_time = cycling_time
                 if fsc is not None:
                     logger.info("Training agent with FSC.")
-                    rl_synthesiser.train_agent_with_fsc_data(100, fsc, soft_decision=fsc_combining)
+                    rl_synthesiser.train_agent_with_fsc_data(rl_fsc_iter, fsc, soft_decision=fsc_combining)
                 else:
                     logger.info("FSC is None. Training agent without FSC.")
-                logger.info("Training agent for {} iterations.".format(300))
-                rl_synthesiser.train_agent(300)
+                logger.info("Training agent for {} iterations.".format(rl_train_iter))
+                rl_synthesiser.train_agent(rl_train_iter)
                 interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
             if self.storm_control.is_storm_better == False:
@@ -338,12 +350,12 @@ class SynthesizerPOMDP:
                 self.priority_list = interpretation_result[3]
 
             # unfold memory according to the best result
-            if (not rl_mem or interpretation_result is None) and unfold_storm:
+            if (not rl_dict or interpretation_result is None) and unfold_storm:
                 self.set_memory_original(mem_size)
-            elif rl_mem and not first_run:
+            elif rl_dict and not first_run:
                 logger.info("Adding memory nodes based on RL interpretation.")
                 
-                priority_list_len = int(math.ceil(len(self.priority_list) / 2))
+                priority_list_len = int(math.ceil(len(self.priority_list) / 10))
                 priorities = self.priority_list[:priority_list_len]
                 for i in range(len(priorities)):
                     self.memory_dict[priorities[i]] += 1
@@ -391,10 +403,10 @@ class SynthesizerPOMDP:
                 assignment = self.synthesize(family, timer = current_time)
                 try:
                     fsc = self.quotient.assignment_to_fsc(assignment)
-                    rl_synthesiser.update_fsc_multiplier(2)
+                    rl_synthesiser.update_fsc_multiplier(rl_fsc_multiplier)
                 except:
                     logger.info("FSC could not be created from the assignment. Probably no improvement.")
-                    rl_synthesiser.update_fsc_multiplier(0.5)
+                    rl_synthesiser.update_fsc_multiplier(1 / rl_fsc_multiplier)
             else:
                 assignment = self.synthesize(family)
 

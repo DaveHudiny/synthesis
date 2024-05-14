@@ -1,0 +1,119 @@
+2024-05-13 16:47:54.607320: I external/local_tsl/tsl/cuda/cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+2024-05-13 16:47:54.639389: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2024-05-13 16:47:54.639454: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2024-05-13 16:47:54.640696: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2024-05-13 16:47:54.646950: I external/local_tsl/tsl/cuda/cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+2024-05-13 16:47:54.647239: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2024-05-13 16:47:55.158708: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+INFO:__main__:Running iteration 1 on intercept-n7-r1 with PPO, refusing set to: None, encoding method: Valuations.
+INFO:environment.pomdp_builder:Construct POMDP representation...
+INFO:environment.pomdp_builder:Model initialized
+2024-05-13 16:47:56.046141: E external/local_xla/xla/stream_executor/cuda/cuda_driver.cc:274] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2024-05-13 16:47:56.046170: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:129] retrieving CUDA diagnostic information for host: david-B450M-S2H
+2024-05-13 16:47:56.046180: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:136] hostname: david-B450M-S2H
+2024-05-13 16:47:56.046247: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:159] libcuda reported version is: 535.171.4
+2024-05-13 16:47:56.046269: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:163] kernel reported version is: 535.171.4
+2024-05-13 16:47:56.046278: I external/local_xla/xla/stream_executor/cuda/cuda_diagnostics.cc:241] kernel version seems to match DSO: 535.171.4
+INFO:environment.pomdp_builder:Environment initialized
+/tmp/__autograph_generated_filelyk_rs5f.py:14: SyntaxWarning: "is not" with a literal. Did you mean "!="?
+  retval_ = ag__.and_(lambda : ag__.ld(state) is not None, lambda : ag__.and_(lambda : ag__.ld(state) is not (), lambda : ag__.ld(state) is not []))
+/tmp/__autograph_generated_filepxsbn7bp.py:74: SyntaxWarning: "is" with a literal. Did you mean "=="?
+  ag__.if_stmt(ag__.ld(policy_state) is (), if_body_2, else_body_2, get_state_2, set_state_2, ('do_return', 'retval_'), 2)
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:interpreters.tracing_interpret:Ending stats: {'goal_end': 25, 'trap_end': 0, 'max_step_end': 7, 'unknown_end': 18}
+INFO:interpreters.tracing_interpret:Average reward without goal: -72.4800033569336
+INFO:interpreters.tracing_interpret:Average final reward: 20.860000610351562
+/home/david/Plocha/paynt/synthesis3/synthesis/prerequisites/venv/lib/python3.10/site-packages/numpy/core/_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice
+  ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/david/Plocha/paynt/synthesis3/synthesis/prerequisites/venv/lib/python3.10/site-packages/numpy/core/_methods.py:163: RuntimeWarning: invalid value encountered in divide
+  arrmean = um.true_divide(arrmean, div, out=arrmean,
+/home/david/Plocha/paynt/synthesis3/synthesis/prerequisites/venv/lib/python3.10/site-packages/numpy/core/_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:root:Ended, but not in a goal state: ['exits']
+INFO:root:Goal reached!
+INFO:root:Goal reached!
+INFO:interpreters.tracing_interpret:Ending stats: {'goal_end': 26, 'trap_end': 0, 'max_step_end': 9, 'unknown_end': 15}
+INFO:interpreters.tracing_interpret:Average reward without goal: -77.66000366210938
+INFO:interpreters.tracing_interpret:Average final reward: 32.81999969482422
+INFO:root:Random agent does not have any weights to save.

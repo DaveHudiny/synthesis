@@ -139,6 +139,27 @@ def setup_logger(log_path = None):
 @click.option("--profiling", is_flag=True, default=False,
     help="run profiling")
 
+@click.option("--reinforcement-learning", is_flag=True, default=False,
+              help="Run with reinforcement learning oracle. Compatibile only with options --fsc-synthesis and --storm-pomdp. Enables following options.")
+@click.option("--load-agent", is_flag=True, default=False,
+              help="Load the oracle, only works with --reinforcement-learning. If not set, the oracle will be trained before PAYNT synthesis.")
+@click.option("--fsc-cycling", is_flag=True, default=False,
+              help="Run the FSC cycling oracle. Not compatible with --load-agent.")
+@click.option("--fsc-synthesis-time-limit", type=click.INT, default=60,
+              help="Limit the time for FSC cycling . Default is 60.")
+@click.option("--soft-fsc", is_flag=True, default=False,
+              help="Use soft FSC cycling oracle. Default is hard.")
+@click.option("--fsc-training-iterations", type=click.INT, default=100,
+                help="Number of training iterations with FSC oracle. Default is 100.")
+@click.option("--rl-pretrain-iters", type=click.INT, default=500,
+                help="Number of pretraining iterations with RL oracle. Default is 500.")
+@click.option("--rl-training-iters", type=click.INT, default=300,
+                help="Number of training iterations with RL oracle. Default is 300.")
+@click.option("--fsc-multiplier", type=click.FLOAT, default=2.0,
+                help="Multiplier for the FSC cycling oracle. Default is 2.0.")
+
+
+
 def paynt_run(
     project, sketch, props, relative_error, optimum_threshold, precision,
     export,
@@ -152,8 +173,25 @@ def paynt_run(
     mdp_split_wrt_mdp, mdp_discard_unreachable_choices, mdp_use_randomized_abstraction,
     constraint_bound,
     ce_generator,
-    profiling
-):
+    profiling,
+    reinforcement_learning, load_agent, fsc_cycling, fsc_synthesis_time_limit, soft_fsc,
+    fsc_training_iterations, rl_pretrain_iters, rl_training_iters, fsc_multiplier):
+
+    if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
+        logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
+        sys.exit(1)
+    else:
+        rl_input_dictionary = {
+            "reinforcement_learning": reinforcement_learning,
+            "load_agent": load_agent,
+            "fsc_cycling": fsc_cycling,
+            "fsc_synthesis_time_limit": fsc_synthesis_time_limit,
+            "soft_fsc": soft_fsc,
+            "fsc_training_iterations": fsc_training_iterations,
+            "rl_pretrain_iters": rl_pretrain_iters,
+            "rl_training_iters": rl_training_iters,
+            "fsc_multiplier": fsc_multiplier
+        }
     profiler = None
     if profiling:
         profiler = cProfile.Profile()
@@ -185,11 +223,7 @@ def paynt_run(
     if all_in_one is None:
         quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound)
         synthesizer = paynt.synthesizer.synthesizer.Synthesizer.choose_synthesizer(quotient, method, fsc_synthesis, storm_control)
-        assignment = synthesizer.run(optimum_threshold, export_evaluation)
-        
-        # fsc = quotient.assignment_to_fsc(assignment)
-        # with open("FSC_experimental.json", 'w') as f:
-        #     f.write(str(fsc))
+        synthesizer.run(optimum_threshold, export_evaluation)
     else:
         all_in_one_program, specification, family = paynt.parser.sketch.Sketch.load_sketch_as_all_in_one(sketch_path, properties_path)
         all_in_one_analysis = paynt.synthesizer.all_in_one.AllInOne(all_in_one_program, specification, all_in_one, family)

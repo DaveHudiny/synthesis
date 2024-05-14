@@ -47,16 +47,8 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
         satisfying_assignment = None
         families = [family]
 
-        time_limit = 60
-        iterator = 0
-
 
         while families:
-
-            evaluation_time = time.time() - self.start_time
-            if evaluation_time > time_limit:
-                logger.info("Time limit reached")
-                return satisfying_assignment
 
             family = families.pop(-1)
 

@@ -26,15 +26,12 @@ def show_or_save(save_file):
 
 def plot_final_rewards(rewards_final, title="Final probability", learning_algorithms=["PPO", "DQN", "DDQN"],
                        current_optimum=None, max_reward=50.0, save_file=None):
-    plt.figure(figsize=(6.5, 4))
+    plt.figure(figsize=(6, 4))
     for i, key in enumerate(rewards_final):
-        if key == "dqn":
-            plt.plot(rewards_final[key] / max_reward, label=key)
-        else:
-            plt.plot(rewards_final[key] / max_reward, label=key)
+        plt.plot(rewards_final[key] / max_reward, label=key)
     if current_optimum is not None:
-        plt.axhline(y=current_optimum, color='r', linestyle='--',
-                    label="Paynt --fsc-synthesis Optimum")
+        plt.axhline(y=current_optimum, color='k', linestyle='--',
+                    label="random policy")
     plt.title(title)
     plt.xlabel("i-th hundred iteration")
     plt.ylabel("Probability of reaching the goal - reaching the traps")
@@ -49,8 +46,8 @@ def plot_cumulative_rewards(rewards_without_final, learning_algorithms=["PPO", "
     for i, key in enumerate(rewards_without_final):
         plt.plot(rewards_without_final[key], label=learning_algorithms[i])
     if current_optimum is not None:
-        plt.axhline(y=current_optimum, color='r', linestyle='--',
-                    label="Paynt --fsc-synthesis Optimum")
+        plt.axhline(y=current_optimum, color='k', linestyle='--',
+                    label="random policy")
     plt.title(title)
     plt.xlabel("i-th hundred iteration")
     plt.ylabel("Cumulative reward")
@@ -128,17 +125,16 @@ def load_files_from_experiments(model_name, expected_learning_algorithms=["ppo",
 def plots_new(name, max_reward, load_files=load_files):
     rewards_final, rewards_without_final, labels, learning_algorithms = load_files(
         name)
-    print(learning_algorithms)
     if len(rewards_final) == 0:
         print(f"No data found for {name}")
         return
 
     plot_final_rewards(rewards_final, learning_algorithms=learning_algorithms,
-                       title=name + " (higher = better)", max_reward=max_reward, save_file="./imgs/" + name + "_final_rewards.pdf")
+                       title=name + " (higher = better)", max_reward=max_reward, save_file="./imgs/" + name + "_final_rewards.pdf", current_optimum=0.04)
     plot_cumulative_rewards(rewards_without_final,
                             learning_algorithms=learning_algorithms, title=name +
                             " cumulative reward without goal (higher = better)",
-                            save_file="./imgs/" + name + "_cumulative_rewards.pdf")
+                            save_file="./imgs/" + name + "_cumulative_rewards.pdf", current_optimum=-148.600)
     plot_losses(labels, learning_algorithms=learning_algorithms,
                 title=name + " loss function (lower = better)", smoothing=False, save_file="./imgs/" + name + "_losses.pdf")
     plot_losses(labels, learning_algorithms=learning_algorithms, title=name +
@@ -159,7 +155,7 @@ if __name__ == "__main__":
         "obstacle": 50.0,
         "mba": 100.0,
         "refuel-20": 50.0,
-        "grid-large-30-5": 50.0,
+        "grid-large-30-5": 300.0,
         "intercept": 50.0,
     }
     # plots_new("Grid Large", 50.0)

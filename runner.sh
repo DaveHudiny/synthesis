@@ -4,7 +4,7 @@ run_fsc_synthesis() {
     for entry in `ls $1`; do
         if [ -d $1/$entry ]; then
             echo "Running Paynt on $entry"
-            python3 paynt.py --fsc-synthesis --project $1/$entry > $1/$entry/paynt-fsc-synthesis.log
+            timeout $2 python3 paynt.py --fsc-synthesis --project $1/$entry > $1/$entry/paynt-fsc-synthesis.log
         fi
     done
 }
@@ -28,8 +28,8 @@ run_with_dictionary() {
                     cp $folder/labels.pickle ./labels.pickle
                     cp $folder/obs_action_dict.pickle ./obs_action_dict.pickle
                     cp $folder/memory_dict.pickle ./memory_dict.pickle
-                    echo "Running timeout $3 python3 paynt.py --fsc-synthesis --storm-pomdp --project $1/$entry > $folder/paynt-dict-not-prunning-memory.log"
-                    timeout $3 python3 paynt.py --fsc-synthesis --storm-pomdp --project $1/$entry > "$folder/paynt-dict-not-prunning-memory.log"
+                    echo "Running timeout $3 python3 paynt.py --fsc-synthesis --storm-pomdp --project $1/$entry > $folder/paynt-dict-not-prunning-memory-really.log"
+                    timeout $3 python3 paynt.py --fsc-synthesis --storm-pomdp --project $1/$entry > "$folder/paynt-dict-not-prunning-memory-really.log"
                     echo "Finished Paynt on model $entry with dictionary from $folder"
                     counter=$((counter+1))
                 fi
@@ -39,5 +39,27 @@ run_with_dictionary() {
     echo "counter: $counter"
 }
 
-# run_fsc_synthesis $1
-run_with_dictionary $1 $2 $3
+if [ ! -d "prerequisites/venv" ]; then
+    echo "Virtual environment not found. Please run setup.sh first."
+    exit 1
+fi
+
+if [ "$#" -lt 1 ]; then
+    echo "Usage 1: --fsc-synthesis <path-to-models>"
+    echo "Usage 2: $0 <path-to-models> <path-to-dictionary> <timeout>"
+    exit 1
+fi
+
+if [ $1 == "--fsc-synthesis" ]; then
+    if [ "$#" -ne 3 ]; then
+        echo "Usage: $0 --fsc-synthesis <path-to-models> <timeout>"
+        exit 1
+    fi
+    run_fsc_synthesis $2 $3
+elif [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <path-to-models> <path-to-dictionary> <timeout>"
+    exit 1
+else
+    run_with_dictionary $1 $2 $3
+fi
+

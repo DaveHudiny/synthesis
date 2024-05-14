@@ -1,6 +1,7 @@
 # File: rl_initializer.py
 # Description: Initializer for Reinforcement Learning Approach
 # Author: David Hudak
+# Login: xhudak03
 
 
 import rl_parser
@@ -353,8 +354,9 @@ class Initializer:
         return result
     
     def __del__(self):
-        self.tf_environment.close()
-        if self.agent is not None:
+        if hasattr(self, "tf_environment") and self.tf_environment is not None:
+            self.tf_environment.close()
+        if hasattr(self, "agent") and self.agent is not None:
             self.agent.save_agent()
 
 
