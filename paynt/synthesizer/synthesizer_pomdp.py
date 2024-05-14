@@ -27,6 +27,8 @@ import pickle
 
 from rl_src.rl_initializer import ArgsEmulator
 
+import os
+
 from time import sleep
 
 class SynthesizerPOMDP:
@@ -279,7 +281,7 @@ class SynthesizerPOMDP:
                 logger.info(f'Increase memory in all imperfect observation')
             self.quotient.set_memory_from_dict(obs_memory_dict)
 
-    def set_advices_from_rl(self, interpretation_result = None, load_rl_dict = True, rl_dict = False, family = None):
+    def set_advices_from_rl(self, interpretation_result = None, load_rl_dict = True, rl_dict = False, family = None, rl_load_path = None):
         """ Set advices from RL interpretation.
         
         Args:
@@ -289,9 +291,12 @@ class SynthesizerPOMDP:
             family (paynt.quotient.quotient.QuotientFamily, optional): Family of the POMDP. Defaults to None.
         """
         if load_rl_dict:
-            with open("./obs_action_dict.pickle", "rb") as f:
+            path_obs_act_dict = os.path.join(rl_load_path, "obs_action_dict.pickle")
+            path_labels = os.path.join(rl_load_path, "labels.pickle")
+
+            with open(path_obs_act_dict, "rb") as f:
                 obs_actions = pickle.load(f)
-            with open("./labels.pickle", "rb") as f:
+            with open(path_labels, "rb") as f:
                 action_keywords = pickle.load(f)
             obs_actions = self.storm_control.convert_rl_dict_to_paynt(
                 family, obs_actions, action_keywords)
@@ -307,38 +312,72 @@ class SynthesizerPOMDP:
             self.storm_control.result_dict = obs_actions
             self.storm_control.result_dict_no_cutoffs = obs_actions
 
+    def set_reinforcement_learning(self, input_rl_settings_dict):
+        """ Set RL settings from PAYNT cli.
+        
+        Args:
+            input_rl_settings_dict (dict): Dictionary with RL settings from PAYNT cli.
+        """
+        self.input_rl_settings_dict = input_rl_settings_dict
+
 
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
-    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True, rl_dict = True, fsc_cycling = False, 
-                       cycling_time = 60, load_rl_dict = True, fsc_combining = False, 
-                       rl_pretrain_iter = 500, rl_fsc_iter = 100, rl_fsc_multiplier = 2, rl_train_iter = 300):
+    def strategy_storm(self, unfold_imperfect_only, unfold_storm=True):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
         self.synthesizer.storm_control = self.storm_control
+
+        if hasattr(self, 'input_rl_settings_dict'):
+            rl_dict = True
+            fsc_cycling = self.input_rl_settings_dict['fsc_cycling']
+            fsc_synthesis_time_limit = self.input_rl_settings_dict['fsc_synthesis_time_limit']
+            load_rl_dict = self.input_rl_settings_dict['load_agent']
+            soft_fsc = self.input_rl_settings_dict['soft_fsc']
+            rl_pretrain_iters = self.input_rl_settings_dict['rl_pretrain_iters']
+            rl_training_iters = self.input_rl_settings_dict['rl_training_iters']
+            fsc_training_iterations = self.input_rl_settings_dict['fsc_training_iterations']
+            rl_fsc_multiplier = self.input_rl_settings_dict['fsc_multiplier']
+            rl_load_path = self.input_rl_settings_dict['rl_load_path']
+            rl_load_memory_flag = self.input_rl_settings_dict['rl_load_memory_flag']
+        else: # Set all reinforcement learning settings to False or 0
+            rl_dict = False
+            fsc_cycling = False
+            fsc_synthesis_time_limit = 0
+            load_rl_dict = False
+            soft_fsc = False
+            rl_pretrain_iters = 0
+            rl_training_iters = 0
+            fsc_training_iterations = 0
+            rl_fsc_multiplier = 0
+            rl_load_path = None
+            rl_load_memory_flag = False
+
+            
         first_run = True
         current_time = None
         if fsc_cycling:
-            current_time = cycling_time
+            current_time = fsc_synthesis_time_limit
         interpretation_result = None
+
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False, learning_method="Stochastic_PPO", encoding_method="Valuations", max_steps=200, restart_weights=0)
-            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=fsc_combining)
-            rl_synthesiser.train_agent(rl_pretrain_iter)
+            args = ArgsEmulator(load_agent=False, learning_method="DQN", encoding_method="Valuations", max_steps=300, restart_weights=0, agent_name="PAYNT")
+            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=soft_fsc)
+            rl_synthesiser.train_agent(rl_pretrain_iters)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
 
         while True:
             if rl_dict and fsc_cycling and not first_run:
-                current_time = cycling_time
+                current_time = fsc_synthesis_time_limit
                 if fsc is not None:
                     logger.info("Training agent with FSC.")
-                    rl_synthesiser.train_agent_with_fsc_data(rl_fsc_iter, fsc, soft_decision=fsc_combining)
+                    rl_synthesiser.train_agent_with_fsc_data(fsc_training_iterations, fsc, soft_decision=soft_fsc)
                 else:
                     logger.info("FSC is None. Training agent without FSC.")
-                logger.info("Training agent for {} iterations.".format(rl_train_iter))
-                rl_synthesiser.train_agent(rl_train_iter)
+                logger.info("Training agent for {} iterations.".format(rl_training_iters))
+                rl_synthesiser.train_agent(rl_training_iters)
                 interpretation_result = rl_synthesiser.interpret_agent(best=False)
 
             if self.storm_control.is_storm_better == False:
@@ -348,6 +387,15 @@ class SynthesizerPOMDP:
             if interpretation_result is not None:
                 self.memory_dict = interpretation_result[1]
                 self.priority_list = interpretation_result[3]
+
+            if load_rl_dict and rl_load_memory_flag:
+                path_memory_dict = os.path.join(rl_load_path, "memory_dict.pickle")
+                with open(path_memory_dict, "rb") as f:
+                    obs_memory_dict = pickle.load(f)
+                    for key in obs_memory_dict.keys():
+                        if obs_memory_dict[key] <= 0:
+                            obs_memory_dict[key] = 1
+                    self.quotient.set_memory_from_dict(obs_memory_dict)
 
             # unfold memory according to the best result
             if (not rl_dict or interpretation_result is None) and unfold_storm:
@@ -369,8 +417,9 @@ class SynthesizerPOMDP:
 
             family = self.quotient.design_space
 
-            if (load_rl_dict or rl_dict) and interpretation_result is not None:
-                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, family=family)
+            if load_rl_dict or (rl_dict and interpretation_result is not None):
+                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, 
+                                         family=family, rl_load_path=rl_load_path)
 
 
             # if Storm's result is better, use it to obtain main family that considers only the important actions

@@ -45,7 +45,6 @@ class Synthesizer_RL:
         Args:
             iterations (int): Number of iterations.
         """
-        self.initializer.agent.load_agent()
         self.initializer.agent.train_agent_off_policy(iterations)
         self.initializer.agent.save_agent()
 

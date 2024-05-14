@@ -143,6 +143,8 @@ def setup_logger(log_path = None):
               help="Run with reinforcement learning oracle. Compatibile only with options --fsc-synthesis and --storm-pomdp. Enables following options.")
 @click.option("--load-agent", is_flag=True, default=False,
               help="Load the oracle, only works with --reinforcement-learning. If not set, the oracle will be trained before PAYNT synthesis.")
+@click.option("--rl-load-memory-flag", is_flag=True, default=False,
+              help="Load the memory of the RL oracle. Only works with --load-agent.")
 @click.option("--fsc-cycling", is_flag=True, default=False,
               help="Run the FSC cycling oracle. Not compatible with --load-agent.")
 @click.option("--fsc-synthesis-time-limit", type=click.INT, default=60,
@@ -157,6 +159,8 @@ def setup_logger(log_path = None):
                 help="Number of training iterations with RL oracle. Default is 300.")
 @click.option("--fsc-multiplier", type=click.FLOAT, default=2.0,
                 help="Multiplier for the FSC cycling oracle. Default is 2.0.")
+@click.option("--rl-load-path", type=click.Path(), default="./",
+                help="Path to the RL oracle to load. Have to be used with --load-agent.")
 
 
 
@@ -175,12 +179,13 @@ def paynt_run(
     ce_generator,
     profiling,
     reinforcement_learning, load_agent, fsc_cycling, fsc_synthesis_time_limit, soft_fsc,
-    fsc_training_iterations, rl_pretrain_iters, rl_training_iters, fsc_multiplier):
+    fsc_training_iterations, rl_pretrain_iters, rl_training_iters, fsc_multiplier, rl_load_path,
+    rl_load_memory_flag):
 
     if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
         logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
         sys.exit(1)
-    else:
+    elif reinforcement_learning:
         rl_input_dictionary = {
             "reinforcement_learning": reinforcement_learning,
             "load_agent": load_agent,
@@ -190,7 +195,9 @@ def paynt_run(
             "fsc_training_iterations": fsc_training_iterations,
             "rl_pretrain_iters": rl_pretrain_iters,
             "rl_training_iters": rl_training_iters,
-            "fsc_multiplier": fsc_multiplier
+            "fsc_multiplier": fsc_multiplier,
+            "rl_load_path": rl_load_path,
+            "rl_load_memory_flag": rl_load_memory_flag
         }
     profiler = None
     if profiling:
@@ -223,6 +230,8 @@ def paynt_run(
     if all_in_one is None:
         quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound)
         synthesizer = paynt.synthesizer.synthesizer.Synthesizer.choose_synthesizer(quotient, method, fsc_synthesis, storm_control)
+        if reinforcement_learning:
+            synthesizer.set_reinforcement_learning(rl_input_dictionary)
         synthesizer.run(optimum_threshold, export_evaluation)
     else:
         all_in_one_program, specification, family = paynt.parser.sketch.Sketch.load_sketch_as_all_in_one(sketch_path, properties_path)
