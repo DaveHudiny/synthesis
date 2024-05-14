@@ -1,3 +1,9 @@
+# Description: This file contains the implementation of the FatherAgent class, which is the parent class of other agents in the project.
+# Author: David Hudák
+# Login: xhudak03
+# Project: diploma-thesis
+# File: father_agent.py
+
 from tf_agents.environments import tf_py_environment
 from tf_agents.networks import sequential
 from tf_agents.agents.dqn import dqn_agent
@@ -10,7 +16,7 @@ import tensorflow as tf
 import tf_agents
 
 from environment.environment_wrapper import Environment_Wrapper
-from agents.tools import *
+from rl_src.agents.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from agents.evaluators import *
 from agents.policies.random_policy import Random_Policy
@@ -26,6 +32,7 @@ import os
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class AgentSettings:
+    """Class for storing information about agents. Possible usage with extension of the project."""
     def __init__(self, preprocessing_layers=[150, 150], lstm_units=[100], postprocessing_layers=[]):
         self.preprocessing_layers = preprocessing_layers
         self.lstm_units = lstm_units
@@ -33,17 +40,28 @@ class AgentSettings:
 
 
 class FatherAgent(AbstractAgent):
+    """Class for the parent agent of all agents in the project."""
     def load_fsc(self, fsc_json_path):
+        """Load FSC from JSON file.
+        
+        Args:
+            fsc_json_path: Path to the JSON file with FSC.
+        """
         with open(fsc_json_path, 'r') as f:
             fsc_json = json.load(f)
         fsc = FSC.from_json(fsc_json)
-        # action_keywords = self.environment.action_keywords
-        # fsc_policy = FSC_Policy(self.tf_environment, fsc,
-        #                         tf_action_keywords=action_keywords,
-        #                         info_spec=self.agent.policy.info_spec)
         return fsc
 
     def common_init(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
+        """Common initialization of the agents.
+
+        Args:
+            environment: The environment wrapper object, used for additional information about the environment.
+            tf_environment: The TensorFlow environment object, used for simulation information.
+            args: The arguments object for all the important settings.
+            load: Whether to load the agent. Unused.
+            agent_folder: The folder where the agent is stored.
+        """
         self.environment = environment
         self.tf_environment = tf_environment
         self.args = args
@@ -63,6 +81,15 @@ class FatherAgent(AbstractAgent):
         self.losses = []
 
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
+        """Initialization of the father agent. Not recommended to use this class directly, use the child classes instead. Implemented as example.
+        
+        Args:
+            environment: The environment wrapper object, used for additional information about the environment.
+            tf_environment: The TensorFlow environment object, used for simulation information.
+            args: The arguments object for all the important settings.
+            load: Whether to load the agent. Unused.
+            agent_folder: The folder where the agent is stored."""
+
         self.common_init(self, environment, tf_environment,
                          args, load, agent_folder)
         train_step_counter = tf.Variable(0)
@@ -99,12 +126,22 @@ class FatherAgent(AbstractAgent):
         self.init_collector_driver(tf_environment)
 
     def init_replay_buffer(self, tf_environment):
+        """Initialize the uniform replay buffer for the agent.
+        
+        Args:
+            tf_environment: The TensorFlow environment object, used for providing important specifications.
+        """
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
             batch_size=tf_environment.batch_size,
             max_length=self.args.buffer_size)
 
     def init_collector_driver(self, tf_environment):
+        """Initialize the collector driver for the agent.
+
+        Args:
+            tf_environment: The TensorFlow environment object, used for simulation information.
+        """
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
@@ -114,6 +151,11 @@ class FatherAgent(AbstractAgent):
             num_steps=self.traj_num_steps)
 
     def init_random_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
+        """Initialize the random policy collector driver for the agent. Used for random exploration.
+
+        Args:
+            tf_environment: The TensorFlow environment object, used for simulation information.
+        """
         random_policy = tf_agents.policies.random_tf_policy.RandomTFPolicy(tf_environment.time_step_spec(),
                                                                            tf_environment.action_spec(),
                                                                            observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter)
@@ -125,9 +167,18 @@ class FatherAgent(AbstractAgent):
         )
 
     def get_initial_state(self, batch_size=None):
+        """Get the initial state of the agent."""
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc : FSC = None, soft_decision=False, fsc_multiplier=2.0):
+        """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
+
+        Args:
+            tf_environment: The TensorFlow environment object, used for simulation information.
+            fsc: The FSC object for imitation learning.
+            soft_decision: Whether to use soft decision for FSC. Used only in PPO initialization.
+            fsc_multiplier: The multiplier for the FSC. Used only in PPO initialization.
+        """
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
@@ -142,20 +193,19 @@ class FatherAgent(AbstractAgent):
             num_episodes=1
         )
 
-        # self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-        #     tf_environment,
-        #     eager,
-        #     observers=[self.replay_buffer.add_batch],
-        #     num_steps=self.traj_num_steps * 3
-        # )
-
     def get_evaluated_policy(self):
+        """Get the policy for evaluation. Important, when using wrappers."""
         if self.wrapper is None:
             return self.agent.policy
         else:
             return self.wrapper
 
     def train_agent_off_policy(self, num_iterations):
+        """Train the agent off-policy. Main training function for the agents.
+
+        Args:
+            num_iterations: The number of iterations for training.
+        """
         if self.args.paynt_fsc_imitation:
             self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(
@@ -191,10 +241,15 @@ class FatherAgent(AbstractAgent):
         self.replay_buffer.clear()
 
     def evaluate_agent(self, last=False):
+        """Evaluate the agent. Used for evaluation of the agent during training.
+
+        Args:
+            last: Whether this is the last evaluation of the agent.
+        """
         if self.args.prefer_stochastic:
-            self.set_agent_training()
+            self.set_agent_stochastic()
         else:
-            self.set_agent_evaluation()
+            self.set_agent_greedy()
         if last:
             evaluation_episodes = self.evaluation_episodes * 2
         else:
@@ -202,7 +257,7 @@ class FatherAgent(AbstractAgent):
         average_return, average_episode_return = compute_average_return(
                 self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.args.using_logits, self.environment)
         
-        self.set_agent_training()
+        self.set_agent_stochastic()
         if self.best_iteration_final < average_episode_return:
             self.best_iteration_final = average_episode_return
             self.best_iteration_steps = average_return
@@ -216,24 +271,30 @@ class FatherAgent(AbstractAgent):
         self.stats_without_ending.append(average_return)
         self.stats_with_ending.append(average_episode_return)
     
-    def set_agent_evaluation(self):
+    def set_agent_greedy(self):
+        """Set the agent for to be greedy for evaluation. Used only with PPO agent, where we select greedy evaluation.
+        """
         if self.wrapper is None:
             pass
         else:
             self.wrapper.set_greedy(True)
 
-    def set_agent_training(self):
+    def set_agent_stochastic(self):
+        """Set the agent to be stochastic for evaluation. Used only with PPO agent, where we select stochastic evaluation.
+        """
         if self.wrapper is None:
             pass
         else:
             self.wrapper.set_greedy(False)
 
     def policy(self, time_step, policy_state=None):
+        """Make a decision based on the policy of the agent."""
         if policy_state is None:
             policy_state = self.agent.policy.get_initial_state(None)
         return self.agent.policy.action(time_step, policy_state=policy_state)
 
     def compute_logit_policy(self, time_step, policy_state=None):
+        """Compute action step with logits. Used for logits version of dealing with dynamic action space."""
         action = self.agent.policy.action(time_step, policy_state=policy_state)
         logits = self.agent.policy.distribution(
             time_step, policy_state=policy_state).action.logits
@@ -245,6 +306,11 @@ class FatherAgent(AbstractAgent):
         return policy_stepino
 
     def save_agent(self, best=False):
+        """Save the agent. Used for saving the agent after or during training training.
+        
+        Args:
+            best: Whether this is the best agent. If true, the agent is saved in the best folder.
+        """
         checkpoint = tf.train.Checkpoint(agent=self.agent)
         if best:
             agent_folder = self.agent_folder + "/best"
@@ -255,6 +321,11 @@ class FatherAgent(AbstractAgent):
         manager.save()
 
     def load_agent(self, best=False):
+        """Load the agent. Used for loading the agent after or during training.
+
+        Args:
+            best: Whether this is the best agent. If true, the agent is loaded from the best folder.
+        """
         checkpoint = tf.train.Checkpoint(agent=self.agent)
         if best:
             agent_folder = self.agent_folder + "/best"
@@ -268,3 +339,7 @@ class FatherAgent(AbstractAgent):
             logger.info(f"Loaded data from checkpoint: {latest_checkpoint}")
         else:
             logger.info("No data for loading.")
+
+    def reset_weights(self):
+        """Reset the weights of the agent. Implemented in the child classes."""
+        raise NotImplementedError

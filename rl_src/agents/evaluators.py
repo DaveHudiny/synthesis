@@ -1,13 +1,25 @@
-# Description: This file contains the functions for evaluation of model.
-import tensorflow as tf
-from tf_agents.policies import py_tf_eager_policy
+# Description: This file contains the function for evaluation of model.
+# The function computes the average return of the policy over the given number of episodes.
+# Author: David Hudák
+# Login: xhudak03
+# Project: diploma-thesis
+# File: evaluators.py
 
-from tf_agents.utils import common
+import tensorflow as tf
 
 from environment.environment_wrapper import Environment_Wrapper
 
 
 def compute_average_return(policy, tf_environment, num_episodes=10, using_logits=False, environment : Environment_Wrapper = None):
+    """Compute the average return of the policy over the given number of episodes.
+    
+    Args:
+        policy: The policy to evaluate.
+        tf_environment: The environment to evaluate the policy on.
+        num_episodes: The number of episodes to run the evaluation for.
+        using_logits: Whether to use logits for action selection.
+        environment: The environment wrapper object. Used for computing exact return without virtual goal.
+    """
     total_return = 0.0
     episode_return = 0.0
     policy_function = tf.function(policy.action)

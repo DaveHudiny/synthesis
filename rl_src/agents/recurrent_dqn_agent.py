@@ -1,9 +1,14 @@
+# Implementation of recurrent DQN agent.
+# Author: David Hudák
+# Login: xhudak03
+# File: recurrent_dqn_agent.py
+
 import tensorflow as tf
 
 from tf_agents.environments import tf_py_environment
 
 from environment.environment_wrapper import Environment_Wrapper
-from agents.tools import *
+from rl_src.agents.encoding_methods import *
 
 import tensorflow as tf
 from tf_agents.agents.dqn import dqn_agent
@@ -11,7 +16,6 @@ from tf_agents.environments import tf_py_environment
 from tf_agents.networks import sequential
 
 from agents.father_agent import *
-from agents.policies.random_policy import Random_Policy
 
 import logging
 
@@ -22,7 +26,7 @@ class Recurrent_DQN_agent(FatherAgent):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
-        if agent_settings is None:
+        if agent_settings is None: # Default settings
             postprocessing_layers = [tf.keras.layers.Dense(
                 100, activation='relu') for _ in range(2)]
             q_values_layer = tf.keras.layers.Dense(
@@ -37,7 +41,7 @@ class Recurrent_DQN_agent(FatherAgent):
                 100, return_sequences=True, return_state=True, activation='relu', dtype=tf.float32)
             self.q_net = sequential.Sequential(
                 [lstm1] + postprocessing_layers + [q_net])
-        else:
+        else: # Custom settings. Not used in this project currently.
             preprocessing_layers = [tf.keras.layers.Dense(
                 num_units, activation='relu') for num_units in agent_settings.preprocessing_layers]
             lstm_units = [tf.keras.layers.LSTM(num_units, return_sequences=True, return_state=True,
@@ -78,6 +82,7 @@ class Recurrent_DQN_agent(FatherAgent):
             self.load_agent()
 
     def train(self, num_iterations):
+        """Specific training loop. Mostly unused in this project."""
         for i in range(num_iterations):
             if i % 10 == 0:
                 self.random_driver.run()
@@ -92,6 +97,7 @@ class Recurrent_DQN_agent(FatherAgent):
                     step, train_loss.loss))
 
     def reset_weights(self):
+        """Reset weights of the agent's Q-network."""
         for layer in self.agent._q_network.layers:
             if isinstance(layer, tf.keras.layers.LSTM):
                 # For LSTM layers, reset both kernel and recurrent kernel weights

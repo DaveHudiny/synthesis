@@ -1,4 +1,4 @@
-from agents.tools import *
+from rl_src.agents.encoding_methods import *
 from tf_agents.environments import tf_py_environment
 from tf_agents.policies.tf_policy import TFPolicy
 

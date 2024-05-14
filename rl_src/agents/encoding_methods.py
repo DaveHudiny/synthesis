@@ -1,3 +1,8 @@
+# Description: This file contains the encoding methods used to encode the observations and actions for the agents.
+# Author: David Hudák
+# Login: xhudak03
+# File: encoding_methods.py
+
 import numpy as np
 import json
 

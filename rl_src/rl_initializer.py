@@ -339,9 +339,9 @@ class Initializer:
                 if with_refusing == None:
                     self.agent.load_agent(quality == "best")
                     if self.args.learning_method == "PPO" and self.args.prefer_stochastic:
-                        self.agent.set_agent_training()
+                        self.agent.set_agent_stochastic()
                     elif self.args.learning_method == "PPO":
-                        self.agent.set_agent_evaluation()
+                        self.agent.set_agent_greedy()
                     result[f"{quality}_with_refusing"] = interpret.get_dictionary(
                         self.agent, with_refusing=True)
                     result[f"{quality}_without_refusing"] = interpret.get_dictionary(

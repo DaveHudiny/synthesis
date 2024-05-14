@@ -1,9 +1,14 @@
+# Description: Recurrent DDQN agent class
+# Author: David Hudák
+# Login: xhudak03
+# File: recurrent_ddqn_agent.py
+
 import tensorflow as tf
 
 from tf_agents.environments import tf_py_environment
 
 from environment.environment_wrapper import Environment_Wrapper
-from agents.tools import *
+from rl_src.agents.encoding_methods import *
 
 import tensorflow as tf
 from tf_agents.agents.dqn import dqn_agent
@@ -62,6 +67,7 @@ class Recurrent_DDQN_agent(FatherAgent):
 
 
     def reset_weights(self):
+
         for layer in self.agent._q_network.layers:
             if isinstance(layer, tf.keras.layers.LSTM):
                 # For LSTM layers, reset both kernel and recurrent kernel weights

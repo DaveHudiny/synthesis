@@ -59,9 +59,9 @@ class Synthesizer_RL:
         """
         self.initializer.agent.load_agent(best)
         if greedy: # Works only with agents which use policy wrapping (in our case only PPO)
-            self.initializer.agent.set_agent_training()
+            self.initializer.agent.set_agent_stochastic()
         else:
-            self.initializer.agent.set_agent_evaluation()
+            self.initializer.agent.set_agent_greedy()
         return self.interpret.get_dictionary(self.initializer.agent, with_refusing)
     
     def update_fsc_multiplier(self, multiplier : float):

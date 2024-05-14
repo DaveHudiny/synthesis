@@ -1,4 +1,4 @@
-from agents.tools import *
+from rl_src.agents.encoding_methods import *
 from tf_agents.environments import tf_py_environment
 from tf_agents.policies.tf_policy import TFPolicy
 from tf_agents.trajectories.policy_step import PolicyStep
@@ -226,7 +226,7 @@ class FSC_Policy(TFPolicy):
                 parallel_policy_step = self._parallel_policy_function(time_step, self._hidden_ppo_state, seed)
                 self._hidden_ppo_state = parallel_policy_step.state
                 policy_info = parallel_policy_step.info
-            if policy_info == ():
+            if policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
                 one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) / 2.0
                 one_hot_encoding_with_alternative = tf.where(one_hot_encoding == 0.0, -1.0, one_hot_encoding)
                 one_hot_encoding = tf.cast([one_hot_encoding_with_alternative], tf.float32, name="CategoricalProjectionNetwork_logits")

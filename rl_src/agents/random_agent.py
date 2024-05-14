@@ -1,3 +1,9 @@
+# Description: Random agent class that inherits from FatherAgent class. Not used.
+# Author: David Hudák
+# Login: xhudak03
+# File: random_agent.py
+
+
 from rl_src.agents.father_agent import FatherAgent
 
 from tf_agents.policies.random_tf_policy import RandomTFPolicy

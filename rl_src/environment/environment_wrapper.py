@@ -11,7 +11,7 @@ import tensorflow as tf
 from tf_agents.specs import tensor_spec
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step_spec
-from agents.tools import *
+from rl_src.agents.encoding_methods import *
 from environment.reward_shaping_models import *
 
 import json
