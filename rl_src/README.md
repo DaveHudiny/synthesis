@@ -1,5 +1,5 @@
 # Implementation of RL
- Implementation of reinforcement learning for PAYNT oracle. 
+ Implementation of reinforcement learning for PAYNT oracle. Author of this implementation is David Hudák (xhudak03).
  
 ## Installation
  Install paynt.
@@ -29,4 +29,13 @@
  
  The results of experiments are usually contained in folder ./experiments, where you can find various stuff like the results of training or pickle dictionaries for PAYNT (you can use PAYNT to use them as oracle).
 
- If you want to reload your old trained agents, they are by default located in trained_agents. However, you should change the name in rl_main.py, where to store agents, because all models are stored within the same folder by default (agent_{algorithm_name}), as we do not want to store multiple agents due to storage demands.
+ If you want to reload your old trained agents, they are by default located in trained\_agents. However, you should change the name in rl\_main.py, where to store agents, because all models are stored within the same folder by default (agent\_{algorithm\_name}), as we do not want to store multiple agents due to storage demands.
+ 
+ There are also two files for plotting nice figures -- encoding\_plots.py for convergence curves of multiple experiments and plots.py for general learning curves. If you place them to folder with your results, for example from experiment_runner.py, then you can plot nice figures as in created diploma thesis.
+
+## Known issues
+ When compiling functions before evaluations, there occurs warning in form of: 
+  "/tmp/__autograph_generated_filew4d1jh49.py:14: SyntaxWarning: "is not" with a literal. Did you mean "!="?
+   retval_ = ag\_\_.and\_(lambda : ag\_\_.ld(state) is not None, lambda : ag\_\_.and\_(lambda : ag\_\_.ld(state) is not (), lambda : ag\_\_.ld(state) is not []))"
+ 
+ It is caused by compatibility issues of frameworks TF Agents and main TensorFlow, where we use TensorFlow graph compilation to speed up evaluation, as the TF Agents framework allows only graph optimization (utils.common.function) for train function and not for action and distribution functions. Instead, we optimize it with tf.function from TensorFlow, which throws this warning. It still provides significant speed-up of evaluation, but in future versions of TF Agents (if there exists), we recommend to use solely their function optimizations. The code is located in file agents/evaluators.py at lines 27-29.

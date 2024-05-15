@@ -362,7 +362,7 @@ class SynthesizerPOMDP:
         interpretation_result = None
 
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False, learning_method="DQN", encoding_method="Valuations", max_steps=300, restart_weights=0, agent_name="PAYNT")
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", max_steps=300, restart_weights=0, agent_name="PAYNT")
             rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=soft_fsc)
             rl_synthesiser.train_agent(rl_pretrain_iters)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)

@@ -74,7 +74,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
                                     restart_weights=3, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
-                                    nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    nr_runs=10, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=150, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=25)
 
                 run_single_experiment(

@@ -63,11 +63,14 @@ class TracingInterpret(Interpret):
 
         Returns:
             list: The list of indices of observations sorted by the variance of actions."""
-        obs_variances = []
+        obs_variances = np.ones((len(self.possible_observations),))
+
         for obs in obs_act_dict_counts:
             numpy_values = np.array(list(obs_act_dict_counts[obs].values()))
+            if len(numpy_values) == 0:
+                continue
             std = np.std(numpy_values)
-            obs_variances.append(std)
+            obs_variances[obs] += std
         return np.argsort(obs_variances)
 
     def get_dictionary(self, agent=None, with_refusing=True):
@@ -112,7 +115,6 @@ class TracingInterpret(Interpret):
             dict: The dictionary of observations to actions.
             dict: The dictionary of observations to memory.
         """
-        print("Průser začal tady předtím")
         obs_act_dict = {}
         memory_dict = {}
         if not cut_actions:
@@ -137,7 +139,6 @@ class TracingInterpret(Interpret):
             memory_dict[obs] = len(action_stats_dict_filtered.keys())
             if memory_dict[obs] <= 0:
                 memory_dict[obs] = 1
-        print("Průser začal tady")
         return obs_act_dict, memory_dict
 
     def update_obs_act_dict(self, observation, action):

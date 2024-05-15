@@ -10,11 +10,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0' 
 import sys
 
 sys.path.append("../")
+
+import tensorflow as tf
+
+tf.autograph.set_verbosity(0)
+
 
 
 from environment.pomdp_builder import *
@@ -355,8 +362,10 @@ class Initializer:
     
     def __del__(self):
         if hasattr(self, "tf_environment") and self.tf_environment is not None:
-            # self.tf_environment.close()
-            pass
+            try:
+                self.tf_environment.close()
+            except Exception as e:
+                pass
         if hasattr(self, "agent") and self.agent is not None:
             self.agent.save_agent()
 

@@ -37,7 +37,9 @@ class Synthesizer_RL:
         self.initializer.tf_environment = tf_py_environment.TFPyEnvironment(self.initializer.environment)
         logger.info("RL Environment initialized")
         self.initializer.initialize_agent(fsc_pre_init)
-        self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment, self.initializer.args.encoding_method)
+        self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment, 
+                                          self.initializer.args.encoding_method, 
+                                          possible_observations=self.initializer.environment._possible_observations)
         self.fsc_multiplier = initial_fsc_multiplier
 
     def train_agent(self, iterations : int):
