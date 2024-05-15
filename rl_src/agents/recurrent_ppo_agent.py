@@ -77,8 +77,7 @@ class Recurrent_PPO_agent(FatherAgent):
         logging.info("Replay buffer initialized")
         self.init_ppo_collector_driver(tf_environment)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
-                                           is_greedy=False, fsc_pre_init=fsc_pre_init,
-                                           number_of_possible_observations=len(self.environment._possible_observations))
+                                           is_greedy=False)
         if load:
             self.load_agent()
 

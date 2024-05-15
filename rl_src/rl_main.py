@@ -4,7 +4,6 @@
 # Author: David Hudak
 # Login: xhudak03
 
-
 import rl_parser
 
 import logging
@@ -12,6 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 import sys
 
 sys.path.append("../")

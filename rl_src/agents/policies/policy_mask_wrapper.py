@@ -46,7 +46,6 @@ class Policy_Mask_Wrapper(TFPolicy):
         self._policy_state_spec = policy.policy_state_spec
         self._info_spec = policy.info_spec
         self._is_greedy = is_greedy
-        self._fsc_memory = tf.constant([0], dtype=tf.int32)
         self._real_distribution = self._distribution
 
     def is_greedy(self):
@@ -67,8 +66,6 @@ class Policy_Mask_Wrapper(TFPolicy):
 
     tf.function
     def _get_initial_state(self, batch_size):
-        if self._fsc_pre_init is not None:
-            self._fsc_memory = tf.constant([0], dtype=tf.int32)
         return self._policy.get_initial_state(batch_size)
     
     def _update_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None): # Unused in final version

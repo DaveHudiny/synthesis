@@ -4,7 +4,7 @@
 # File: synthesizer_rl.py
 
 from rl_src.environment.environment_wrapper import Environment_Wrapper
-from rl_src.rl_initializer import ArgsEmulator, Initializer
+from rl_src.rl_main import ArgsEmulator, Initializer
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
 

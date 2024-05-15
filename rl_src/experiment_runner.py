@@ -3,7 +3,7 @@
 # Login: xhudak03
 # File: interface.py
 
-from rl_initializer import Initializer, ArgsEmulator, save_dictionaries, save_statistics
+from rl_main import Initializer, ArgsEmulator, save_dictionaries, save_statistics
 
 import os
 
