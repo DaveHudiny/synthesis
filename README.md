@@ -5,10 +5,12 @@ This version of PAYNT contains implementation of reinforcement algorithms based 
 ## Installation
  Install paynt (below).
  Then use following commands:
+ ```shell
    $ source prerequisites/venv/bin/activate
    $ pip install tensorflow==2.15
    $ pip install tf_agents
    $ pip install tqdm dill matplotlib pandas seaborn
+ ```
 
  This implementation was experimented within Ubuntu 22.04 and Debian 12.5. Other Linux distributions may miss some libraries etc. and you should install them on your own, or contact the authors (DaveHudiny at GitHub, or at my e-mail skolahudak@gmail.com, or one of the authors of PAYNT Roman Andriushchenko with e-mail iandri@vutbr.cz).
 
@@ -20,8 +22,10 @@ This version of PAYNT contains implementation of reinforcement algorithms based 
 
 ## Usage
  You can use:
+ ```shell
   $ source prerequisites/venv/bin/activate
   $ python3 paynt.py --help
+  ```
  to see, how to use this project. Implementation of the extension is primarily focused on option --reinforcement-learning with option --storm-pomdp and --fsc-synthesis, which enables to use reinforcement learning options within the project. For example, you can use
  
  Sometimes, you want to experiment solely with reinforcement learning, train agents and obtain dictionaries for --load-agent and --rl-load-path options of paynt.py. Then you should see subdirectory rl_src, where is our implementation of reinforcement learning with short README.md.
