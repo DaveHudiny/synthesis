@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 import pickle
 
-from rl_src.rl_initializer import ArgsEmulator
+from rl_src.rl_main import ArgsEmulator
 
 import os
 
