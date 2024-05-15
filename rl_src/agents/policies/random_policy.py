@@ -1,3 +1,8 @@
+# Description: Implementation of random policy. Used for testing purposes and as a baseline for other policies.
+# Author: David Hudák
+# Login: xhudak03
+# File: random_policy.py
+
 from rl_src.agents.encoding_methods import *
 from tf_agents.environments import tf_py_environment
 from tf_agents.policies.tf_policy import TFPolicy

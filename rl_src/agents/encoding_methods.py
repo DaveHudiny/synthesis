@@ -24,7 +24,6 @@ def create_valuations_encoding(observation, stormpy_model):
         observation)
     parsed_valuations = json.loads(str(valuations_json))
     vector = []
-    # vector = [float(observation)]
     for key in parsed_valuations:
         if type(parsed_valuations[key]) == bool:
             if parsed_valuations[key]:

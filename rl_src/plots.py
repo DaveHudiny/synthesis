@@ -1,3 +1,10 @@
+# Description: This file contains functions to plot the results of the experiments. The functions load the data from the files and plot the results.
+# Finds the files in current directory for each learning algorithm and plots the results.
+# Author: David Hudák
+# Login: xhudak03
+# File: plots.py
+ 
+
 from matplotlib import pyplot as plt
 
 import ast
@@ -26,15 +33,12 @@ def show_or_save(save_file):
 
 def plot_final_rewards(rewards_final, title="Final probability", learning_algorithms=["PPO", "DQN", "DDQN"],
                        current_optimum=None, max_reward=50.0, save_file=None):
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(6, 4))
     for i, key in enumerate(rewards_final):
-        if key == "dqn":
-            plt.plot(rewards_final[key] / 50.0, label=key.upper())
-        else:
-            plt.plot(rewards_final[key] / max_reward, label=key.upper())
+        plt.plot(rewards_final[key] / max_reward, label=key)
     if current_optimum is not None:
-        plt.axhline(y=current_optimum, color='r', linestyle='--',
-                    label="Paynt --fsc-synthesis Optimum")
+        plt.axhline(y=current_optimum, color='k', linestyle='--',
+                    label="random policy")
     plt.title(title)
     plt.xlabel("i-th hundred iteration")
     plt.ylabel("Probability of reaching the goal - reaching the traps")
@@ -45,12 +49,12 @@ def plot_final_rewards(rewards_final, title="Final probability", learning_algori
 def plot_cumulative_rewards(rewards_without_final, learning_algorithms=["PPO", "DQN", "DDQN"],
                             current_optimum=None, title="Cumulative reward without goal (higher = better)",
                             save_file=None):
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(6, 4))
     for i, key in enumerate(rewards_without_final):
         plt.plot(rewards_without_final[key], label=learning_algorithms[i])
     if current_optimum is not None:
-        plt.axhline(y=current_optimum, color='r', linestyle='--',
-                    label="Paynt --fsc-synthesis Optimum")
+        plt.axhline(y=current_optimum, color='k', linestyle='--',
+                    label="random policy")
     plt.title(title)
     plt.xlabel("i-th hundred iteration")
     plt.ylabel("Cumulative reward")
@@ -63,7 +67,7 @@ def windowed_average(data, window_size=5):
 
 
 def plot_losses(losses, learning_algorithms=["PPO", "DQN", "DDQN"], title="Losses (lower = better)", smoothing=True, window_size=5, save_file=None):
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(6, 4))
 
     for i, key in enumerate(losses):
         if smoothing:
@@ -79,7 +83,7 @@ def plot_losses(losses, learning_algorithms=["PPO", "DQN", "DDQN"], title="Losse
     show_or_save(save_file)
 
 
-def load_files(name, expected_learning_algorithms=["ppo", "dqn", "ddqn"]):
+def load_files(name, expected_learning_algorithms=["ppo", "dqn", "ddqn", "stochastic_ppo"]):
     rewards_final = {}
     rewards_without_final = {}
     labels = {}
@@ -101,7 +105,7 @@ def load_files(name, expected_learning_algorithms=["ppo", "dqn", "ddqn"]):
     return rewards_final, rewards_without_final, labels, learning_algorithms
 
 
-def load_files_from_experiments(model_name, expected_learning_algorithms=["ppo", "dqn", "ddqn"]):
+def load_files_from_experiments(model_name, expected_learning_algorithms=["ppo", "dqn", "ddqn", "stochastic_ppo"]):
     rewards_final = {}
     rewards_without_final = {}
     labels = {}
@@ -133,11 +137,11 @@ def plots_new(name, max_reward, load_files=load_files):
         return
 
     plot_final_rewards(rewards_final, learning_algorithms=learning_algorithms,
-                       title=name + " (higher = better)", max_reward=max_reward, save_file="./imgs/" + name + "_final_rewards.pdf")
+                       title=name + " (higher = better)", max_reward=max_reward, save_file="./imgs/" + name + "_final_rewards.pdf", current_optimum=0.17893)
     plot_cumulative_rewards(rewards_without_final,
                             learning_algorithms=learning_algorithms, title=name +
                             " cumulative reward without goal (higher = better)",
-                            save_file="./imgs/" + name + "_cumulative_rewards.pdf")
+                            save_file="./imgs/" + name + "_cumulative_rewards.pdf", current_optimum=-74.5)
     plot_losses(labels, learning_algorithms=learning_algorithms,
                 title=name + " loss function (lower = better)", smoothing=False, save_file="./imgs/" + name + "_losses.pdf")
     plot_losses(labels, learning_algorithms=learning_algorithms, title=name +
@@ -158,8 +162,9 @@ if __name__ == "__main__":
         "obstacle": 50.0,
         "mba": 100.0,
         "refuel-20": 50.0,
-        "grid-large-30-5": 50.0,
+        "grid-large-30-5": 300.0,
         "intercept": 50.0,
+        "intercept-n7-r1" : 150.0
     }
     # plots_new("Grid Large", 50.0)
     os.makedirs("imgs", exist_ok=True)

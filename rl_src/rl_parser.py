@@ -1,6 +1,7 @@
 # File: rl_parser.py
 # Description: Parser for Reinforcement Learning Approach
 # Author: David Hudák
+# Login: xhudak03
 
 import argparse
 

@@ -71,6 +71,8 @@ class TracingInterpret(Interpret):
         return np.argsort(obs_variances)
 
     def get_dictionary(self, agent=None, with_refusing=True):
+        """Gets the dictionary of observations to actions, memory dictionary, action keywords and observation prioritizer.
+            Used as main interface between RL algorithms and Paynt."""
         obs_act_stats_dict = self.compute_observation_action_dictionary(
             agent=agent, with_refusing=with_refusing)
         obs_act_dict, memory_dict = self.compute_cutted_dictionary(
@@ -167,6 +169,16 @@ class TracingInterpret(Interpret):
             self.aux_obs_act_dict[observation][action] += 1
 
     def compute_observation_action_dictionary(self, num_episodes=50, agent: FatherAgent = None, with_refusing=False):
+        """Computes the dictionary of observations to actions.
+
+        Args:
+            num_episodes (int, optional): The number of episodes to be traced. Defaults to 50.
+            agent (FatherAgent, optional): The agent to be traced. Defaults to None.
+            with_refusing (bool, optional): Whether to use refusing. Defaults to False.
+
+        Returns:
+            dict: The dictionary of observations to actions with counts of each action.
+        """
         if agent is None:
             raise ValueError("Agent must be provided.")
         self.obs_act_dict = {}
@@ -206,7 +218,6 @@ class TracingInterpret(Interpret):
             step_rewards.append(reward.numpy())
             final_rewards.append(goal_reward.numpy())
             if with_refusing:
-
                 if time_step.is_last() and ('goal' in labels or 'done' in labels):
                     self.obs_act_dict = self.merge_dicts(
                         self.obs_act_dict, self.aux_obs_act_dict)

@@ -1,24 +1,20 @@
+# In this file is implemented model-free interpret for RL agents evaluation. Only experimental. Not in final version.
 # File: rl_interface.py
 # Author: David Hudák
-# Purpose: Agent model-free interpreter.
+# Login: xhudak03
 
 import logging
 import os
 from collections import Counter
 from tqdm import tqdm
-import argparse
-import stormpy
 import tf_agents as tfa
 import tensorflow as tf
-import dill
 import pickle
 import sys
 
 import numpy as np
 
 from interpreters.interpret import Interpret
-from tf_agents.agents import tf_agent
-from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 

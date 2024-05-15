@@ -13,8 +13,6 @@ import tensorflow_probability as tfp
 
 from rl_src.agents.encoding_methods import observation_and_action_constraint_splitter
 
-from agents.policies.fsc_policy import FSC_Policy
-
 from agents.policies.fsc_policy import FSC
 
 import logging
@@ -25,8 +23,7 @@ class Policy_Mask_Wrapper(TFPolicy):
     """Wrapper for stochastic policies that allows to use observation and action constraint splitters"""
 
     def __init__(self, policy: TFPolicy, observation_and_action_constraint_splitter=observation_and_action_constraint_splitter, 
-                 time_step_spec=None, is_greedy=False, fsc_oracle : FSC = None, tf_action_keywords = None, fsc_pre_init : bool = False,
-                 number_of_possible_observations : int = 0):
+                 time_step_spec=None, is_greedy=False):
         """Initializes the policy mask wrapper, which is a wrapper for stochastic policies which enables to use observation and action constraint splitters.
 
         Args:
@@ -50,13 +47,7 @@ class Policy_Mask_Wrapper(TFPolicy):
         self._info_spec = policy.info_spec
         self._is_greedy = is_greedy
         self._fsc_memory = tf.constant([0], dtype=tf.int32)
-        self._fsc_pre_init = fsc_pre_init
-        if fsc_pre_init:
-            self._prepare_fsc_oracle(number_of_possible_observations)
-        if fsc_oracle is None or tf_action_keywords is None:
-            self._real_distribution = self._distribution
-        else:   
-            self._set_fsc_oracle(fsc_oracle, tf_action_keywords)
+        self._real_distribution = self._distribution
 
     def is_greedy(self):
         return self._is_greedy
@@ -64,7 +55,7 @@ class Policy_Mask_Wrapper(TFPolicy):
     def set_greedy(self, is_greedy):
         self._is_greedy = is_greedy
 
-    def _prepare_fsc_oracle(self, number_of_possible_observations : int):
+    def _prepare_fsc_oracle(self, number_of_possible_observations : int): # Unused in final version
         self._fsc_action_function = tf.zeros(
             [self._action_spec.maximum + 2, number_of_possible_observations], dtype=tf.int32)
         self._fsc_update_function = tf.zeros(
@@ -80,7 +71,7 @@ class Policy_Mask_Wrapper(TFPolicy):
             self._fsc_memory = tf.constant([0], dtype=tf.int32)
         return self._policy.get_initial_state(batch_size)
     
-    def _update_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None):
+    def _update_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None): # Unused in final version
         print("Shape of action function: ", self._fsc_action_function)
         print("Shape of update function: ", self._fsc_update_function)
         print("Shape of action labels: ", self._fsc_action_labels)
@@ -111,7 +102,7 @@ class Policy_Mask_Wrapper(TFPolicy):
                                                             update_indices,
                                                             tf.constant(tf_action_keywords))
 
-    def _set_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None):
+    def _set_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None): # Unused in final version
         
         self._fsc_action_function = tf.constant(
             fsc_oracle.action_function, dtype=tf.int32)
@@ -124,7 +115,7 @@ class Policy_Mask_Wrapper(TFPolicy):
 
         
 
-    def _unset_fsc_oracle(self):
+    def _unset_fsc_oracle(self): # Unused in final version
         self._real_distribution = self._distribution
 
     def _distribution(self, time_step, policy_state):

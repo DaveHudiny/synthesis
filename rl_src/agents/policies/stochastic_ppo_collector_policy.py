@@ -9,7 +9,7 @@ import numpy as np
 class Stochastic_PPO_Collector_Policy(TFPolicy):
     def __init__(self, tf_environment, action_spec, observation_and_action_constraint_splitter = None, collector_policy: TFPolicy = None):
         """Wrapper over a PPO collector policy to work with illegal actions. Using two options -- based on logits (no custom observation_and_action_constraint_splitter)
-        or on masks.
+        or on masks. Primarily legacy code.
 
         Args:
             tf_environment (tf_py_environment.TFPyEnvironment): The environment to be used.

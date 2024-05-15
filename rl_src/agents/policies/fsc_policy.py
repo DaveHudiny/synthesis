@@ -1,11 +1,14 @@
+# Includes implemenation of FSCPolicy class, which is a TFPolicy implementation of FSC used for Hard and Soft FSC oracle.
+# Author: David Hudák
+# Login: xhudak03
+# File: fsc_policy.py
+
 from rl_src.agents.encoding_methods import *
 from tf_agents.environments import tf_py_environment
 from tf_agents.policies.tf_policy import TFPolicy
 from tf_agents.trajectories.policy_step import PolicyStep
 from tf_agents.specs.tensor_spec import TensorSpec
-from tf_agents.specs.array_spec import ArraySpec
 from tf_agents.utils import common
-from tf_agents.trajectories.time_step import StepType
 
 import tensorflow_probability as tfp
 
@@ -213,8 +216,8 @@ class FSC_Policy(TFPolicy):
         new_policy_state = self._fsc.update_function[int_policy_state][observation]
         if self._info_spec is None or self._info_spec == ():
             policy_info = ()
-        elif self._parallel_policy is not None:
-            if self._soft_decision:
+        elif self._parallel_policy is not None: # Generate logits from PPO policy
+            if self._soft_decision: # Use PPO policy to make a decision combined with FSC
                 distribution = self._parallel_policy.distribution(time_step, self._hidden_ppo_state)
                 self._hidden_ppo_state = distribution.state
                 policy_info = distribution.info
@@ -222,15 +225,15 @@ class FSC_Policy(TFPolicy):
                 one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) * self._fsc_update_coef
                 updated_logits = logits + one_hot_encoding
                 action_number = tfp.distributions.Categorical(logits=updated_logits).sample()[0]
-            else:
+            else: # Hard FSC decision
                 parallel_policy_step = self._parallel_policy_function(time_step, self._hidden_ppo_state, seed)
                 self._hidden_ppo_state = parallel_policy_step.state
                 policy_info = parallel_policy_step.info
-            if policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
-                one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) / 2.0
-                one_hot_encoding_with_alternative = tf.where(one_hot_encoding == 0.0, -1.0, one_hot_encoding)
-                one_hot_encoding = tf.cast([one_hot_encoding_with_alternative], tf.float32, name="CategoricalProjectionNetwork_logits")
-                policy_info = {"dist_params": {"logits": one_hot_encoding}}
+        if policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
+            one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) / 2.0
+            one_hot_encoding_with_alternative = tf.where(one_hot_encoding == 0.0, -1.0, one_hot_encoding)
+            one_hot_encoding = tf.cast([one_hot_encoding_with_alternative], tf.float32, name="CategoricalProjectionNetwork_logits")
+            policy_info = {"dist_params": {"logits": one_hot_encoding}}
         
         policy_step = PolicyStep(action=tf.convert_to_tensor(
             [action_number], dtype=tf.int32), state=new_policy_state, info=policy_info)

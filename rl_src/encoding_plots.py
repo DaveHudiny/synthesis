@@ -1,3 +1,8 @@
+# Description: Plotting the convergence curves of the encoding methods. Place to wanted folder and it finds the files and plots the convergence curves.
+# Author: David Hudák
+# Login: xhudak03
+# File: encoding_plots.py
+
 import os
 
 from matplotlib import pyplot as plt
@@ -103,24 +108,5 @@ if __name__ == "__main__":
                   random_policy_value=0.25)
     plot_function("./", "average_return_without_final.txt", "convergence_curves_seaborn_without.pdf",
                   y_name = "Average return without virtual goal", denominator=1, random_policy_value=-70.0)
-    
-    exit(0)
-
-    folder_path = "./"
-    filename = "average_return_without_final.txt"
-    returns = {}
-    for encoding_method in ["Valuations", "Integer", "One-Hot"]:
-        files = recursive_find_files(folder_path, encoding_method, filename)
-        returns[encoding_method] = read_files(files)
-    plot_convergence_curves_seaborn(returns, denominator=1, filename="convergence_curves_seaborn_without.pdf", 
-                                    y_name = "Average return without virtual goal")
-    
-    filename = "average_return_with_final.txt"
-    returns = {}
-    for encoding_method in ["Valuations", "Integer", "One-Hot"]:
-        files = recursive_find_files(folder_path, encoding_method, filename)
-        returns[encoding_method] = read_files(files)
-    plot_convergence_curves_seaborn(returns, denominator=1, filename="convergence_curves_seaborn_with.pdf",
-                                    y_name = "Probability of reaching goal minus probability of trap")
 
     
