@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import sys
 
 sys.path.append("../")
@@ -355,7 +355,8 @@ class Initializer:
     
     def __del__(self):
         if hasattr(self, "tf_environment") and self.tf_environment is not None:
-            self.tf_environment.close()
+            # self.tf_environment.close()
+            pass
         if hasattr(self, "agent") and self.agent is not None:
             self.agent.save_agent()
 
@@ -367,11 +368,21 @@ if __name__ == "__main__":
     result = initializer.main(args.with_refusing)
     if args.with_refusing is None:
         save_dictionaries(args.experiment_directory, args.agent_name,
-                        args.learning_method, "best", result["best_with_refusing"][0], result["best_with_refusing"][1], result["best_with_refusing"][2])
+                        args.learning_method, "best_with_refusing", result["best_with_refusing"][0], result["best_with_refusing"][1], result["best_with_refusing"][2])
+        
         save_dictionaries(args.experiment_directory, args.agent_name,
-                            args.learning_method, "last", result["last_with_refusing"][0], result["last_with_refusing"][1], result["last_with_refusing"][2])
-        save_statistics(args.experiment_directory, args.agent_name, args.learning_method, initializer.agent.stats_without_ending,
+                            args.learning_method, "last_with_refusing", 
+                            result["last_with_refusing"][0], result["last_with_refusing"][1], 
+                            result["last_with_refusing"][2])
+        save_statistics(args.experiment_directory, args.agent_name, args.learning_method, 
+                        initializer.agent.stats_without_ending,
                         initializer.agent.stats_with_ending, initializer.agent.losses)
+        save_dictionaries(args.experiment_directory, args.agent_name,
+                        args.learning_method, "best_without_refusing", result["best_without_refusing"][0], 
+                        result["best_without_refusing"][1], result["best_without_refusing"][2])
+        save_dictionaries(args.experiment_directory, args.agent_name,
+                            args.learning_method, "last_without_refusing", result["last_without_refusing"][0], 
+                            result["last_without_refusing"][1], result["last_without_refusing"][2])
     else:
         save_dictionaries(args.experiment_directory, args.agent_name,
                         args.learning_method, args.with_refusing, result[0], result[1], result[2])

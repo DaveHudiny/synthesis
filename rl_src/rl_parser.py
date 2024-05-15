@@ -38,10 +38,10 @@ class Parser:
 
     def environment_parser(self):
         """Parses the environment parameters. The parameters are added to the environment group, which describes information for environment (model) generation."""
-        self.environment_group.add_argument("--prism-model", type=str, default="./prism_models/obstacle/sketch.templ",
+        self.environment_group.add_argument("--prism-model", type=str, required=True,
                                             help="Select file with prism model")
         self.environment_group.add_argument(
-            "--prism-properties", type=str, default="./prism_models/obstacle/sketch.props", help="Select file with prism properties")
+            "--prism-properties", type=str, required=True, help="Select file with prism properties")
         self.environment_group.add_argument(
             "--constants", type=str, default="", help="Constants for the model. Syntax looks like: \"C1=10,C2=60\". See Prism template for definable constants")
         self.environment_group.add_argument(

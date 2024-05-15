@@ -112,6 +112,7 @@ class TracingInterpret(Interpret):
             dict: The dictionary of observations to actions.
             dict: The dictionary of observations to memory.
         """
+        print("Průser začal tady předtím")
         obs_act_dict = {}
         memory_dict = {}
         if not cut_actions:
@@ -136,6 +137,7 @@ class TracingInterpret(Interpret):
             memory_dict[obs] = len(action_stats_dict_filtered.keys())
             if memory_dict[obs] <= 0:
                 memory_dict[obs] = 1
+        print("Průser začal tady")
         return obs_act_dict, memory_dict
 
     def update_obs_act_dict(self, observation, action):

@@ -311,6 +311,9 @@ class FatherAgent(AbstractAgent):
         Args:
             best: Whether this is the best agent. If true, the agent is saved in the best folder.
         """
+        if self.agent is None or tf.train is None:
+            logger.info("No agent for saving.")
+            return
         checkpoint = tf.train.Checkpoint(agent=self.agent)
         if best:
             agent_folder = self.agent_folder + "/best"
