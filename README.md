@@ -1,3 +1,7 @@
+# PAYNT with RL extension
+
+This version of PAYNT contains implementation of reinforcement algorithms based on TF Agents and is currently distributed on https://github.com/DaveHudiny/synthesis, which is fork from [PAYNT repository](https://github.com/randriu/synthesis)
+
 # PAYNT
 
 PAYNT (Probabilistic progrAm sYNThesizer) is a tool for the automated synthesis of probabilistic programs. PAYNT takes a program with holes (a so-called sketch) and a PCTL specification, and outputs a concrete hole assignment that yields a satisfying program, if such an assignment exists. PAYNT also supports the synthesis of finite-state controllers for POMDPs. Internally, PAYNT interprets the incomplete probabilistic program as a family of Markov chains and uses state-of-the-art synthesis methods on top of the model checker [Storm](https://github.com/moves-rwth/storm) to identify satisfying realization. PAYNT is implemented in Python and uses [Stormpy](https://github.com/moves-rwth/stormpy), Python bindings for Storm. PAYNT is hosted on [github](https://github.com/randriu/synthesis).
