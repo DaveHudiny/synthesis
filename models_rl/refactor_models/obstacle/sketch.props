@@ -1,3 +1,0 @@
-// R{"steps"}min=? [ F "goal" ]
-Pmax=? [!"exits" U "goal"]
-
