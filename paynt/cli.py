@@ -4,6 +4,7 @@ import paynt.parser.sketch
 
 import paynt.quotient
 import paynt.quotient.pomdp
+import paynt.quotient.decpomdp
 import paynt.quotient.storm_pomdp_control
 
 import paynt.synthesizer.all_in_one
@@ -78,9 +79,9 @@ def setup_logger(log_path = None):
     help="do not compute expected visits for the splitting heuristic")
 
 @click.option("--fsc-synthesis", is_flag=True, default=False,
-    help="enable incremental synthesis of FSCs for a POMDP")
-@click.option("--pomdp-memory-size", default=1, show_default=True,
-    help="implicit memory size for POMDP FSCs")
+    help="enable incremental synthesis of FSCs for a (Dec-)POMDP")
+@click.option("--fsc-memory-size", default=1, show_default=True,
+    help="implicit memory size for (Dec-)POMDP FSCs")
 @click.option("--posterior-aware", is_flag=True, default=False,
     help="unfold MDP taking posterior observation of into account")
 
@@ -116,8 +117,10 @@ def setup_logger(log_path = None):
 
 @click.option(
     "--all-in-one", type=click.Choice(["sparse", "bdd"]), default=None, show_default=True,
-    help="all in one MDP approach",
+    help="use all-in-one MDP abstraction",
 )
+@click.option("--all-in-one-maxmem", default=4096, type=int,
+    help="memory limit (MB) for the all-in-one abstraction")
 
 @click.option("--mdp-split-wrt-mdp", is_flag=True, default=False,
     help="# if set, MDP abstraction scheduler will be used for splitting, otherwise game abstraction scheduler will be used")
@@ -169,11 +172,11 @@ def paynt_run(
     export,
     method,
     incomplete_search, disable_expected_visits,
-    fsc_synthesis, pomdp_memory_size, posterior_aware,
+    fsc_synthesis, fsc_memory_size, posterior_aware,
     storm_pomdp, iterative_storm, get_storm_result, storm_options, prune_storm,
     use_storm_cutoffs, unfold_strategy_storm,
     export_fsc_storm, export_fsc_paynt, export_evaluation,
-    all_in_one,
+    all_in_one, all_in_one_maxmem,
     mdp_split_wrt_mdp, mdp_discard_unreachable_choices, mdp_use_randomized_abstraction,
     constraint_bound,
     ce_generator,
@@ -210,8 +213,9 @@ def paynt_run(
     paynt.synthesizer.synthesizer.Synthesizer.incomplete_search = incomplete_search
     paynt.quotient.quotient.Quotient.disable_expected_visits = disable_expected_visits
     paynt.synthesizer.synthesizer_cegis.SynthesizerCEGIS.conflict_generator_type = ce_generator
-    paynt.quotient.pomdp.PomdpQuotient.initial_memory_size = pomdp_memory_size
+    paynt.quotient.pomdp.PomdpQuotient.initial_memory_size = fsc_memory_size
     paynt.quotient.pomdp.PomdpQuotient.posterior_aware = posterior_aware
+    paynt.quotient.decpomdp.DecPomdpQuotient.initial_memory_size = fsc_memory_size
 
     paynt.synthesizer.policy_tree.SynthesizerPolicyTree.split_wrt_mdp_scheduler = mdp_split_wrt_mdp
     paynt.synthesizer.policy_tree.SynthesizerPolicyTree.discard_unreachable_choices = mdp_discard_unreachable_choices
@@ -235,7 +239,7 @@ def paynt_run(
         synthesizer.run(optimum_threshold, export_evaluation)
     else:
         all_in_one_program, specification, family = paynt.parser.sketch.Sketch.load_sketch_as_all_in_one(sketch_path, properties_path)
-        all_in_one_analysis = paynt.synthesizer.all_in_one.AllInOne(all_in_one_program, specification, all_in_one, family)
+        all_in_one_analysis = paynt.synthesizer.all_in_one.AllInOne(all_in_one_program, specification, all_in_one, all_in_one_maxmem, family)
         all_in_one_analysis.run()
     if profiling:
         profiler.disable()

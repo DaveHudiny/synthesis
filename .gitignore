@@ -8,3 +8,6 @@ rl_src/experiments/
 stuff_for_processing/
 measurements/
 models_rl/
+
+.vscode
+
