@@ -18,7 +18,6 @@ This version of PAYNT contains implementation of reinforcement algorithms based 
  The implementation is primarily based on PAYNT with Stormpy and TensorFlow Agents framework, which implements many important blocks of this project as reinforcement learning algorithms, TF environment interface, policy drivers etc. We also took some inspiration and in case of .rl_src/environment/pomdp_builder, we took the code from repository: [Shielding](https://github.com/stevencarrau/safe_RL_POMDPs). 
 
  The main implementation of the diploma thesis is included within the rl_src folder, which contains the main parts of implementation of our reinforcement learning approach.
- I
 
 ## Usage
  You can use:
