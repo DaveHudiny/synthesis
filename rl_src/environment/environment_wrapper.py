@@ -223,7 +223,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             return tf.constant(observation_vector, dtype=tf.float32)
 
     def _reset(self):
-        """Resets the environment. Important for TF-Agents, since we have ."""
+        """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
         self._finished = False
         self._num_steps = 0
         stepino = self.simulator.restart()
