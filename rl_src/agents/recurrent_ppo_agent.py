@@ -46,10 +46,7 @@ class Recurrent_PPO_agent(FatherAgent):
         optimizer = tf.keras.optimizers.Adam(
             learning_rate=args.learning_rate, clipnorm=1.0)
 
-        if args.using_logits:
-            action_spec = tf_environment.action_spec()["action"]
-        else:
-            action_spec = tf_environment.action_spec()
+        action_spec = tf_environment.action_spec()
 
         self.actor_net = self.create_recurrent_actor_net_demasked(
             tf_environment, action_spec)
@@ -66,10 +63,11 @@ class Recurrent_PPO_agent(FatherAgent):
             optimizer,
             actor_net=self.actor_net,
             value_net=self.value_net,
-            num_epochs=25,
+            num_epochs=3,
             train_step_counter=train_step_counter,
             greedy_eval=False,
-            discount_factor=0.9 # Možná lambda value
+            discount_factor=0.9,
+            lambda_value=0.5
         )
         self.agent.initialize()
         logging.info("Agent initialized")
@@ -202,28 +200,6 @@ class Recurrent_PPO_agent(FatherAgent):
     #######################################################################
     # Legacy Code -- Mostly used for dynamic action space.               #
     #######################################################################
-
-    class PPO_Logits_Driver:
-        def __init__(self, collect_policy, tf_environment, traj_num_steps, observers):
-            self.collect_policy = collect_policy
-            self.tf_environment = tf_environment
-            self.traj_num_steps = traj_num_steps
-            self.observers = observers
-            self.policy_state = collect_policy.get_initial_state(
-                tf_environment.batch_size)
-
-        def run(self):
-            time_step = self.tf_environment.current_time_step()
-            for _ in range(self.traj_num_steps):
-                action_step = self.collect_policy.action(
-                    time_step, self.policy_state)
-                next_time_step = self.tf_environment.step(action_step.action)
-                traj = trajectory.from_transition(
-                    time_step, action_step, next_time_step)
-                for observer in self.observers:
-                    observer(traj)
-                time_step = next_time_step
-                self.policy_state = action_step.state
         
     def create_recurrent_actor_net(self, tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
         preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
@@ -252,50 +228,5 @@ class Recurrent_PPO_agent(FatherAgent):
         )
         return value_net
 
-    def logit_policy(self):
-        super_policy = self.agent.collect_policy
-
-        def _action(time_step, policy_state, seed):
-            action_step = super_policy.action(time_step, policy_state, seed)
-            logits = super_policy.distribution(
-                time_step, policy_state).action.logits
-            action_step_action = {
-                "action": action_step.action, "logits": logits}
-            policy_stepino = policy_step.PolicyStep(
-                action_step_action, action_step.policy_state, action_step.info)
-            return policy_stepino
-        super_policy._action_spec = self.tf_environment.action_spec()
-        super_policy._action = _action
-        return super_policy
-
-    def logit_observer(self):
-        def _add_batch(item: Trajectory):
-            modified_item = Trajectory(
-                step_type=item.step_type,
-                observation=item.observation,
-                action=item.action["action"],
-                policy_info=item.policy_info,
-                next_step_type=item.next_step_type,
-                reward=item.reward,
-                discount=item.discount,
-            )
-            self.replay_buffer._add_batch(modified_item)
-        return _add_batch
-    
-    def init_ppo_collector_driver_with_logits(self, tf_environment):
-        collect_policy = Stochastic_PPO_Collector_Policy(
-            tf_environment, tf_environment.action_spec(), collector_policy=self.agent.collect_policy)
-        observer = self.logit_observer()
-        eager = py_tf_eager_policy.PyTFEagerPolicy(
-            collect_policy, use_tf_function=True, batch_time_steps=False)
-        self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-            tf_environment,
-            eager,
-            observers=[observer],
-            num_steps=self.traj_num_steps)
-
     def init_ppo_collector_driver(self, tf_environment):
-        if self.args.using_logits:
-            self.init_ppo_collector_driver_with_logits(tf_environment)
-        else:
-            self.init_collector_driver(tf_environment)
+        self.init_collector_driver(tf_environment)

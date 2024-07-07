@@ -76,9 +76,7 @@ class FatherAgent(AbstractAgent):
         if args.paynt_fsc_imitation:
             self.fsc = self.load_fsc(args.paynt_fsc_json)
         self.wrapper = None
-        self.stats_without_ending = []
-        self.stats_with_ending = []
-        self.losses = []
+        self.evaluation_result = EvaluationResults(environment.goal_value)
 
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
         """Initialization of the father agent. Not recommended to use this class directly, use the child classes instead. Implemented as example.
@@ -212,12 +210,10 @@ class FatherAgent(AbstractAgent):
             num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
-        self.best_iteration_final = 0.0
-        self.best_iteration_steps = -tf.float32.min
         self.agent.train = common.function(self.agent.train)
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
-                self.get_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.args.using_logits, self.environment)))
+                self.get_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.environment)))
         for _ in range(5): # Because sometimes FSC driver does not sample enough trajectories to start learning.
             self.driver.run()
         for i in range(num_iterations):
@@ -231,7 +227,7 @@ class FatherAgent(AbstractAgent):
             train_loss = self.agent.train(experience).loss
             train_loss = train_loss.numpy()
             self.agent.train_step_counter.assign_add(1)
-            self.losses.append(train_loss)
+            self.evaluation_result.add_loss(train_loss)
             if i % 10 == 0:
                 logger.info(f"Step: {i}, Training loss: {train_loss}")
             if i % 100 == 0:
@@ -254,22 +250,15 @@ class FatherAgent(AbstractAgent):
             evaluation_episodes = self.evaluation_episodes * 2
         else:
             evaluation_episodes = self.evaluation_episodes
-        average_return, average_episode_return = compute_average_return(
-                self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.args.using_logits, self.environment)
+        compute_average_return(
+                self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.environment, self.evaluation_result.update)
         
         self.set_agent_stochastic()
-        if self.best_iteration_final < average_episode_return:
-            self.best_iteration_final = average_episode_return
-            self.best_iteration_steps = average_return
-            self.save_agent(True)
-        elif self.best_iteration_final == average_episode_return:
-            if self.best_iteration_steps < average_return:
-                self.best_iteration_steps = average_return
-                self.save_agent(True)
-        logger.info('Average Return without Virtual Goal = {0}'.format(average_return))
-        logger.info('Average Virtual Goal Value = {0}'.format(average_episode_return))
-        self.stats_without_ending.append(average_return)
-        self.stats_with_ending.append(average_episode_return)
+        if self.evaluation_result.best_updated:
+            self.save_agent(best=True)
+        logger.info('Average Return = {0}'.format(self.evaluation_result.returns[-1]))
+        logger.info('Average Virtual Goal Value = {0}'.format(self.evaluation_result.returns_episodic[-1]))
+        logger.info('Goal Reach Probability = {0}'.format(self.evaluation_result.reach_probs[-1]))
     
     def set_agent_greedy(self):
         """Set the agent for to be greedy for evaluation. Used only with PPO agent, where we select greedy evaluation.
@@ -292,18 +281,6 @@ class FatherAgent(AbstractAgent):
         if policy_state is None:
             policy_state = self.agent.policy.get_initial_state(None)
         return self.agent.policy.action(time_step, policy_state=policy_state)
-
-    def compute_logit_policy(self, time_step, policy_state=None):
-        """Compute action step with logits. Used for logits version of dealing with dynamic action space."""
-        action = self.agent.policy.action(time_step, policy_state=policy_state)
-        logits = self.agent.policy.distribution(
-            time_step, policy_state=policy_state).action.logits
-        policy_stepino = tf_agents.trajectories.policy_step.PolicyStep(
-            action={"action": action.action, "logits": logits},
-            state=action.state,
-            info=action.info,
-        )
-        return policy_stepino
 
     def save_agent(self, best=False):
         """Save the agent. Used for saving the agent after or during training training.

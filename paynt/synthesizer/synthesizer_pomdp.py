@@ -225,6 +225,17 @@ class SynthesizerPOMDP:
 
         self.saynt_timer.stop()
 
+        args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", max_steps=300, restart_weights=0, agent_name="PAYNT")
+        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=False)
+        while True:
+            logger.info("Training agent with FSC.")
+            rl_synthesiser.train_agent_with_fsc_data(100, self.storm_control.latest_paynt_result_fsc, soft_decision=False)
+            logger.info("Training agent for {} iterations.".format(500))
+            rl_synthesiser.train_agent(500)
+
+        
+        
+
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):
         self.interactive_queue = Queue()

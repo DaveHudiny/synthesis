@@ -65,15 +65,18 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models"):
+    """ Run multiple experiments for PAYNT oracle."""
     for model in os.listdir(f"{path_to_models}"):
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
-        for learning_method in ["PPO", "DQN", "DDQN"]:
+        for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN"]:
             for encoding_method in ["Valuations"]:
+                if "10-5" not in model:
+                    continue
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
-                                    restart_weights=3, learning_method=learning_method, using_logits=False, action_filtering=False, reward_shaping=False,
+                                    restart_weights=3, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=150, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=25)
 

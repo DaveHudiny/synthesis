@@ -70,9 +70,6 @@ class Parser:
         self.agent_group.add_argument(
             "--agent-folder", type=str, help="Agent folder")
         self.agent_group.add_argument(
-            "--using_logits", action="store_true",
-            help="Using logits, compatibile with PPO.")
-        self.agent_group.add_argument(
             "--paynt-fsc-imitation", action="store_true",
             help="Use extracted FSC from Paynt for improving data collection and imitation learning")
         self.agent_group.add_argument(

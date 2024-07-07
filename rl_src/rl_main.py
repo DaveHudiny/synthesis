@@ -87,13 +87,13 @@ def save_statistics(name_of_experiment, model, learning_method, stats_without_en
 
 class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
-                 encoding_method: str = "Valuations", learning_rate: float = 1.6e-5, max_steps: int = 300, evaluation_episodes: int = 20,
+                 encoding_method: str = "Valuations", learning_rate: float = 1.6e-3, max_steps: int = 300, evaluation_episodes: int = 20,
                  batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 5000, evaluation_goal: int = 300,
                  interpretation_method: str = "Tracing", learning_method: str = "DQN",
                  save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
                  buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
-                 reward_shaping_model: str = "evade", agent_name="test", using_logits=False, paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
+                 reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False, 
                  evaluate_random_policy : bool = False, prefer_stochastic : bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
@@ -131,7 +131,6 @@ class ArgsEmulator:
         reward_shaping (bool, optional): Reward shaping. Defaults to False.
         reward_shaping_model (str, optional): Reward shaping model. Defaults to "evade". Other possible selection is "refuel".
         agent_name (str, optional): The name of the agent. Defaults to "test".
-        using_logits (bool, optional): Using logits, compatibile with PPO. Defaults to False.
         paynt_fsc_imitation (bool, optional): Use extracted FSC from Paynt for improving data collection and imitation learning. Defaults to False.
         paynt_fsc_json (str, optional): JSON file with extracted FSC from Paynt. Defaults to None.
         fsc_policy_max_iteration (int, optional): If --paynt-fsc-imitation is selected, this parameter defines the maximum number of iterations for FSC policy training. Defaults to 100.
@@ -170,7 +169,6 @@ class ArgsEmulator:
         self.reward_shaping = reward_shaping
         self.reward_shaping_model = reward_shaping_model
         self.agent_name = agent_name
-        self.using_logits = using_logits
         self.paynt_fsc_imitation = paynt_fsc_imitation
         self.paynt_fsc_json = paynt_fsc_json
         self.fsc_policy_max_iteration = fsc_policy_max_iteration
@@ -237,14 +235,14 @@ class Initializer:
 
     def select_best_starting_weights(self):
         logger.info("Selecting best starting weights")
-        best_cumulative_return, best_average_last_episode_return = compute_average_return(
-            self.agent.get_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
+        best_cumulative_return, best_average_last_episode_return, _ = compute_average_return(
+            self.agent.get_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes)
         self.agent.save_agent()
         for i in range(self.args.restart_weights):
             logger.info(f"Restarting weights {i + 1}")
             self.agent.reset_weights()
-            cumulative_return, average_last_episode_return = compute_average_return(
-                self.agent.get_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes, self.args.using_logits)
+            cumulative_return, average_last_episode_return, _ = compute_average_return(
+                self.agent.get_evaluated_policy(), self.tf_environment, self.args.evaluation_episodes)
             if average_last_episode_return > best_average_last_episode_return:
                 best_cumulative_return = cumulative_return
                 best_average_last_episode_return = average_last_episode_return
@@ -318,7 +316,7 @@ class Initializer:
         if self.args.evaluate_random_policy: # Evaluate random policy
             self.agent = RandomTFPAgent(self.environment, self.tf_environment, self.args, load=False)
             interpret = TracingInterpret(self.environment, self.tf_environment,
-                                         self.args.encoding_method, self.environment._possible_observations, self.args.using_logits)
+                                         self.args.encoding_method, self.environment._possible_observations)
             results = {}
             for refusing in [True, False]:
                 result = interpret.get_dictionary(self.agent, refusing)
@@ -340,7 +338,7 @@ class Initializer:
         logger.info("Training finished")
         if self.args.interpretation_method == "Tracing":
             interpret = TracingInterpret(self.environment, self.tf_environment,
-                                         self.args.encoding_method, self.environment._possible_observations, self.args.using_logits)
+                                         self.args.encoding_method, self.environment._possible_observations)
             for quality in ["last", "best"]:
                 logger.info(f"Interpreting agent with {quality} quality")
                 if with_refusing == None:

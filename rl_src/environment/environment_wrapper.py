@@ -64,12 +64,8 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         else:
             self.reward_shaping_function = lambda _: self.antigoal_value / 2
         self.compute_keywords()
-        self.using_logits = args.using_logits
         self.create_specifications()
-        if self.using_logits:
-            self.action_convertor = self._convert_action_with_logits
-        else:
-            self.action_convertor = self._convert_action
+        self.action_convertor = self._convert_action
 
         self.last_action = 0
         self.visited_states = []
@@ -152,26 +148,13 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             reward_spec=tensor_spec.TensorSpec(
                 shape=(), dtype=tf.float32, name="reward"),
         )
-        if self.using_logits:
-            self._action_spec = {"action": tensor_spec.BoundedTensorSpec(
-                shape=(),
-                dtype=tf.int32,
-                minimum=0,
-                maximum=len(self.action_keywords) - 1,
-                name="action"
-            ), "logits": tensor_spec.TensorSpec(
-                shape=(len(self.action_keywords),),
-                dtype=tf.float32,
-                name="logits"
-            )}
-        else:
-            self._action_spec = tensor_spec.BoundedTensorSpec(
-                shape=(),
-                dtype=tf.int32,
-                minimum=0,
-                maximum=len(self.action_keywords) - 1,
-                name="action"
-            )
+        self._action_spec = tensor_spec.BoundedTensorSpec(
+            shape=(),
+            dtype=tf.int32,
+            minimum=0,
+            maximum=len(self.action_keywords) - 1,
+            name="action"
+        )
         self._output_spec = tensor_spec.BoundedTensorSpec(
             shape=(len(self.action_keywords)),
             dtype=tf.int32,
@@ -254,26 +237,6 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         action = choice_list.index(act_keyword)
         return action
 
-    def _convert_action_with_logits(self, action):
-        """Converts the action from the RL agent to the action used by the Storm model. Uses logits.
-           More experimental feature than used one.
-        """
-        logits = action["logits"]
-        action = action["action"]
-
-        if self.is_legal_action(action):
-            self.last_action = action
-            action = self._convert_action(action)
-        else:
-            actions = tf.argsort(logits, direction='DESCENDING')
-            for act in actions:
-                if self.is_legal_action(act):
-                    action = act
-                    break
-            self.last_action = action
-            action = self._convert_action(action)
-        return action
-
     def compute_square_root_distance_from_goal(self):
         """Computes the square root distance from the goal. Used for reward shaping."""
         self.simulator.set_observation_mode(
@@ -307,6 +270,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
     def evaluate_simulator(self):
         """Evaluates the simulator and returns the current time step. Primarily used to determine, whether the state is the last one or not."""
         self.labels = list(self.simulator._report_labels())
+        self.flag_goal = False
         if self._num_steps >= self._max_steps:
             self._finished = True
             self._current_time_step = self.get_max_step_finish_timestep()
@@ -315,19 +279,20 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation=self.get_observation(), reward=self.reward, discount=self.discount)
         # elif self.simulator.is_done() and ("goal" in labels or "done" in labels or "((x = 2) & (y = 0))" in labels or labels == self.special_labels):
         elif self.simulator.is_done() and self.is_goal_state(self.labels):
-            # logging.info("Goal reached!")
+            logging.info("Goal reached!")
             self._finished = True
+            self.flag_goal = True
             self.virtual_value = self.goal_value
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.goal_value + self.reward)
         elif self.simulator.is_done() and "traps" in self.labels:
-            # logging.info("Trapped!")
+            logging.info("Trapped!")
             self._finished = True
             self.virtual_value = self.antigoal_value
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.antigoal_value + self.reward)
         else:  # Ended, but not in goal state :/
-            # logging.info(f"Ended, but not in a goal state: {self.labels}")
+            logging.info(f"Ended, but not in a goal state: {self.labels}")
             self._finished = True
             self.virtual_value = self.antigoal_value
             self._current_time_step = ts.termination(
@@ -365,9 +330,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             action = self.action_convertor(action)
             stepino = self.simulator.step(int(action))
         else:
-            if self.using_logits:
-                action = self.action_convertor(action)
-            elif not self.is_legal_action(action):
+            if not self.is_legal_action(action):
                 if self.randomizing_illegal_actions:
                     action = self.get_random_legal_action()
                     penalty = self.randomizing_penalty
