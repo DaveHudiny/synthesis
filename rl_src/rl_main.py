@@ -22,8 +22,6 @@ import tensorflow as tf
 
 tf.autograph.set_verbosity(0)
 
-
-
 from environment.pomdp_builder import *
 from environment.environment_wrapper import *
 from agents.evaluators import *
@@ -63,27 +61,14 @@ def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, 
     with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/labels.pickle", "wb") as f:
         pickle.dump(labels, f)
 
-def save_statistics(name_of_experiment, model, learning_method, stats_without_ending, stats_with_ending, losses, goal_value = 150):
-    """ Save statistics for Paynt oracle.
-    Args:
-        name_of_experiment (str): Name of the experiment.
-        model (str): The name of the model.
-        learning_method (str): The learning method.
-        stats_without_ending (list): The statistics without virtual goal.
-        stats_with_ending (list): The statistics with virtual goal.
-        losses (list): The losses.
-    """
-    if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
-        os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
-    with open(f"{name_of_experiment}/{model}_{learning_method}/average_return_without_final.txt", "w") as f:
-        f.write(str(stats_without_ending))
-    with open(f"{name_of_experiment}/{model}_{learning_method}/average_return_with_final.txt", "w") as f:
-        f.write(str(stats_with_ending))
-    with open(f"{name_of_experiment}/{model}_{learning_method}/losses.txt", "w") as f:
-        f.write(str(losses))
-    with open(f"{name_of_experiment}/{model}_{learning_method}/goal_value.txt", "w") as f:
-        f.write(str(goal_value))
-
+def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result : EvaluationResults):
+    if os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training.json"):
+        i = 1
+        while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):
+            i += 1
+        evaluation_result.save_to_json(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json")
+    else:
+        evaluation_result.save_to_json(f"{name_of_experiment}/{model}_{learning_method}_training.json")
 
 class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
@@ -257,7 +242,7 @@ class Initializer:
         logger.info("Agent with best ")
         self.agent.load_agent()
 
-    def select_agent_type(self, learning_method=None, fsc_pre_init=False):
+    def select_agent_type(self, learning_method=None):
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
         
         Args:
@@ -275,13 +260,11 @@ class Initializer:
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "PPO":
             self.agent = Recurrent_PPO_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder, 
-                fsc_pre_init=fsc_pre_init)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "Stochastic_PPO":
             self.args.prefer_stochastic = True
             self.agent = Recurrent_PPO_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder, 
-                fsc_pre_init=fsc_pre_init)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
@@ -292,7 +275,7 @@ class Initializer:
         
         Args:
             fsc_pre_init (bool, optional): Whether to pre-initialize the FSC. Defaults to False."""
-        self.select_agent_type(fsc_pre_init=fsc_pre_init)
+        self.select_agent_type()
         if self.args.restart_weights > 0:
             self.select_best_starting_weights()
 
@@ -381,9 +364,8 @@ if __name__ == "__main__":
                             args.learning_method, "last_with_refusing", 
                             result["last_with_refusing"][0], result["last_with_refusing"][1], 
                             result["last_with_refusing"][2])
-        save_statistics(args.experiment_directory, args.agent_name, args.learning_method, 
-                        initializer.agent.stats_without_ending,
-                        initializer.agent.stats_with_ending, initializer.agent.losses)
+        save_statistics_to_new_json(args.experiment_directory, args.agent_name, args.learning_method,
+                                    initializer.agent.evaluation_result)
         save_dictionaries(args.experiment_directory, args.agent_name,
                         args.learning_method, "best_without_refusing", result["best_without_refusing"][0], 
                         result["best_without_refusing"][1], result["best_without_refusing"][2])
@@ -393,6 +375,6 @@ if __name__ == "__main__":
     else:
         save_dictionaries(args.experiment_directory, args.agent_name,
                         args.learning_method, args.with_refusing, result[0], result[1], result[2])
-        save_statistics(args.experiment_directory, args.agent_name, args.learning_method, initializer.agent.stats_without_ending,
-                        initializer.agent.stats_with_ending, initializer.agent.losses)
+        save_statistics_to_new_json(args.experiment_directory, args.agent_name, args.learning_method,
+                                    initializer.agent.evaluation_result)
     

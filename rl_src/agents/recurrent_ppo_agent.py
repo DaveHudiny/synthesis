@@ -39,8 +39,7 @@ logger = logging.getLogger(__name__)
 
 class Recurrent_PPO_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
-                 args, load=False, agent_folder=None, fsc_critic_flag : bool = False, fsc_critic : FSC = None,
-                 fsc_pre_init : bool = False):
+                 args, load=False, agent_folder=None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(

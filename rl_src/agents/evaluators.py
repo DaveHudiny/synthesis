@@ -26,14 +26,16 @@ class EvaluationResults:
 
     def save_to_json(self, filename):
         import json
-        with open(filename + ".json", "w") as file:
+        with open(filename, "w") as file:
             _dict_ = self.__dict__.copy()
             del _dict_["best_updated"]
+            for key in _dict_:
+                _dict_[key] = str(_dict_[key])
             json.dump(_dict_, file)
 
     def load_from_json(self, filename):
-        import json
-        with open(filename + ".json", "r") as file:
+        import json # TODO probably not working with float32 conversion
+        with open(filename, "r") as file:
             json_dict = json.load(file)
             self.__dict__.update(json_dict)
 
@@ -61,6 +63,8 @@ class EvaluationResults:
             self.best_updated = True
         if reach_prob > self.best_reach_prob:
             self.best_reach_prob = reach_prob
+        
+        print(self.__dict__)
 
     def add_loss(self, loss):
         """Add loss to the list of losses."""
@@ -103,6 +107,7 @@ def compute_average_return(policy, tf_environment, num_episodes=30, environment:
     avg_return = total_return / num_episodes
     avg_episode_return = episode_return / num_episodes
     reach_prob = goal_visited / num_episodes
+    
     if updator is not None:
-        updator(avg_return, avg_episode_return, reach_prob)
-    return avg_return, avg_episode_return, reach_prob
+        updator(avg_return.numpy()[0], avg_episode_return.numpy(), reach_prob)
+    return avg_return.numpy()[0], avg_episode_return.numpy(), reach_prob

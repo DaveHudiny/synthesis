@@ -3,11 +3,14 @@
 # Login: xhudak03
 # File: interface.py
 
-from rl_main import Initializer, ArgsEmulator, save_dictionaries, save_statistics
+from rl_main import Initializer, ArgsEmulator, save_dictionaries, save_statistics_to_new_json
+
 
 import os
 
 import logging
+
+from agents.evaluators import EvaluationResults
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,8 @@ def get_dictionaries(args, with_refusing=False):
     initializer = Initializer(args)
     dictionaries = initializer.main(with_refusing=with_refusing)
     return dictionaries
+
+
 
 
 def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", refusing=None, 
@@ -59,9 +64,13 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
             labels = dicts[2]
             save_dictionaries(name_of_experiment, model, learning_method,
                               refusing, obs_action_dict, memory_dict, labels)
-            
-    save_statistics(name_of_experiment, model, learning_method, initializer.agent.stats_without_ending, 
-                    initializer.agent.stats_with_ending, initializer.agent.losses, args.evaluation_goal)
+
+    # Save evaluation results, if file exists, write to new file.
+    save_statistics_to_new_json(name_of_experiment, model, learning_method, 
+                                initializer.agent.evaluation_result)
+    
+    # Old way of saving statistics        
+    # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models"):
@@ -77,7 +86,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
                                     restart_weights=3, learning_method=learning_method, action_filtering=False, reward_shaping=False,
-                                    nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    nr_runs=150, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=150, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=25)
 
                 run_single_experiment(

@@ -38,7 +38,7 @@ class TracingInterpret(Interpret):
     Result of the tracing is a dictionary of observations to actions, which is usable by the Paynt."""
 
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
-                 encoding_type="One-Hot", possible_observations=None, using_logits=False):
+                 encoding_type="One-Hot", possible_observations=None):
         """Initializes the TracingInterpret class.
 
         Args:
@@ -46,14 +46,12 @@ class TracingInterpret(Interpret):
             tf_environment (tf_py_environment.TFPyEnvironment): The environment to be traced in TensorFlow format.
             encoding_type (str, optional): The encoding type of the observations. Defaults to "One-Hot".
             possible_observations (list, optional): The list of possible observations. Important when working with One-Hot encoding. Defaults to None."
-            using_logits (bool, optional): Whether the agent uses logits. Defaults to False.
         """
         self.environment = environment
         self.tf_environment = tf_environment
         self.obs_action_dict = {}
         self.encoding_type = encoding_type
         self.possible_observations = possible_observations
-        self.using_logits = using_logits
 
     def create_observation_prioritizer_by_sorting(self, obs_act_dict_counts):
         """Creates the observation prioritizer by sorting the observations.
@@ -185,10 +183,7 @@ class TracingInterpret(Interpret):
         if agent is None:
             raise ValueError("Agent must be provided.")
         self.obs_act_dict = {}
-        if self.using_logits:
-            policy = tf.function(agent.compute_logit_policy)
-        else:
-            policy = tf.function(agent.get_evaluated_policy().action)
+        policy = tf.function(agent.get_evaluated_policy().action)
         result_info = ResultInfo()
         step_rewards = []
         final_rewards = []
