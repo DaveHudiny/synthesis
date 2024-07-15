@@ -64,8 +64,9 @@ class SynthesizerPOMDP:
     def synthesize(self, family, print_stats=True, timer = None):
         synthesizer = self.synthesizer(self.quotient)
         family.constraint_indices = self.quotient.design_space.constraint_indices
-        assignment = synthesizer.synthesize(family, keep_optimum=True, print_stats=print_stats, timer=timer)
-        self.total_iters += synthesizer.stat.iterations_mdp
+        assignment = synthesizer.synthesize(family, keep_optimum=True, print_stats=print_stats)
+        iters_mdp = synthesizer.stat.iterations_mdp if synthesizer.stat.iterations_mdp is not None else 0
+        self.total_iters += iters_mdp
         return assignment
 
     # iterative strategy using Storm analysis to enhance the synthesis
