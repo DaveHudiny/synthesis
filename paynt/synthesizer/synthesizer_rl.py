@@ -19,6 +19,85 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from enum import Enum
+
+class SAYNT_Modes(Enum):
+    BELIEF = 1
+    CUTOFF_FSC = 2
+    CUTOFF_SCHEDULER = 3
+
+class SAYNT_STEP:
+    """Class for step in SAYNT algorithm.
+    """
+    def __init__(self, action = 0, memory_update = 0, new_mode : SAYNT_Modes = SAYNT_Modes.BELIEF):
+        """Initialization of the step.
+        Args:
+            action: Action.
+            observation: Observation.
+            reward: Reward.
+            next_state: Next state.
+        """
+        self.action = action
+        self.memory_update = memory_update
+        self.new_mode = new_mode
+        self
+
+class SAYNT_Simulation_Controller:
+    """Class for controller applicable in Storm simulator (or similar).
+    """
+    MODES = ["BELIEF", "Cutoff_FSC", "Scheduler"]
+    def __init__(self, saynt_result, num_observations : int = None, observation_labels = None, action_labels = None):
+        """Initialization of the controller.
+        Args:
+            saynt_result: Result of the SAYNT algorithm.
+        """
+        self.saynt_result = saynt_result
+        self.current_state = None
+        self.current_mode = SAYNT_Modes.BELIEF
+
+        self.num_observations = num_observations
+        self.observation_labels = observation_labels
+        self.action_labels = action_labels
+
+    def get_next_action(self, state):
+        """Get the next action.
+        Args:
+            state: Current state.
+        Returns:
+            str: Next action.
+        """
+        self.current_state = state
+        if self.current_mode == SAYNT_Modes.BELIEF:
+            return self.get_next_action_belief()
+        elif self.current_mode == SAYNT_Modes.CUTOFF_FSC:
+            return self.get_next_action_cutoff_fsc()
+        elif self.current_mode == SAYNT_Modes.CUTOFF_SCHEDULER:
+            return self.get_next_action_cutoff_scheduler()
+        else:
+            raise ValueError("Unknown mode")
+
+        
+    def get_next_action_belief(self):
+        """Get the next action in belief mode.
+        Returns:
+            str: Next action.
+        """
+        pass
+
+    def get_next_action_cutoff_fsc(self):
+        """Get the next action in cutoff FSC mode.
+        Returns:
+            str: Next action.
+        """
+        pass
+    
+    def get_next_action_cutoff_scheduler(self):
+        """Get the next action in cutoff scheduler mode.
+        Returns:
+            str: Next action.
+        """
+        pass
+
 class Synthesizer_RL:
     """Class for the interface between RL and PAYNT.
     """
@@ -80,7 +159,10 @@ class Synthesizer_RL:
             fsc (FSC): FSC data.
             soft_decision (bool, optional): Whether to use soft decision. Defaults to False.
         """
-        self.initializer.agent.load_agent()
+        try:
+            self.initializer.agent.load_agent()
+        except:
+            logger.info("Agent not loaded, training from scratch.")
         self.initializer.agent.init_fsc_policy_driver(self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier)
         self.initializer.agent.train_agent_off_policy(iterations)
 

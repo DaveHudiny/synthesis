@@ -150,7 +150,7 @@ class Recurrent_PPO_agent(FatherAgent):
     
     def create_recurrent_actor_net_demasked(self, tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
         preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (50, 50)
+        layer_params = (64, 64)
         actor_net = tf_agents.networks.actor_distribution_rnn_network.ActorDistributionRnnNetwork(
             tf_environment.observation_spec()["observation"],
             action_spec,
@@ -165,7 +165,7 @@ class Recurrent_PPO_agent(FatherAgent):
 
     def create_recurrent_value_net_demasked(self, tf_environment: tf_py_environment.TFPyEnvironment):
         preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (50, 50)
+        layer_params = (64, 64)
         value_net = tf_agents.networks.value_rnn_network.ValueRnnNetwork(
             tf_environment.observation_spec()["observation"],
             preprocessing_layers=preprocessing_layer,

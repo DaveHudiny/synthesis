@@ -63,8 +63,6 @@ class EvaluationResults:
             self.best_updated = True
         if reach_prob > self.best_reach_prob:
             self.best_reach_prob = reach_prob
-        
-        print(self.__dict__)
 
     def add_loss(self, loss):
         """Add loss to the list of losses."""
