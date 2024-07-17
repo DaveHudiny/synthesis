@@ -80,7 +80,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN"]:
-            if any(keyword in model for keyword in ["network", "geo", "maze", "rocks"]):
+            if any(not keyword in model for keyword in ["intercept"]):
                 continue
             for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
@@ -94,4 +94,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_large_more_steps", "./models_large")
+    run_experiments("experiments_large_more_steps", "./models")

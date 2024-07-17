@@ -27,6 +27,8 @@ from environment.environment_wrapper import *
 from agents.evaluators import *
 
 from tf_agents.environments import tf_py_environment
+from tf_agents.environments import parallel_py_environment
+
 from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
 from agents.recurrent_ppo_agent import Recurrent_PPO_agent
@@ -197,8 +199,8 @@ class Initializer:
         properties = self.parse_properties()
         pomdp_args = POMDP_arguments(
             self.args.prism_model, properties, self.args.constants)
-        self.pomdp_model = POMDP_builder.build_model(
-            pomdp_args)
+        return POMDP_builder.build_model(pomdp_args)
+        
 
     def run_agent(self):
         num_steps = 10
@@ -211,11 +213,15 @@ class Initializer:
                 time_step = next_time_step
                 is_last = time_step.is_last()
 
-    def initialize_environment(self, vectorized : bool = True):
-        self.initialize_prism_model()
+    def initialize_environment(self, parallelized : bool = False, num_parallel_environments : int = 4):
+        self.pomdp_model = self.initialize_prism_model()
         logger.info("Model initialized")
         self.environment = Environment_Wrapper(self.pomdp_model, self.args)
-        tf_environment = tf_py_environment.TFPyEnvironment(
+        if parallelized:
+            tf_environment = parallel_py_environment.ParallelPyEnvironment(
+                [self.environment.create_new_environment] * num_parallel_environments)
+        else:
+            tf_environment = tf_py_environment.TFPyEnvironment(
             self.environment)
         logger.info("Environment initialized")
         return tf_environment
@@ -227,22 +233,23 @@ class Initializer:
         agent.save_agent()
         for i in range(self.args.restart_weights):
             logger.info(f"Restarting weights {i + 1}")
-            self.agent.reset_weights()
+            agent.reset_weights()
             cumulative_return, average_last_episode_return, _ = compute_average_return(
-                self.agent.get_evaluation_policy(), self.tf_environment, self.args.evaluation_episodes)
+                agent.get_evaluation_policy(), self.tf_environment, self.args.evaluation_episodes)
             if average_last_episode_return > best_average_last_episode_return:
                 best_cumulative_return = cumulative_return
                 best_average_last_episode_return = average_last_episode_return
-                self.agent.save_agent()
+                agent.save_agent()
             elif average_last_episode_return == best_average_last_episode_return:
                 if cumulative_return > best_cumulative_return:
                     best_cumulative_return = cumulative_return
-                    self.agent.save_agent()
+                    agent.save_agent()
         logger.info(f"Best cumulative return: {best_cumulative_return}")
         logger.info(
             f"Best average last episode return: {best_average_last_episode_return}")
         logger.info("Agent with best ")
-        self.agent.load_agent()
+        agent.load_agent()
+        return agent
 
 
     def select_agent_type(self, learning_method=None):
@@ -273,12 +280,13 @@ class Initializer:
                 "Learning method not recognized or implemented yet.")
         return agent
 
-    def initialize_agent(self, fsc_pre_init=False):
+    def initialize_agent(self) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
         
-        Args:
-            fsc_pre_init (bool, optional): Whether to pre-initialize the FSC. Defaults to False."""
+        returns:
+            FatherAgent: The initialized agent.
+        """
         agent = self.select_agent_type()
         if self.args.restart_weights > 0:
             agent = self.select_best_starting_weights(agent)
@@ -292,9 +300,42 @@ class Initializer:
         policy = FSC_Policy(self.tf_environment, fsc,
                             tf_action_keywords=action_keywords)
         return policy
+    
+    def evaluate_random_policy(self):
+        agent = RandomTFPAgent(self.environment, self.tf_environment, self.args, load=False)
+        interpret = TracingInterpret(self.environment, self.tf_environment,
+                                     self.args.encoding_method, self.environment._possible_observations)
+        results = {}
+        for refusing in [True, False]:
+            result = interpret.get_dictionary(agent, refusing)
+            if refusing:
+                results["best_with_refusing"] = result
+                results["last_with_refusing"] = result
+            else:
+                results["best_without_refusing"] = result
+                results["last_without_refusing"] = result
+        return results
+    
+    def tracing_interpretation(self, with_refusing=None):
+        interpret = TracingInterpret(self.environment, self.tf_environment,
+                                         self.args.encoding_method, self.environment._possible_observations)
+        for quality in ["last", "best"]:
+            logger.info(f"Interpreting agent with {quality} quality")
+            if with_refusing == None:
+                self.agent.load_agent(quality == "best")
+                if self.args.learning_method == "PPO" and self.args.prefer_stochastic:
+                    self.agent.set_agent_stochastic()
+                elif self.args.learning_method == "PPO":
+                    self.agent.set_agent_greedy()
+                result[f"{quality}_with_refusing"] = interpret.get_dictionary(
+                    self.agent, with_refusing=True)
+                result[f"{quality}_without_refusing"] = interpret.get_dictionary(
+                    self.agent, with_refusing=False)
+            else:
+                result = interpret.get_dictionary(self.agent, with_refusing)
+        return result
 
     def main(self, with_refusing=False):
-        # random.seed(self.args.seed)
         try:
             self.asserts()
         except ValueError as e:
@@ -302,21 +343,9 @@ class Initializer:
             return
         self.tf_environment = self.initialize_environment()
         if self.args.evaluate_random_policy: # Evaluate random policy
-            self.agent = RandomTFPAgent(self.environment, self.tf_environment, self.args, load=False)
-            interpret = TracingInterpret(self.environment, self.tf_environment,
-                                         self.args.encoding_method, self.environment._possible_observations)
-            results = {}
-            for refusing in [True, False]:
-                result = interpret.get_dictionary(self.agent, refusing)
-                if refusing:
-                    results["best_with_refusing"] = result
-                    results["last_with_refusing"] = result
-                else:
-                    results["best_without_refusing"] = result
-                    results["last_without_refusing"] = result
-            return results
+            return self.evaluate_random_policy()
 
-        self.initialize_agent()
+        self.agent = self.initialize_agent()
         if self.args.learning_method == "PPO" and self.args.set_ppo_on_policy:
             self.agent.train_agent_on_policy(self.args.nr_runs)
         else:
@@ -325,22 +354,7 @@ class Initializer:
         result = {}
         logger.info("Training finished")
         if self.args.interpretation_method == "Tracing":
-            interpret = TracingInterpret(self.environment, self.tf_environment,
-                                         self.args.encoding_method, self.environment._possible_observations)
-            for quality in ["last", "best"]:
-                logger.info(f"Interpreting agent with {quality} quality")
-                if with_refusing == None:
-                    self.agent.load_agent(quality == "best")
-                    if self.args.learning_method == "PPO" and self.args.prefer_stochastic:
-                        self.agent.set_agent_stochastic()
-                    elif self.args.learning_method == "PPO":
-                        self.agent.set_agent_greedy()
-                    result[f"{quality}_with_refusing"] = interpret.get_dictionary(
-                        self.agent, with_refusing=True)
-                    result[f"{quality}_without_refusing"] = interpret.get_dictionary(
-                        self.agent, with_refusing=False)
-                else:
-                    result = interpret.get_dictionary(self.agent, with_refusing)
+            result = self.tracing_interpretation(with_refusing)
         else:
             raise ValueError(
                 "Interpretation method not recognized or implemented yet.")

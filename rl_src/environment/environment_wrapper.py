@@ -81,6 +81,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.special_labels = ["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))"]
         # Sometimes the goal is not labeled as "goal" but as "done" or as a special label.
         self.virtual_value = tf.constant(0.0, dtype=tf.float32)
+        
+    def create_new_environment(self):
+        return Environment_Wrapper(self.stormpy_model, self.args)
 
     def select_reward_shaping_function(self):
         """Selects the reward shaping function based on the arguments. Experimental feature."""

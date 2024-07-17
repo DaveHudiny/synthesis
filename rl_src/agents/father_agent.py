@@ -197,6 +197,29 @@ class FatherAgent(AbstractAgent):
             return self.agent.policy
         else:
             return self.wrapper
+        
+    def train_agent_on_policy(self, iterations: int):
+        """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
+
+        Args:
+            iterations (int): Number of iterations to train agent.
+        """
+        self.agent.train = common.function(self.agent.train)
+        self.best_iteration_final = 0.0
+        self.best_iteration_steps = -tf.float32.min
+        dataset = self.replay_buffer.as_dataset(
+                sample_batch_size=self.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=True)
+        iterator = iter(dataset)
+
+        self.replay_buffer.clear()
+        for i in range(iterations):
+            self.driver.run()
+            experience, _ = next(iterator)
+            train_loss = self.agent.train(experience)
+            self.replay_buffer.clear()
+            logger.info(f"Step: {i}, Training loss: {train_loss.loss}")
+            if i % 100 == 0:
+                self.evaluate_agent()
 
     def train_agent_off_policy(self, num_iterations):
         """Train the agent off-policy. Main training function for the agents.
