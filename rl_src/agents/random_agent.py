@@ -19,7 +19,7 @@ class RandomTFPAgent(FatherAgent):
                                     observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter)
         self.policy_state = None
 
-    def get_evaluated_policy(self):
+    def get_evaluation_policy(self):
         return self.agent
     
     def get_initial_state(self, batch_size=None):

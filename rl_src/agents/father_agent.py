@@ -191,7 +191,7 @@ class FatherAgent(AbstractAgent):
             num_episodes=1
         )
 
-    def get_evaluated_policy(self):
+    def get_evaluation_policy(self):
         """Get the policy for evaluation. Important, when using wrappers."""
         if self.wrapper is None:
             return self.agent.policy
@@ -213,7 +213,7 @@ class FatherAgent(AbstractAgent):
         self.agent.train = common.function(self.agent.train)
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
-                self.get_evaluated_policy(), self.tf_environment, self.evaluation_episodes, self.environment)))
+                self.get_evaluation_policy(), self.tf_environment, self.evaluation_episodes, self.environment)))
         for _ in range(5): # Because sometimes FSC driver does not sample enough trajectories to start learning.
             self.driver.run()
         for i in range(num_iterations):
@@ -251,7 +251,7 @@ class FatherAgent(AbstractAgent):
         else:
             evaluation_episodes = self.evaluation_episodes
         compute_average_return(
-                self.get_evaluated_policy(), self.tf_environment, evaluation_episodes, self.environment, self.evaluation_result.update)
+                self.get_evaluation_policy(), self.tf_environment, evaluation_episodes, self.environment, self.evaluation_result.update)
         
         self.set_agent_stochastic()
         if self.evaluation_result.best_updated:

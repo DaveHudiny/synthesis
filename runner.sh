@@ -9,6 +9,17 @@ run_fsc_synthesis() {
     done
 }
 
+run_saynt() {
+    source prerequisites/venv/bin/activate
+    echo "Running SAYNT"
+    for entry in `ls $1`; do
+        if [ -d $1/$entry ]; then
+            echo "Running Paynt on $entry"
+            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 600 30 5 $1/$entry > $1/$entry/saynt.log
+        fi
+    done
+}
+
 run_with_dictionary() {
     source prerequisites/venv/bin/activate
     echo "Running Paynt with --dictionary"
@@ -40,17 +51,42 @@ run_with_dictionary() {
 }
 
 if [ ! -d "prerequisites/venv" ]; then
-    echo "Virtual environment not found. Please run setup.sh first."
+    echo "Virtual environment not found. Please run install.sh first."
     exit 1
 fi
+
+print_help() {
+    echo "Simple runner for experiments with PAYNT"
+    echo ""
+    echo "Usage 1: $0 --fsc-synthesis <path-to-models>"
+    echo "  - performs FSC synthesis on all models in the given directory."
+    echo ""
+    echo "Usage 2: $0 <path-to-models> <path-to-dictionary> <timeout>"
+    echo "  - runs PAYNT on all models in the given directory with the given dictionary and timeout."
+    echo ""
+    echo "Usage 3: $0 --saynt <path-to-models>"
+    echo "  - runs SAYNT on all models in the given directory."
+    echo ""
+    echo "Usage 4: $0 --help"
+    echo "  - prints this help message."
+}
 
 if [ "$#" -lt 1 ]; then
-    echo "Usage 1: --fsc-synthesis <path-to-models>"
-    echo "Usage 2: $0 <path-to-models> <path-to-dictionary> <timeout>"
+    print_help
     exit 1
 fi
 
-if [ $1 == "--fsc-synthesis" ]; then
+if [ $1 == "--help" ]; then
+    print_help
+    exit 1
+
+if [ $1 == "--saynt" ]; then
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: $0 --saynt <path-to-models>"
+        exit 1
+    fi
+    run_saynt $2
+elif [ $1 == "--fsc-synthesis" ]; then
     if [ "$#" -ne 3 ]; then
         echo "Usage: $0 --fsc-synthesis <path-to-models> <timeout>"
         exit 1

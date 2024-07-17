@@ -1,0 +1,175 @@
+2024-07-16 14:50:25,979 - cli.py - This is Paynt version 0.1.0.
+2024-07-16 14:50:25,979 - sketch.py - loading sketch from rl_src/models_large/rocks-4-20/sketch.templ ...
+2024-07-16 14:50:25,979 - sketch.py - assuming sketch in PRISM format...
+2024-07-16 14:50:25,983 - prism_parser.py - PRISM model type: POMDP
+2024-07-16 14:50:25,983 - prism_parser.py - loading properties from rl_src/models_large/rocks-4-20/sketch.props ...
+2024-07-16 14:50:25,983 - prism_parser.py - found the following specification: optimality: R{"cost"}min=? [F "goal"] 
+2024-07-16 14:50:29,010 - sketch.py - sketch parsing OK
+2024-07-16 14:50:29,012 - sketch.py - constructed explicit quotient having 215041 states and 1187841 actions
+2024-07-16 14:50:29,012 - sketch.py - found the following specification optimality: R{"cost"}min=? [F "goal"] 
+2024-07-16 14:50:29,542 - pomdp.py - constructed POMDP having 6721 observations.
+2024-07-16 14:50:31,703 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-07-16 14:50:32,344 - pomdp.py - constructed quotient MDP having 215041 states and 1187841 actions.
+2024-07-16 14:50:35,979 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-07-16 14:50:36,448 - __init__.py - Creating converter from 7 to 5
+2024-07-16 14:50:36,448 - __init__.py - Creating converter from 5 to 7
+2024-07-16 14:50:36,448 - __init__.py - Creating converter from 7 to 5
+2024-07-16 14:50:36,448 - __init__.py - Creating converter from 5 to 7
+2024-07-16 14:50:37,945 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-07-16 14:50:37,945 - synthesizer_pomdp.py - Storm settings: iterative - (600, 30, 5), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-07-16 14:50:37,948 - synthesizer.py - synthesis initiated, design space: 1e4731
+2024-07-16 14:50:37,948 - synthesizer_pomdp.py - Timeout for PAYNT started
+> progress 0.0%, elapsed 3 s, estimated 3769723 s (43 days), iters = {MDP: 3}
+> progress 0.0%, elapsed 7 s, estimated 7147510 s (82 days), iters = {MDP: 5}
+> progress 0.0%, elapsed 10 s, estimated 10546538 s (122 days), iters = {MDP: 7}
+> progress 0.0%, elapsed 14 s, estimated 14044154 s (162 days), iters = {MDP: 9}
+> progress 0.0%, elapsed 17 s, estimated 17507369 s (202 days), iters = {MDP: 11}
+> progress 0.0%, elapsed 20 s, estimated 20890741 s (241 days), iters = {MDP: 13}
+> progress 0.0%, elapsed 24 s, estimated 24266914 s (280 days), iters = {MDP: 15}
+> progress 0.0%, elapsed 27 s, estimated 27610455 s (319 days), iters = {MDP: 17}
+2024-07-16 14:51:08,627 - synthesizer_ar_storm.py - Pausing synthesis
+2024-07-16 14:51:08,704 - storm_pomdp_control.py - Interactive Storm started
+2024-07-16 14:51:08,704 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-07-16 14:52:31,779 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 75.99999231825966 | Time elapsed = 116.6s | FSC size = 31253
+
+
+------------------------------------
+
+PAYNT results: 
+None
+controller size: None
+
+Storm results: 
+75.99999231825966
+controller size: 31253
+
+------------------------------------
+
+2024-07-16 14:52:35,847 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-07-16 14:52:36,721 - synthesizer_ar_storm.py - Resuming synthesis
+2024-07-16 14:52:36,722 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-07-16 14:52:36,737 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4730 to 1
+2024-07-16 14:52:36,760 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4730 to 1
+2024-07-16 14:52:36,778 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4730 to 1
+2024-07-16 14:52:36,796 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4729 to 1
+2024-07-16 14:52:36,814 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4729 to 1
+2024-07-16 14:52:36,832 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4728 to 1
+2024-07-16 14:52:36,850 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4728 to 1
+2024-07-16 14:52:36,868 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4728 to 1
+2024-07-16 14:52:36,889 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4727 to 1
+2024-07-16 14:52:36,911 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4727 to 1
+2024-07-16 14:52:36,934 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4727 to 1
+2024-07-16 14:52:36,956 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4726 to 1
+2024-07-16 14:52:36,978 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4726 to 1
+2024-07-16 14:52:37,017 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4725 to 1
+2024-07-16 14:52:37,050 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e4724 to 1
+2024-07-16 14:52:37,101 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 15, Subfamilies - 127
+> progress 0.0%, elapsed 30 s, estimated 30698522 s (355 days), iters = {MDP: 19}
+2024-07-16 14:52:37,314 - synthesizer_ar_storm.py - Main family synthesis done
+2024-07-16 14:52:37,314 - synthesizer_ar_storm.py - Subfamilies buffer contains: 127 families
+> progress 0.0%, elapsed 34 s, estimated 34507573 s (1 year), iters = {MDP: 36}
+> progress 0.0%, elapsed 37 s, estimated 37833980 s (1 year), iters = {MDP: 38}
+> progress 0.0%, elapsed 41 s, estimated 41608432 s (1 year), iters = {MDP: 40}
+> progress 0.0%, elapsed 44 s, estimated 44843909 s (1 year), iters = {MDP: 42}
+> progress 0.0%, elapsed 48 s, estimated 48102334 s (1 year), iters = {MDP: 44}
+> progress 0.0%, elapsed 51 s, estimated 51408163 s (1 year), iters = {MDP: 46}
+> progress 0.0%, elapsed 54 s, estimated 54755548 s (1 year), iters = {MDP: 48}
+> progress 0.0%, elapsed 58 s, estimated 58084858 s (1 year), iters = {MDP: 50}
+2024-07-16 14:53:05,901 - synthesizer_ar_storm.py - Pausing synthesis
+2024-07-16 14:53:05,957 - storm_pomdp_control.py - Interactive Storm resumed
+2024-07-16 14:53:05,957 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-07-16 14:53:11,963 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 75.99999231825966 | Time elapsed = 158.8s | FSC size = 31253
+
+
+------------------------------------
+
+PAYNT results: 
+None
+controller size: None
+
+Storm results: 
+75.99999231825966
+controller size: 31253
+
+------------------------------------
+
+2024-07-16 14:53:18,050 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-07-16 14:53:18,924 - synthesizer_ar_storm.py - Resuming synthesis
+2024-07-16 14:53:18,925 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-07-16 14:53:19,457 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 0, Subfamilies - 161
+> progress 0.0%, elapsed 61 s, estimated 61409979 s (1 year), iters = {MDP: 52}
+> progress 0.0%, elapsed 64 s, estimated 64741977 s (2 years), iters = {MDP: 54}
+> progress 0.0%, elapsed 68 s, estimated 68145444 s (2 years), iters = {MDP: 56}
+> progress 0.0%, elapsed 71 s, estimated 71493989 s (2 years), iters = {MDP: 58}
+> progress 0.0%, elapsed 75 s, estimated 75753493 s (2 years), iters = {MDP: 60}
+> progress 0.0%, elapsed 80 s, estimated 80627026 s (2 years), iters = {MDP: 62}
+> progress 0.0%, elapsed 85 s, estimated 85543824 s (2 years), iters = {MDP: 64}
+2024-07-16 14:53:50,215 - synthesizer_ar_storm.py - Pausing synthesis
+2024-07-16 14:53:50,298 - storm_pomdp_control.py - Interactive Storm resumed
+2024-07-16 14:53:50,298 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-07-16 14:53:56,303 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 75.99999231825966 | Time elapsed = 205.1s | FSC size = 31253
+
+
+------------------------------------
+
+PAYNT results: 
+None
+controller size: None
+
+Storm results: 
+75.99999231825966
+controller size: 31253
+
+------------------------------------
+
+2024-07-16 14:54:04,375 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-07-16 14:54:05,242 - synthesizer_ar_storm.py - Resuming synthesis
+2024-07-16 14:54:05,242 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-07-16 14:54:05,839 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 0, Subfamilies - 191
+> progress 0.0%, elapsed 90 s, estimated 90512239 s (2 years), iters = {MDP: 66}
+> progress 0.0%, elapsed 98 s, estimated 98415824 s (3 years), iters = {MDP: 68}
+> progress 0.0%, elapsed 103 s, estimated 103816074 s (3 years), iters = {MDP: 69}
+> progress 0.0%, elapsed 109 s, estimated 109199456 s (3 years), iters = {MDP: 70}
+2024-07-16 14:54:41,613 - synthesizer_ar_storm.py - Pausing synthesis
+2024-07-16 14:54:41,698 - storm_pomdp_control.py - Interactive Storm resumed
+2024-07-16 14:54:41,698 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-07-16 14:54:47,819 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 75.99999231825966 | Time elapsed = 273.6s | FSC size = 31253
+
+
+------------------------------------
+
+PAYNT results: 
+None
+controller size: None
+
+Storm results: 
+75.99999231825966
+controller size: 31253
+
+------------------------------------
+
+2024-07-16 14:55:12,938 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-07-16 14:55:13,661 - synthesizer_ar_storm.py - Resuming synthesis
+2024-07-16 14:55:13,662 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-07-16 14:55:14,270 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 0, Subfamilies - 201
+> progress 0.0%, elapsed 126 s, estimated 126286091 s (4 years), iters = {MDP: 71}
+> progress 0.0%, elapsed 131 s, estimated 131584324 s (4 years), iters = {MDP: 72}
+> progress 0.0%, elapsed 136 s, estimated 136907713 s (4 years), iters = {MDP: 73}
+> progress 0.0%, elapsed 142 s, estimated 142238902 s (4 years), iters = {MDP: 74}
+> progress 0.0%, elapsed 147 s, estimated 147603220 s (4 years), iters = {MDP: 75}

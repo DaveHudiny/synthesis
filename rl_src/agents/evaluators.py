@@ -42,7 +42,7 @@ class EvaluationResults:
     def __str__(self):
         return str(self.__dict__)
 
-    def update(self, avg_episodic_return, avg_return, reach_prob):
+    def update(self, avg_return, avg_episodic_return, reach_prob):
         """Update the evaluation results in the object of EvaluationResults.
 
         Args:

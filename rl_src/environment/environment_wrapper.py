@@ -11,6 +11,8 @@ from stormpy import storage
 import stormpy
 
 from tf_agents.environments import py_environment
+
+
 from tf_agents.trajectories import time_step as ts
 import tensorflow as tf
 from tf_agents.specs import tensor_spec
@@ -50,6 +52,12 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                                           dtype=tf.float32)
         self.discount = tf.constant(args.discount_factor, dtype=tf.float32)
         self.reward = tf.constant(0.0, dtype=tf.float32)
+        if len(list(stormpy_model.reward_models.keys())) == 0:
+            self.reward_multiplier = -1.0
+        elif list(stormpy_model.reward_models.keys())[0] in "rewards":
+            self.reward_multiplier = 1.0 
+        else: # If 1.0, rewards are positive, if -1.0, rewards are negative
+            self.reward_multiplier = -1.0
         self._finished = False
         self._num_steps = 0
         self._current_time_step = None
@@ -215,9 +223,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         observation = stepino[0]
         if stepino[1] == []:
             self.empty_reward = True
-            reward = tf.constant(-1.0, dtype=tf.float32)
+            reward = tf.constant(self.reward_multiplier, dtype=tf.float32)
         else:
-            reward = tf.constant(stepino[1][0], dtype=tf.float32)
+            reward = tf.constant(self.reward_multiplier * stepino[1][0], dtype=tf.float32)
         if not self.action_filtering:
             mask = self.compute_mask()
             observation_vector = self.create_encoding(observation)
@@ -226,7 +234,10 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         else:
             observation_tensor = self.create_encoding(observation)
         self._current_time_step = ts.TimeStep(
-            observation=observation_tensor, reward=-reward, discount=self.discount, step_type=ts.StepType.FIRST)
+            observation=observation_tensor, 
+            reward=self.reward_multiplier * reward, 
+            discount=self.discount, 
+            step_type=ts.StepType.FIRST)
         
         return self._current_time_step
 
@@ -234,7 +245,10 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         """Converts the action from the RL agent to the action used by the Storm model."""
         act_keyword = self.act_to_keywords[int(action)]
         choice_list = self.get_choice_labels()
-        action = choice_list.index(act_keyword)
+        try:
+            action = choice_list.index(act_keyword)
+        except: # Should not happen much, probably broken agent!
+            action = 0
         return action
 
     def compute_square_root_distance_from_goal(self):
@@ -321,7 +335,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         else:
             return ts.termination(observation=self.get_observation(), reward=tf.constant(self.reward, dtype=tf.float32))
 
-    def _do_step(self, action):
+    def _do_step_in_simulator(self, action):
         """Does the step in the Stormpy simulator."""
         penalty = 0.0
         self._num_steps += 1
@@ -349,13 +363,13 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         if self._finished:
             self._finished = False
             return self._reset()
-        stepino, penalty = self._do_step(action)
+        stepino, penalty = self._do_step_in_simulator(action)
         simulator_reward = stepino[1][-1] if not self.empty_reward else 1.0
         if "traps" in list(self.simulator._report_labels()):
             self.reward = self.antigoal_value
         else:
             self.reward = tf.constant(
-                -simulator_reward + penalty, dtype=tf.float32)
+                self.reward_multiplier * simulator_reward + penalty, dtype=tf.float32)
         return self.evaluate_simulator()
 
     def current_time_step(self) -> ts.TimeStep:
@@ -392,7 +406,3 @@ class Environment_Wrapper(py_environment.PyEnvironment):
     def get_simulator_observation(self):
         observation = self.simulator._report_observation()
         return observation
-
-
-if __name__ == "__main__":
-    pass

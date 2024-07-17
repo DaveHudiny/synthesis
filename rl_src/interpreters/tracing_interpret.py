@@ -183,7 +183,7 @@ class TracingInterpret(Interpret):
         if agent is None:
             raise ValueError("Agent must be provided.")
         self.obs_act_dict = {}
-        policy = tf.function(agent.get_evaluated_policy().action)
+        policy = tf.function(agent.get_evaluation_policy().action)
         result_info = ResultInfo()
         step_rewards = []
         final_rewards = []
