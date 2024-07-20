@@ -1,9 +1,26 @@
 # File: rl_main.py
-# Description: Main for Reinforcement Learning Approach. If you want to train agents, 
+# Description: Main for Reinforcement Learning Approach. If you want to train agents,
 #              you can do it here, or you can use --reinforcement-learning option within PAYNT
 # Author: David Hudak
 # Login: xhudak03
 
+import pickle
+from agents.father_agent import FatherAgent
+from agents.random_agent import RandomTFPAgent
+from agents.policies.fsc_policy import FSC_Policy, FSC
+from interpreters.tracing_interpret import TracingInterpret
+from interpreters.model_free_interpret import ModelFreeInterpret, ModelInfo
+from agents.recurrent_ppo_agent import Recurrent_PPO_agent
+from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
+from agents.recurrent_dqn_agent import Recurrent_DQN_agent
+from tf_agents.environments import parallel_py_environment
+from tf_agents.environments import tf_py_environment
+from agents.evaluators import *
+from environment.environment_wrapper import *
+from environment.pomdp_builder import *
+import tensorflow as tf
+import sys
+import os
 import rl_parser
 
 import logging
@@ -12,36 +29,16 @@ logger = logging.getLogger(__name__)
 
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0' 
-import sys
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 
 sys.path.append("../")
 
-import tensorflow as tf
 
 tf.autograph.set_verbosity(0)
 
-from environment.pomdp_builder import *
-from environment.environment_wrapper import *
-from agents.evaluators import *
-
-from tf_agents.environments import tf_py_environment
-from tf_agents.environments import parallel_py_environment
-
-from agents.recurrent_dqn_agent import Recurrent_DQN_agent
-from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
-from agents.recurrent_ppo_agent import Recurrent_PPO_agent
-from interpreters.model_free_interpret import ModelFreeInterpret, ModelInfo
-from interpreters.tracing_interpret import TracingInterpret
-
-from agents.policies.fsc_policy import FSC_Policy, FSC
-from agents.random_agent import RandomTFPAgent
-from agents.father_agent import FatherAgent
-
-import pickle
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 
 def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
     """ Save dictionaries for Paynt oracle.
@@ -64,14 +61,33 @@ def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, 
     with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/labels.pickle", "wb") as f:
         pickle.dump(labels, f)
 
-def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result : EvaluationResults, args: dict = None):
+
+def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result: EvaluationResults, args: dict = None):
+    """ Save statistics to a new JSON file.
+    Args:
+        name_of_experiment (str): Name of the experiment.
+        model (str): The name of the model.
+        learning_method (str): The learning method.
+        evaluation_result (EvaluationResults): The evaluation results.
+        args (dict, optional): The arguments. Defaults to None.
+    """
+    if args is None:
+        max_steps = 300
+    else:
+        max_steps = args.max_steps
+
+    evaluation_result.set_experiment_settings(
+        learning_algorithm=learning_method, model=model, max_steps=max_steps)
     if os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training.json"):
         i = 1
         while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):
             i += 1
-        evaluation_result.save_to_json(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json")
+        evaluation_result.save_to_json(
+            f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json")
     else:
-        evaluation_result.save_to_json(f"{name_of_experiment}/{model}_{learning_method}_training.json")
+        evaluation_result.save_to_json(
+            f"{name_of_experiment}/{model}_{learning_method}_training.json")
+
 
 class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
@@ -82,8 +98,8 @@ class ArgsEmulator:
                  buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
-                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False, 
-                 evaluate_random_policy : bool = False, prefer_stochastic : bool = False):
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False,
+                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
@@ -200,7 +216,6 @@ class Initializer:
         pomdp_args = POMDP_arguments(
             self.args.prism_model, properties, self.args.constants)
         return POMDP_builder.build_model(pomdp_args)
-        
 
     def run_agent(self):
         num_steps = 10
@@ -213,7 +228,7 @@ class Initializer:
                 time_step = next_time_step
                 is_last = time_step.is_last()
 
-    def initialize_environment(self, parallelized : bool = False, num_parallel_environments : int = 4):
+    def initialize_environment(self, parallelized: bool = False, num_parallel_environments: int = 4):
         self.pomdp_model = self.initialize_prism_model()
         logger.info("Model initialized")
         self.environment = Environment_Wrapper(self.pomdp_model, self.args)
@@ -222,11 +237,11 @@ class Initializer:
                 [self.environment.create_new_environment] * num_parallel_environments)
         else:
             tf_environment = tf_py_environment.TFPyEnvironment(
-            self.environment)
+                self.environment)
         logger.info("Environment initialized")
         return tf_environment
 
-    def select_best_starting_weights(self, agent : FatherAgent):
+    def select_best_starting_weights(self, agent: FatherAgent):
         logger.info("Selecting best starting weights")
         best_cumulative_return, best_average_last_episode_return, _ = compute_average_return(
             agent.get_evaluation_policy(), self.tf_environment, self.args.evaluation_episodes)
@@ -251,10 +266,9 @@ class Initializer:
         agent.load_agent()
         return agent
 
-
     def select_agent_type(self, learning_method=None):
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
-        
+
         Args:
             learning_method (str, optional): The learning method. If set, the learning method is used instead of the one from the args object. Defaults to None.
         Raises:
@@ -283,7 +297,7 @@ class Initializer:
     def initialize_agent(self) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
-        
+
         returns:
             FatherAgent: The initialized agent.
         """
@@ -300,9 +314,10 @@ class Initializer:
         policy = FSC_Policy(self.tf_environment, fsc,
                             tf_action_keywords=action_keywords)
         return policy
-    
+
     def evaluate_random_policy(self):
-        agent = RandomTFPAgent(self.environment, self.tf_environment, self.args, load=False)
+        agent = RandomTFPAgent(
+            self.environment, self.tf_environment, self.args, load=False)
         interpret = TracingInterpret(self.environment, self.tf_environment,
                                      self.args.encoding_method, self.environment._possible_observations)
         results = {}
@@ -315,10 +330,10 @@ class Initializer:
                 results["best_without_refusing"] = result
                 results["last_without_refusing"] = result
         return results
-    
+
     def tracing_interpretation(self, with_refusing=None):
         interpret = TracingInterpret(self.environment, self.tf_environment,
-                                         self.args.encoding_method, self.environment._possible_observations)
+                                     self.args.encoding_method, self.environment._possible_observations)
         for quality in ["last", "best"]:
             logger.info(f"Interpreting agent with {quality} quality")
             if with_refusing == None:
@@ -342,7 +357,7 @@ class Initializer:
             logger.error(e)
             return
         self.tf_environment = self.initialize_environment()
-        if self.args.evaluate_random_policy: # Evaluate random policy
+        if self.args.evaluate_random_policy:  # Evaluate random policy
             return self.evaluate_random_policy()
 
         self.agent = self.initialize_agent()
@@ -359,7 +374,7 @@ class Initializer:
             raise ValueError(
                 "Interpretation method not recognized or implemented yet.")
         return result
-    
+
     def __del__(self):
         if hasattr(self, "tf_environment") and self.tf_environment is not None:
             try:
@@ -377,23 +392,24 @@ if __name__ == "__main__":
     result = initializer.main(args.with_refusing)
     if args.with_refusing is None:
         save_dictionaries(args.experiment_directory, args.agent_name,
-                        args.learning_method, "best_with_refusing", result["best_with_refusing"][0], result["best_with_refusing"][1], result["best_with_refusing"][2])
-        
+                          args.learning_method, "best_with_refusing", result["best_with_refusing"][0], result["best_with_refusing"][1], result["best_with_refusing"][2])
+
         save_dictionaries(args.experiment_directory, args.agent_name,
-                            args.learning_method, "last_with_refusing", 
-                            result["last_with_refusing"][0], result["last_with_refusing"][1], 
-                            result["last_with_refusing"][2])
+                          args.learning_method, "last_with_refusing",
+                          result["last_with_refusing"][0], result["last_with_refusing"][1],
+                          result["last_with_refusing"][2])
         save_statistics_to_new_json(args.experiment_directory, args.agent_name, args.learning_method,
                                     initializer.agent.evaluation_result, args)
         save_dictionaries(args.experiment_directory, args.agent_name,
-                        args.learning_method, "best_without_refusing", result["best_without_refusing"][0], 
-                        result["best_without_refusing"][1], result["best_without_refusing"][2])
+                          args.learning_method, "best_without_refusing", result[
+                              "best_without_refusing"][0],
+                          result["best_without_refusing"][1], result["best_without_refusing"][2])
         save_dictionaries(args.experiment_directory, args.agent_name,
-                            args.learning_method, "last_without_refusing", result["last_without_refusing"][0], 
-                            result["last_without_refusing"][1], result["last_without_refusing"][2])
+                          args.learning_method, "last_without_refusing", result[
+                              "last_without_refusing"][0],
+                          result["last_without_refusing"][1], result["last_without_refusing"][2])
     else:
         save_dictionaries(args.experiment_directory, args.agent_name,
-                        args.learning_method, args.with_refusing, result[0], result[1], result[2])
+                          args.learning_method, args.with_refusing, result[0], result[1], result[2])
         save_statistics_to_new_json(args.experiment_directory, args.agent_name, args.learning_method,
                                     initializer.agent.evaluation_result, args)
-    

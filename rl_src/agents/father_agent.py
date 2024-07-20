@@ -52,7 +52,8 @@ class FatherAgent(AbstractAgent):
         fsc = FSC.from_json(fsc_json)
         return fsc
 
-    def common_init(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
+    def common_init(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
+                    args, load=False, agent_folder=None, wrapper: tf_agents.policies.tf_policy.TFPolicy = None):
         """Common initialization of the agents.
 
         Args:
@@ -75,7 +76,7 @@ class FatherAgent(AbstractAgent):
             self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         if args.paynt_fsc_imitation:
             self.fsc = self.load_fsc(args.paynt_fsc_json)
-        self.wrapper = None
+        self.wrapper = wrapper
         self.evaluation_result = EvaluationResults(environment.goal_value)
 
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):

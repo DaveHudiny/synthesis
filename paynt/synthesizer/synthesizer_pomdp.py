@@ -27,6 +27,7 @@ import pickle
 
 from rl_src.rl_main import ArgsEmulator
 
+
 import os
 
 from time import sleep
@@ -221,31 +222,31 @@ class SynthesizerPOMDP:
         self.interactive_queue.put("terminate")
         self.synthesis_terminate = True
         paynt_thread.join()
+    
 
         self.storm_control.interactive_storm_terminate()
 
         self.saynt_timer.stop()
-        run_rl = False
+        run_rl = True
         if run_rl:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", 
                                 max_steps=300, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4)
-            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=False)
+            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
             first_time = True
             repeated_fsc = False
             soft_decision = False
             while True:
                 logger.info("Training agent with FSC.")
                 if first_time or repeated_fsc:
-                    rl_synthesiser.train_agent_with_fsc_data(100, self.storm_control.latest_paynt_result_fsc, soft_decision=soft_decision)
+                    rl_synthesiser.train_agent_with_fsc_data(200, self.storm_control.latest_paynt_result_fsc, soft_decision=soft_decision)
                     first_time = False
                 if soft_decision:
                     rl_synthesiser.update_fsc_multiplier(0.5)
-                logger.info("Training agent for {} iterations.".format(500))
-                rl_synthesiser.train_agent(500)
-        
-
-        
-        
+                logger.info("Training agent for {} iterations.".format(3000))
+                rl_synthesiser.train_agent(3000)
+                if not repeated_fsc:
+                    break
+            rl_synthesiser.save_to_json("PAYNTc+RL")
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

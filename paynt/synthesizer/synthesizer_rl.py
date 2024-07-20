@@ -3,8 +3,9 @@
 # Login: xhudak03
 # File: synthesizer_rl.py
 
+from enum import Enum
 from rl_src.environment.environment_wrapper import Environment_Wrapper
-from rl_src.rl_main import ArgsEmulator, Initializer
+from rl_src.rl_main import ArgsEmulator, Initializer, save_statistics_to_new_json
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
 
@@ -19,17 +20,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from enum import Enum
 
 class SAYNT_Modes(Enum):
     BELIEF = 1
     CUTOFF_FSC = 2
     CUTOFF_SCHEDULER = 3
 
+
 class SAYNT_STEP:
     """Class for step in SAYNT algorithm.
     """
-    def __init__(self, action = 0, memory_update = 0, new_mode : SAYNT_Modes = SAYNT_Modes.BELIEF):
+
+    def __init__(self, action=0, memory_update=0, new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF):
         """Initialization of the step.
         Args:
             action: Action.
@@ -42,11 +44,13 @@ class SAYNT_STEP:
         self.new_mode = new_mode
         self
 
+
 class SAYNT_Simulation_Controller:
     """Class for controller applicable in Storm simulator (or similar).
     """
     MODES = ["BELIEF", "Cutoff_FSC", "Scheduler"]
-    def __init__(self, saynt_result, num_observations : int = None, observation_labels = None, action_labels = None):
+
+    def __init__(self, saynt_result, num_observations: int = None, observation_labels=None, action_labels=None):
         """Initialization of the controller.
         Args:
             saynt_result: Result of the SAYNT algorithm.
@@ -76,7 +80,6 @@ class SAYNT_Simulation_Controller:
         else:
             raise ValueError("Unknown mode")
 
-        
     def get_next_action_belief(self):
         """Get the next action in belief mode.
         Returns:
@@ -90,7 +93,7 @@ class SAYNT_Simulation_Controller:
             str: Next action.
         """
         pass
-    
+
     def get_next_action_cutoff_scheduler(self):
         """Get the next action in cutoff scheduler mode.
         Returns:
@@ -98,38 +101,41 @@ class SAYNT_Simulation_Controller:
         """
         pass
 
+
 class Synthesizer_RL:
     """Class for the interface between RL and PAYNT.
     """
-    def __init__(self, stormpy_model, args : ArgsEmulator, fsc_pre_init : bool = False, 
-                 initial_fsc_multiplier : float = 1.0):
+
+    def __init__(self, stormpy_model, args: ArgsEmulator,
+                 initial_fsc_multiplier: float = 1.0):
         """Initialization of the interface.
         Args:
             stormpy_model: Model of the environment.
             args (ArgsEmulator): Arguments for the initialization.
-            fsc_pre_init (bool, optional): Whether to initialize FSC policy. Defaults to False.
             initial_fsc_multiplier (float, optional): Initial soft FSC multiplier. Defaults to 1.0.
         """
-        
+
         self.initializer = Initializer(args, stormpy_model)
-        self.initializer.environment = Environment_Wrapper(self.initializer.pomdp_model, args)
-        self.initializer.tf_environment = tf_py_environment.TFPyEnvironment(self.initializer.environment)
+        self.initializer.environment = Environment_Wrapper(
+            self.initializer.pomdp_model, args)
+        self.initializer.tf_environment = tf_py_environment.TFPyEnvironment(
+            self.initializer.environment)
         logger.info("RL Environment initialized")
-        self.initializer.initialize_agent(fsc_pre_init)
-        self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment, 
-                                          self.initializer.args.encoding_method, 
+        self.agent = self.initializer.initialize_agent()
+        self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment,
+                                          self.initializer.args.encoding_method,
                                           possible_observations=self.initializer.environment._possible_observations)
         self.fsc_multiplier = initial_fsc_multiplier
 
-    def train_agent(self, iterations : int):
+    def train_agent(self, iterations: int):
         """Train the agent.
         Args:
             iterations (int): Number of iterations.
         """
-        self.initializer.agent.train_agent_off_policy(iterations)
-        self.initializer.agent.save_agent()
+        self.agent.train_agent_off_policy(iterations)
+        self.agent.save_agent()
 
-    def interpret_agent(self, best : bool = False, with_refusing : bool = False, greedy : bool = False):
+    def interpret_agent(self, best: bool = False, with_refusing: bool = False, greedy: bool = False):
         """Interpret the agent.
         Args:
             best (bool, optional): Whether to use the best, or the last trained agent. Defaults to False.
@@ -138,21 +144,22 @@ class Synthesizer_RL:
         Returns:
             dict: Dictionary of the interpretation.
         """
-        self.initializer.agent.load_agent(best)
-        if greedy: # Works only with agents which use policy wrapping (in our case only PPO)
-            self.initializer.agent.set_agent_stochastic()
+        self.agent.load_agent(best)
+        # Works only with agents which use policy wrapping (in our case only PPO)
+        if greedy:
+            self.agent.set_agent_stochastic()
         else:
-            self.initializer.agent.set_agent_greedy()
+            self.agent.set_agent_greedy()
         return self.interpret.get_dictionary(self.initializer.agent, with_refusing)
-    
-    def update_fsc_multiplier(self, multiplier : float):
+
+    def update_fsc_multiplier(self, multiplier: float):
         """Multiply the FSC multiplier.
         Args:
             multiplier (float): Multiplier for multiplication.
         """
         self.fsc_multiplier *= multiplier
-    
-    def train_agent_with_fsc_data(self, iterations : int, fsc : FSC, soft_decision : bool = False):
+
+    def train_agent_with_fsc_data(self, iterations: int, fsc: FSC, soft_decision: bool = False):
         """Train the agent with FSC data.
         Args:
             iterations (int): Number of iterations.
@@ -160,22 +167,31 @@ class Synthesizer_RL:
             soft_decision (bool, optional): Whether to use soft decision. Defaults to False.
         """
         try:
-            self.initializer.agent.load_agent()
+            self.agent.load_agent()
         except:
             logger.info("Agent not loaded, training from scratch.")
-        self.initializer.agent.init_fsc_policy_driver(self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier)
-        self.initializer.agent.train_agent_off_policy(iterations)
+        self.agent.init_fsc_policy_driver(
+            self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier)
+        self.agent.train_agent_off_policy(iterations)
 
-
-    def train_agent_combined_with_fsc(self, iterations : int, fsc : FSC):
-        """Train the agent combined with FSC.
+    def train_agent_combined_with_fsc(self, iterations: int, fsc: FSC):
+        """Train the agent combined with FSC. Deprecated.
         Args:
             iterations (int): Number of iterations.
             fsc (FSC): FSC data.
         """
         assert self.initializer.args.learning_method == "PPO", "FSC policy can be created only for PPO agent"
-        self.initializer.agent.wrapper._set_fsc_oracle(fsc, self.initializer.environment.action_keywords)
-        self.initializer.agent.init_collector_driver(self.initializer.tf_environment)
-        self.initializer.agent.train_agent_off_policy(iterations)
+        self.agent.wrapper._set_fsc_oracle(
+            fsc, self.initializer.environment.action_keywords)
+        self.agent.init_collector_driver(
+            self.initializer.tf_environment)
+        self.agent.train_agent_off_policy(iterations)
 
-
+    def save_to_json(self, experiment_name: str = "PAYNTc+RL"):
+        """Save the agent to JSON.
+        Args:
+            experiment_name (str): Name of the experiment.
+        """
+        evaluation_result = self.initializer.agent.evaluation_result
+        save_statistics_to_new_json(
+            experiment_name, "model", "PPO", evaluation_result, self.initializer.args)

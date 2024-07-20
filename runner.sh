@@ -15,7 +15,7 @@ run_saynt() {
     for entry in `ls $1`; do
         if [ -d $1/$entry ]; then
             echo "Running Paynt on $entry"
-            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 600 30 5 $1/$entry > $1/$entry/saynt.log
+            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 10 2 1 $1/$entry > $1/$entry/saynt_payntc_rl.log
         fi
     done
 }
@@ -79,6 +79,7 @@ fi
 if [ $1 == "--help" ]; then
     print_help
     exit 1
+fi
 
 if [ $1 == "--saynt" ]; then
     if [ "$#" -ne 2 ]; then
@@ -99,3 +100,4 @@ else
     run_with_dictionary $1 $2 $3
 fi
 
+exit 0
