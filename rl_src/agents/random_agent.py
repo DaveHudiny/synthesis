@@ -4,7 +4,7 @@
 # File: random_agent.py
 
 
-from rl_src.agents.father_agent import FatherAgent
+from agents.father_agent import FatherAgent
 
 from tf_agents.policies.random_tf_policy import RandomTFPolicy
 

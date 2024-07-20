@@ -3,7 +3,7 @@
 # Login: xhudak03
 # File: random_policy.py
 
-from rl_src.tools.encoding_methods import *
+from tools.encoding_methods import *
 from tf_agents.environments import tf_py_environment
 from tf_agents.policies.tf_policy import TFPolicy
 

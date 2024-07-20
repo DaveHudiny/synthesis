@@ -10,12 +10,15 @@ from agents.random_agent import RandomTFPAgent
 from agents.policies.fsc_policy import FSC_Policy, FSC
 from interpreters.tracing_interpret import TracingInterpret
 from interpreters.model_free_interpret import ModelFreeInterpret, ModelInfo
+
 from agents.recurrent_ppo_agent import Recurrent_PPO_agent
 from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
 from agents.recurrent_dqn_agent import Recurrent_DQN_agent
+from agents.ppo_with_qvalues_fsc import PPO_with_QValues_FSC
+
 from tf_agents.environments import parallel_py_environment
 from tf_agents.environments import tf_py_environment
-from rl_src.tools.evaluators import *
+from tools.evaluators import *
 from environment.environment_wrapper import *
 from environment.pomdp_builder import *
 import tensorflow as tf
@@ -289,6 +292,8 @@ class Initializer:
             self.args.prefer_stochastic = True
             agent = Recurrent_PPO_agent(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
+        elif learning_method == "PPO_FSC_Critic":
+            agent = PPO_with_QValues_FSC
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")

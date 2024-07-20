@@ -4,7 +4,7 @@
 # File: recurrent_ppo_agent.py
 
 from agents.father_agent import FatherAgent
-from rl_src.tools.encoding_methods import *
+from tools.encoding_methods import *
 
 import tensorflow as tf
 import tf_agents
@@ -28,6 +28,8 @@ from agents.policies.stochastic_ppo_collector_policy import Stochastic_PPO_Colle
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.fsc_policy import FSC_Policy
 
+import sys
+sys.path.append("../")
 from paynt.quotient.fsc import FSC
 
 
