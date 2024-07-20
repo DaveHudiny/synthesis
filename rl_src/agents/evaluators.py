@@ -13,16 +13,22 @@ from environment.environment_wrapper import Environment_Wrapper
 class EvaluationResults:
     """Class for storing evaluation results."""
 
-    def __init__(self, goal_value: float = 0.0):
+    def __init__(self, goal_value: tf.Tensor = tf.constant(0.0)):
         self.best_episode_return = tf.float32.min
         self.best_return = tf.float32.min
-        self.goal_value = goal_value
+        self.goal_value = goal_value.numpy()
         self.returns_episodic = []
         self.returns = []
         self.reach_probs = []
         self.best_reach_prob = 0.0
         self.losses = []
         self.best_updated = False
+        
+    def set_experiment_settings(self, learning_algorithm: str, learning_rate: float, nn_details: dict, max_steps: int):
+        self.learning_algorithm = learning_algorithm
+        self.learning_rate = learning_rate
+        self.nn_details = "Not implemented yet"
+        self.max_steps = max_steps
 
     def save_to_json(self, filename):
         import json

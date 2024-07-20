@@ -64,7 +64,7 @@ def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, 
     with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/labels.pickle", "wb") as f:
         pickle.dump(labels, f)
 
-def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result : EvaluationResults):
+def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result : EvaluationResults, args: dict = None):
     if os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training.json"):
         i = 1
         while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):
@@ -384,7 +384,7 @@ if __name__ == "__main__":
                             result["last_with_refusing"][0], result["last_with_refusing"][1], 
                             result["last_with_refusing"][2])
         save_statistics_to_new_json(args.experiment_directory, args.agent_name, args.learning_method,
-                                    initializer.agent.evaluation_result)
+                                    initializer.agent.evaluation_result, args)
         save_dictionaries(args.experiment_directory, args.agent_name,
                         args.learning_method, "best_without_refusing", result["best_without_refusing"][0], 
                         result["best_without_refusing"][1], result["best_without_refusing"][2])
@@ -395,5 +395,5 @@ if __name__ == "__main__":
         save_dictionaries(args.experiment_directory, args.agent_name,
                         args.learning_method, args.with_refusing, result[0], result[1], result[2])
         save_statistics_to_new_json(args.experiment_directory, args.agent_name, args.learning_method,
-                                    initializer.agent.evaluation_result)
+                                    initializer.agent.evaluation_result, args)
     

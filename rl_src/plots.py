@@ -150,6 +150,7 @@ def plots_new(name, max_reward, load_files=load_files):
     plot_losses(labels, learning_algorithms=learning_algorithms, title=name +
                 " loss function (lower = better) with averaging with window = 30",
                 smoothing=True, window_size=30, save_file="./imgs/" + name + "_losses_windowed_30.pdf")
+    
 
 
 if __name__ == "__main__":
