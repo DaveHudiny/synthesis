@@ -4,7 +4,7 @@
 # File: recurrent_ppo_agent.py
 
 from agents.father_agent import FatherAgent
-from rl_src.agents.encoding_methods import *
+from rl_src.tools.encoding_methods import *
 
 import tensorflow as tf
 import tf_agents

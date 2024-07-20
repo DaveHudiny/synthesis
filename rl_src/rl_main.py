@@ -15,7 +15,7 @@ from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
 from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from tf_agents.environments import parallel_py_environment
 from tf_agents.environments import tf_py_environment
-from agents.evaluators import *
+from rl_src.tools.evaluators import *
 from environment.environment_wrapper import *
 from environment.pomdp_builder import *
 import tensorflow as tf

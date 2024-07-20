@@ -10,7 +10,7 @@ import os
 
 import logging
 
-from agents.evaluators import EvaluationResults
+from rl_src.tools.evaluators import EvaluationResults
 
 logger = logging.getLogger(__name__)
 

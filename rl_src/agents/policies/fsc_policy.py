@@ -3,7 +3,7 @@
 # Login: xhudak03
 # File: fsc_policy.py
 
-from rl_src.agents.encoding_methods import *
+from rl_src.tools.encoding_methods import *
 from tf_agents.environments import tf_py_environment
 from tf_agents.policies.tf_policy import TFPolicy
 from tf_agents.trajectories.policy_step import PolicyStep

@@ -16,9 +16,9 @@ import tensorflow as tf
 import tf_agents
 
 from environment.environment_wrapper import Environment_Wrapper
-from rl_src.agents.encoding_methods import *
+from rl_src.tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
-from agents.evaluators import *
+from rl_src.tools.evaluators import *
 from agents.policies.random_policy import Random_Policy
 from agents.policies.fsc_policy import FSC_Policy, FSC
 
