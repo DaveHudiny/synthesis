@@ -170,6 +170,31 @@ class SynthesizerPomdp:
             mem_size += 1
             
             #break
+            
+    def run_rl_synthesis(self):
+        assignment = self.storm_control.latest_paynt_result
+        # qvalues = self.quotient.compute_qvalues(assignment)
+        fsc = self.quotient.assignment_to_fsc(assignment)
+        
+        
+        args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", 
+                                max_steps=300, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4)
+        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
+        first_time = True
+        repeated_fsc = False
+        soft_decision = False
+        while True:
+            logger.info("Training agent with FSC.")
+            if first_time or repeated_fsc:
+                rl_synthesiser.train_agent_with_fsc_data(200, fsc, soft_decision=soft_decision)
+                first_time = False
+            if soft_decision:
+                rl_synthesiser.update_fsc_multiplier(0.5)
+            logger.info("Training agent for {} iterations.".format(3000))
+            rl_synthesiser.train_agent(3000)
+            if not repeated_fsc:
+                break
+        rl_synthesiser.save_to_json("PAYNTc+RL")
 
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
@@ -229,26 +254,10 @@ class SynthesizerPomdp:
         self.storm_control.interactive_storm_terminate()
 
         self.saynt_timer.stop()
-        run_rl = True
-        if run_rl:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", 
-                                max_steps=300, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4)
-            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
-            first_time = True
-            repeated_fsc = False
-            soft_decision = False
-            while True:
-                logger.info("Training agent with FSC.")
-                if first_time or repeated_fsc:
-                    rl_synthesiser.train_agent_with_fsc_data(200, self.storm_control.latest_paynt_result_fsc, soft_decision=soft_decision)
-                    first_time = False
-                if soft_decision:
-                    rl_synthesiser.update_fsc_multiplier(0.5)
-                logger.info("Training agent for {} iterations.".format(3000))
-                rl_synthesiser.train_agent(3000)
-                if not repeated_fsc:
-                    break
-            rl_synthesiser.save_to_json("PAYNTc+RL")
+        
+        run_rl = False
+        if run_rl: # Not functional now!
+            self.run_rl_synthesis()
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):
