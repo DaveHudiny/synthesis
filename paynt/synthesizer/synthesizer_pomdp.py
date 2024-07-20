@@ -32,7 +32,7 @@ import os
 
 from time import sleep
 
-class SynthesizerPOMDP:
+class SynthesizerPomdp:
 
     # If true explore only the main family
     incomplete_exploration = False
@@ -62,7 +62,9 @@ class SynthesizerPOMDP:
                 self.synthesizer.saynt_timer = self.saynt_timer
                 self.storm_control.saynt_timer = self.saynt_timer
 
-    def synthesize(self, family, print_stats=True, timer = None):
+    def synthesize(self, family=None, print_stats=True):
+        if family is None:
+            family = self.quotient.design_space
         synthesizer = self.synthesizer(self.quotient)
         family.constraint_indices = self.quotient.design_space.constraint_indices
         assignment = synthesizer.synthesize(family, keep_optimum=True, print_stats=print_stats)
