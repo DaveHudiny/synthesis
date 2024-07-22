@@ -8,6 +8,7 @@ from environment.environment_wrapper import Environment_Wrapper
 
 from agents.networks.value_networks import FSC_Critic
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
+from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 
 from tools.encoding_methods import observation_and_action_constraint_splitter
 
@@ -17,8 +18,9 @@ from tf_agents.agents.ppo import ppo_agent
 
 import tensorflow as tf
 
-import sys
-sys.path.append("../")
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PPO_with_QValues_FSC(FatherAgent):
@@ -34,9 +36,7 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.actor_net = create_recurrent_actor_net_demasked(
             tf_environment, tf_environment.action_spec())
         self.critic_net = FSC_Critic(
-            tf_environment.observation_spec()["observation"], qvalues_table=self.qvalues_function, 
-            observation_and_action_constraint_splitter=observation_and_action_constraint_splitter
-            )
+            tf_environment.observation_spec()["observation"], qvalues_table=self.qvalues_function)
         self.agent = ppo_agent.PPOAgent(
             tf_environment.time_step_spec(),
             tf_environment.action_spec(),
@@ -50,18 +50,20 @@ class PPO_with_QValues_FSC(FatherAgent):
             debug_summaries=False,
             summarize_grads_and_vars=False,
             train_step_counter=tf.Variable(0),
-            importance_ratio_clipping=0.2,
-            value_pred_loss_coef=0.5,
-            entropy_regularization=0.0,
-            policy_l2_reg=0.0,
-            value_function_l2_reg=0.0,
-            gae_lambda=0.95,
-            reward_normalization=False,
-            clip_rewards=False,
-            gradient_clipping=None,
-            check_numerics=False,
+            lambda_value=0.5,
             name='PPO_with_QValues_FSC'
         )
+        self.agent.initialize()
+        
+        self.agent.initialize()
+        logging.info("Agent initialized")
+        self.init_replay_buffer(tf_environment)
+        logging.info("Replay buffer initialized")
+        self.init_ppo_collector_driver(tf_environment)
+        self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
+                                           is_greedy=False)
+        if load:
+            self.load_agent()
             
 
     def get_evaluation_policy(self):

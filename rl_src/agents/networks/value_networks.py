@@ -36,11 +36,19 @@ class FSC_Critic(network.Network):
         if self.observation_and_action_constraint_splitter is not None:
             observations, _ = self.observation_and_action_constraint_splitter(observations)
         if network_state == (): # unknown memory node, return average
-            value = tf.reduce_mean(self.qvalues_table[observations], 1)
+            print(self.qvalues_table[observations])
+            
+            value = tf.reduce_mean(self.qvalues_table[observations])
+            network_state = ()
         else:
             value = self.qvalues_table[observations][network_state]
-        return value
+            network_state = () # TODO: Implement memory-based version
+        return value, network_state
         
-    def call(self, observations, step_type, network_state):
-        value = self.qvalues_function(observations, step_type, network_state)
-        tf.squeeze(value, axis=-1)
+    def call(self, observations, step_type, network_state, training=False):
+        print("Observations:", observations)
+        exit(0)
+        value, network_state = self.qvalues_function(observations, step_type, network_state)
+        value = tf.squeeze(value, axis=-1)
+        print(value)
+        return value, network_state

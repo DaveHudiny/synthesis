@@ -61,6 +61,8 @@ def compute_qvalues_function(sketch_path, properties_path):
     assert k == memory_size
     for state in range(quotient.pomdp.nr_states):
         for memory in range(memory_size):
+            if qvalues[state][memory] is None:
+                qvalues[state][memory] = float("-inf")
             print(f"s = {state}, n = {memory}, Q(s,n) = {qvalues[state][memory]}")
     return qvalues
 

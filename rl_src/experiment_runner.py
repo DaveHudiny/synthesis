@@ -80,7 +80,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic"]:
-            if learning_method != "PPO":
+            if learning_method != "PPO_FSC_Critic":
                 continue
             if any(not keyword in model for keyword in ["mba"]):
                 continue
