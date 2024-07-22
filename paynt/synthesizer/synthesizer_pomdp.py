@@ -161,6 +161,8 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(self.storm_control.latest_paynt_result)
+                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
+                # self.storm_control.qvalues = self.quotient.compute_qvalues(assignment)
 
             self.storm_control.update_data()
 
@@ -172,20 +174,20 @@ class SynthesizerPomdp:
             #break
             
     def run_rl_synthesis(self):
-        assignment = self.storm_control.latest_paynt_result
-        # qvalues = self.quotient.compute_qvalues(assignment)
-        fsc = self.quotient.assignment_to_fsc(assignment)
+        # assignment = self.storm_control.latest_paynt_result
+        # qvalues = self.storm_control.qvalues
+        fsc = self.storm_control.latest_paynt_result_fsc
         
         
         args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", 
-                                max_steps=300, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4)
+                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4)
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
         first_time = True
         repeated_fsc = False
         soft_decision = False
         while True:
             logger.info("Training agent with FSC.")
-            if first_time or repeated_fsc:
+            if fsc and (first_time or repeated_fsc):
                 rl_synthesiser.train_agent_with_fsc_data(200, fsc, soft_decision=soft_decision)
                 first_time = False
             if soft_decision:
@@ -255,7 +257,7 @@ class SynthesizerPomdp:
 
         self.saynt_timer.stop()
         
-        run_rl = False
+        run_rl = True
         if run_rl: # Not functional now!
             self.run_rl_synthesis()
 

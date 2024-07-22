@@ -16,6 +16,9 @@ from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
 from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from agents.ppo_with_qvalues_fsc import PPO_with_QValues_FSC
 
+import paynt.parser.sketch
+import paynt.synthesizer.synthesizer_pomdp
+
 from tf_agents.environments import parallel_py_environment
 from tf_agents.environments import tf_py_environment
 from tools.evaluators import *
@@ -41,6 +44,24 @@ tf.autograph.set_verbosity(0)
 
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+def compute_qvalues_function(sketch_path, properties_path):
+    quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path)
+    k = 3 # May be unkown?
+    quotient.set_imperfect_memory_size(k)
+    synthesizer = paynt.synthesizer.synthesizer_pomdp.SynthesizerPomdp(quotient, method="ar", storm_control=None)
+    assignment = synthesizer.synthesize()
+
+    # before the quotient is modified we can use this assignment to compute Q-values
+    assert assignment is not None
+    qvalues = quotient.compute_qvalues(assignment)
+
+    # note Q(s,n) may be None if (s,n) exists in the unfolded POMDP but is not reachable in the induced DTMC
+    memory_size = len(qvalues[0])
+    assert k == memory_size
+    for state in range(quotient.pomdp.nr_states):
+        for memory in range(memory_size):
+            print(f"s = {state}, n = {memory}, Q(s,n) = {qvalues[state][memory]}")
 
 
 def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
@@ -269,11 +290,12 @@ class Initializer:
         agent.load_agent()
         return agent
 
-    def select_agent_type(self, learning_method=None):
+    def select_agent_type(self, learning_method=None, qvalues_table=None) -> FatherAgent:
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
 
         Args:
             learning_method (str, optional): The learning method. If set, the learning method is used instead of the one from the args object. Defaults to None.
+            qvalues_table (dict, optional): The Q-values table created by the product of POMDPxFSC. Defaults to None.
         Raises:
             ValueError: If the learning method is not recognized or implemented yet."""
         if learning_method is None:
@@ -293,7 +315,13 @@ class Initializer:
             agent = Recurrent_PPO_agent(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "PPO_FSC_Critic":
-            agent = PPO_with_QValues_FSC
+            if qvalues_table is None: # If Q-values table is not provided, compute it from the sketch and properties
+                sketch_path = args.prism_model
+                props_path = args.prism_properties
+                qvalues_table = compute_qvalues_function(sketch_path, props_path)
+            agent = PPO_with_QValues_FSC(
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
+                qvalues_table=qvalues_table)
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")

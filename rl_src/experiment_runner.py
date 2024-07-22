@@ -89,7 +89,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
                                     restart_weights=3, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
-                                    max_steps=150, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=30)
+                                    max_steps=400, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=30)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")

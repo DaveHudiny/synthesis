@@ -192,6 +192,6 @@ class Synthesizer_RL:
         Args:
             experiment_name (str): Name of the experiment.
         """
-        evaluation_result = self.initializer.agent.evaluation_result
+        evaluation_result = self.agent.evaluation_result
         save_statistics_to_new_json(
             experiment_name, "model", "PPO", evaluation_result, self.initializer.args)
