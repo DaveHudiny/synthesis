@@ -80,9 +80,9 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic"]:
-            if learning_method != "PPO_FSC_Critic":
+            if learning_method != "PPO":
                 continue
-            if any(not keyword in model for keyword in ["intercept"]):
+            if any(not keyword in model for keyword in ["mba"]):
                 continue
             for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")

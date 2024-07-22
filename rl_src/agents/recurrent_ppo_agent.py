@@ -28,6 +28,10 @@ from agents.policies.stochastic_ppo_collector_policy import Stochastic_PPO_Colle
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.fsc_policy import FSC_Policy
 
+from agents.networks.value_networks import create_recurrent_value_net_demasked
+from agents.networks.actor_networks import create_recurrent_actor_net_demasked
+
+
 import sys
 sys.path.append("../")
 from paynt.quotient.fsc import FSC
@@ -49,10 +53,10 @@ class Recurrent_PPO_agent(FatherAgent):
 
         action_spec = tf_environment.action_spec()
 
-        self.actor_net = self.create_recurrent_actor_net_demasked(
+        self.actor_net = create_recurrent_actor_net_demasked(
             tf_environment, action_spec)
         
-        self.value_net = self.create_recurrent_value_net_demasked(
+        self.value_net = create_recurrent_value_net_demasked(
                 tf_environment)
         
         time_step_spec = tf_environment.time_step_spec()
@@ -68,7 +72,8 @@ class Recurrent_PPO_agent(FatherAgent):
             train_step_counter=train_step_counter,
             greedy_eval=False,
             discount_factor=0.9,
-            lambda_value=0.5
+            use_gae=True,
+            lambda_value=0.5,
         )
         self.agent.initialize()
         logging.info("Agent initialized")
@@ -127,34 +132,6 @@ class Recurrent_PPO_agent(FatherAgent):
             num_episodes=1
         )
     
-    def create_recurrent_actor_net_demasked(self, tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
-        preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (64, 64)
-        actor_net = tf_agents.networks.actor_distribution_rnn_network.ActorDistributionRnnNetwork(
-            tf_environment.observation_spec()["observation"],
-            action_spec,
-            preprocessing_layers=preprocessing_layer,
-            input_fc_layer_params=layer_params,
-            output_fc_layer_params=None,
-            lstm_size=(64,),
-            conv_layer_params=None,
-        )
-        return actor_net
-
-
-    def create_recurrent_value_net_demasked(self, tf_environment: tf_py_environment.TFPyEnvironment):
-        preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (64, 64)
-        value_net = tf_agents.networks.value_rnn_network.ValueRnnNetwork(
-            tf_environment.observation_spec()["observation"],
-            preprocessing_layers=preprocessing_layer,
-            input_fc_layer_params=layer_params,
-            output_fc_layer_params=None,
-            lstm_size=(64,),
-            conv_layer_params=None
-        )
-        return value_net
-
     def reset_weights(self):
         for layer in self.agent._actor_net.layers:
             if isinstance(layer, tf.keras.layers.LSTM):

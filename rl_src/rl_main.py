@@ -47,7 +47,7 @@ tf.autograph.set_verbosity(0)
 
 def compute_qvalues_function(sketch_path, properties_path):
     quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path)
-    k = 3 # May be unkown?
+    k = 2 # May be unknown?
     quotient.set_imperfect_memory_size(k)
     synthesizer = paynt.synthesizer.synthesizer_pomdp.SynthesizerPomdp(quotient, method="ar", storm_control=None)
     assignment = synthesizer.synthesize()
@@ -62,6 +62,7 @@ def compute_qvalues_function(sketch_path, properties_path):
     for state in range(quotient.pomdp.nr_states):
         for memory in range(memory_size):
             print(f"s = {state}, n = {memory}, Q(s,n) = {qvalues[state][memory]}")
+    return qvalues
 
 
 def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
@@ -316,8 +317,8 @@ class Initializer:
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "PPO_FSC_Critic":
             if qvalues_table is None: # If Q-values table is not provided, compute it from the sketch and properties
-                sketch_path = args.prism_model
-                props_path = args.prism_properties
+                sketch_path = self.args.prism_model
+                props_path = self.args.prism_properties
                 qvalues_table = compute_qvalues_function(sketch_path, props_path)
             agent = PPO_with_QValues_FSC(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
