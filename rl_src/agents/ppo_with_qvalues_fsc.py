@@ -15,8 +15,10 @@ from tools.encoding_methods import observation_and_action_constraint_splitter
 
 from tf_agents.environments import tf_py_environment
 from tf_agents.agents.ppo import ppo_agent
+from tf_agents.policies import py_tf_eager_policy
 
 import tensorflow as tf
+import tf_agents
 
 import logging
 
@@ -36,9 +38,14 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.actor_net = create_recurrent_actor_net_demasked(
             tf_environment, tf_environment.action_spec())
         self.critic_net = FSC_Critic(
-            tf_environment.observation_spec()["observation"], qvalues_table=self.qvalues_function)
+            tf_environment.observation_spec()["observation"], 
+            qvalues_table=self.qvalues_function, nr_observations=environment.nr_obs)
+        
+        time_step_spec = tf_environment.time_step_spec()
+        time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
+        
         self.agent = ppo_agent.PPOAgent(
-            tf_environment.time_step_spec(),
+            time_step_spec,
             tf_environment.action_spec(),
             actor_net=self.actor_net,
             value_net=self.critic_net,
@@ -51,7 +58,8 @@ class PPO_with_QValues_FSC(FatherAgent):
             summarize_grads_and_vars=False,
             train_step_counter=tf.Variable(0),
             lambda_value=0.5,
-            name='PPO_with_QValues_FSC'
+            name='PPO_with_QValues_FSC',
+            greedy_eval=False
         )
         self.agent.initialize()
         
@@ -59,21 +67,20 @@ class PPO_with_QValues_FSC(FatherAgent):
         logging.info("Agent initialized")
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_ppo_collector_driver(tf_environment)
+        self.init_collector_driver(tf_environment)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         if load:
             self.load_agent()
             
-
-    def get_evaluation_policy(self):
-        return self.agent.collect_policy
-
-    def get_initial_state(self, batch_size=None):
-        return self.agent.collect_policy.get_initial_state(batch_size)
-
-    def save_agent(self, best=False):
-        self.agent.save()
-
-    def load_agent(self, best=False):
-        self.agent.load()
+    def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
+        self.collect_policy_wrapper = Policy_Mask_Wrapper(
+            self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
+        eager = py_tf_eager_policy.PyTFEagerPolicy(
+            self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
+        observer = self.demasked_observer()
+        self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+            tf_environment,
+            eager,
+            observers=[observer],
+            num_steps=self.traj_num_steps)

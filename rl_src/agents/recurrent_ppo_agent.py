@@ -79,28 +79,13 @@ class Recurrent_PPO_agent(FatherAgent):
         logging.info("Agent initialized")
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_ppo_collector_driver(tf_environment)
+        self.init_collector_driver(tf_environment)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         if load:
             self.load_agent()
 
-    def demasked_observer(self):
-        """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""
-        def _add_batch(item: Trajectory):
-            modified_item = Trajectory(
-                step_type=item.step_type,
-                observation=item.observation["observation"],
-                action=item.action,
-                policy_info=(item.policy_info),
-                next_step_type=item.next_step_type,
-                reward=item.reward,
-                discount=item.discount,
-            )
-            self.replay_buffer._add_batch(modified_item)
-        return _add_batch
-
-    def init_collector_driver(self, tf_environment):
+    def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
         eager = py_tf_eager_policy.PyTFEagerPolicy(
@@ -182,6 +167,3 @@ class Recurrent_PPO_agent(FatherAgent):
             conv_layer_params=None
         )
         return value_net
-
-    def init_ppo_collector_driver(self, tf_environment):
-        self.init_collector_driver(tf_environment)

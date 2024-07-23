@@ -42,7 +42,6 @@ class SAYNT_STEP:
         self.action = action
         self.memory_update = memory_update
         self.new_mode = new_mode
-        self
 
 
 class SAYNT_Simulation_Controller:

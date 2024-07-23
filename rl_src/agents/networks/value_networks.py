@@ -22,10 +22,11 @@ def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEn
 
 class FSC_Critic(network.Network):
     def __init__(self, input_tensor_spec, name="FSC_QValue_Estimator", qvalues_table=None, 
-                 observation_and_action_constraint_splitter=None):
+                 observation_and_action_constraint_splitter=None, nr_observations=1):
         
         self.qvalues_table = tf.constant(qvalues_table)
         self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
+        self.nr_observations = nr_observations
         
         super(FSC_Critic, self).__init__(
             input_tensor_spec=input_tensor_spec,
@@ -33,22 +34,25 @@ class FSC_Critic(network.Network):
             name=name)
         
     def qvalues_function(self, observations, step_type, network_state):
+        if len(observations.shape) == 2: # Unbatchet observation
+            observations = tf.expand_dims(observations, axis=0)
+            
+        # Conversion of observation to integer indices -- currently implemented as additional normalised feature
+        indices = tf.zeros_like(observations[:, :, -1] * self.nr_observations, dtype=tf.int32)
+        
         if self.observation_and_action_constraint_splitter is not None:
             observations, _ = self.observation_and_action_constraint_splitter(observations)
         if network_state == (): # unknown memory node, return average
-            print(self.qvalues_table[observations])
-            
-            value = tf.reduce_mean(self.qvalues_table[observations])
+            values_rows = tf.gather(self.qvalues_table, indices)
+            values = tf.reduce_mean(values_rows, axis=-1)
             network_state = ()
         else:
-            value = self.qvalues_table[observations][network_state]
+            values = self.qvalues_table[observations][network_state]
             network_state = () # TODO: Implement memory-based version
-        return value, network_state
+        return values, network_state
         
     def call(self, observations, step_type, network_state, training=False):
-        print("Observations:", observations)
-        exit(0)
-        value, network_state = self.qvalues_function(observations, step_type, network_state)
-        value = tf.squeeze(value, axis=-1)
-        print(value)
-        return value, network_state
+        values, network_state = self.qvalues_function(observations, step_type, network_state)
+        if step_type.shape == (1,):
+            values = tf.constant(values, shape=(1, 1))
+        return values, network_state

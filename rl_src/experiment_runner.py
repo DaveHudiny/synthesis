@@ -84,10 +84,10 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             if any(not keyword in model for keyword in ["mba"]):
                 continue
-            for encoding_method in ["Valuations"]:
+            for encoding_method in ["Valuations++"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
-                                    restart_weights=3, learning_method=learning_method, action_filtering=False, reward_shaping=False,
+                                    restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=30)
 

@@ -9,6 +9,7 @@ from tf_agents.networks import sequential
 from tf_agents.agents.dqn import dqn_agent
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.utils import common
+from tf_agents.trajectories import Trajectory
 
 from keras.optimizers import Adam
 
@@ -19,7 +20,6 @@ from environment.environment_wrapper import Environment_Wrapper
 from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from tools.evaluators import *
-from agents.policies.random_policy import Random_Policy
 from agents.policies.fsc_policy import FSC_Policy, FSC
 
 import logging
@@ -235,6 +235,7 @@ class FatherAgent(AbstractAgent):
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.agent.train = common.function(self.agent.train)
+        
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
                 self.get_evaluation_policy(), self.tf_environment, self.evaluation_episodes, self.environment)))
@@ -347,3 +348,18 @@ class FatherAgent(AbstractAgent):
     def reset_weights(self):
         """Reset the weights of the agent. Implemented in the child classes."""
         raise NotImplementedError
+    
+    def demasked_observer(self):
+        """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""
+        def _add_batch(item: Trajectory):
+            modified_item = Trajectory(
+                step_type=item.step_type,
+                observation=item.observation["observation"],
+                action=item.action,
+                policy_info=(item.policy_info),
+                next_step_type=item.next_step_type,
+                reward=item.reward,
+                discount=item.discount,
+            )
+            self.replay_buffer._add_batch(modified_item)
+        return _add_batch
