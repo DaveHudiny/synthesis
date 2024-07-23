@@ -22,15 +22,20 @@ def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEn
 
 class FSC_Critic(network.Network):
     def __init__(self, input_tensor_spec, name="FSC_QValue_Estimator", qvalues_table=None, 
-                 observation_and_action_constraint_splitter=None, nr_observations=1):
+                 observation_and_action_constraint_splitter=None, nr_observations=1,
+                 reward_multiplier = 1.0):
         
-        self.qvalues_table = tf.constant(qvalues_table)
+        # reward_multiplier is only used to change the sign of expected rewards
+        # If we want to minimize the number (e.g. steps), we use negative multiplier
+        # If we want to maximize the number of collected rewards, we use positive multiplier
+        self.qvalues_table = tf.constant(qvalues_table) * reward_multiplier
+        
         self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         self.nr_observations = nr_observations
         
         super(FSC_Critic, self).__init__(
             input_tensor_spec=input_tensor_spec,
-            state_spec=(), # If we would like to use memory-based version of FSC estimation, we would need to specify the state specification here
+            state_spec=(), # If we would like to use memory-based version of FSC estimation, we should specify the state specification here
             name=name)
         
     def qvalues_function(self, observations, step_type, network_state):

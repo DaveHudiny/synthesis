@@ -62,7 +62,8 @@ def compute_qvalues_function(sketch_path, properties_path):
     for state in range(quotient.pomdp.nr_states):
         for memory in range(memory_size):
             if qvalues[state][memory] is None:
-                qvalues[state][memory] = float("-inf")
+                qvalues[state][memory] = np.mean([qvalues[state][i] for i in range(memory_size) if qvalues[state][i] is not None])
+                
             print(f"s = {state}, n = {memory}, Q(s,n) = {qvalues[state][memory]}")
     return qvalues
 

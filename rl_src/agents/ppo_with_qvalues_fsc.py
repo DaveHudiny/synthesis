@@ -31,7 +31,6 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         self.agent = None
         self.policy_state = None
-        print(qvalues_table)
         assert qvalues_table is not None  # Q-values function must be provided
         self.qvalues_function = qvalues_table
 
@@ -39,7 +38,8 @@ class PPO_with_QValues_FSC(FatherAgent):
             tf_environment, tf_environment.action_spec())
         self.critic_net = FSC_Critic(
             tf_environment.observation_spec()["observation"], 
-            qvalues_table=self.qvalues_function, nr_observations=environment.nr_obs)
+            qvalues_table=self.qvalues_function, nr_observations=environment.nr_obs,
+            reward_multiplier=environment.reward_multiplier)
         
         time_step_spec = tf_environment.time_step_spec()
         time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
@@ -62,9 +62,9 @@ class PPO_with_QValues_FSC(FatherAgent):
             greedy_eval=False
         )
         self.agent.initialize()
-        
-        self.agent.initialize()
         logging.info("Agent initialized")
+        
+        self.args.prefer_stochastic = True
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
         self.init_collector_driver(tf_environment)
