@@ -24,7 +24,8 @@ class EvaluationResults:
         self.losses = []
         self.best_updated = False
         
-    def set_experiment_settings(self, learning_algorithm: str, learning_rate: float, nn_details: dict, max_steps: int):
+    def set_experiment_settings(self, learning_algorithm: str = "", learning_rate: float = float("nan"), 
+                                nn_details: dict = {}, max_steps: int = float("nan")):
         self.learning_algorithm = learning_algorithm
         self.learning_rate = learning_rate
         self.nn_details = "Not implemented yet"

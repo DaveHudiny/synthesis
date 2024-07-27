@@ -105,7 +105,9 @@ def save_statistics_to_new_json(name_of_experiment, model, learning_method, eval
         max_steps = args.max_steps
 
     evaluation_result.set_experiment_settings(
-        learning_algorithm=learning_method, model=model, max_steps=max_steps)
+        learning_algorithm=learning_method, max_steps=max_steps)
+    if not os.path.exists(f"{name_of_experiment}"):
+        os.mkdir(f"{name_of_experiment}")
     if os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training.json"):
         i = 1
         while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):

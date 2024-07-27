@@ -180,7 +180,9 @@ class SynthesizerPomdp:
         
         
         args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", 
-                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4)
+                                max_steps=800, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
+                                trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50, 
+                                discount_factor=0.9)
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
         first_time = True
         repeated_fsc = False
@@ -192,8 +194,8 @@ class SynthesizerPomdp:
                 first_time = False
             if soft_decision:
                 rl_synthesiser.update_fsc_multiplier(0.5)
-            logger.info("Training agent for {} iterations.".format(3000))
-            rl_synthesiser.train_agent(3000)
+            logger.info("Training agent for {} iterations.".format(2000))
+            rl_synthesiser.train_agent(2000)
             if not repeated_fsc:
                 break
         rl_synthesiser.save_to_json("PAYNTc+RL")
