@@ -7,6 +7,8 @@ import tensorflow as tf
 import tf_agents
 from tf_agents.environments import tf_py_environment
 
+import numpy as np
+
 def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEnvironment):
     preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
     layer_params = (64, 64)
@@ -25,6 +27,8 @@ class FSC_Critic(network.Network):
                  observation_and_action_constraint_splitter=None, nr_observations=1,
                  reward_multiplier = 1.0):
         
+        # Original qvalues_table is a list of lists of floats with None values for unreachable states
+        qvalues_table = self.__make_qvalues_table_tensorable(qvalues_table)
         # reward_multiplier is only used to change the sign of expected rewards
         # If we want to minimize the number (e.g. steps), we use negative multiplier
         # If we want to maximize the number of collected rewards, we use positive multiplier
@@ -38,6 +42,19 @@ class FSC_Critic(network.Network):
             state_spec=(), # If we would like to use memory-based version of FSC estimation, we should specify the state specification here
             name=name)
         
+    def __make_qvalues_table_tensorable(self, qvalues_table):
+        nr_states = len(qvalues_table)
+        for state in range(nr_states):
+            memory_size = len(qvalues_table[state])
+            for memory in range(memory_size):
+                if qvalues_table[state][memory] == None:
+                    not_none_values = [qvalues_table[state][i] for i in range(memory_size) if qvalues_table[state][i] is not None]
+                    if len(not_none_values) == 0:
+                        qvalues_table[state][memory] = 0.0
+                    else:
+                        qvalues_table[state][memory] = np.min(not_none_values)
+        return qvalues_table
+        
     def qvalues_function(self, observations, step_type, network_state):
         if len(observations.shape) == 2: # Unbatchet observation
             observations = tf.expand_dims(observations, axis=0)
@@ -49,7 +66,7 @@ class FSC_Critic(network.Network):
             observations, _ = self.observation_and_action_constraint_splitter(observations)
         if network_state == (): # unknown memory node, return average
             values_rows = tf.gather(self.qvalues_table, indices)
-            values = tf.reduce_mean(values_rows, axis=-1)
+            values = tf.reduce_max(values_rows, axis=-1)
             network_state = ()
         else:
             values = self.qvalues_table[observations][network_state]

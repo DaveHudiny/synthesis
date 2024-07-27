@@ -333,14 +333,14 @@ class Initializer:
                 "Learning method not recognized or implemented yet.")
         return agent
 
-    def initialize_agent(self) -> FatherAgent:
+    def initialize_agent(self, qvalues_table = None) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
 
         returns:
             FatherAgent: The initialized agent.
         """
-        agent = self.select_agent_type()
+        agent = self.select_agent_type(qvalues_table=qvalues_table)
         if self.args.restart_weights > 0:
             agent = self.select_best_starting_weights(agent)
         return agent

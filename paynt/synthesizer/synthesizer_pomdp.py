@@ -161,8 +161,8 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(self.storm_control.latest_paynt_result)
-                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
-                # self.storm_control.qvalues = self.quotient.compute_qvalues(assignment)
+                # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
+                self.storm_control.qvalues = self.quotient.compute_qvalues(assignment)
 
             self.storm_control.update_data()
 
@@ -199,6 +199,17 @@ class SynthesizerPomdp:
             if not repeated_fsc:
                 break
         rl_synthesiser.save_to_json("PAYNTc+RL")
+        
+    def run_rl_synthesis_critic(self):
+        qvalues = self.storm_control.qvalues
+        
+        args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
+                            max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
+                            trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50,
+                            discount_factor=0.9)
+        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, qvalues=qvalues)
+        rl_synthesiser.train_agent(2000)
+        rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
 
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
@@ -259,9 +270,12 @@ class SynthesizerPomdp:
 
         self.saynt_timer.stop()
         
-        run_rl = True
-        if run_rl: # Not functional now!
+        run_rl = False
+        run_paynt_critic = True
+        if run_rl:
             self.run_rl_synthesis()
+        if run_paynt_critic:
+            self.run_rl_synthesis_critic()
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):
