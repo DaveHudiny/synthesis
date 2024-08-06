@@ -32,7 +32,7 @@ class FSC_Critic(network.Network):
         # reward_multiplier is only used to change the sign of expected rewards
         # If we want to minimize the number (e.g. steps), we use negative multiplier
         # If we want to maximize the number of collected rewards, we use positive multiplier
-        self.qvalues_table = tf.constant(qvalues_table) * reward_multiplier
+        self.qvalues_table = tf.constant(qvalues_table) * 50 # * reward_multiplier
         
         self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         self.nr_observations = nr_observations

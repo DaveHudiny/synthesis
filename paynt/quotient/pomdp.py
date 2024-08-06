@@ -750,17 +750,19 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         return fsc
 
 
-    def compute_qvalues(self, assignment):
+    def compute_qvalues(self, assignment, prop : str = ""):
         '''
         Given an MDP obtained after applying an FSC to a POMDP, compute for each state s, (reachable) memory node n
         the Q-value Q(s,n).
         :param assignment hole assignment encoding an FSC; it is assumed the assignment is the one obtained
             for the current unfolding
+        :param prop property to be model checked. If None, the original property is used
         :note Q(s,n) may be None if (s,n) exists in the unfolded POMDP but is not reachable in the induced DTMC
         '''
         # model check
         submdp = self.build_assignment(assignment)
-        prop = self.get_property()
+        if prop is None:
+            prop = self.get_property()
         result = submdp.model_check_property(prop)
         state_submdp_to_value = result.result.get_values()
 

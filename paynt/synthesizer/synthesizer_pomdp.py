@@ -1,3 +1,7 @@
+from time import sleep
+import os
+from rl_src.rl_main import ArgsEmulator
+import pickle
 import stormpy
 
 from .statistic import Statistic
@@ -23,14 +27,6 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-import pickle
-
-from rl_src.rl_main import ArgsEmulator
-
-
-import os
-
-from time import sleep
 
 class SynthesizerPomdp:
 
@@ -56,7 +52,8 @@ class SynthesizerPomdp:
             self.storm_control.pomdp = self.quotient.pomdp
             self.storm_control.spec_formulas = self.quotient.specification.stormpy_formulae()
             self.synthesis_terminate = False
-            self.synthesizer = SynthesizerARStorm       # SAYNT only works with abstraction refinement
+            # SAYNT only works with abstraction refinement
+            self.synthesizer = SynthesizerARStorm
             if self.storm_control.iteration_timeout is not None:
                 self.saynt_timer = Timer()
                 self.synthesizer.saynt_timer = self.saynt_timer
@@ -67,13 +64,20 @@ class SynthesizerPomdp:
             family = self.quotient.design_space
         synthesizer = self.synthesizer(self.quotient)
         family.constraint_indices = self.quotient.design_space.constraint_indices
-        assignment = synthesizer.synthesize(family, keep_optimum=True, print_stats=print_stats)
+        assignment = synthesizer.synthesize(
+            family, keep_optimum=True, print_stats=print_stats)
         iters_mdp = synthesizer.stat.iterations_mdp if synthesizer.stat.iterations_mdp is not None else 0
         self.total_iters += iters_mdp
         return assignment
 
+    def compute_fixed_qvalues(self, assignment):
+        original_property_qvalues = self.quotient.compute_qvalues(assignment)
+        if self.quotient.get_property():
+            pass
+
     # iterative strategy using Storm analysis to enhance the synthesis
-    def strategy_iterative_storm(self, unfold_imperfect_only, unfold_storm=True):
+
+    def strategy_iterative_storm(self, unfold_imperfect_only, unfold_storm=True, qvalues_flag: bool = False):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
@@ -82,8 +86,8 @@ class SynthesizerPomdp:
         self.synthesizer.storm_control = self.storm_control
 
         while True:
-        # for x in range(2):
-            
+            # for x in range(2):
+
             paynt.quotient.pomdp.PomdpQuotient.current_family_index = mem_size
 
             # unfold memory according to the best result
@@ -94,7 +98,8 @@ class SynthesizerPomdp:
                         # Storm's result is better and it needs memory
                         if self.storm_control.is_memory_needed():
                             obs_memory_dict = self.storm_control.memory_vector
-                            logger.info(f'Added memory nodes for observation based on Storm data')
+                            logger.info(
+                                f'Added memory nodes for observation based on Storm data')
                         else:
                             # consider the cut-off schedulers actions when updating memory
                             if self.storm_control.unfold_cutoff:
@@ -110,17 +115,20 @@ class SynthesizerPomdp:
                                         obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
                                     else:
                                         obs_memory_dict[obs] = self.quotient.observation_memory_size[obs]
-                            logger.info(f'Added memory nodes for observation based on Storm data')
+                            logger.info(
+                                f'Added memory nodes for observation based on Storm data')
                     else:
                         for obs in range(self.quotient.observations):
-                            if self.quotient.observation_states[obs]>1:
+                            if self.quotient.observation_states[obs] > 1:
                                 obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
                             else:
                                 obs_memory_dict[obs] = 1
-                        logger.info(f'Increase memory in all imperfect observation')
+                        logger.info(
+                            f'Increase memory in all imperfect observation')
                     self.quotient.set_memory_from_dict(obs_memory_dict)
             else:
-                logger.info("Synthesizing optimal k={} controller ...".format(mem_size) )
+                logger.info(
+                    "Synthesizing optimal k={} controller ...".format(mem_size))
                 if unfold_imperfect_only:
                     self.quotient.set_imperfect_memory_size(mem_size)
                 else:
@@ -132,20 +140,25 @@ class SynthesizerPomdp:
             if self.storm_control.is_storm_better:
                 # consider the cut-off schedulers actions
                 if self.storm_control.use_cutoffs:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict)
+                    main_family = self.storm_control.get_main_restricted_family(
+                        family, self.storm_control.result_dict)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
-                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict)
+                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(
+                            family, self.storm_control.result_dict)
                 # only consider the induced DTMC actions without cut-off states
                 else:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict_no_cutoffs)
+                    main_family = self.storm_control.get_main_restricted_family(
+                        family, self.storm_control.result_dict_no_cutoffs)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
-                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict_no_cutoffs)
+                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(
+                            family, self.storm_control.result_dict_no_cutoffs)
 
-                subfamilies = self.storm_control.get_subfamilies(subfamily_restrictions, family)
+                subfamilies = self.storm_control.get_subfamilies(
+                    subfamily_restrictions, family)
             # if PAYNT is better continue normally
             else:
                 main_family = family
@@ -158,11 +171,14 @@ class SynthesizerPomdp:
 
             if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment
-                self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
+                self.storm_control.paynt_export = self.quotient.extract_policy(
+                    assignment)
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
-                self.storm_control.paynt_fsc_size = self.quotient.policy_size(self.storm_control.latest_paynt_result)
+                self.storm_control.paynt_fsc_size = self.quotient.policy_size(
+                    self.storm_control.latest_paynt_result)
                 # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
-                self.storm_control.qvalues = self.quotient.compute_qvalues(assignment)
+                self.storm_control.qvalues = self.compute_fixed_qvalues(
+                    assignment=assignment)
 
             self.storm_control.update_data()
 
@@ -170,27 +186,22 @@ class SynthesizerPomdp:
                 break
 
             mem_size += 1
-            
-            #break
-            
+
+            # break
+
     def run_rl_synthesis(self):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
         fsc = self.storm_control.latest_paynt_result_fsc
-        
-        
-        args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", 
-                                max_steps=800, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
-                                trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50, 
-                                discount_factor=0.9)
-        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args)
+        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         first_time = True
         repeated_fsc = False
         soft_decision = False
         while True:
             logger.info("Training agent with FSC.")
             if fsc and (first_time or repeated_fsc):
-                rl_synthesiser.train_agent_with_fsc_data(200, fsc, soft_decision=soft_decision)
+                rl_synthesiser.train_agent_with_fsc_data(
+                    200, fsc, soft_decision=soft_decision)
                 first_time = False
             if soft_decision:
                 rl_synthesiser.update_fsc_multiplier(0.5)
@@ -199,25 +210,38 @@ class SynthesizerPomdp:
             if not repeated_fsc:
                 break
         rl_synthesiser.save_to_json("PAYNTc+RL")
-        
+
     def run_rl_synthesis_critic(self):
         qvalues = self.storm_control.qvalues
-        
-        args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
-                            max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
-                            trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50,
-                            discount_factor=0.9)
-        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, qvalues=qvalues)
+        rl_synthesiser = Synthesizer_RL(
+            self.quotient.pomdp, self.rl_args, qvalues=qvalues)
         rl_synthesiser.train_agent(2000)
         rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
+    
+    def init_rl_args(self, qvalues_flag: bool = False):
+        if qvalues_flag:
+            args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
+                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
+                                trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50,
+                                discount_factor=0.9)
+        else:
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
+                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
+                                trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50,
+                                discount_factor=0.9)
+        return args
 
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
+        self.run_rl = True
+        self.qvalues_flag = True
+        self.rl_args = self.init_rl_args(qvalues_flag=self.qvalues_flag)
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
         self.storm_control.interactive_storm_setup()
         iteration = 1
-        paynt_thread = Thread(target=self.strategy_iterative_storm, args=(True, self.storm_control.unfold_storm))
+        paynt_thread = Thread(target=self.strategy_iterative_storm, args=(
+            True, self.storm_control.unfold_storm))
 
         iteration_timeout = time.time() + timeout
 
@@ -242,18 +266,21 @@ class SynthesizerPomdp:
                 self.storm_control.interactive_storm_resume(storm_timeout)
 
             # compute sizes of controllers
-            self.storm_control.belief_controller_size = self.storm_control.get_belief_controller_size(self.storm_control.latest_storm_result, self.storm_control.paynt_fsc_size)
+            self.storm_control.belief_controller_size = self.storm_control.get_belief_controller_size(
+                self.storm_control.latest_storm_result, self.storm_control.paynt_fsc_size)
 
             print("\n------------------------------------\n")
             print("PAYNT results: ")
             print(self.storm_control.paynt_bounds)
-            print("controller size: {}".format(self.storm_control.paynt_fsc_size))
+            print("controller size: {}".format(
+                self.storm_control.paynt_fsc_size))
 
             print()
 
             print("Storm results: ")
             print(self.storm_control.storm_bounds)
-            print("controller size: {}".format(self.storm_control.belief_controller_size))
+            print("controller size: {}".format(
+                self.storm_control.belief_controller_size))
             print("\n------------------------------------\n")
 
             if time.time() > iteration_timeout or iteration == iteration_limit:
@@ -264,24 +291,23 @@ class SynthesizerPomdp:
         self.interactive_queue.put("terminate")
         self.synthesis_terminate = True
         paynt_thread.join()
-    
 
         self.storm_control.interactive_storm_terminate()
 
         self.saynt_timer.stop()
+
         
-        run_rl = False
-        run_paynt_critic = True
-        if run_rl:
+        if self.run_rl and not self.qvalues_flag:
             self.run_rl_synthesis()
-        if run_paynt_critic:
+        elif self.run_rl and self.qvalues_flag:
             self.run_rl_synthesis_critic()
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
-        paynt_thread = Thread(target=self.strategy_iterative_storm, args=(True, False))
+        paynt_thread = Thread(
+            target=self.strategy_iterative_storm, args=(True, False))
         iteration_timeout = time.time() + timeout
         paynt_thread.start()
 
@@ -301,13 +327,14 @@ class SynthesizerPomdp:
 
         Args:
             mem_size (int): Memory size for condition.
-        """ 
+        """
         if mem_size > 1:
             obs_memory_dict = {}
             if self.storm_control.is_storm_better:
                 if self.storm_control.is_memory_needed():
                     obs_memory_dict = self.storm_control.memory_vector
-                    logger.info(f'Added memory nodes for observation based on Storm data')
+                    logger.info(
+                        f'Added memory nodes for observation based on Storm data')
                 else:
                     # consider the cut-off schedulers actions when updating memory
                     if self.storm_control.unfold_cutoff:
@@ -323,19 +350,20 @@ class SynthesizerPomdp:
                                 obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
                             else:
                                 obs_memory_dict[obs] = self.quotient.observation_memory_size[obs]
-                    logger.info(f'Added memory nodes for observation based on Storm data')
+                    logger.info(
+                        f'Added memory nodes for observation based on Storm data')
             else:
                 for obs in range(self.quotient.observations):
-                    if self.quotient.observation_states[obs]>1:
+                    if self.quotient.observation_states[obs] > 1:
                         obs_memory_dict[obs] = self.quotient.observation_memory_size[obs] + 1
                     else:
                         obs_memory_dict[obs] = 1
                 logger.info(f'Increase memory in all imperfect observation')
             self.quotient.set_memory_from_dict(obs_memory_dict)
 
-    def set_advices_from_rl(self, interpretation_result = None, load_rl_dict = True, rl_dict = False, family = None, rl_load_path = None):
+    def set_advices_from_rl(self, interpretation_result=None, load_rl_dict=True, rl_dict=False, family=None, rl_load_path=None):
         """ Set advices from RL interpretation.
-        
+
         Args:
             interpretation_result (tuple, optional): Tuple of dictionaries (obs_act_dict, memory_dict, labels). Defaults to None.
             load_rl_dict (bool, optional): Whether to load RL interpretation from a file. Defaults to True.
@@ -343,7 +371,8 @@ class SynthesizerPomdp:
             family (paynt.quotient.quotient.QuotientFamily, optional): Family of the POMDP. Defaults to None.
         """
         if load_rl_dict:
-            path_obs_act_dict = os.path.join(rl_load_path, "obs_action_dict.pickle")
+            path_obs_act_dict = os.path.join(
+                rl_load_path, "obs_action_dict.pickle")
             path_labels = os.path.join(rl_load_path, "labels.pickle")
 
             with open(path_obs_act_dict, "rb") as f:
@@ -366,14 +395,14 @@ class SynthesizerPomdp:
 
     def set_reinforcement_learning(self, input_rl_settings_dict):
         """ Set RL settings from PAYNT cli.
-        
+
         Args:
             input_rl_settings_dict (dict): Dictionary with RL settings from PAYNT cli.
         """
         self.input_rl_settings_dict = input_rl_settings_dict
 
-
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
+
     def strategy_storm(self, unfold_imperfect_only, unfold_storm=True):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
@@ -393,7 +422,7 @@ class SynthesizerPomdp:
             rl_fsc_multiplier = self.input_rl_settings_dict['fsc_multiplier']
             rl_load_path = self.input_rl_settings_dict['rl_load_path']
             rl_load_memory_flag = self.input_rl_settings_dict['rl_load_memory_flag']
-        else: # Set all reinforcement learning settings to False or 0
+        else:  # Set all reinforcement learning settings to False or 0
             rl_dict = False
             fsc_cycling = False
             fsc_synthesis_time_limit = 0
@@ -406,7 +435,6 @@ class SynthesizerPomdp:
             rl_load_path = None
             rl_load_memory_flag = False
 
-            
         first_run = True
         current_time = None
         if fsc_cycling:
@@ -414,34 +442,39 @@ class SynthesizerPomdp:
         interpretation_result = None
 
         if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations", max_steps=300, restart_weights=0, agent_name="PAYNT")
-            rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, args, fsc_pre_init=soft_fsc)
+            args = ArgsEmulator(load_agent=False, learning_method="PPO",
+                                encoding_method="Valuations", max_steps=300, restart_weights=0, agent_name="PAYNT")
+            rl_synthesiser = Synthesizer_RL(
+                self.quotient.pomdp, args, fsc_pre_init=soft_fsc)
             rl_synthesiser.train_agent(rl_pretrain_iters)
             interpretation_result = rl_synthesiser.interpret_agent(best=False)
-
 
         while True:
             if rl_dict and fsc_cycling and not first_run:
                 current_time = fsc_synthesis_time_limit
                 if fsc is not None:
                     logger.info("Training agent with FSC.")
-                    rl_synthesiser.train_agent_with_fsc_data(fsc_training_iterations, fsc, soft_decision=soft_fsc)
+                    rl_synthesiser.train_agent_with_fsc_data(
+                        fsc_training_iterations, fsc, soft_decision=soft_fsc)
                 else:
                     logger.info("FSC is None. Training agent without FSC.")
-                logger.info("Training agent for {} iterations.".format(rl_training_iters))
+                logger.info("Training agent for {} iterations.".format(
+                    rl_training_iters))
                 rl_synthesiser.train_agent(rl_training_iters)
-                interpretation_result = rl_synthesiser.interpret_agent(best=False)
+                interpretation_result = rl_synthesiser.interpret_agent(
+                    best=False)
 
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
-            
+
             paynt.quotient.pomdp.PomdpQuotient.current_family_index = mem_size
             if interpretation_result is not None:
                 self.memory_dict = interpretation_result[1]
                 self.priority_list = interpretation_result[3]
 
             if load_rl_dict and rl_load_memory_flag:
-                path_memory_dict = os.path.join(rl_load_path, "memory_dict.pickle")
+                path_memory_dict = os.path.join(
+                    rl_load_path, "memory_dict.pickle")
                 with open(path_memory_dict, "rb") as f:
                     obs_memory_dict = pickle.load(f)
                     for key in obs_memory_dict.keys():
@@ -454,14 +487,16 @@ class SynthesizerPomdp:
                 self.set_memory_original(mem_size)
             elif rl_dict and not first_run:
                 logger.info("Adding memory nodes based on RL interpretation.")
-                
-                priority_list_len = int(math.ceil(len(self.priority_list) / 10))
+
+                priority_list_len = int(
+                    math.ceil(len(self.priority_list) / 10))
                 priorities = self.priority_list[:priority_list_len]
                 for i in range(len(priorities)):
                     self.memory_dict[priorities[i]] += 1
                 self.quotient.set_memory_from_dict(self.memory_dict)
             else:
-                logger.info("Synthesizing optimal k={} controller ...".format(mem_size) )
+                logger.info(
+                    "Synthesizing optimal k={} controller ...".format(mem_size))
                 if unfold_imperfect_only:
                     self.quotient.set_imperfect_memory_size(mem_size)
                 else:
@@ -470,29 +505,32 @@ class SynthesizerPomdp:
             family = self.quotient.design_space
 
             if load_rl_dict or (rl_dict and interpretation_result is not None):
-                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict, 
+                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict,
                                          family=family, rl_load_path=rl_load_path)
-
 
             # if Storm's result is better, use it to obtain main family that considers only the important actions
             if self.storm_control.is_storm_better:
                 # consider the cut-off schedulers actions
                 if self.storm_control.use_cutoffs:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict)
+                    main_family = self.storm_control.get_main_restricted_family(
+                        family, self.storm_control.result_dict)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
-                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict)
+                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(
+                            family, self.storm_control.result_dict)
                 # only consider the induced DTMC actions without cut-off states
                 else:
-                    main_family = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict_no_cutoffs)
+                    main_family = self.storm_control.get_main_restricted_family(
+                        family, self.storm_control.result_dict_no_cutoffs)
                     if self.storm_control.incomplete_exploration == True:
                         subfamily_restrictions = []
                     else:
-                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict_no_cutoffs)
+                        subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(
+                            family, self.storm_control.result_dict_no_cutoffs)
 
-
-                subfamilies = self.storm_control.get_subfamilies(subfamily_restrictions, family)
+                subfamilies = self.storm_control.get_subfamilies(
+                    subfamily_restrictions, family)
             # if PAYNT is better continue normally
             else:
                 main_family = family
@@ -501,28 +539,29 @@ class SynthesizerPomdp:
             self.synthesizer.main_family = main_family
 
             if fsc_cycling:
-                assignment = self.synthesize(family, timer = current_time)
+                assignment = self.synthesize(family, timer=current_time)
                 try:
                     fsc = self.quotient.assignment_to_fsc(assignment)
                     rl_synthesiser.update_fsc_multiplier(rl_fsc_multiplier)
                 except:
-                    logger.info("FSC could not be created from the assignment. Probably no improvement.")
+                    logger.info(
+                        "FSC could not be created from the assignment. Probably no improvement.")
                     rl_synthesiser.update_fsc_multiplier(1 / rl_fsc_multiplier)
             else:
                 assignment = self.synthesize(family)
 
             if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment
-                self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
+                self.storm_control.paynt_export = self.quotient.extract_policy(
+                    assignment)
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
 
             first_run = False
             self.storm_control.update_data()
 
             mem_size += 1
-            
-            #break
 
+            # break
 
     def strategy_iterative(self, unfold_imperfect_only):
         '''
@@ -536,12 +575,13 @@ class SynthesizerPomdp:
         while True:
             if time.time() - start_time > time_limit:
                 return assignment_last
-            logger.info("Synthesizing optimal k={} controller ...".format(mem_size) )
+            logger.info(
+                "Synthesizing optimal k={} controller ...".format(mem_size))
             if unfold_imperfect_only:
                 self.quotient.set_imperfect_memory_size(mem_size)
             else:
                 self.quotient.set_global_memory_size(mem_size)
-            
+
             assignment = self.synthesize(self.quotient.design_space)
             if assignment is not None:
                 assignment_last = assignment
@@ -555,13 +595,14 @@ class SynthesizerPomdp:
 
         return assignment
 
-            #break
-    
+        # break
+
     def solve_mdp(self, family):
 
         # solve quotient MDP
         self.quotient.build(family)
-        spec = self.quotient.check_specification_for_mdp(family.mdp, family.constraint_indices)
+        spec = self.quotient.check_specification_for_mdp(
+            family.mdp, family.constraint_indices)
 
         # nothing more to do if optimality cannot be improved
         if not spec.optimality_result.can_improve:
@@ -572,14 +613,14 @@ class SynthesizerPomdp:
         all_results = spec.constraints_result.results.copy()
         if spec.optimality_result is not None:
             all_results.append(spec.optimality_result)
-        for index,res in enumerate(all_results):
-            for hole,score in res.primary_scores.items():
-                hole_score = hole_scores.get(hole,0)
+        for index, res in enumerate(all_results):
+            for hole, score in res.primary_scores.items():
+                hole_score = hole_scores.get(hole, 0)
                 hole_scores[hole] = hole_score + score
 
         result = spec.optimality_result
         selection = result.primary_selection
-        
+
         choice_values = result.primary_choice_values
         expected_visits = result.primary_expected_visits
         # scores = result.primary_scores
@@ -587,18 +628,18 @@ class SynthesizerPomdp:
 
         return family.mdp, spec, selection, choice_values, expected_visits, scores
 
-    
     def strategy_expected_uai(self):
-
 
         # assuming optimality
         assert self.quotient.specification.optimality is not None
 
         # for each observation will contain a set of observed action inconsistencies
-        action_inconsistencies = [set() for obs in range(self.quotient.observations)]
+        action_inconsistencies = [set()
+                                  for obs in range(self.quotient.observations)]
         # for each observation (that doesn't have action inconsistencies) will
         # contain a set of observed memory inconsistencies
-        memory_inconsistencies = [set() for obs in range(self.quotient.observations)]
+        memory_inconsistencies = [set()
+                                  for obs in range(self.quotient.observations)]
 
         # start with k=1
         self.quotient.set_global_memory_size(1)
@@ -608,10 +649,10 @@ class SynthesizerPomdp:
         fsc_synthesis_timer.start()
 
         while True:
-        # for iteration in range(4):
+            # for iteration in range(4):
 
             # print(self.quotient.observation_labels)
-            
+
             print("\n------------------------------------------------------------\n")
 
             # print(action_inconsistencies)
@@ -619,23 +660,26 @@ class SynthesizerPomdp:
 
             # construct the quotient
             # self.quotient.unfold_memory()
-            
+
             # use inconsistencies to break symmetry
-            family = self.quotient.break_symmetry_uai(self.quotient.design_space, action_inconsistencies, memory_inconsistencies)
+            family = self.quotient.break_symmetry_uai(
+                self.quotient.design_space, action_inconsistencies, memory_inconsistencies)
             # family = self.quotient.design_space
 
             # solve MDP that corresponds to this restricted family
-            mdp,spec,selection,choice_values,expected_visits,hole_scores = self.solve_mdp(family)
+            mdp, spec, selection, choice_values, expected_visits, hole_scores = self.solve_mdp(
+                family)
             # print(expected_visits)
-            
+
             # check whether that primary direction was not enough ?
             if not spec.optimality_result.can_improve:
-                logger.info("Optimum matches the upper bound of the observation-free MDP.")
+                logger.info(
+                    "Optimum matches the upper bound of the observation-free MDP.")
                 break
-            
+
             # synthesize optimal assignment
             synthesized_assignment = self.synthesize(family)
-           
+
             # identify hole that we want to improve
             selected_hole = None
             selected_options = None
@@ -657,49 +701,57 @@ class SynthesizerPomdp:
                     if not holes:
                         continue
                     hole = list(holes)[0]
-                    
+
                     # get choice obtained by the MDP model checker
-                    choice_0 = mdp.model.transition_matrix.get_row_group_start(state)
-                    mdp_choice = scheduler.get_choice(state).get_deterministic_choice()
+                    choice_0 = mdp.model.transition_matrix.get_row_group_start(
+                        state)
+                    mdp_choice = scheduler.get_choice(
+                        state).get_deterministic_choice()
                     mdp_choice = choice_0 + mdp_choice
-                    
+
                     # get choice implied by the synthesizer
                     syn_option = synthesized_assignment.hole_options(hole)[0]
                     nci = mdp.model.nondeterministic_choice_indices
-                    for choice in range(nci[state],nci[state+1]):
+                    for choice in range(nci[state], nci[state+1]):
                         choice_global = mdp.quotient_choice_map[choice]
                         assignment = choice_to_assignment[choice_global]
-                        choice_color = {hole:option for hole,option in assignment}
-                        if choice_color == {hole:syn_option}:
+                        choice_color = {
+                            hole: option for hole, option in assignment}
+                        if choice_color == {hole: syn_option}:
                             syn_choice = choice
                             break
-                    
+
                     # estimate improvement
                     mdp_value = choice_values[mdp_choice]
                     syn_value = choice_values[syn_choice]
                     improvement = abs(syn_value - mdp_value)
-                    
+
                     state_improvement[state] = improvement
 
                 # had there been no new assignment, the hole of interest will
                 # be the one with the maximum score in the symmetry-free MDP
 
                 # map improvements in states of this sub-MDP to states of the quotient
-                quotient_state_improvement = [None] * self.quotient.quotient_mdp.nr_states
+                quotient_state_improvement = [
+                    None] * self.quotient.quotient_mdp.nr_states
                 for state in range(mdp.states):
-                    quotient_state_improvement[mdp.quotient_state_map[state]] = state_improvement[state]
+                    quotient_state_improvement[mdp.quotient_state_map[state]
+                                               ] = state_improvement[state]
 
                 # extract DTMC corresponding to the synthesized solution
                 dtmc = self.quotient.build_assignment(synthesized_assignment)
 
                 # compute expected visits for this dtmc
-                dtmc_visits = paynt.verification.property.Property.compute_expected_visits(dtmc)
+                dtmc_visits = paynt.verification.property.Property.compute_expected_visits(
+                    dtmc)
 
                 # handle infinity- and zero-visits
                 if self.quotient.specification.optimality.minimizing:
-                    dtmc_visits = paynt.quotient.quotient.Quotient.make_vector_defined(dtmc_visits)
+                    dtmc_visits = paynt.quotient.quotient.Quotient.make_vector_defined(
+                        dtmc_visits)
                 else:
-                    dtmc_visits = [ value if value != math.inf else 0 for value in dtmc_visits]
+                    dtmc_visits = [value if value !=
+                                   math.inf else 0 for value in dtmc_visits]
 
                 # weight state improvements with expected visits
                 # aggregate these weighted improvements by holes
@@ -712,7 +764,8 @@ class SynthesizerPomdp:
                         continue
 
                     weighted_improvement = improvement * dtmc_visits[state]
-                    assert not math.isnan(weighted_improvement), "{}*{} = nan".format(improvement,dtmc_visits[state])
+                    assert not math.isnan(
+                        weighted_improvement), "{}*{} = nan".format(improvement, dtmc_visits[state])
                     hole = list(state_to_holes[quotient_state])[0]
                     hole_differences[hole] += weighted_improvement
                     hole_states_affected[hole] += 1
@@ -720,9 +773,11 @@ class SynthesizerPomdp:
                 hole_differences_avg = [0] * family.num_holes
                 for hole in range(family.num_holes):
                     if hole_states_affected[hole] != 0:
-                        hole_differences_avg[hole] = hole_differences[hole] / hole_states_affected[hole]
-                all_scores = {hole:hole_differences_avg[hole] for hole in range(family.num_holes)}
-                nonzero_scores = {h:v for h,v in all_scores.items() if v>0}
+                        hole_differences_avg[hole] = hole_differences[hole] / \
+                            hole_states_affected[hole]
+                all_scores = {
+                    hole: hole_differences_avg[hole] for hole in range(family.num_holes)}
+                nonzero_scores = {h: v for h, v in all_scores.items() if v > 0}
                 if len(nonzero_scores) > 0:
                     hole_scores = nonzero_scores
                 else:
@@ -730,12 +785,14 @@ class SynthesizerPomdp:
 
             max_score = max(hole_scores.values())
             if max_score > 0:
-                hole_scores = {h:v for h,v in hole_scores.items() if v / max_score > 0.01 }
-            with_max_score = [hole for hole in hole_scores if hole_scores[hole] == max_score]
+                hole_scores = {
+                    h: v for h, v in hole_scores.items() if v / max_score > 0.01}
+            with_max_score = [
+                hole for hole in hole_scores if hole_scores[hole] == max_score]
             selected_hole = with_max_score[0]
             # selected_hole = holes_to_inject[0]
             selected_options = selection[selected_hole]
-            
+
             print()
             print("hole scores: ", hole_scores)
             print("selected hole: ", selected_hole)
@@ -749,41 +806,44 @@ class SynthesizerPomdp:
 
             if len(selected_options) > 1:
                 # identify whether this hole is inconsistent in actions or updates
-                actions,updates = self.quotient.sift_actions_and_updates(selected_observation, selected_hole, selected_options)
+                actions, updates = self.quotient.sift_actions_and_updates(
+                    selected_observation, selected_hole, selected_options)
                 if len(actions) > 1:
                     # action inconsistency
                     action_inconsistencies[obs] |= actions
                 else:
                     memory_inconsistencies[obs] |= updates
-            
+
             # print status
             opt = "-"
             if self.quotient.specification.optimality.optimum is not None:
-                opt = round(self.quotient.specification.optimality.optimum,3)
-            elapsed = round(fsc_synthesis_timer.read(),1)
-            logger.info("FSC synthesis: elapsed {} s, opt = {}, injections: {}.".format(elapsed, opt, memory_injections))
+                opt = round(self.quotient.specification.optimality.optimum, 3)
+            elapsed = round(fsc_synthesis_timer.read(), 1)
+            logger.info("FSC synthesis: elapsed {} s, opt = {}, injections: {}.".format(
+                elapsed, opt, memory_injections))
             # logger.info("FSC synthesis: assignment: {}".format(best_assignment))
 
             # inject memory and continue
-            logger.info("Injecting memory into observation {} ...".format(selected_observation))
+            logger.info("Injecting memory into observation {} ...".format(
+                selected_observation))
             self.quotient.increase_memory_size(selected_observation)
             memory_injections += 1
-                
-
 
     def run(self, optimum_threshold=None, export_evaluation=None):
         # choose the synthesis strategy:
         if self.use_storm:
             logger.info("Storm POMDP option enabled")
             logger.info("Storm settings: iterative - {}, get_storm_result - {}, storm_options - {}, prune_storm - {}, unfold_strategy - {}, use_storm_cutoffs - {}".format(
-                        (self.storm_control.iteration_timeout, self.storm_control.paynt_timeout, self.storm_control.storm_timeout), self.storm_control.get_result,
-                        self.storm_control.storm_options, self.storm_control.incomplete_exploration, (self.storm_control.unfold_storm, self.storm_control.unfold_cutoff), self.storm_control.use_cutoffs
-            ))
+                        (self.storm_control.iteration_timeout, self.storm_control.paynt_timeout,
+                         self.storm_control.storm_timeout), self.storm_control.get_result,
+                        self.storm_control.storm_options, self.storm_control.incomplete_exploration, (
+                            self.storm_control.unfold_storm, self.storm_control.unfold_cutoff), self.storm_control.use_cutoffs
+                        ))
             # start SAYNT
             if self.storm_control.iteration_timeout is not None:
-                self.iterative_storm_loop(timeout=self.storm_control.iteration_timeout, 
-                                          paynt_timeout=self.storm_control.paynt_timeout, 
-                                          storm_timeout=self.storm_control.storm_timeout, 
+                self.iterative_storm_loop(timeout=self.storm_control.iteration_timeout,
+                                          paynt_timeout=self.storm_control.paynt_timeout,
+                                          storm_timeout=self.storm_control.storm_timeout,
                                           iteration_limit=0)
             # run PAYNT for a time given by 'self.storm_control.get_result' and then run Storm using the best computed FSC at cut-offs
             elif self.storm_control.get_result is not None:
@@ -798,24 +858,18 @@ class SynthesizerPomdp:
             print("\n------------------------------------\n")
             print("PAYNT results: ")
             print(self.storm_control.paynt_bounds)
-            print("controller size: {}".format(self.storm_control.paynt_fsc_size))
+            print("controller size: {}".format(
+                self.storm_control.paynt_fsc_size))
 
             print()
 
             print("Storm results: ")
             print(self.storm_control.storm_bounds)
-            print("controller size: {}".format(self.storm_control.belief_controller_size))
+            print("controller size: {}".format(
+                self.storm_control.belief_controller_size))
             print("\n------------------------------------\n")
         # Pure PAYNT POMDP synthesis
         else:
             # self.strategy_expected_uai()
             # self.strategy_iterative(unfold_imperfect_only=False)
             return self.strategy_iterative(unfold_imperfect_only=True)
-
-
-        
-
-
-
-
-
