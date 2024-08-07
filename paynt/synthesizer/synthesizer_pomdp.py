@@ -72,31 +72,34 @@ class SynthesizerPomdp:
         iters_mdp = synthesizer.stat.iterations_mdp if synthesizer.stat.iterations_mdp is not None else 0
         self.total_iters += iters_mdp
         return assignment
-
-    def compute_fixed_qvalues(self, assignment):
-        
-        original_property = self.quotient.get_property()
-        print(type(original_property))
-        original_property_qvalues = self.quotient.compute_qvalues(assignment, prop=original_property)
-        original_property_str = original_property.__str__()
+    
+    def fix_qvalues(self, assignment, original_qvalues, original_property_str):
         if "Pmax" in original_property_str:
-            qvalues = self.rl_args.evaluation_goal * original_property_qvalues
+            qvalues = self.rl_args.evaluation_goal * original_qvalues
+            # TODO: More possible names of reward model
             cumulative_reward_property_str = f"R{{\"steps\"}}min=? [ C<={self.rl_args.max_steps} ]"
-            prism = PrismParser.prism
+            cumulative_reward_property_str = original_property_str
+            prism = PrismParser.prism # Not a good way to access the prism object
             cumulative_reward_property = PrismParser.parse_specification_str(cumulative_reward_property_str, prism=prism)
-            print(cumulative_reward_property)
             cumulative_reward_qvalues = self.quotient.compute_qvalues(assignment, prop=cumulative_reward_property)
             qvalues += cumulative_reward_qvalues
         elif "Pmin" in original_property_str:
-            qvalues = self.rl_args.evaluation_antigoal * original_property_qvalues
+            # TODO: Make proper Pmin correction
+            qvalues = self.rl_args.evaluation_antigoal * original_qvalues
         elif RegexPatterns.check_max_property(original_property_str):
-            qvalues = self.rl_args.evaluation_goal + original_property_qvalues
+            qvalues = self.rl_args.evaluation_goal + original_qvalues
         elif RegexPatterns.check_min_property(original_property_str):
-            qvalues = self.rl_args.evaluation_goal - original_property_qvalues
+            qvalues = self.rl_args.evaluation_goal - original_qvalues
         else:
-            logger.info(f"Unknown property type: {original_property}. Using qvalues computed with given original property")
-            qvalues = original_property_qvalues
-        print(qvalues)
+            logger.info(f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
+            qvalues = original_qvalues
+        return qvalues
+
+    def compute_qvalues_for_rl(self, assignment):
+        original_property = self.quotient.get_property()
+        original_property_qvalues = self.quotient.compute_qvalues(assignment, prop=original_property)
+        original_property_str = original_property.__str__()
+        qvalues = self.fix_qvalues(assignment, original_property_qvalues, original_property_str)
         return qvalues
 
     # iterative strategy using Storm analysis to enhance the synthesis
@@ -201,7 +204,7 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(
                     self.storm_control.latest_paynt_result)
                 # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
-                self.storm_control.qvalues = self.compute_fixed_qvalues(
+                self.storm_control.qvalues = self.compute_qvalues_for_rl(
                     assignment=assignment)
                 print(self.storm_control.qvalues)
             else:

@@ -28,7 +28,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
     
     def __init__(self, pomdp, specification, decpomdp_manager=None):
         super().__init__(specification = specification)
-
         # unfolded POMDP
         self.quotient_mdp = None
         self.design_space = None
