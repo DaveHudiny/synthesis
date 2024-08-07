@@ -74,14 +74,16 @@ class SynthesizerPomdp:
         return assignment
     
     def fix_qvalues(self, assignment, original_qvalues, original_property_str):
+        print(dir(self.quotient.pomdp))
+        print(self.quotient.pomdp.reward_models)
         if "Pmax" in original_property_str:
             qvalues = self.rl_args.evaluation_goal * original_qvalues
             # TODO: More possible names of reward model
             cumulative_reward_property_str = f"R{{\"steps\"}}min=? [ C<={self.rl_args.max_steps} ]"
-            cumulative_reward_property_str = original_property_str
             prism = PrismParser.prism # Not a good way to access the prism object
-            cumulative_reward_property = PrismParser.parse_specification_str(cumulative_reward_property_str, prism=prism)
-            cumulative_reward_qvalues = self.quotient.compute_qvalues(assignment, prop=cumulative_reward_property)
+            cumulative_property = stormpy.parse_properties(cumulative_reward_property_str, context=prism)[0]
+            cumulative_opt_property = paynt.verification.property.OptimalityProperty(cumulative_property)
+            cumulative_reward_qvalues = self.quotient.compute_qvalues(assignment, prop=cumulative_opt_property)
             qvalues += cumulative_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction

@@ -749,7 +749,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         return fsc
 
 
-    def compute_qvalues(self, assignment, prop : str = ""):
+    def compute_qvalues(self, assignment, prop = None):
         '''
         Given an MDP obtained after applying an FSC to a POMDP, compute for each state s, (reachable) memory node n
         the Q-value Q(s,n).
