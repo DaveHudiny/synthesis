@@ -11,6 +11,9 @@ from .synthesizer_hybrid import SynthesizerHybrid
 from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
 from .synthesizer_rl import Synthesizer_RL
 
+from paynt.synthesizer.saynt_rl_tools.regex_patterns import RegexPatterns
+from paynt.parser.prism_parser import PrismParser
+
 import paynt.quotient.quotient
 import paynt.quotient.pomdp
 from ..utils.profiler import Timer
@@ -71,9 +74,30 @@ class SynthesizerPomdp:
         return assignment
 
     def compute_fixed_qvalues(self, assignment):
-        original_property_qvalues = self.quotient.compute_qvalues(assignment)
-        if self.quotient.get_property():
-            pass
+        
+        original_property = self.quotient.get_property()
+        print(type(original_property))
+        original_property_qvalues = self.quotient.compute_qvalues(assignment, prop=original_property)
+        original_property_str = original_property.__str__()
+        if "Pmax" in original_property_str:
+            qvalues = self.rl_args.evaluation_goal * original_property_qvalues
+            cumulative_reward_property_str = f"R{{\"steps\"}}min=? [ C<={self.rl_args.max_steps} ]"
+            prism = PrismParser.prism
+            cumulative_reward_property = PrismParser.parse_specification_str(cumulative_reward_property_str, prism=prism)
+            print(cumulative_reward_property)
+            cumulative_reward_qvalues = self.quotient.compute_qvalues(assignment, prop=cumulative_reward_property)
+            qvalues += cumulative_reward_qvalues
+        elif "Pmin" in original_property_str:
+            qvalues = self.rl_args.evaluation_antigoal * original_property_qvalues
+        elif RegexPatterns.check_max_property(original_property_str):
+            qvalues = self.rl_args.evaluation_goal + original_property_qvalues
+        elif RegexPatterns.check_min_property(original_property_str):
+            qvalues = self.rl_args.evaluation_goal - original_property_qvalues
+        else:
+            logger.info(f"Unknown property type: {original_property}. Using qvalues computed with given original property")
+            qvalues = original_property_qvalues
+        print(qvalues)
+        return qvalues
 
     # iterative strategy using Storm analysis to enhance the synthesis
 
@@ -179,6 +203,9 @@ class SynthesizerPomdp:
                 # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
                 self.storm_control.qvalues = self.compute_fixed_qvalues(
                     assignment=assignment)
+                print(self.storm_control.qvalues)
+            else:
+                logging.info("Assignment is None")
 
             self.storm_control.update_data()
 

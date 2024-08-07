@@ -198,6 +198,7 @@ class PrismParser:
         Expecting one property per line. The line may be terminated with a semicolon.
         Empty lines or comments are allowed.
         '''
+        cls.prism = prism
         if not os.path.isfile(properties_path):
             raise ValueError(f"the properties file {properties_path} does not exist")
         logger.info(f"loading properties from {properties_path} ...")
@@ -215,6 +216,31 @@ class PrismParser:
             prop = paynt.verification.property.construct_property(formula, relative_error)
             properties.append(prop)
 
+        specification = paynt.verification.property.Specification(properties)
+        logger.info(f"found the following specification: {specification}")
+        return specification
+    
+    @classmethod
+    def parse_specification_str(cls, properties_str="", relative_error=0, prism=None):
+        """
+        String version of parse_specification() class function.
+        
+        Expecting one property per line. The line may be terminated with a semicolon.
+        Empty lines or comments are allowed.
+        """
+        if properties_str == "":
+            raise ValueError("empty string provided as properties")
+        logger.info("loading properties from string ...")
+        lines = properties_str.split("\n")
+        properties = []
+        
+        for line in lines:
+            formula = PrismParser.parse_property(line,prism)
+            if formula is None:
+                continue
+            prop = paynt.verification.property.construct_property(formula, relative_error)
+            properties.append(prop)
+            
         specification = paynt.verification.property.Specification(properties)
         logger.info(f"found the following specification: {specification}")
         return specification
