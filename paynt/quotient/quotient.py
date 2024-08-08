@@ -2,7 +2,7 @@ import stormpy
 import payntbind
 
 import paynt.family.family
-import paynt.quotient.models
+import paynt.models.models
 
 import math
 import itertools
@@ -23,7 +23,6 @@ class Quotient:
         vector_valid = [ value if value != math.inf else default_value for value in vector]
         return vector_valid
 
-    
     def __init__(self, quotient_mdp = None, family = None, coloring = None, specification = None):
         
         # colored qoutient MDP for the super-family
@@ -41,9 +40,6 @@ class Quotient:
         self.choice_destinations = None
         if self.quotient_mdp is not None:
             self.choice_destinations = payntbind.synthesis.computeChoiceDestinations(self.quotient_mdp)
-
-        # (optional) counter of discarded assignments
-        self.discarded = 0
 
 
     def export_result(self, dtmc):
@@ -75,7 +71,7 @@ class Quotient:
     
     def build_from_choice_mask(self, choices):
         mdp,state_map,choice_map = self.restrict_quotient(choices)
-        return paynt.quotient.models.SubMdp(mdp, state_map, choice_map)
+        return paynt.models.models.SubMdp(mdp, state_map, choice_map)
     
     def build(self, family):
         ''' Construct the quotient MDP for the family. '''
@@ -86,20 +82,6 @@ class Quotient:
         family.mdp.design_space = family
 
 
-    def build_with_second_coloring(self, family, main_coloring, main_family):
-        ''' Construct the quotient MDP for the family. '''
-
-        # select actions compatible with the family and restrict the quotient
-        choices_alt = self.coloring.selectCompatibleChoices(family.family)
-        choices_main = main_coloring.selectCompatibleChoices(main_family.family)
-
-        choices = choices_main.__and__(choices_alt)
-        main_family.mdp = self.build_from_choice_mask(choices)
-        main_family.mdp.design_space = main_family
-        family.mdp = self.build_from_choice_mask(choices)
-        family.mdp.design_space = family
-
-    
     @staticmethod
     def mdp_to_dtmc(mdp):
         tm = mdp.transition_matrix
@@ -114,7 +96,7 @@ class Quotient:
         choices = self.coloring.selectCompatibleChoices(family.family)
         mdp,state_map,choice_map = self.restrict_quotient(choices)
         model = Quotient.mdp_to_dtmc(mdp)
-        return paynt.quotient.models.SubMdp(model,state_map,choice_map)
+        return paynt.models.models.SubMdp(model,state_map,choice_map)
     
     def empty_scheduler(self):
         return [None] * self.quotient_mdp.nr_states
@@ -154,14 +136,12 @@ class Quotient:
                 choices.set(choice,True)
         return choices
     
-    def scheduler_selection(self, mdp, scheduler, coloring=None):
+    def scheduler_selection(self, mdp, scheduler):
         ''' Get hole options involved in the scheduler selection. '''
         assert scheduler.memoryless and scheduler.deterministic
         state_to_choice = self.scheduler_to_state_to_choice(mdp, scheduler)
         choices = self.state_to_choice_to_choices(state_to_choice)
-        if coloring is None:
-            coloring = self.coloring
-        hole_selection = coloring.collectHoleOptions(choices)
+        hole_selection = self.coloring.collectHoleOptions(choices)
         return hole_selection
 
     
@@ -235,7 +215,6 @@ class Quotient:
         :return hole assignment
         :return whether the scheduler is consistent
         '''
-        # selection = self.scheduler_selection(mdp, result.scheduler)
         if mdp.is_deterministic:
             selection = [[mdp.design_space.hole_options(hole)[0]] for hole in range(mdp.design_space.num_holes)]
             return selection, True
@@ -300,42 +279,7 @@ class Quotient:
         most_inconsistent = self.holes_with_max_score(num_definitions) 
         return most_inconsistent
 
-    def discard(self, mdp, hole_assignments, core_suboptions, other_suboptions, incomplete_search):
-
-        # default result
-        reduced_design_space = mdp.design_space.copy()
-        if len(other_suboptions) == 0:
-            suboptions = core_suboptions
-        else:
-            suboptions = [other_suboptions] + core_suboptions  # DFS solves core first
-
-        if not incomplete_search:
-            return reduced_design_space, suboptions
-
-        # reduce simple holes
-        ds_before = reduced_design_space.size
-
-        hole_to_states = [0] * self.design_space.num_holes
-        state_to_holes = self.coloring.getStateToHoles().copy()
-        for state in range(mdp.model.nr_states):
-            quotient_state = mdp.quotient_state_map[state]
-            for hole in state_to_holes[quotient_state]:
-                hole_to_states[hole] += 1
-
-        for hole in range(reduced_design_space.num_holes):
-            if hole_to_states[hole] <= 1:
-                reduced_design_space.hole_set_options(hole, hole_assignments[hole])
-        ds_after = reduced_design_space.size
-        self.discarded += ds_before - ds_after
-
-        # discard other suboptions
-        suboptions = core_suboptions
-        # self.discarded += (reduced_design_space.size * len(other_suboptions)) / (len(other_suboptions) + len(core_suboptions))
-
-        return reduced_design_space, suboptions
-
-
-    def split(self, family, incomplete_search):
+    def split(self, family):
 
         mdp = family.mdp
         assert not mdp.is_deterministic
@@ -358,8 +302,12 @@ class Quotient:
             other_suboptions = []
         # print(mdp.design_space[splitter], core_suboptions, other_suboptions)
 
-        new_design_space, suboptions = self.discard(mdp, hole_assignments, core_suboptions, other_suboptions, incomplete_search)
-        
+        new_design_space = mdp.design_space.copy()
+        if len(other_suboptions) == 0:
+            suboptions = core_suboptions
+        else:
+            suboptions = [other_suboptions] + core_suboptions  # DFS solves core first
+
         # construct corresponding design subspaces
         design_subspaces = []
         
@@ -386,46 +334,10 @@ class Quotient:
         else:
             return None, None
 
-    
-    def sample(self):
-        
-        # parameters
-        path_length = 1000
-        num_paths = 100
-        output_path = 'samples.txt'
 
-        import json
-
-        # assuming optimization of reward property
-        assert len(self.specification.constraints) == 0
-        opt = self.specification.optimality
-        assert opt.reward
-        reward_name = opt.formula.reward_name
-        
-        # build the mdp
-        self.build(self.design_space)
-        mdp = self.design_space.mdp
-        state_row_group = mdp.prepare_sampling()
-        
-        paths = []
-        for _ in range(num_paths):
-            path = mdp.random_path(path_length,state_row_group)
-            path_reward = mdp.evaluate_path(path,reward_name)
-            paths.append( {"path":path,"reward":path_reward} )
-
-        path_json = [json.dumps(path) for path in paths]
-        
-        output_json = "[\n" + ",\n".join(path_json) + "\n]\n"
-
-        # logger.debug("attempting to reconstruct samples from JSON ...")
-        # json.loads(output_json)
-        # logger.debug("OK")
-        
-        logger.info("writing generated samples to {} ...".format(output_path))
-        with open(output_path, 'w') as f:
-            print(output_json, end="", file=f)
-        logger.info("done")
-
+    def get_property(self):
+        assert self.specification.num_properties == 1, "expecting a single property"
+        return self.specification.all_properties()[0]
 
     def identify_absorbing_states(self, model):
         state_is_absorbing = [True] * model.nr_states
@@ -440,10 +352,9 @@ class Quotient:
                     break
         return state_is_absorbing
 
-    def get_property(self):
-        assert self.specification.num_properties == 1, "expecting a single property"
-        return self.specification.all_properties()[0]
-
+    def identify_target_states(self, model, prop):
+        target_label = prop.get_target_label()
+        return model.labeling.get_states(target_label)
 
 
     def check_specification_for_dtmc(self, dtmc, constraint_indices=None, short_evaluation=False):

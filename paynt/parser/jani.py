@@ -2,7 +2,7 @@ import stormpy
 import payntbind
 
 import paynt.verification.property
-import paynt.quotient.models
+import paynt.models.model_builder
 
 import itertools
 from collections import defaultdict
@@ -56,7 +56,6 @@ class JaniUnfolder:
                 p = paynt.verification.property.OptimalityProperty(prop_new,epsilon)
             properties_unpacked.append(p)
         self.specification = paynt.verification.property.Specification(properties_unpacked)
-        paynt.quotient.models.Mdp.initialize(self.specification)
 
         # unfold holes in the program
         self.hole_expressions = hole_expressions
@@ -66,8 +65,8 @@ class JaniUnfolder:
         logger.debug("constructing the quotient...")
 
         # construct the explicit quotient
-        quotient_mdp = stormpy.build_sparse_model_with_options(self.jani_unfolded, paynt.quotient.models.Mdp.builder_options)
-
+        quotient_mdp = paynt.models.model_builder.ModelBuilder.from_jani(self.jani_unfolded, self.specification)
+        
         # associate each action of a quotient MDP with hole options
         # reconstruct choice labels from choice origins
         logger.debug("associating choices of the quotient with hole assignments...")
@@ -217,7 +216,7 @@ class JaniUnfolder:
         for templ_edge_dest in edge.template_edge.destinations:
             assignments = templ_edge_dest.assignments.clone()
             if substitution is not None:
-                assignments.substitute(substitution)
+                assignments.substitute(substitution,substitute_transcendental_numbers=False)
             templ_edge.add_destination(stormpy.storage.JaniTemplateEdgeDestination(assignments))
 
         new_edge = stormpy.storage.JaniEdge(
