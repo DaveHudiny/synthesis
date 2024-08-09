@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from stormpy import simulator
-from stormpy import storage
+from stormpy.storage import storage
 import stormpy
 
 from tf_agents.environments import py_environment

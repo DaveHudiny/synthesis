@@ -7,7 +7,12 @@ import tensorflow as tf
 import tf_agents
 from tf_agents.environments import tf_py_environment
 
+from tools.belief_updater import Belief_Updater
+
+from stormpy.storage import SparsePomdp
+
 import numpy as np
+
 
 def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEnvironment):
     preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
@@ -22,59 +27,98 @@ def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEn
     )
     return value_net
 
+
 class FSC_Critic(network.Network):
-    def __init__(self, input_tensor_spec, name="FSC_QValue_Estimator", qvalues_table=None, 
-                 observation_and_action_constraint_splitter=None, nr_observations=1,
-                 reward_multiplier = 1.0):
-        
+    def __init__(self, input_tensor_spec, name="FSC_QValue_Estimator", qvalues_table=None,
+                 observation_and_action_constraint_splitter: callable = None, nr_observations: int = 1,
+                 reward_multiplier=1.0, stormpy_model: SparsePomdp = None,
+                 action_labels_at_observation: dict = None, initial_state : int = 0):
+        """Initializes the FSC critic pseudo-network.
+
+        Args:
+
+        input_tensor_spec: A nest of tf.TypeSpec representing the input observations.
+        name: A string representing the name of the network.
+        qvalues_table: A list of lists of floats representing the Q-values of the states and memories.
+        observation_and_action_constraint_splitter: A callable that takes observations and returns (observations, mask).
+        nr_observations: An integer representing the number of all possible observations.
+        reward_multiplier: A float representing the multiplier of the rewards.
+        stormpy_model: A SparsePOMDP representing the StormPy model.
+        action_labels_at_observation: A dictionary representing the action labels at the observation.
+        """
+
         # Original qvalues_table is a list of lists of floats with None values for unreachable states
         qvalues_table = self.__make_qvalues_table_tensorable(qvalues_table)
         # reward_multiplier is only used to change the sign of expected rewards
         # If we want to minimize the number (e.g. steps), we use negative multiplier
         # If we want to maximize the number of collected rewards, we use positive multiplier
-        self.qvalues_table = tf.constant(qvalues_table) * 50 # * reward_multiplier
-        
+        self.qvalues_table = tf.constant(qvalues_table)  # * reward_multiplier
+
         self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         self.nr_observations = nr_observations
-        
+
+        if stormpy_model is not None and action_labels_at_observation is not None:
+            self.belief_updater = Belief_Updater(
+                stormpy_model, action_labels_at_observation)
+            
+            state_spec = tf.TensorSpec(shape=(self.belief_updater.nr_states,), dtype=tf.float32)
+            
+        else:
+            state_spec = ()
+
         super(FSC_Critic, self).__init__(
-            input_tensor_spec=input_tensor_spec,
-            state_spec=(), # If we would like to use memory-based version of FSC estimation, we should specify the state specification here
-            name=name)
-        
+                input_tensor_spec=input_tensor_spec,
+                state_spec=state_spec,
+                name=name)
+
     def __make_qvalues_table_tensorable(self, qvalues_table):
         nr_states = len(qvalues_table)
         for state in range(nr_states):
             memory_size = len(qvalues_table[state])
             for memory in range(memory_size):
                 if qvalues_table[state][memory] == None:
-                    not_none_values = [qvalues_table[state][i] for i in range(memory_size) if qvalues_table[state][i] is not None]
+                    not_none_values = [qvalues_table[state][i] for i in range(
+                        memory_size) if qvalues_table[state][i] is not None]
                     if len(not_none_values) == 0:
                         qvalues_table[state][memory] = 0.0
                     else:
                         qvalues_table[state][memory] = np.min(not_none_values)
         return qvalues_table
-        
-    def qvalues_function(self, observations, step_type, network_state):
-        if len(observations.shape) == 2: # Unbatchet observation
+    
+    @tf.function
+    def get_initial_state(self, batch_size=None):
+        if batch_size is None:
+            init_belief = tf.one_hot([self.initial_state], self.belief_updater.nr_states)
+        else:
+            initial_state_expanded = tf.fill([batch_size], self.initial_state)
+            init_belief = tf.one_hot(initial_state_expanded, self.belief_updater.nr_states)
+        return init_belief
+    
+    def qvalues_function(self, observations, step_type, belief):
+        if len(observations.shape) == 2:  # Unbatchet observation
             observations = tf.expand_dims(observations, axis=0)
-            
+
         # Conversion of observation to integer indices -- currently implemented as additional normalised feature
-        indices = tf.zeros_like(observations[:, :, -1] * self.nr_observations, dtype=tf.int32)
-        
+        indices = tf.zeros_like(
+            observations[:, :, -1] * self.nr_observations, dtype=tf.int32)
+
         if self.observation_and_action_constraint_splitter is not None:
-            observations, _ = self.observation_and_action_constraint_splitter(observations)
-        if network_state == (): # unknown memory node, return average
+            observations, _ = self.observation_and_action_constraint_splitter(
+                observations)
+        if belief == ():  # unknown memory node, return average
             values_rows = tf.gather(self.qvalues_table, indices)
             values = tf.reduce_max(values_rows, axis=-1)
-            network_state = ()
+            belief = ()
         else:
-            values = self.qvalues_table[observations][network_state]
-            network_state = () # TODO: Implement memory-based version
-        return values, network_state
-        
+            values = self.qvalues_table * belief[:, tf.newaxis]
+            values = tf.reduce_mean(values, axis=0)
+            values = tf.reduce_max(values, axis=-1)
+            belief = self.belief_updater.next_belief(belief, )  # TODO: Implement memory-based version
+        return values, belief
+
     def call(self, observations, step_type, network_state, training=False):
-        values, network_state = self.qvalues_function(observations, step_type, network_state)
+        values, network_state = self.qvalues_function(
+            observations, step_type, network_state)
         if step_type.shape == (1,):
             values = tf.constant(values, shape=(1, 1))
         return values, network_state

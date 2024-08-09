@@ -45,28 +45,33 @@ tf.autograph.set_verbosity(0)
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-def compute_qvalues_function(sketch_path, properties_path):
-    quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path)
-    k = 2 # May be unknown?
-    quotient.set_imperfect_memory_size(k)
-    synthesizer = paynt.synthesizer.synthesizer_pomdp.SynthesizerPomdp(quotient, method="ar", storm_control=None)
-    assignment = synthesizer.synthesize()
+class PAYNT_Playground:
+    @staticmethod
+    def fill_nones_in_qvalues(qvalues):
+        for state in range(len(qvalues)):
+            for memory in range(len(qvalues[state])):
+                if qvalues[state][memory] is None:
+                    qvalues[state][memory] = np.mean([qvalues[state][i] for i in range(len(qvalues[state])) if qvalues[state][i] is not None])
+        return qvalues
 
-    # before the quotient is modified we can use this assignment to compute Q-values
-    assert assignment is not None
-    qvalues = quotient.compute_qvalues(assignment)
-
-    # note Q(s,n) may be None if (s,n) exists in the unfolded POMDP but is not reachable in the induced DTMC
-    memory_size = len(qvalues[0])
-    assert k == memory_size
-    for state in range(quotient.pomdp.nr_states):
-        for memory in range(memory_size):
-            if qvalues[state][memory] is None:
-                qvalues[state][memory] = np.mean([qvalues[state][i] for i in range(memory_size) if qvalues[state][i] is not None])
-                
-            print(f"s = {state}, n = {memory}, Q(s,n) = {qvalues[state][memory]}")
-    return qvalues
-
+    @classmethod
+    def compute_qvalues_function(cls, sketch_path, properties_path):
+        if not os.path.exists(sketch_path):
+            raise ValueError(f"Sketch file {sketch_path} does not exist.")
+        if not hasattr(cls, "quotient") and not hasattr(cls, "synthesizer"):
+            cls.quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path)
+            k = 2 # May be unknown?
+            cls.quotient.set_imperfect_memory_size(k)
+            cls.synthesizer = paynt.synthesizer.synthesizer_pomdp.SynthesizerPomdp(cls.quotient, method="ar", storm_control=None)
+        assignment = cls.synthesizer.synthesize()
+        # before the quotient is modified we can use this assignment to compute Q-values
+        assert assignment is not None
+        qvalues = cls.quotient.compute_qvalues(assignment)
+        # note Q(s,n) may be None if (s,n) exists in the unfolded POMDP but is not reachable in the induced DTMC
+        memory_size = len(qvalues[0])
+        assert k == memory_size
+        qvalues = PAYNT_Playground.fill_nones_in_qvalues(qvalues)
+        return qvalues
 
 def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
     """ Save dictionaries for Paynt oracle.
@@ -324,7 +329,7 @@ class Initializer:
             if qvalues_table is None: # If Q-values table is not provided, compute it from the sketch and properties
                 sketch_path = self.args.prism_model
                 props_path = self.args.prism_properties
-                qvalues_table = compute_qvalues_function(sketch_path, props_path)
+                qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
             agent = PPO_with_QValues_FSC(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
                 qvalues_table=qvalues_table)
