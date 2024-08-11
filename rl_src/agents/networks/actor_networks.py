@@ -16,6 +16,6 @@ def create_recurrent_actor_net_demasked(tf_environment: tf_py_environment.TFPyEn
         input_fc_layer_params=layer_params,
         output_fc_layer_params=None,
         lstm_size=(64,),
-        conv_layer_params=None,
+        conv_layer_params=None
     )
     return actor_net

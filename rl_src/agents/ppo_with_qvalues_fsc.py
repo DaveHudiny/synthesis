@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class PPO_with_QValues_FSC(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
-                 args, load=False, agent_folder=None, qvalues_table=None):
+                 args, load=False, agent_folder=None, qvalues_table=None, action_labels_at_observation=None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         self.agent = None
         self.policy_state = None
@@ -39,7 +39,9 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.critic_net = FSC_Critic(
             tf_environment.observation_spec()["observation"], 
             qvalues_table=self.qvalues_function, nr_observations=environment.nr_obs,
-            reward_multiplier=environment.reward_multiplier)
+            reward_multiplier=environment.reward_multiplier,
+            stormpy_model=environment.stormpy_model, 
+            action_labels_at_observation=action_labels_at_observation)
         
         time_step_spec = tf_environment.time_step_spec()
         time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
@@ -70,17 +72,38 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.init_collector_driver(tf_environment)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
+        # self.wrapper = self.agent.policy
+        self.custom_pseudo_driver_run(tf_environment, steps=10)
         if load:
             self.load_agent()
             
     def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
-        eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
+        # self.collect_policy_wrapper = self.agent.collect_policy
+        # eager = py_tf_eager_policy.PyTFEagerPolicy(
+        #     self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
+        eager = self.collect_policy_wrapper
         observer = self.demasked_observer()
+        # observer = self.replay_buffer.add_batch
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
             observers=[observer],
             num_steps=self.traj_num_steps)
+        
+    def custom_pseudo_driver_run(self, tf_environment: tf_py_environment.TFPyEnvironment, steps : int = 1000):
+        print("Ahoj")
+        eager = py_tf_eager_policy.PyTFEagerPolicy(
+            self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
+        step = 0
+        dataset = self.replay_buffer.as_dataset(
+            sample_batch_size=1, num_steps=4, num_parallel_calls=3).prefetch(3)
+        iterator = iter(dataset)
+        while step < steps:
+            self.driver.run()
+            self.agent.train_step_counter.assign_add(1)
+            data, _ = next(iterator)
+            self.agent.train(data)
+            step += 1
+        print("Konec")

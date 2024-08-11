@@ -6,6 +6,7 @@ import tensorflow as tf
 
 import tf_agents
 from tf_agents.environments import tf_py_environment
+from tf_agents.specs import BoundedArraySpec
 
 from tools.belief_updater import Belief_Updater
 
@@ -32,7 +33,7 @@ class FSC_Critic(network.Network):
     def __init__(self, input_tensor_spec, name="FSC_QValue_Estimator", qvalues_table=None,
                  observation_and_action_constraint_splitter: callable = None, nr_observations: int = 1,
                  reward_multiplier=1.0, stormpy_model: SparsePomdp = None,
-                 action_labels_at_observation: dict = None, initial_state : int = 0):
+                 action_labels_at_observation: dict = None):
         """Initializes the FSC critic pseudo-network.
 
         Args:
@@ -56,13 +57,11 @@ class FSC_Critic(network.Network):
 
         self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         self.nr_observations = nr_observations
-
         if stormpy_model is not None and action_labels_at_observation is not None:
             self.belief_updater = Belief_Updater(
                 stormpy_model, action_labels_at_observation)
-            
-            state_spec = tf.TensorSpec(shape=(self.belief_updater.nr_states,), dtype=tf.float32)
-            
+            self.initial_state = stormpy_model.initial_states[0]
+            state_spec = BoundedArraySpec(shape=(self.belief_updater.nr_states,), dtype=np.dtype('float32'), minimum=0.0, maximum=1.0)
         else:
             state_spec = ()
 
@@ -95,25 +94,36 @@ class FSC_Critic(network.Network):
         return init_belief
     
     def qvalues_function(self, observations, step_type, belief):
-        if len(observations.shape) == 2:  # Unbatchet observation
+        # if self.observation_and_action_constraint_splitter is not None:
+        #     observations, _ = self.observation_and_action_constraint_splitter(
+        #         observations)
+        if len(observations.shape) == 2:  # Unbatched observation
             observations = tf.expand_dims(observations, axis=0)
 
         # Conversion of observation to integer indices -- currently implemented as additional normalised feature
         indices = tf.zeros_like(
             observations[:, :, -1] * self.nr_observations, dtype=tf.int32)
-
-        if self.observation_and_action_constraint_splitter is not None:
-            observations, _ = self.observation_and_action_constraint_splitter(
-                observations)
-        if belief == ():  # unknown memory node, return average
-            values_rows = tf.gather(self.qvalues_table, indices)
-            values = tf.reduce_max(values_rows, axis=-1)
-            belief = ()
-        else:
-            values = self.qvalues_table * belief[:, tf.newaxis]
+        # if belief == ():  # unknown memory node, return average
+        #     values_rows = tf.gather(self.qvalues_table, indices)
+        #     values = tf.reduce_max(values_rows, axis=-1)
+        #     belief = ()
+        # else:
+            # belief = self.belief_updater.next_belief_without_known_action(belief, indices)
+        if indices.shape == (1, 1):
+            values = tf.multiply(self.qvalues_table, tf.transpose(belief))
             values = tf.reduce_mean(values, axis=0)
             values = tf.reduce_max(values, axis=-1)
-            belief = self.belief_updater.next_belief(belief, )  # TODO: Implement memory-based version
+        else:
+            beliefs = self.belief_updater.compute_beliefs_for_consequent_steps(belief, indices)
+            qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)
+            expanded_values = tf.tile(qvalues_table, [beliefs.shape[0], 1, 1])
+            expanded_beliefs = np.expand_dims(beliefs, axis=2)
+            values = tf.multiply(expanded_values, expanded_beliefs)
+            # values = tf.multiply(tf.transpose(beliefs), self.qvalues_table)
+            values = tf.reduce_mean(values, axis=1)
+            values = tf.reduce_max(values, axis=-1)
+            values = tf.expand_dims(values, axis=0)
+            # belief = self.belief_updater.next_belief(belief, 0,)  # TODO: Implement memory-based version
         return values, belief
 
     def call(self, observations, step_type, network_state, training=False):
@@ -121,4 +131,5 @@ class FSC_Critic(network.Network):
             observations, step_type, network_state)
         if step_type.shape == (1,):
             values = tf.constant(values, shape=(1, 1))
+
         return values, network_state
