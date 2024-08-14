@@ -95,24 +95,12 @@ class FSC_Critic(network.Network):
     
     def unbatched_belief_computation(self, beliefs):
         qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)
-        expanded_values = tf.tile(qvalues_table, [beliefs.shape[0], 1, 1])
-        expanded_beliefs = tf.expand_dims(beliefs, axis=2)
-        values = tf.multiply(expanded_values, expanded_beliefs)
+        beliefs = tf.expand_dims(beliefs, axis=0)
+        beliefs = tf.transpose(beliefs, perm=[1, 2, 0])
+        values = tf.multiply(qvalues_table, beliefs)
         values = tf.reduce_mean(values, axis=1)
         values = tf.reduce_max(values, axis=-1)
         values = tf.expand_dims(values, axis=0)
-        return values
-    
-    # def batched_belief_computation(self, beliefs):
-        qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)
-        qvalues_table = tf.tile(qvalues_table, [beliefs.shape[1], 1, 1])
-        qvalues_table = tf.expand_dims(qvalues_table, axis=0)
-        expanded_values = tf.tile(qvalues_table, [beliefs.shape[0], 1, 1, 1])
-        expanded_beliefs = tf.expand_dims(beliefs, axis=2)
-        expanded_beliefs = tf.transpose(expanded_beliefs, perm=[0, 1, 3, 2])
-        values = tf.multiply(expanded_values, expanded_beliefs)
-        values = tf.reduce_mean(values, axis=-2)
-        values = tf.reduce_max(values, axis=-1)
         return values
     
     def batched_belief_computation(self, beliefs): 
@@ -149,9 +137,11 @@ class FSC_Critic(network.Network):
             beliefs = self.belief_updater.compute_beliefs_for_consequent_steps(belief, indices)
             if len(tf.squeeze(indices).shape) == 1:
                 values = self.unbatched_belief_computation(beliefs)
+                belief = beliefs[-1, :]
             else:
                 values = self.batched_belief_computation(beliefs)
-            belief = beliefs[:, -1, :]
+                belief = beliefs[:, -1, :]
+            
         return values, belief
 
     def call(self, observations, step_type, network_state, training=False):

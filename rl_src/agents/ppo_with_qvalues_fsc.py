@@ -73,7 +73,7 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy
-        # self.custom_pseudo_driver_run(tf_environment, steps=10)
+        self.custom_pseudo_driver_run(tf_environment, steps=10)
         if load:
             self.load_agent()
             

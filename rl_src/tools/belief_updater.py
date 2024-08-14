@@ -16,6 +16,13 @@ class Belief_Updater:
         self.pomdp_get_choice_index = stormpy_model.get_choice_index
         self.pomdp_transition_matrix = stormpy_model.transition_matrix
         self.init_observation_state_mapping()
+        self.init_observation_action_lengths()
+        
+    def init_observation_action_lengths(self):
+        self.observation_action_lengths = np.zeros((self.nr_observations,), dtype=np.int32)
+        for obs in range(len(self.action_labels_at_observation)):
+            self.observation_action_lengths[obs] = len(self.action_labels_at_observation[obs])
+        self.observation_action_lengths = tf.convert_to_tensor(self.observation_action_lengths, dtype=tf.int32)
         
     def init_observation_state_mapping(self):
         observation_state_mapping = np.zeros((self.nr_observations, self.nr_states))
@@ -52,6 +59,12 @@ class Belief_Updater:
             indices = observations[0]
             belief = self.observation_state_mapping[indices]
         return belief    
+    
+    def update_belief(self, belief, next_obs): # Update single belief state
+        new_belief = belief
+        for i in range(self.observation_action_lengths[next_obs]):
+            pass
+        return new_belief 
         
     @tf.function
     def compute_beliefs_for_consequent_steps(self, belief, observations, actions = None):
@@ -64,15 +77,19 @@ class Belief_Updater:
             for i in range(len(observations)): # Iterate over batches
                 sub_beliefs = []
                 sub_belief = belief[i]
-                for j in range(len(observations[i])): # Iterate over time steps
-                    # belief[i] = self.next_belief(belief, actions[i][j], observations[i][j])
+                sub_beliefs.append(sub_belief)
+                for j in range(len(observations[i]) - 1): # Iterate over time steps
+                    sub_belief = self.update_belief(sub_belief, observations[i, j+1])
                     sub_beliefs.append(sub_belief)
                 # belief = self.next_belief(belief, actions[i], observations[i])
                 beliefs.append(sub_beliefs)
         else:
-            for i in range(len(observations)):
+            beliefs.append(belief)
+            for i in range(len(observations) - 1):
+                belief = self.update_belief(belief, observations[i+1])
                 beliefs.append(belief)
-        return tf.convert_to_tensor(beliefs)
+        belief_tensor = tf.convert_to_tensor(beliefs)
+        return belief_tensor
         
     
     # @tf.function
