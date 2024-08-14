@@ -141,7 +141,6 @@ class FSC_Critic(network.Network):
             else:
                 values = self.batched_belief_computation(beliefs)
                 belief = beliefs[:, -1, :]
-            
         return values, belief
 
     def call(self, observations, step_type, network_state, training=False):

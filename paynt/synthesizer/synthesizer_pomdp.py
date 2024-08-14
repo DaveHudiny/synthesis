@@ -246,7 +246,8 @@ class SynthesizerPomdp:
     def run_rl_synthesis_critic(self):
         qvalues = self.storm_control.qvalues
         rl_synthesiser = Synthesizer_RL(
-            self.quotient.pomdp, self.rl_args, qvalues=qvalues)
+            self.quotient.pomdp, self.rl_args, qvalues=qvalues, 
+            action_labels_at_observation=self.quotient.action_labels_at_observation)
         rl_synthesiser.train_agent(2000)
         rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
     

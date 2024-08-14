@@ -62,7 +62,7 @@ class PAYNT_Playground:
         if not hasattr(cls, "quotient") and not hasattr(cls, "synthesizer"):
             cls.quotient = paynt.parser.sketch.Sketch.load_sketch(
                 sketch_path, properties_path)
-            cls.k = 2  # May be unknown?
+            cls.k = 3  # May be unknown?
             cls.quotient.set_imperfect_memory_size(cls.k)
             cls.synthesizer = paynt.synthesizer.synthesizer_pomdp.SynthesizerPomdp(
                 cls.quotient, method="ar", storm_control=None)
@@ -316,7 +316,7 @@ class Initializer:
         agent.load_agent()
         return agent
 
-    def select_agent_type(self, learning_method=None, qvalues_table=None) -> FatherAgent:
+    def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
 
         Args:
@@ -347,6 +347,7 @@ class Initializer:
                 # qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
                 qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
                     sketch_path, props_path)
+            assert action_labels_at_observation is not None # Action labels must be provided
             agent = PPO_with_QValues_FSC(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
                 qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
@@ -355,14 +356,14 @@ class Initializer:
                 "Learning method not recognized or implemented yet.")
         return agent
 
-    def initialize_agent(self, qvalues_table=None) -> FatherAgent:
+    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
 
         returns:
             FatherAgent: The initialized agent.
         """
-        agent = self.select_agent_type(qvalues_table=qvalues_table)
+        agent = self.select_agent_type(qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
         if self.args.restart_weights > 0:
             agent = self.select_best_starting_weights(agent)
         return agent
@@ -398,6 +399,7 @@ class Initializer:
         for quality in ["last", "best"]:
             logger.info(f"Interpreting agent with {quality} quality")
             if with_refusing == None:
+                result = {}
                 self.agent.load_agent(quality == "best")
                 if self.args.learning_method == "PPO" and self.args.prefer_stochastic:
                     self.agent.set_agent_stochastic()
