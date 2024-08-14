@@ -73,7 +73,7 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy
-        self.custom_pseudo_driver_run(tf_environment, steps=10)
+        # self.custom_pseudo_driver_run(tf_environment, steps=10)
         if load:
             self.load_agent()
             
@@ -81,9 +81,9 @@ class PPO_with_QValues_FSC(FatherAgent):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
         # self.collect_policy_wrapper = self.agent.collect_policy
-        # eager = py_tf_eager_policy.PyTFEagerPolicy(
-        #     self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
-        eager = self.collect_policy_wrapper
+        eager = py_tf_eager_policy.PyTFEagerPolicy(
+            self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
+        # eager = self.collect_policy_wrapper
         observer = self.demasked_observer()
         # observer = self.replay_buffer.add_batch
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
@@ -93,7 +93,6 @@ class PPO_with_QValues_FSC(FatherAgent):
             num_steps=self.traj_num_steps)
         
     def custom_pseudo_driver_run(self, tf_environment: tf_py_environment.TFPyEnvironment, steps : int = 1000):
-        print("Ahoj")
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
         step = 0
@@ -106,4 +105,3 @@ class PPO_with_QValues_FSC(FatherAgent):
             data, _ = next(iterator)
             self.agent.train(data)
             step += 1
-        print("Konec")

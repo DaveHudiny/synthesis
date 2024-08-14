@@ -93,6 +93,38 @@ class FSC_Critic(network.Network):
             init_belief = tf.one_hot(initial_state_expanded, self.belief_updater.nr_states)
         return init_belief
     
+    def unbatched_belief_computation(self, beliefs):
+        qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)
+        expanded_values = tf.tile(qvalues_table, [beliefs.shape[0], 1, 1])
+        expanded_beliefs = tf.expand_dims(beliefs, axis=2)
+        values = tf.multiply(expanded_values, expanded_beliefs)
+        values = tf.reduce_mean(values, axis=1)
+        values = tf.reduce_max(values, axis=-1)
+        values = tf.expand_dims(values, axis=0)
+        return values
+    
+    # def batched_belief_computation(self, beliefs):
+        qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)
+        qvalues_table = tf.tile(qvalues_table, [beliefs.shape[1], 1, 1])
+        qvalues_table = tf.expand_dims(qvalues_table, axis=0)
+        expanded_values = tf.tile(qvalues_table, [beliefs.shape[0], 1, 1, 1])
+        expanded_beliefs = tf.expand_dims(beliefs, axis=2)
+        expanded_beliefs = tf.transpose(expanded_beliefs, perm=[0, 1, 3, 2])
+        values = tf.multiply(expanded_values, expanded_beliefs)
+        values = tf.reduce_mean(values, axis=-2)
+        values = tf.reduce_max(values, axis=-1)
+        return values
+    
+    def batched_belief_computation(self, beliefs): 
+        # B - batch size, S - number of steps, N - number of states, M - number of memories
+        qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)  # (1, N, M)
+        expanded_beliefs = tf.expand_dims(beliefs, axis=2)  # (B, S, 1, N)
+        expanded_beliefs = tf.transpose(expanded_beliefs, perm=[0, 1, 3, 2])  # (B, S, N, 1)
+        values = tf.multiply(qvalues_table, expanded_beliefs)  # (B, S, N, M)
+        values = tf.reduce_mean(values, axis=-2)  # (B, S, M)
+        values = tf.reduce_max(values, axis=-1)  # (B, S)
+        return values
+    
     def qvalues_function(self, observations, step_type, belief):
         # if self.observation_and_action_constraint_splitter is not None:
         #     observations, _ = self.observation_and_action_constraint_splitter(
@@ -103,27 +135,23 @@ class FSC_Critic(network.Network):
         # Conversion of observation to integer indices -- currently implemented as additional normalised feature
         indices = tf.zeros_like(
             observations[:, :, -1] * self.nr_observations, dtype=tf.int32)
-        # if belief == ():  # unknown memory node, return average
+        # if belief == ():  # unknown memory node, return max
         #     values_rows = tf.gather(self.qvalues_table, indices)
         #     values = tf.reduce_max(values_rows, axis=-1)
         #     belief = ()
         # else:
             # belief = self.belief_updater.next_belief_without_known_action(belief, indices)
-        if indices.shape == (1, 1):
+        if indices.shape == (1, 1): # single observation
             values = tf.multiply(self.qvalues_table, tf.transpose(belief))
             values = tf.reduce_mean(values, axis=0)
             values = tf.reduce_max(values, axis=-1)
         else:
             beliefs = self.belief_updater.compute_beliefs_for_consequent_steps(belief, indices)
-            qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)
-            expanded_values = tf.tile(qvalues_table, [beliefs.shape[0], 1, 1])
-            expanded_beliefs = np.expand_dims(beliefs, axis=2)
-            values = tf.multiply(expanded_values, expanded_beliefs)
-            # values = tf.multiply(tf.transpose(beliefs), self.qvalues_table)
-            values = tf.reduce_mean(values, axis=1)
-            values = tf.reduce_max(values, axis=-1)
-            values = tf.expand_dims(values, axis=0)
-            # belief = self.belief_updater.next_belief(belief, 0,)  # TODO: Implement memory-based version
+            if len(tf.squeeze(indices).shape) == 1:
+                values = self.unbatched_belief_computation(beliefs)
+            else:
+                values = self.batched_belief_computation(beliefs)
+            belief = beliefs[:, -1, :]
         return values, belief
 
     def call(self, observations, step_type, network_state, training=False):
