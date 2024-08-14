@@ -30,6 +30,8 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
+import numpy as np
+
 
 class SynthesizerPomdp:
 
@@ -73,17 +75,32 @@ class SynthesizerPomdp:
         self.total_iters += iters_mdp
         return assignment
     
+    def __make_qvalues_table_tensorable(self, qvalues_table):
+        nr_states = len(qvalues_table)
+        for state in range(nr_states):
+            memory_size = len(qvalues_table[state])
+            for memory in range(memory_size):
+                if qvalues_table[state][memory] == None:
+                    not_none_values = [qvalues_table[state][i] for i in range(
+                        memory_size) if qvalues_table[state][i] is not None]
+                    if len(not_none_values) == 0:
+                        qvalues_table[state][memory] = 0.0
+                    else:
+                        qvalues_table[state][memory] = np.min(not_none_values)
+        return qvalues_table
+    
     def fix_qvalues(self, assignment, original_qvalues, original_property_str):
-        print(dir(self.quotient.pomdp))
-        print(self.quotient.pomdp.reward_models)
+        
+        original_qvalues = self.__make_qvalues_table_tensorable(original_qvalues)
         if "Pmax" in original_property_str:
-            qvalues = self.rl_args.evaluation_goal * original_qvalues
+            qvalues = np.multiply(original_qvalues, self.rl_args.evaluation_goal)
             # TODO: More possible names of reward model
             cumulative_reward_property_str = f"R{{\"steps\"}}min=? [ C<={self.rl_args.max_steps} ]"
             prism = PrismParser.prism # Not a good way to access the prism object
             cumulative_property = stormpy.parse_properties(cumulative_reward_property_str, context=prism)[0]
             cumulative_opt_property = paynt.verification.property.OptimalityProperty(cumulative_property)
             cumulative_reward_qvalues = self.quotient.compute_qvalues(assignment, prop=cumulative_opt_property)
+            cumulative_reward_qvalues = self.__make_qvalues_table_tensorable(cumulative_reward_qvalues)      
             qvalues += cumulative_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction
@@ -95,6 +112,7 @@ class SynthesizerPomdp:
         else:
             logger.info(f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
             qvalues = original_qvalues
+        print(np.array(qvalues).shape)
         return qvalues
 
     def compute_qvalues_for_rl(self, assignment):
@@ -208,7 +226,6 @@ class SynthesizerPomdp:
                 # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
                 self.storm_control.qvalues = self.compute_qvalues_for_rl(
                     assignment=assignment)
-                print(self.storm_control.qvalues)
             else:
                 logging.info("Assignment is None")
 
@@ -256,7 +273,7 @@ class SynthesizerPomdp:
             args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
                                 trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50,
-                                discount_factor=0.9)
+                                discount_factor=0.9, batch_size=4)
         else:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
