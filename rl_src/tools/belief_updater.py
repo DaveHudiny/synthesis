@@ -46,7 +46,7 @@ class Belief_Updater:
     @tf.function
     def initial_belief(self, observations):
         if len(observations.shape) > 1: # Batched input
-            indices = observations[:][0]
+            indices = observations[:, 0]
             belief = tf.gather(self.observation_state_mapping, indices)
         else:
             indices = observations[0]
@@ -61,11 +61,12 @@ class Belief_Updater:
         if sum < 1e-6: # if belief is zero, create pure belief based on first observation
             belief = self.initial_belief(observations)
         if len(observations.shape) > 1:
-            for i in range(len(observations)):
+            for i in range(len(observations)): # Iterate over batches
                 sub_beliefs = []
-                for j in range(len(observations[i])):
+                sub_belief = belief[i]
+                for j in range(len(observations[i])): # Iterate over time steps
                     # belief[i] = self.next_belief(belief, actions[i][j], observations[i][j])
-                    sub_beliefs.append(belief[j])
+                    sub_beliefs.append(sub_belief)
                 # belief = self.next_belief(belief, actions[i], observations[i])
                 beliefs.append(sub_beliefs)
         else:
