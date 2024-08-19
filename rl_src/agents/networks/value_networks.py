@@ -131,15 +131,11 @@ class FSC_Critic(network.Network):
         # else:
             # belief = self.belief_updater.next_belief_without_known_action(belief, indices)
         if indices.shape == (1, 1): # single observation
-            print(belief.shape)
-            print(self.qvalues_table.shape)
             values = tf.multiply(self.qvalues_table, tf.transpose(belief))
             values = tf.reduce_mean(values, axis=0)
             values = tf.reduce_max(values, axis=-1)
         else:
             beliefs = self.belief_updater.compute_beliefs_for_consequent_steps(belief, indices)
-            print(beliefs.shape)
-            print(self.qvalues_table.shape)
             if len(tf.squeeze(indices).shape) == 1:
                 values = self.unbatched_belief_computation(beliefs)
                 belief = beliefs[-1, :]

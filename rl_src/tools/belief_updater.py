@@ -59,6 +59,8 @@ class Belief_Updater:
         return choice
     
     def next_belief(self, belief, action_label, next_obs):
+        """DEPRECATED: Update belief based on action and observation.
+            Based on provided code by Roman Andriushchenko."""
         any_belief_state = list(belief.keys())[0]
         obs = self.pomdp_observations[any_belief_state]
         action = self.action_labels_at_observation[obs].index(action_label)
@@ -89,19 +91,21 @@ class Belief_Updater:
         belief = belief * mask
         return belief
     
-    @tf.function
-    def update_belief_old(self, belief, obs, next_obs): # Update single belief state
-        new_belief = tf.zeros((self.nr_states,), dtype=tf.float32)
-        for state in range(self.nr_states): # Iterate over states
-            for action in range(self.observation_action_lengths[obs]): # Iterate over actions
-                choice = self.choice_index_matrix[state, action]
-                row = self.transition_matrix[choice]
-                new_belief = tf.add(new_belief, row * belief[state])
-        new_belief = self.nullify_illegal_states(new_belief, next_obs) # Zero out all states that does not emit next_obs
-        new_belief = new_belief / tf.reduce_sum(new_belief) # Normalize
-        return new_belief 
-    
     def update_belief(self, belief, obs, next_obs):  # Update single belief state
+        choices = self.choice_index_matrix[:, :self.observation_action_lengths[obs]]
+        selected_rows = tf.gather(self.transition_matrix, choices)
+        weighted_rows = selected_rows * tf.reshape(belief, (-1, 1, 1))
+        new_belief = tf.reduce_sum(weighted_rows, axis=[0, 1])
+        new_belief = self.nullify_illegal_states(new_belief, next_obs)  # Zero out all states that do not emit next_obs
+        belief_sum = tf.reduce_sum(new_belief)
+        new_belief = tf.cond(belief_sum > 0, lambda: new_belief / belief_sum, lambda: new_belief)  # Normalize only if sum > 0
+        return new_belief
+    
+    @tf.function
+    def update_belief_paired(self, belief, obs_next_obs_pair):  # Paired input version
+        # obs, next_obs = obs_next_obs_pair
+        obs = obs_next_obs_pair[0]
+        next_obs = obs_next_obs_pair[1]
         choices = self.choice_index_matrix[:, :self.observation_action_lengths[obs]]
         selected_rows = tf.gather(self.transition_matrix, choices)
         weighted_rows = selected_rows * tf.reshape(belief, (-1, 1, 1))
@@ -126,12 +130,10 @@ class Belief_Updater:
                 for j in range(len(observations[i]) - 1): # Iterate over time steps
                     sub_belief = self.update_belief(sub_belief, observations[i, j], observations[i, j+1])
                     sub_beliefs.append(sub_belief)
-                # belief = self.next_belief(belief, actions[i], observations[i])
                 beliefs.append(sub_beliefs)
         else:
-            beliefs.append(belief)
-            for i in range(len(observations) - 1):
-                belief = self.update_belief(belief, observations[i], observations[i+1])
-                beliefs.append(belief)
+            obs_pairs = tf.stack([observations[:-1], observations[1:]], axis=1)
+            beliefs = tf.scan(self.update_belief_paired, obs_pairs, initializer=belief)
+            beliefs = tf.concat([[belief], beliefs], axis=0)
         belief_tensor = tf.convert_to_tensor(beliefs)
         return belief_tensor
