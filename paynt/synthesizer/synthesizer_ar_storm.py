@@ -112,9 +112,7 @@ class SynthesizerARStorm(Synthesizer):
                     logger.info(f"Used Storm result to prune a family with Storm value: {storm_res.upper_bound} compared to current optimum {self.quotient.specification.optimality.optimum}. Quotient MDP value: {res.optimality_result.primary.value}")
 
 
-
     def synthesize_one(self, family, timer = None):
-        self.quotient.discarded = 0
 
         satisfying_assignment = None
         
@@ -188,7 +186,7 @@ class SynthesizerARStorm(Synthesizer):
                 continue
 
             # undecided
-            subfamilies = self.quotient.split(family, Synthesizer.incomplete_search)
+            subfamilies = self.quotient.split(family)
             families = families + subfamilies
 
         return satisfying_assignment

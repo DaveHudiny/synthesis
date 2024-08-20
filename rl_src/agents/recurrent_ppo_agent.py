@@ -4,7 +4,7 @@
 # File: recurrent_ppo_agent.py
 
 from agents.father_agent import FatherAgent
-from rl_src.tools.encoding_methods import *
+from tools.encoding_methods import *
 
 import tensorflow as tf
 import tf_agents
@@ -28,6 +28,12 @@ from agents.policies.stochastic_ppo_collector_policy import Stochastic_PPO_Colle
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.fsc_policy import FSC_Policy
 
+from agents.networks.value_networks import create_recurrent_value_net_demasked
+from agents.networks.actor_networks import create_recurrent_actor_net_demasked
+
+
+import sys
+sys.path.append("../")
 from paynt.quotient.fsc import FSC
 
 
@@ -47,10 +53,10 @@ class Recurrent_PPO_agent(FatherAgent):
 
         action_spec = tf_environment.action_spec()
 
-        self.actor_net = self.create_recurrent_actor_net_demasked(
+        self.actor_net = create_recurrent_actor_net_demasked(
             tf_environment, action_spec)
         
-        self.value_net = self.create_recurrent_value_net_demasked(
+        self.value_net = create_recurrent_value_net_demasked(
                 tf_environment)
         
         time_step_spec = tf_environment.time_step_spec()
@@ -66,34 +72,20 @@ class Recurrent_PPO_agent(FatherAgent):
             train_step_counter=train_step_counter,
             greedy_eval=False,
             discount_factor=0.9,
-            lambda_value=0.5
+            use_gae=True,
+            lambda_value=0.5,
         )
         self.agent.initialize()
         logging.info("Agent initialized")
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_ppo_collector_driver(tf_environment)
+        self.init_collector_driver(tf_environment)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         if load:
             self.load_agent()
 
-    def demasked_observer(self):
-        """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""
-        def _add_batch(item: Trajectory):
-            modified_item = Trajectory(
-                step_type=item.step_type,
-                observation=item.observation["observation"],
-                action=item.action,
-                policy_info=(item.policy_info),
-                next_step_type=item.next_step_type,
-                reward=item.reward,
-                discount=item.discount,
-            )
-            self.replay_buffer._add_batch(modified_item)
-        return _add_batch
-
-    def init_collector_driver(self, tf_environment):
+    def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
         eager = py_tf_eager_policy.PyTFEagerPolicy(
@@ -125,34 +117,6 @@ class Recurrent_PPO_agent(FatherAgent):
             num_episodes=1
         )
     
-    def create_recurrent_actor_net_demasked(self, tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
-        preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (64, 64)
-        actor_net = tf_agents.networks.actor_distribution_rnn_network.ActorDistributionRnnNetwork(
-            tf_environment.observation_spec()["observation"],
-            action_spec,
-            preprocessing_layers=preprocessing_layer,
-            input_fc_layer_params=layer_params,
-            output_fc_layer_params=None,
-            lstm_size=(64,),
-            conv_layer_params=None,
-        )
-        return actor_net
-
-
-    def create_recurrent_value_net_demasked(self, tf_environment: tf_py_environment.TFPyEnvironment):
-        preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (64, 64)
-        value_net = tf_agents.networks.value_rnn_network.ValueRnnNetwork(
-            tf_environment.observation_spec()["observation"],
-            preprocessing_layers=preprocessing_layer,
-            input_fc_layer_params=layer_params,
-            output_fc_layer_params=None,
-            lstm_size=(64,),
-            conv_layer_params=None
-        )
-        return value_net
-
     def reset_weights(self):
         for layer in self.agent._actor_net.layers:
             if isinstance(layer, tf.keras.layers.LSTM):
@@ -203,6 +167,3 @@ class Recurrent_PPO_agent(FatherAgent):
             conv_layer_params=None
         )
         return value_net
-
-    def init_ppo_collector_driver(self, tf_environment):
-        self.init_collector_driver(tf_environment)

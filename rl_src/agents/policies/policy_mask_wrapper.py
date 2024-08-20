@@ -11,7 +11,7 @@ from tf_agents.trajectories import policy_step
 import tensorflow_probability as tfp
 
 
-from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter
+from tools.encoding_methods import observation_and_action_constraint_splitter
 
 from agents.policies.fsc_policy import FSC
 

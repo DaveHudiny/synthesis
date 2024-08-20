@@ -4,7 +4,7 @@ import payntbind
 import paynt.family.family
 import paynt.verification.property
 import paynt.parser.jani
-import paynt.quotient.models
+import paynt.models.model_builder
 
 import os
 import re
@@ -53,13 +53,11 @@ class PrismParser:
             specification = jani_unfolder.specification
             quotient_mdp = jani_unfolder.quotient_mdp
             coloring = payntbind.synthesis.Coloring(family.family, quotient_mdp.nondeterministic_choice_indices, jani_unfolder.choice_to_hole_options)
-            paynt.quotient.models.Mdp.initialize(specification)
             if prism.model_type == stormpy.storage.PrismModelType.POMDP:
                 obs_evaluator = payntbind.synthesis.ObservationEvaluator(prism, quotient_mdp)
             quotient_mdp = payntbind.synthesis.addChoiceLabelsFromJani(quotient_mdp)
         else:
-            paynt.quotient.models.Mdp.initialize(specification)
-            quotient_mdp = paynt.quotient.models.Mdp.from_prism(prism)
+            quotient_mdp = paynt.models.model_builder.ModelBuilder.from_prism(prism, specification)
 
         return prism, quotient_mdp, specification, family, coloring, jani_unfolder, obs_evaluator
 
@@ -198,6 +196,7 @@ class PrismParser:
         Expecting one property per line. The line may be terminated with a semicolon.
         Empty lines or comments are allowed.
         '''
+        cls.prism = prism
         if not os.path.isfile(properties_path):
             raise ValueError(f"the properties file {properties_path} does not exist")
         logger.info(f"loading properties from {properties_path} ...")
@@ -215,6 +214,31 @@ class PrismParser:
             prop = paynt.verification.property.construct_property(formula, relative_error)
             properties.append(prop)
 
+        specification = paynt.verification.property.Specification(properties)
+        logger.info(f"found the following specification: {specification}")
+        return specification
+    
+    @classmethod
+    def parse_specification_str(cls, properties_str="", relative_error=0, prism=None):
+        """
+        String version of parse_specification() class function.
+        
+        Expecting one property per line. The line may be terminated with a semicolon.
+        Empty lines or comments are allowed.
+        """
+        if properties_str == "":
+            raise ValueError("empty string provided as properties")
+        logger.info("loading properties from string ...")
+        lines = properties_str.split("\n")
+        properties = []
+        
+        for line in lines:
+            formula = PrismParser.parse_property(line,prism)
+            if formula is None:
+                continue
+            prop = paynt.verification.property.construct_property(formula, relative_error)
+            properties.append(prop)
+            
         specification = paynt.verification.property.Specification(properties)
         logger.info(f"found the following specification: {specification}")
         return specification

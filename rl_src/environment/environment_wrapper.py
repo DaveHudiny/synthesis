@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from stormpy import simulator
-from stormpy import storage
+from stormpy.storage import storage
 import stormpy
 
 from tf_agents.environments import py_environment
@@ -18,7 +18,7 @@ import tensorflow as tf
 from tf_agents.specs import tensor_spec
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step_spec
-from rl_src.tools.encoding_methods import *
+from tools.encoding_methods import *
 from environment.reward_shaping_models import *
 
 import json
@@ -46,6 +46,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.simulator = simulator.create_simulator(self.stormpy_model)
         self.labels = list(self.simulator._report_labels())
         self.args = args
+        self.nr_obs = self.stormpy_model.nr_observations
         self.encoding_method = args.encoding_method
         self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32)
         self.antigoal_value = tf.constant(args.evaluation_antigoal,
@@ -134,6 +135,17 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(self._possible_observations),), dtype=tf.float32, name="observation"),
                 self.args = "One-Hot"
+        elif self.encoding_method == "Valuations++":
+            try:
+                json_example = self.stormpy_model.observation_valuations.get_json(0)
+                parse_data = json.loads(str(json_example))
+                observation_spec = tensor_spec.TensorSpec(shape=(
+                    len(parse_data) + OBSERVATION_SIZE + 1,), dtype=tf.float32, name="observation"),
+            except:
+                logging.error("Valuation encoding not possible, using one-hot encoding instead.")
+                observation_spec = tensor_spec.TensorSpec(shape=(
+                    len(self._possible_observations),), dtype=tf.float32, name="observation"),
+                self.args = "One-Hot"
 
         else:
             raise ValueError("Encoding method not recognized")
@@ -213,6 +225,10 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             return tf.constant([observation], dtype=tf.float32)
         elif self.encoding_method == "Valuations":
             observation_vector = create_valuations_encoding(
+                observation, self.stormpy_model)
+            return tf.constant(observation_vector, dtype=tf.float32)
+        elif self.encoding_method == "Valuations++":
+            observation_vector = create_valuations_encoding_plus(
                 observation, self.stormpy_model)
             return tf.constant(observation_vector, dtype=tf.float32)
 

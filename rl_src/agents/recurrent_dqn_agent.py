@@ -8,7 +8,7 @@ import tensorflow as tf
 from tf_agents.environments import tf_py_environment
 
 from environment.environment_wrapper import Environment_Wrapper
-from rl_src.tools.encoding_methods import *
+from tools.encoding_methods import *
 
 import tensorflow as tf
 from tf_agents.agents.dqn import dqn_agent

@@ -10,12 +10,18 @@ from agents.random_agent import RandomTFPAgent
 from agents.policies.fsc_policy import FSC_Policy, FSC
 from interpreters.tracing_interpret import TracingInterpret
 from interpreters.model_free_interpret import ModelFreeInterpret, ModelInfo
+
 from agents.recurrent_ppo_agent import Recurrent_PPO_agent
 from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
 from agents.recurrent_dqn_agent import Recurrent_DQN_agent
+from agents.ppo_with_qvalues_fsc import PPO_with_QValues_FSC
+
+import paynt.parser.sketch
+import paynt.synthesizer.synthesizer_pomdp
+
 from tf_agents.environments import parallel_py_environment
 from tf_agents.environments import tf_py_environment
-from rl_src.tools.evaluators import *
+from tools.evaluators import *
 from environment.environment_wrapper import *
 from environment.pomdp_builder import *
 import tensorflow as tf
@@ -38,6 +44,48 @@ tf.autograph.set_verbosity(0)
 
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+class PAYNT_Playground:
+    @staticmethod
+    def fill_nones_in_qvalues(qvalues):
+        for state in range(len(qvalues)):
+            for memory in range(len(qvalues[state])):
+                if qvalues[state][memory] is None:
+                    qvalues[state][memory] = np.mean([qvalues[state][i] for i in range(
+                        len(qvalues[state])) if qvalues[state][i] is not None])
+        return qvalues
+
+    @classmethod
+    def singleton_init_models(cls, sketch_path, properties_path):
+        if not os.path.exists(sketch_path):
+            raise ValueError(f"Sketch file {sketch_path} does not exist.")
+        if not hasattr(cls, "quotient") and not hasattr(cls, "synthesizer"):
+            cls.quotient = paynt.parser.sketch.Sketch.load_sketch(
+                sketch_path, properties_path)
+            cls.k = 3  # May be unknown?
+            cls.quotient.set_imperfect_memory_size(cls.k)
+            cls.synthesizer = paynt.synthesizer.synthesizer_pomdp.SynthesizerPomdp(
+                cls.quotient, method="ar", storm_control=None)
+
+    @classmethod
+    def compute_qvalues_function(cls):
+        assignment = cls.synthesizer.synthesize()
+        # before the quotient is modified we can use this assignment to compute Q-values
+        assert assignment is not None
+        qvalues = cls.quotient.compute_qvalues(assignment)
+        # note Q(s,n) may be None if (s,n) exists in the unfolded POMDP but is not reachable in the induced DTMC
+        memory_size = len(qvalues[0])
+        assert cls.k == memory_size
+        qvalues = PAYNT_Playground.fill_nones_in_qvalues(qvalues)
+        return qvalues
+
+    @classmethod
+    def get_fsc_critic_components(cls, sketch_path, properties_path):
+        cls.singleton_init_models(
+            sketch_path=sketch_path, properties_path=properties_path)
+        qvalues = cls.compute_qvalues_function()
+        action_labels_at_observation = cls.quotient.action_labels_at_observation
+        return qvalues, action_labels_at_observation
 
 
 def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
@@ -77,7 +125,9 @@ def save_statistics_to_new_json(name_of_experiment, model, learning_method, eval
         max_steps = args.max_steps
 
     evaluation_result.set_experiment_settings(
-        learning_algorithm=learning_method, model=model, max_steps=max_steps)
+        learning_algorithm=learning_method, max_steps=max_steps)
+    if not os.path.exists(f"{name_of_experiment}"):
+        os.mkdir(f"{name_of_experiment}")
     if os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training.json"):
         i = 1
         while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):
@@ -266,11 +316,12 @@ class Initializer:
         agent.load_agent()
         return agent
 
-    def select_agent_type(self, learning_method=None):
+    def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
 
         Args:
             learning_method (str, optional): The learning method. If set, the learning method is used instead of the one from the args object. Defaults to None.
+            qvalues_table (dict, optional): The Q-values table created by the product of POMDPxFSC. Defaults to None.
         Raises:
             ValueError: If the learning method is not recognized or implemented yet."""
         if learning_method is None:
@@ -289,19 +340,30 @@ class Initializer:
             self.args.prefer_stochastic = True
             agent = Recurrent_PPO_agent(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
+        elif learning_method == "PPO_FSC_Critic":
+            if qvalues_table is None:  # If Q-values table is not provided, compute it from the sketch and properties
+                sketch_path = self.args.prism_model
+                props_path = self.args.prism_properties
+                # qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
+                qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
+                    sketch_path, props_path)
+            assert action_labels_at_observation is not None # Action labels must be provided
+            agent = PPO_with_QValues_FSC(
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
+                qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
         return agent
 
-    def initialize_agent(self) -> FatherAgent:
+    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
 
         returns:
             FatherAgent: The initialized agent.
         """
-        agent = self.select_agent_type()
+        agent = self.select_agent_type(qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
         if self.args.restart_weights > 0:
             agent = self.select_best_starting_weights(agent)
         return agent
@@ -337,6 +399,7 @@ class Initializer:
         for quality in ["last", "best"]:
             logger.info(f"Interpreting agent with {quality} quality")
             if with_refusing == None:
+                result = {}
                 self.agent.load_agent(quality == "best")
                 if self.args.learning_method == "PPO" and self.args.prefer_stochastic:
                     self.agent.set_agent_stochastic()

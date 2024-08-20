@@ -10,7 +10,7 @@ import os
 
 import logging
 
-from rl_src.tools.evaluators import EvaluationResults
+from tools.evaluators import EvaluationResults
 
 logger = logging.getLogger(__name__)
 
@@ -79,13 +79,15 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
-        for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN"]:
-            if any(not keyword in model for keyword in ["intercept"]):
+        for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic"]:
+            if learning_method != "PPO_FSC_Critic":
                 continue
-            for encoding_method in ["Valuations"]:
+            if any(not keyword in model for keyword in ["mba"]):
+                continue
+            for encoding_method in ["Valuations++"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
-                                    restart_weights=3, learning_method=learning_method, action_filtering=False, reward_shaping=False,
+                                    restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=30)
 
@@ -94,4 +96,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_large_more_steps", "./models")
+    run_experiments("experiments_qvalues_fsc", "./models")

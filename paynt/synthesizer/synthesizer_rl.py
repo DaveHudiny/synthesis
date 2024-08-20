@@ -42,7 +42,6 @@ class SAYNT_STEP:
         self.action = action
         self.memory_update = memory_update
         self.new_mode = new_mode
-        self
 
 
 class SAYNT_Simulation_Controller:
@@ -107,7 +106,8 @@ class Synthesizer_RL:
     """
 
     def __init__(self, stormpy_model, args: ArgsEmulator,
-                 initial_fsc_multiplier: float = 1.0):
+                 initial_fsc_multiplier: float = 1.0,
+                 qvalues: list = None, action_labels_at_observation: dict = None):
         """Initialization of the interface.
         Args:
             stormpy_model: Model of the environment.
@@ -121,7 +121,7 @@ class Synthesizer_RL:
         self.initializer.tf_environment = tf_py_environment.TFPyEnvironment(
             self.initializer.environment)
         logger.info("RL Environment initialized")
-        self.agent = self.initializer.initialize_agent()
+        self.agent = self.initializer.initialize_agent(qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
         self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment,
                                           self.initializer.args.encoding_method,
                                           possible_observations=self.initializer.environment._possible_observations)
@@ -192,6 +192,6 @@ class Synthesizer_RL:
         Args:
             experiment_name (str): Name of the experiment.
         """
-        evaluation_result = self.initializer.agent.evaluation_result
+        evaluation_result = self.agent.evaluation_result
         save_statistics_to_new_json(
             experiment_name, "model", "PPO", evaluation_result, self.initializer.args)
