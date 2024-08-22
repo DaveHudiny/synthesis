@@ -12,6 +12,8 @@ from time import sleep
 import logging
 logger = logging.getLogger(__name__)
 
+import numpy as np
+
 
 # class implementing the main components of the Storm integration for FSC synthesis for POMDPs
 class StormPOMDPControl:
@@ -376,13 +378,17 @@ class StormPOMDPControl:
     def parse_storm_result(self, quotient):
         # to make the code cleaner
         get_choice_label = self.latest_storm_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
-
         cutoff_epxloration = [x for x in range(len(self.latest_storm_result.cutoff_schedulers))]
+        print(dir(self.latest_storm_result.induced_mc_from_scheduler))
+        # print(self.latest_storm_result.induced_mc_from_scheduler.transition_matrix)
+        print(type(self.latest_storm_result.induced_mc_from_scheduler.transition_matrix))
+        print(self.latest_storm_result.induced_mc_from_scheduler.transition_matrix)
+        print(len(self.latest_storm_result.induced_mc_from_scheduler.states))
+        print(self.latest_storm_result.induced_mc_from_scheduler.initial_states)
+        print()
         finite_mem = False
-
         result = {x:[] for x in range(quotient.observations)}
         result_no_cutoffs = {x:[] for x in range(quotient.observations)}
-        
         for state in self.latest_storm_result.induced_mc_from_scheduler.states:
             # TODO what if there were no labels in the model?
             if get_choice_label(state.id) == set():
@@ -411,7 +417,6 @@ class StormPOMDPControl:
                     # explicit observation index
                     elif 'obs_' in label:
                         _, observation = label.split('_')
-
                         index = -1
                         choice_label = list(get_choice_label(state.id))[0]
                         for i in range(len(quotient.action_labels_at_observation[int(observation)])):
@@ -472,8 +477,7 @@ class StormPOMDPControl:
                 del result_no_cutoffs[obs]
 
         self.result_dict = result    
-        self.result_dict_no_cutoffs = result_no_cutoffs       
-            
+        self.result_dict_no_cutoffs = result_no_cutoffs
 
     # help function for cut-off parsing, returns list of actions for given choice_string
     # TODO bound to restrict some action if needed

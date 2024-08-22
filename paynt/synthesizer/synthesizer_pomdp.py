@@ -10,6 +10,9 @@ from .synthesizer_ar_storm import SynthesizerARStorm
 from .synthesizer_hybrid import SynthesizerHybrid
 from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
 from .synthesizer_rl import Synthesizer_RL
+from .synthesizer_rl import SAYNT_Simulation_Controller
+
+from .saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
 
 from paynt.synthesizer.saynt_rl_tools.regex_patterns import RegexPatterns
 from paynt.parser.prism_parser import PrismParser
@@ -75,23 +78,8 @@ class SynthesizerPomdp:
         self.total_iters += iters_mdp
         return assignment
     
-    def __make_qvalues_table_tensorable(self, qvalues_table):
-        nr_states = len(qvalues_table)
-        for state in range(nr_states):
-            memory_size = len(qvalues_table[state])
-            for memory in range(memory_size):
-                if qvalues_table[state][memory] == None:
-                    not_none_values = [qvalues_table[state][i] for i in range(
-                        memory_size) if qvalues_table[state][i] is not None]
-                    if len(not_none_values) == 0:
-                        qvalues_table[state][memory] = 0.0
-                    else:
-                        qvalues_table[state][memory] = np.min(not_none_values)
-        return qvalues_table
-    
     def fix_qvalues(self, assignment, original_qvalues, original_property_str):
-        
-        original_qvalues = self.__make_qvalues_table_tensorable(original_qvalues)
+        original_qvalues = make_qvalues_table_tensorable(original_qvalues)
         if "Pmax" in original_property_str:
             qvalues = np.multiply(original_qvalues, self.rl_args.evaluation_goal)
             # TODO: More possible names of reward model
@@ -100,15 +88,16 @@ class SynthesizerPomdp:
             cumulative_property = stormpy.parse_properties(cumulative_reward_property_str, context=prism)[0]
             cumulative_opt_property = paynt.verification.property.OptimalityProperty(cumulative_property)
             cumulative_reward_qvalues = self.quotient.compute_qvalues(assignment, prop=cumulative_opt_property)
-            cumulative_reward_qvalues = self.__make_qvalues_table_tensorable(cumulative_reward_qvalues)      
+            cumulative_reward_qvalues = make_qvalues_table_tensorable(cumulative_reward_qvalues)      
             qvalues += cumulative_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction
             qvalues = self.rl_args.evaluation_antigoal * original_qvalues
         elif RegexPatterns.check_max_property(original_property_str):
-            qvalues = self.rl_args.evaluation_goal + original_qvalues
+            qvalues = original_qvalues + self.rl_args.evaluation_goal
         elif RegexPatterns.check_min_property(original_property_str):
-            qvalues = self.rl_args.evaluation_goal - original_qvalues
+            
+            qvalues = (-original_qvalues) + self.rl_args.evaluation_goal
         else:
             logger.info(f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
             qvalues = original_qvalues
@@ -238,9 +227,12 @@ class SynthesizerPomdp:
 
             # break
 
-    def run_rl_synthesis(self):
+    def run_rl_synthesis(self, saynt : bool = True):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
+        if saynt:
+            SAYNT_Simulation_Controller(self.storm_control, self.quotient)
+            exit(0)
         fsc = self.storm_control.latest_paynt_result_fsc
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         first_time = True
@@ -284,7 +276,7 @@ class SynthesizerPomdp:
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.qvalues_flag = True
+        self.qvalues_flag = False
         self.rl_args = self.init_rl_args(qvalues_flag=self.qvalues_flag)
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
@@ -345,7 +337,6 @@ class SynthesizerPomdp:
         self.storm_control.interactive_storm_terminate()
 
         self.saynt_timer.stop()
-
         
         if self.run_rl and not self.qvalues_flag:
             self.run_rl_synthesis()

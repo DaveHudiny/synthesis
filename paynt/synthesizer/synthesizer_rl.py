@@ -8,6 +8,12 @@ from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.rl_main import ArgsEmulator, Initializer, save_statistics_to_new_json
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
+from rl_src.tools.encoding_methods import create_valuations_encoding, create_valuations_encoding_plus
+
+import paynt.quotient.storm_pomdp_control as Storm_POMDP_Control
+import paynt.quotient.pomdp as POMDP
+
+import stormpy.storage as Storage
 
 
 import tensorflow as tf
@@ -27,20 +33,21 @@ class SAYNT_Modes(Enum):
     CUTOFF_SCHEDULER = 3
 
 
-class SAYNT_STEP:
+class SAYNT_Step:
     """Class for step in SAYNT algorithm.
     """
 
-    def __init__(self, action=0, memory_update=0, new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF):
+    def __init__(self, action=0, observation = 0, state : Storage.SparseModelState = None, new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF):
         """Initialization of the step.
         Args:
             action: Action.
             observation: Observation.
             reward: Reward.
-            next_state: Next state.
+            state: Storm state.
         """
         self.action = action
-        self.memory_update = memory_update
+        self.observation = observation
+        self.state = state
         self.new_mode = new_mode
 
 
@@ -49,57 +56,117 @@ class SAYNT_Simulation_Controller:
     """
     MODES = ["BELIEF", "Cutoff_FSC", "Scheduler"]
 
-    def __init__(self, saynt_result, num_observations: int = None, observation_labels=None, action_labels=None):
+    def __init__(self, storm_control : Storm_POMDP_Control.StormPOMDPControl, quotient : POMDP.PomdpQuotient,
+                 tf_action_labels : list = None):
         """Initialization of the controller.
         Args:
-            saynt_result: Result of the SAYNT algorithm.
+            storm_control: Result of the SAYNT algorithm.
+            quotient: Important structure containing various information about the model etc.
+            tf_action_labels: List of action labels. Index of action label correspond to output node.
         """
-        self.saynt_result = saynt_result
+        self.storm_control = storm_control
+        self.storm_control_result = storm_control.latest_storm_result
+        self.quotient = quotient
         self.current_state = None
         self.current_mode = SAYNT_Modes.BELIEF
+        self.tf_action_labels = tf_action_labels
 
-        self.num_observations = num_observations
-        self.observation_labels = observation_labels
-        self.action_labels = action_labels
+        self.num_observations = quotient.pomdp.nr_observations
 
-    def get_next_action(self, state):
+    def get_next_step(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next action.
         Args:
-            state: Current state.
+            prev_step: Previous SAYNT_Step.
         Returns:
-            str: Next action.
+            SAYNT_Step: Next step.
         """
-        self.current_state = state
+        self.get_choice_label = self.latest_storm_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
+        self.current_state = prev_step
+        self.current_mode = prev_step.new_mode
         if self.current_mode == SAYNT_Modes.BELIEF:
-            return self.get_next_action_belief()
+            return self.get_next_step_belief(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_FSC:
-            return self.get_next_action_cutoff_fsc()
+            return self.get_next_action_cutoff_fsc(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_SCHEDULER:
-            return self.get_next_action_cutoff_scheduler()
+            return self.get_next_action_cutoff_scheduler(prev_step)
         else:
             raise ValueError("Unknown mode")
+        
+    def get_observations_and_action_from_labels(self, state: Storage.SparseModelState):
+        observations = []
+        actions = []
+        for label in state.labels: # Is there really needed a for loop?
+            if '[' in label:
+                observation = self.quotient.observation_labels.index(label)
+            elif 'obs_' in label:
+                _, observation = label.split('_')
+            choice_label = list(self.get_choice_label(state.id))[0]
+            try:
+                index = self.tf_action_labels.index(choice_label)
+            except ValueError:
+                index = -1
+            observations.append(observation)
+            actions.append(index)
+        return observations[0], actions[0]
 
-    def get_next_action_belief(self):
-        """Get the next action in belief mode.
+    def update_state(self, state : Storage.SparseModelState):
+        """Function samples new state from transition matrix of induced MC given current state."""
+        probs = self.storm_control.latest_storm_result.induced_mc_from_scheduler.transition_matrix[state.id]
+        logits = tf.math.log([probs])
+        sample = tf.random.categorical(logits, num_samples=1)
+        index = tf.squeeze(sample).numpy()
+        new_state = self.storm_control.latest_storm_result.induced_mc_from_scheduler.states[index]
+        return new_state
+    
+    def get_new_mode(self, state : Storage.SparseModelState):
+        new_mode = None
+        if "cutoff" not in state.labels and 'clipping' not in state.labels:
+            new_mode = SAYNT_Modes.BELIEF
+        else:
+            if "finite_mem" in state.labels:
+                new_mode = SAYNT_Modes.CUTOFF_FSC
+            else:
+                new_mode = SAYNT_Modes.CUTOFF_SCHEDULER
+        return new_mode
+
+    def get_next_step_belief(self, prev_step : SAYNT_Step) -> SAYNT_Step:
+        """Get the next step in belief mode.
         Returns:
-            str: Next action.
+            SAYNT_Step: Next step.
         """
-        pass
+        state = self.update_state(prev_step.state)
+        observation, action = self.get_observations_and_action_from_labels(prev_step.state)
+        new_mode = self.get_new_mode(state)
+        new_step = SAYNT_Step(action, observation, state, new_mode)
+        return new_step
 
-    def get_next_action_cutoff_fsc(self):
+    def get_next_action_cutoff_fsc(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next action in cutoff FSC mode.
         Returns:
-            str: Next action.
+            SAYNT_Step: Next step.
         """
-        pass
+        return prev_step
 
-    def get_next_action_cutoff_scheduler(self):
+    def get_next_action_cutoff_scheduler(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next action in cutoff scheduler mode.
         Returns:
-            str: Next action.
+            SAYNT_Step: Next step.
         """
-        pass
-
+        return prev_step
+    
+    def reset(self) -> SAYNT_Step:
+        """Resets the simulation with setting current state to initial state.
+        Returns:
+            SAYNT_Step: Initial state of induced MC.
+        """
+        init_states = self.storm_control_result.induced_mc_from_scheduler.initial_states
+        n = len(init_states)
+        index = tf.random.uniform(shape=[], minval=0, maxval=n, dtype=tf.int32)
+        sample = tf.gather(init_states, index)
+        state = self.storm_control_result.induced_mc_from_scheduler.states[sample]
+        observation, action = self.get_observations_and_action_from_labels(state)
+        mode = self.get_new_mode(state)
+        return SAYNT_Step(action, observation, state, mode)
 
 class Synthesizer_RL:
     """Class for the interface between RL and PAYNT.
