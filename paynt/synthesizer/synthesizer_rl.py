@@ -77,6 +77,7 @@ class SAYNT_Simulation_Controller:
         self.tf_action_labels = tf_action_labels
 
         self.num_observations = quotient.pomdp.nr_observations
+        self.get_choice_label = self.storm_control_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
 
     def get_next_step(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next action.
@@ -85,7 +86,7 @@ class SAYNT_Simulation_Controller:
         Returns:
             SAYNT_Step: Next step.
         """
-        self.get_choice_label = self.latest_storm_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
+        
         self.current_state = prev_step
         self.current_mode = prev_step.new_mode
         if self.current_mode == SAYNT_Modes.BELIEF:
@@ -215,11 +216,11 @@ class SAYNT_Driver:
     def create_tf_time_step(self, saynt_step : SAYNT_Step) -> Trajectories.TimeStep:
         tf_saynt_step = Trajectories.TimeStep(step_type=saynt_step.tf_step_type, 
                                               reward = 0, discount=self.discount,
-                                              observation=self.encoding_function(saynt_step.observation)) 
+                                              observation=create_valuations_encoding(saynt_step.observation, self.saynt_simulator.quotient.pomdp)) 
         return tf_saynt_step
     
     def create_tf_policy_step(self, saynt_step : SAYNT_Step) -> Trajectories.PolicyStep:
-        tf_policy_step = Trajectories.PolicyStep(saynt_step.action, state=(), info=())
+        return Trajectories.PolicyStep(saynt_step.action, state=(), info=())
     
     def episodic_run(self, episodes = 1):
         for _ in range(episodes):
@@ -332,3 +333,22 @@ class Synthesizer_RL:
         evaluation_result = self.agent.evaluation_result
         save_statistics_to_new_json(
             experiment_name, "model", "PPO", evaluation_result, self.initializer.args)
+        
+    def get_encoding_method(self, method_str : str = "Valuations") -> EncodingMethods:
+        if method_str == "Valuations":
+            return EncodingMethods.VALUATIONS
+        elif method_str == "One-Hot":
+            return EncodingMethods.ONE_HOT_ENCODING
+        elif method_str == "Valuations++":
+            return EncodingMethods.VALUATIONS_PLUS
+        else:
+            return EncodingMethods.INTEGER
+        
+    def get_saynt_trajectories(self, storm_control, quotient):
+        observer = self.agent.replay_buffer.add_batch
+        tf_action_labels = self.initializer.environment.action_keywords
+        if not hasattr(self, "saynt_driver"):
+            encoding_method = self.get_encoding_method(self.initializer.args.encoding_method)
+            self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient, 
+                                             tf_action_labels, encoding_method, self.initializer.args.discount_factor)
+        self.saynt_driver.episodic_run(1)

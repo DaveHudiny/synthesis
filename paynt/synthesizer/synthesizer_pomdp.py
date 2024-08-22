@@ -101,7 +101,6 @@ class SynthesizerPomdp:
         else:
             logger.info(f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
             qvalues = original_qvalues
-        print(np.array(qvalues).shape)
         return qvalues
 
     def compute_qvalues_for_rl(self, assignment):
@@ -230,11 +229,14 @@ class SynthesizerPomdp:
     def run_rl_synthesis(self, saynt : bool = True):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
-        if saynt:
-            SAYNT_Simulation_Controller(self.storm_control, self.quotient)
-            exit(0)
+        
+            
         fsc = self.storm_control.latest_paynt_result_fsc
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
+        if saynt:
+            print("looking for trajectories")
+            rl_synthesiser.get_saynt_trajectories(self.storm_control, self.quotient)
+            exit(0)
         first_time = True
         repeated_fsc = False
         soft_decision = False
