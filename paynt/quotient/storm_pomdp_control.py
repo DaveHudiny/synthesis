@@ -441,12 +441,10 @@ class StormPOMDPControl:
                     # obtain what cut-off scheduler was used
                     if 'sched_' in list(get_choice_label(state.id))[0]:
                         _, scheduler_index = list(get_choice_label(state.id))[0].split('_')
-    
                         if int(scheduler_index) not in cutoff_epxloration:
                             continue
     
                         scheduler = self.latest_storm_result.cutoff_schedulers[int(scheduler_index)]
-    
                         for state in range(quotient.pomdp.nr_states):
     
                             choice_string = str(scheduler.get_choice(state).get_choice())

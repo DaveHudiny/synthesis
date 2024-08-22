@@ -62,6 +62,11 @@ class SAYNT_Step:
         self.reward = reward
         self.fsc_memory = fsc_memory
         self.integer_observation = integer_observation
+    
+    def __str__(self):
+        strc1 = f"Action: {self.action}, Observation: {self.observation}, state: {self.state}, new mode: {self.new_mode}, tf_step_type:, {self.tf_step_type}, "
+        strc2 = f"reward {self.reward}, fsc_memory: {self.fsc_memory}"
+        return strc1 + strc2
 
 
 class SAYNT_Simulation_Controller:
@@ -70,7 +75,7 @@ class SAYNT_Simulation_Controller:
     MODES = ["BELIEF", "Cutoff_FSC", "Scheduler"]
 
     def __init__(self, storm_control : Storm_POMDP_Control.StormPOMDPControl, quotient : POMDP.PomdpQuotient,
-                 tf_action_labels : list = None, max_step_limit : int = 400, goal_reward : float = 100,
+                 tf_action_labels : list = None, max_step_limit : int = 800, goal_reward : float = 100,
                  fsc : FSC = None):
         """Initialization of the controller.
         Args:
@@ -112,9 +117,8 @@ class SAYNT_Simulation_Controller:
         self.current_state = prev_step
         self.current_mode = prev_step.new_mode
         self.steps_performed += 1
-        self.init_simulator(prev_step)
         if self.current_mode == SAYNT_Modes.BELIEF:
-            return self.get_next_step_cutoff_fsc(prev_step)
+            return self.get_next_step_belief(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_FSC:
             return self.get_next_step_cutoff_fsc(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_SCHEDULER:
@@ -211,12 +215,17 @@ class SAYNT_Simulation_Controller:
         """
         if self.simulator is None:
             self.init_simulator(prev_step)
+        if 'sched_' in list(self.get_choice_label(prev_step.state.id))[0]:
+            _, scheduler_index = list(self.get_choice_label(prev_step.state.id))[0].split('_')
+        else:
+            raise "Missing scheduler for scheduler branch :("
+        scheduler = self.storm_control_result.cutoff_schedulers[int(scheduler_index)]
+        
         return prev_step
     
     def get_simulator_reward(self, sim_step_rewards):
         labels = list(self.simulator._report_labels())
         if self.is_goal_state(labels):
-            print("Reached goal state!")
             reward = self.goal_reward - sim_step_rewards[-1]
         else:
             reward = - sim_step_rewards[-1]
@@ -228,7 +237,29 @@ class SAYNT_Simulation_Controller:
             return tf.constant(-1, dtype=tf.int32)
         tf_action_number = tf.argmax(
             tf.cast(tf.equal(self.tf_action_labels, keyword), tf.int32), output_type=tf.int32)
-        return tf_action_number
+        return tf_action_number, keyword
+    
+    def _convert_action(self, act_keyword):
+        """Converts the action from the RL agent to the action used by the Storm model."""
+        choice_list = self.get_choice_labels()
+        try:
+            action = choice_list.index(act_keyword)
+        except: # Should not happen much, probably broken agent!
+            action = 0
+        return action
+    
+    def get_choice_labels(self):
+        """Converts the current legal actions to the keywords used by the Storm model."""
+        labels = []
+        for action_index in range(self.simulator.nr_available_actions()):
+            report_state = self.simulator._report_state()
+            choice_index = self.quotient.pomdp.get_choice_index(
+                report_state, action_index)
+            labels_of_choice = self.quotient.pomdp.choice_labeling.get_labels_of_choice(
+                choice_index)
+            label = labels_of_choice.pop()
+            labels.append(label)
+        return labels
 
     def get_next_step_cutoff_fsc(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next step in cutoff FSC mode.
@@ -239,19 +270,20 @@ class SAYNT_Simulation_Controller:
             self.init_simulator(prev_step)
         action = self.fsc.action_function[prev_step.fsc_memory][prev_step.observation]
         new_memory = self.fsc.update_function[prev_step.fsc_memory][prev_step.observation]
+        tf_action, action_label = self.convert_fsc_action_to_tf_action(action)
+        action = self._convert_action(action_label)
         sim_step = self.simulator.step(action)
         observation, rewards, _ = sim_step
-        if self.simulator.is_done():
+        if self.simulator.is_done() or self.steps_performed > self.max_step_limit:
             tf_step_type = StepType.LAST
         else:
+            
             tf_step_type = StepType.MID
         reward = self.get_simulator_reward(rewards)
-        action = self.convert_fsc_action_to_tf_action(action)
-        new_saynt_step = SAYNT_Step(action, observation, prev_step.state, new_mode=SAYNT_Modes.CUTOFF_FSC, 
-                                    tf_step_type=tf_step_type, reward=reward, fsc_memory=new_memory)
         
-        new_saynt_step
-        return prev_step
+        new_saynt_step = SAYNT_Step(tf_action, observation, prev_step.state, new_mode=SAYNT_Modes.CUTOFF_FSC, 
+                                    tf_step_type=tf_step_type, reward=reward, fsc_memory=new_memory)
+        return new_saynt_step
     
     def reset(self) -> SAYNT_Step:
         """Resets the simulation with setting current state to initial state.
@@ -286,7 +318,6 @@ class SAYNT_Driver:
         assert quotient is not None, "SAYNT driver needs quotient structure for model information"
         assert tf_action_labels is not None, "SAYNT driver needs action label indexing for proper functionality"
         
-        print(fsc)
         self.fsc = fsc
         self.observers = observers
         self.saynt_simulator = SAYNT_Simulation_Controller(storm_control, quotient, tf_action_labels, fsc=fsc)
@@ -306,7 +337,7 @@ class SAYNT_Driver:
         
     def create_tf_time_step(self, saynt_step : SAYNT_Step) -> Trajectories.TimeStep:
         tf_saynt_step = Trajectories.TimeStep(step_type=saynt_step.tf_step_type, 
-                                              reward = 0, discount=self.discount,
+                                              reward = saynt_step.reward, discount=self.discount,
                                               observation=create_valuations_encoding(saynt_step.observation, self.saynt_simulator.quotient.pomdp)) 
         return tf_saynt_step
     
@@ -317,6 +348,7 @@ class SAYNT_Driver:
         for _ in range(episodes):
             saynt_step = self.saynt_simulator.reset()
             tf_saynt_step = self.create_tf_time_step(saynt_step)
+            cum_reward = 0
             while saynt_step.tf_step_type != StepType.LAST:
                 tf_policy_step = self.create_tf_policy_step(saynt_step)
                 new_saynt_step = self.saynt_simulator.get_next_step(saynt_step)
@@ -324,9 +356,10 @@ class SAYNT_Driver:
                 traj = Trajectories.from_transition(tf_saynt_step, tf_policy_step, new_tf_saynt_step)
                 saynt_step = new_saynt_step
                 tf_saynt_step = new_tf_saynt_step
+                cum_reward += new_saynt_step.reward
                 # for observer in self.observers:
                 #     observer(traj)
-            
+            print("Celková odměna za epizodu:", cum_reward)
     
     def step_run(self, steps = 25):
         pass
@@ -444,4 +477,4 @@ class Synthesizer_RL:
             self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient, 
                                              tf_action_labels, encoding_method, self.initializer.args.discount_factor,
                                              fsc=fsc)
-        self.saynt_driver.episodic_run(5)
+        self.saynt_driver.episodic_run(20)
