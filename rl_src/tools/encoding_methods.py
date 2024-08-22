@@ -6,7 +6,11 @@
 import numpy as np
 import json
 
-
+class EncodingMethods:
+    INTEGER = 1
+    VALUATIONS = 2
+    VALUATIONS_PLUS = 3
+    ONE_HOT_ENCODING = 4
 
 def observation_and_action_constraint_splitter(observation):
     return observation["observation"], observation["mask"]

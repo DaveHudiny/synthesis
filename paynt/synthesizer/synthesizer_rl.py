@@ -8,7 +8,7 @@ from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.rl_main import ArgsEmulator, Initializer, save_statistics_to_new_json
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
-from rl_src.tools.encoding_methods import create_valuations_encoding, create_valuations_encoding_plus
+from rl_src.tools.encoding_methods import *
 
 import paynt.quotient.storm_pomdp_control as Storm_POMDP_Control
 import paynt.quotient.pomdp as POMDP
@@ -17,6 +17,9 @@ import stormpy.storage as Storage
 
 
 import tensorflow as tf
+from tf_agents.trajectories import StepType
+
+import tf_agents.trajectories as Trajectories
 
 from tf_agents.environments import tf_py_environment
 
@@ -37,7 +40,8 @@ class SAYNT_Step:
     """Class for step in SAYNT algorithm.
     """
 
-    def __init__(self, action=0, observation = 0, state : Storage.SparseModelState = None, new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF):
+    def __init__(self, action=0, observation = 0, state : Storage.SparseModelState = None, 
+                 new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF, tf_step_type : StepType = StepType.FIRST):
         """Initialization of the step.
         Args:
             action: Action.
@@ -49,6 +53,7 @@ class SAYNT_Step:
         self.observation = observation
         self.state = state
         self.new_mode = new_mode
+        self.tf_step_type = tf_step_type
 
 
 class SAYNT_Simulation_Controller:
@@ -128,6 +133,13 @@ class SAYNT_Simulation_Controller:
             else:
                 new_mode = SAYNT_Modes.CUTOFF_SCHEDULER
         return new_mode
+    
+    def get_tf_step_type(self, state):
+        is_last = self.storm_control_result.induced_mc_from_scheduler.is_sink_state(state.id)
+        if is_last:
+            return StepType.LAST
+        else:
+            return StepType.MID
 
     def get_next_step_belief(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next step in belief mode.
@@ -137,7 +149,8 @@ class SAYNT_Simulation_Controller:
         state = self.update_state(prev_step.state)
         observation, action = self.get_observations_and_action_from_labels(prev_step.state)
         new_mode = self.get_new_mode(state)
-        new_step = SAYNT_Step(action, observation, state, new_mode)
+        tf_step_type = self.get_tf_step_type(state)
+        new_step = SAYNT_Step(action, observation, state, new_mode, tf_step_type)
         return new_step
 
     def get_next_action_cutoff_fsc(self, prev_step : SAYNT_Step) -> SAYNT_Step:
@@ -166,7 +179,64 @@ class SAYNT_Simulation_Controller:
         state = self.storm_control_result.induced_mc_from_scheduler.states[sample]
         observation, action = self.get_observations_and_action_from_labels(state)
         mode = self.get_new_mode(state)
-        return SAYNT_Step(action, observation, state, mode)
+        return SAYNT_Step(action, observation, state, mode, StepType.FIRST)
+    
+class SAYNT_Driver:
+    def __init__(self, observers : list = [], storm_control : Storm_POMDP_Control.StormPOMDPControl = None, 
+                 quotient : POMDP.PomdpQuotient = None, tf_action_labels : list = None,
+                 encoding_method : EncodingMethods = EncodingMethods.VALUATIONS,
+                 discount = 0.99):
+        """Initialization of SAYNT driver.
+
+        Args:
+            observers (list, optional): List of callable observers, e.g. for adding data to replay buffers. Defaults to [].
+            
+        """
+        assert storm_control is not None, "SAYNT driver needs Storm control with results"
+        assert quotient is not None, "SAYNT driver needs quotient structure for model information"
+        assert tf_action_labels is not None, "SAYNT driver needs action label indexing for proper functionality"
+        
+        self.observers = observers
+        self.saynt_simulator = SAYNT_Simulation_Controller(storm_control, quotient, tf_action_labels)
+        self.encoding_method = encoding_method
+        self.encoding_function = self.get_encoding_function(encoding_method)
+        self.discount = discount
+        
+    def get_encoding_function(self, encoding_method):
+        if encoding_method == EncodingMethods.VALUATIONS:
+            return create_valuations_encoding
+        elif encoding_method == EncodingMethods.ONE_HOT_ENCODING:
+            return create_one_hot_encoding
+        elif encoding_method == EncodingMethods.VALUATIONS_PLUS:
+            return create_valuations_encoding_plus
+        else:
+            return (lambda x: [x])
+        
+    def create_tf_time_step(self, saynt_step : SAYNT_Step) -> Trajectories.TimeStep:
+        tf_saynt_step = Trajectories.TimeStep(step_type=saynt_step.tf_step_type, 
+                                              reward = 0, discount=self.discount,
+                                              observation=self.encoding_function(saynt_step.observation)) 
+        return tf_saynt_step
+    
+    def create_tf_policy_step(self, saynt_step : SAYNT_Step) -> Trajectories.PolicyStep:
+        tf_policy_step = Trajectories.PolicyStep(saynt_step.action, state=(), info=())
+    
+    def episodic_run(self, episodes = 1):
+        for _ in range(episodes):
+            saynt_step = self.saynt_simulator.reset()
+            tf_saynt_step = self.create_tf_time_step(saynt_step)
+            while saynt_step.tf_step_type != StepType.LAST:
+                tf_policy_step = self.create_tf_policy_step(saynt_step)
+                new_saynt_step = self.saynt_simulator.get_next_step(saynt_step)
+                new_tf_saynt_step = self.create_tf_time_step(new_saynt_step)
+                traj = Trajectories.from_transition(tf_saynt_step, tf_policy_step, new_tf_saynt_step)
+                saynt_step = new_saynt_step
+                tf_saynt_step = new_tf_saynt_step
+                for observer in self.observers:
+                    observer(traj)
+    
+    def step_run(self, steps = 25):
+        pass
 
 class Synthesizer_RL:
     """Class for the interface between RL and PAYNT.

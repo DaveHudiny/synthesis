@@ -393,6 +393,7 @@ class StormPOMDPControl:
             # TODO what if there were no labels in the model?
             if get_choice_label(state.id) == set():
                 continue
+            print(self.latest_storm_result.induced_mc_from_scheduler.is_sink_state(state.id))
 
             # parse non cut-off states
             if 'cutoff' not in state.labels and 'clipping' not in state.labels:
