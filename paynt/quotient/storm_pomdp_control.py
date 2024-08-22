@@ -379,13 +379,6 @@ class StormPOMDPControl:
         # to make the code cleaner
         get_choice_label = self.latest_storm_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
         cutoff_epxloration = [x for x in range(len(self.latest_storm_result.cutoff_schedulers))]
-        print(dir(self.latest_storm_result.induced_mc_from_scheduler))
-        # print(self.latest_storm_result.induced_mc_from_scheduler.transition_matrix)
-        print(type(self.latest_storm_result.induced_mc_from_scheduler.transition_matrix))
-        print(self.latest_storm_result.induced_mc_from_scheduler.transition_matrix)
-        print(len(self.latest_storm_result.induced_mc_from_scheduler.states))
-        print(self.latest_storm_result.induced_mc_from_scheduler.initial_states)
-        print()
         finite_mem = False
         result = {x:[] for x in range(quotient.observations)}
         result_no_cutoffs = {x:[] for x in range(quotient.observations)}
@@ -393,7 +386,6 @@ class StormPOMDPControl:
             # TODO what if there were no labels in the model?
             if get_choice_label(state.id) == set():
                 continue
-            print(self.latest_storm_result.induced_mc_from_scheduler.is_sink_state(state.id))
 
             # parse non cut-off states
             if 'cutoff' not in state.labels and 'clipping' not in state.labels:

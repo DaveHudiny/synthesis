@@ -62,7 +62,7 @@ class SAYNT_Simulation_Controller:
     MODES = ["BELIEF", "Cutoff_FSC", "Scheduler"]
 
     def __init__(self, storm_control : Storm_POMDP_Control.StormPOMDPControl, quotient : POMDP.PomdpQuotient,
-                 tf_action_labels : list = None):
+                 tf_action_labels : list = None, max_step_limit : int = 400):
         """Initialization of the controller.
         Args:
             storm_control: Result of the SAYNT algorithm.
@@ -75,6 +75,10 @@ class SAYNT_Simulation_Controller:
         self.current_state = None
         self.current_mode = SAYNT_Modes.BELIEF
         self.tf_action_labels = tf_action_labels
+        self.induced_mc_nr_states = self.storm_control_result.induced_mc_from_scheduler.nr_states
+        self.max_step_limit = max_step_limit
+        self.steps_performed = 0
+
 
         self.num_observations = quotient.pomdp.nr_observations
         self.get_choice_label = self.storm_control_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
@@ -89,6 +93,7 @@ class SAYNT_Simulation_Controller:
         
         self.current_state = prev_step
         self.current_mode = prev_step.new_mode
+        self.steps_performed += 1
         if self.current_mode == SAYNT_Modes.BELIEF:
             return self.get_next_step_belief(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_FSC:
@@ -106,6 +111,8 @@ class SAYNT_Simulation_Controller:
                 observation = self.quotient.observation_labels.index(label)
             elif 'obs_' in label:
                 _, observation = label.split('_')
+            else:
+                continue
             choice_label = list(self.get_choice_label(state.id))[0]
             try:
                 index = self.tf_action_labels.index(choice_label)
@@ -118,7 +125,10 @@ class SAYNT_Simulation_Controller:
     def update_state(self, state : Storage.SparseModelState):
         """Function samples new state from transition matrix of induced MC given current state."""
         probs = self.storm_control.latest_storm_result.induced_mc_from_scheduler.transition_matrix[state.id]
-        logits = tf.math.log([probs])
+        prob_row = np.zeros((self.induced_mc_nr_states))
+        for prob_key in probs:
+            prob_row[prob_key.column] = prob_key.value()
+        logits = tf.math.log([prob_row])
         sample = tf.random.categorical(logits, num_samples=1)
         index = tf.squeeze(sample).numpy()
         new_state = self.storm_control.latest_storm_result.induced_mc_from_scheduler.states[index]
@@ -137,7 +147,7 @@ class SAYNT_Simulation_Controller:
     
     def get_tf_step_type(self, state):
         is_last = self.storm_control_result.induced_mc_from_scheduler.is_sink_state(state.id)
-        if is_last:
+        if is_last or self.steps_performed > self.max_step_limit:
             return StepType.LAST
         else:
             return StepType.MID
@@ -173,6 +183,7 @@ class SAYNT_Simulation_Controller:
         Returns:
             SAYNT_Step: Initial state of induced MC.
         """
+        self.steps_performed = 0
         init_states = self.storm_control_result.induced_mc_from_scheduler.initial_states
         n = len(init_states)
         index = tf.random.uniform(shape=[], minval=0, maxval=n, dtype=tf.int32)
@@ -222,7 +233,7 @@ class SAYNT_Driver:
     def create_tf_policy_step(self, saynt_step : SAYNT_Step) -> Trajectories.PolicyStep:
         return Trajectories.PolicyStep(saynt_step.action, state=(), info=())
     
-    def episodic_run(self, episodes = 1):
+    def episodic_run(self, episodes = 5):
         for _ in range(episodes):
             saynt_step = self.saynt_simulator.reset()
             tf_saynt_step = self.create_tf_time_step(saynt_step)
@@ -233,8 +244,9 @@ class SAYNT_Driver:
                 traj = Trajectories.from_transition(tf_saynt_step, tf_policy_step, new_tf_saynt_step)
                 saynt_step = new_saynt_step
                 tf_saynt_step = new_tf_saynt_step
-                for observer in self.observers:
-                    observer(traj)
+                # for observer in self.observers:
+                #     observer(traj)
+            
     
     def step_run(self, steps = 25):
         pass
@@ -351,4 +363,4 @@ class Synthesizer_RL:
             encoding_method = self.get_encoding_method(self.initializer.args.encoding_method)
             self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient, 
                                              tf_action_labels, encoding_method, self.initializer.args.discount_factor)
-        self.saynt_driver.episodic_run(1)
+        self.saynt_driver.episodic_run(5)
