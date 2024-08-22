@@ -220,6 +220,7 @@ class SAYNT_Simulation_Controller:
         else:
             raise "Missing scheduler for scheduler branch :("
         scheduler = self.storm_control_result.cutoff_schedulers[int(scheduler_index)]
+        # TODO: Make update from schedulers.
         
         return prev_step
     
