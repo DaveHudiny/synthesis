@@ -211,7 +211,7 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(
                     self.storm_control.latest_paynt_result)
-                # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
+                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
                 self.storm_control.qvalues = self.compute_qvalues_for_rl(
                     assignment=assignment)
             else:
@@ -235,7 +235,7 @@ class SynthesizerPomdp:
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         if saynt:
             print("looking for trajectories")
-            rl_synthesiser.get_saynt_trajectories(self.storm_control, self.quotient)
+            rl_synthesiser.get_saynt_trajectories(self.storm_control, self.quotient, fsc)
             exit(0)
         first_time = True
         repeated_fsc = False

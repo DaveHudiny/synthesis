@@ -9,11 +9,13 @@ from rl_src.rl_main import ArgsEmulator, Initializer, save_statistics_to_new_jso
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
 from rl_src.tools.encoding_methods import *
+from paynt.quotient.fsc import FSC
 
 import paynt.quotient.storm_pomdp_control as Storm_POMDP_Control
 import paynt.quotient.pomdp as POMDP
 
 import stormpy.storage as Storage
+import stormpy
 
 
 import tensorflow as tf
@@ -24,6 +26,8 @@ import tf_agents.trajectories as Trajectories
 from tf_agents.environments import tf_py_environment
 
 from paynt.quotient.fsc import FSC
+
+from stormpy import simulator
 
 import logging
 
@@ -41,7 +45,8 @@ class SAYNT_Step:
     """
 
     def __init__(self, action=0, observation = 0, state : Storage.SparseModelState = None, 
-                 new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF, tf_step_type : StepType = StepType.FIRST):
+                 new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF, tf_step_type : StepType = StepType.FIRST,
+                 reward : float = 1, fsc_memory = 0, integer_observation : int = 0):
         """Initialization of the step.
         Args:
             action: Action.
@@ -54,6 +59,9 @@ class SAYNT_Step:
         self.state = state
         self.new_mode = new_mode
         self.tf_step_type = tf_step_type
+        self.reward = reward
+        self.fsc_memory = fsc_memory
+        self.integer_observation = integer_observation
 
 
 class SAYNT_Simulation_Controller:
@@ -62,7 +70,8 @@ class SAYNT_Simulation_Controller:
     MODES = ["BELIEF", "Cutoff_FSC", "Scheduler"]
 
     def __init__(self, storm_control : Storm_POMDP_Control.StormPOMDPControl, quotient : POMDP.PomdpQuotient,
-                 tf_action_labels : list = None, max_step_limit : int = 400):
+                 tf_action_labels : list = None, max_step_limit : int = 400, goal_reward : float = 100,
+                 fsc : FSC = None):
         """Initialization of the controller.
         Args:
             storm_control: Result of the SAYNT algorithm.
@@ -78,10 +87,20 @@ class SAYNT_Simulation_Controller:
         self.induced_mc_nr_states = self.storm_control_result.induced_mc_from_scheduler.nr_states
         self.max_step_limit = max_step_limit
         self.steps_performed = 0
-
-
+        self.goal_reward = goal_reward
+        self.simulator = None # Simulator is initialized in cutoff states
+        self.fsc = fsc
+        
         self.num_observations = quotient.pomdp.nr_observations
         self.get_choice_label = self.storm_control_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
+        self.special_labels = ["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))"]
+        
+    def is_goal_state(self, labels):
+        """Checks if the current state is a goal state."""
+        for label in labels:
+            if label in self.special_labels:
+                return True
+        return False
 
     def get_next_step(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next action.
@@ -90,16 +109,16 @@ class SAYNT_Simulation_Controller:
         Returns:
             SAYNT_Step: Next step.
         """
-        
         self.current_state = prev_step
         self.current_mode = prev_step.new_mode
         self.steps_performed += 1
+        self.init_simulator(prev_step)
         if self.current_mode == SAYNT_Modes.BELIEF:
-            return self.get_next_step_belief(prev_step)
+            return self.get_next_step_cutoff_fsc(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_FSC:
-            return self.get_next_action_cutoff_fsc(prev_step)
+            return self.get_next_step_cutoff_fsc(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_SCHEDULER:
-            return self.get_next_action_cutoff_scheduler(prev_step)
+            return self.get_next_step_cutoff_scheduler(prev_step)
         else:
             raise ValueError("Unknown mode")
         
@@ -151,6 +170,15 @@ class SAYNT_Simulation_Controller:
             return StepType.LAST
         else:
             return StepType.MID
+        
+    def get_reward(self, state, step_type):
+        if step_type == StepType.LAST:
+            if "target" in state.labels:
+                return self.goal_reward
+            else:
+                return -self.goal_reward
+        else:
+            return -1 # Currently only a simple reward model
 
     def get_next_step_belief(self, prev_step : SAYNT_Step) -> SAYNT_Step:
         """Get the next step in belief mode.
@@ -161,21 +189,68 @@ class SAYNT_Simulation_Controller:
         observation, action = self.get_observations_and_action_from_labels(prev_step.state)
         new_mode = self.get_new_mode(state)
         tf_step_type = self.get_tf_step_type(state)
-        new_step = SAYNT_Step(action, observation, state, new_mode, tf_step_type)
+        reward = self.get_reward(state, tf_step_type)
+        new_step = SAYNT_Step(action, observation, state, new_mode, tf_step_type, reward)
         return new_step
+    
+    def init_simulator(self, prev_step : SAYNT_Step) -> simulator:
+        model = self.quotient.pomdp
+        indices = [i for i, x in enumerate(model.observations) if x == prev_step.observation]
+        ones = np.ones((len(indices,)))
+        logits = tf.math.log([ones])
+        index = tf.random.categorical(logits, 1)
+        index = tf.squeeze(index).numpy()
+        indices_bitvector = stormpy.BitVector(model.nr_states, [indices[index]])
+        model.set_initial_states(indices_bitvector)
+        self.simulator = simulator.create_simulator(model)
 
-    def get_next_action_cutoff_fsc(self, prev_step : SAYNT_Step) -> SAYNT_Step:
-        """Get the next action in cutoff FSC mode.
+    def get_next_step_cutoff_scheduler(self, prev_step : SAYNT_Step) -> SAYNT_Step:
+        """Get the next step in cutoff scheduler mode.
         Returns:
             SAYNT_Step: Next step.
         """
+        if self.simulator is None:
+            self.init_simulator(prev_step)
         return prev_step
+    
+    def get_simulator_reward(self, sim_step_rewards):
+        labels = list(self.simulator._report_labels())
+        if self.is_goal_state(labels):
+            print("Reached goal state!")
+            reward = self.goal_reward - sim_step_rewards[-1]
+        else:
+            reward = - sim_step_rewards[-1]
+        return reward
+    
+    def convert_fsc_action_to_tf_action(self, action_number):
+        keyword = self.fsc.action_labels[action_number]
+        if keyword == "__no_label__":
+            return tf.constant(-1, dtype=tf.int32)
+        tf_action_number = tf.argmax(
+            tf.cast(tf.equal(self.tf_action_labels, keyword), tf.int32), output_type=tf.int32)
+        return tf_action_number
 
-    def get_next_action_cutoff_scheduler(self, prev_step : SAYNT_Step) -> SAYNT_Step:
-        """Get the next action in cutoff scheduler mode.
+    def get_next_step_cutoff_fsc(self, prev_step : SAYNT_Step) -> SAYNT_Step:
+        """Get the next step in cutoff FSC mode.
         Returns:
             SAYNT_Step: Next step.
         """
+        if self.simulator is None:
+            self.init_simulator(prev_step)
+        action = self.fsc.action_function[prev_step.fsc_memory][prev_step.observation]
+        new_memory = self.fsc.update_function[prev_step.fsc_memory][prev_step.observation]
+        sim_step = self.simulator.step(action)
+        observation, rewards, _ = sim_step
+        if self.simulator.is_done():
+            tf_step_type = StepType.LAST
+        else:
+            tf_step_type = StepType.MID
+        reward = self.get_simulator_reward(rewards)
+        action = self.convert_fsc_action_to_tf_action(action)
+        new_saynt_step = SAYNT_Step(action, observation, prev_step.state, new_mode=SAYNT_Modes.CUTOFF_FSC, 
+                                    tf_step_type=tf_step_type, reward=reward, fsc_memory=new_memory)
+        
+        new_saynt_step
         return prev_step
     
     def reset(self) -> SAYNT_Step:
@@ -183,6 +258,8 @@ class SAYNT_Simulation_Controller:
         Returns:
             SAYNT_Step: Initial state of induced MC.
         """
+        if self.simulator is not None:
+            self.simulator = None
         self.steps_performed = 0
         init_states = self.storm_control_result.induced_mc_from_scheduler.initial_states
         n = len(init_states)
@@ -191,13 +268,14 @@ class SAYNT_Simulation_Controller:
         state = self.storm_control_result.induced_mc_from_scheduler.states[sample]
         observation, action = self.get_observations_and_action_from_labels(state)
         mode = self.get_new_mode(state)
-        return SAYNT_Step(action, observation, state, mode, StepType.FIRST)
+        saynt_step = SAYNT_Step(action, observation, state, mode, StepType.FIRST)
+        return saynt_step
     
 class SAYNT_Driver:
     def __init__(self, observers : list = [], storm_control : Storm_POMDP_Control.StormPOMDPControl = None, 
                  quotient : POMDP.PomdpQuotient = None, tf_action_labels : list = None,
                  encoding_method : EncodingMethods = EncodingMethods.VALUATIONS,
-                 discount = 0.99):
+                 discount = 0.99, fsc : FSC = None):
         """Initialization of SAYNT driver.
 
         Args:
@@ -208,8 +286,10 @@ class SAYNT_Driver:
         assert quotient is not None, "SAYNT driver needs quotient structure for model information"
         assert tf_action_labels is not None, "SAYNT driver needs action label indexing for proper functionality"
         
+        print(fsc)
+        self.fsc = fsc
         self.observers = observers
-        self.saynt_simulator = SAYNT_Simulation_Controller(storm_control, quotient, tf_action_labels)
+        self.saynt_simulator = SAYNT_Simulation_Controller(storm_control, quotient, tf_action_labels, fsc=fsc)
         self.encoding_method = encoding_method
         self.encoding_function = self.get_encoding_function(encoding_method)
         self.discount = discount
@@ -356,11 +436,12 @@ class Synthesizer_RL:
         else:
             return EncodingMethods.INTEGER
         
-    def get_saynt_trajectories(self, storm_control, quotient):
+    def get_saynt_trajectories(self, storm_control, quotient, fsc : FSC = None):
         observer = self.agent.replay_buffer.add_batch
         tf_action_labels = self.initializer.environment.action_keywords
         if not hasattr(self, "saynt_driver"):
             encoding_method = self.get_encoding_method(self.initializer.args.encoding_method)
             self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient, 
-                                             tf_action_labels, encoding_method, self.initializer.args.discount_factor)
+                                             tf_action_labels, encoding_method, self.initializer.args.discount_factor,
+                                             fsc=fsc)
         self.saynt_driver.episodic_run(5)
