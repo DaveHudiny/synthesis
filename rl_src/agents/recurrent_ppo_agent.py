@@ -73,7 +73,7 @@ class Recurrent_PPO_agent(FatherAgent):
             greedy_eval=False,
             discount_factor=0.9,
             use_gae=True,
-            lambda_value=0.5,
+            lambda_value=0.85,
         )
         self.agent.initialize()
         logging.info("Agent initialized")

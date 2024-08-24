@@ -58,13 +58,8 @@ class FSC_Critic(network.Network):
 
         self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         self.nr_observations = nr_observations
-        if stormpy_model is not None and action_labels_at_observation is not None:
-            self.belief_updater = Belief_Updater(
-                stormpy_model, action_labels_at_observation)
-            self.initial_state = stormpy_model.initial_states[0]
-            state_spec = BoundedArraySpec(shape=(self.belief_updater.nr_states,), dtype=np.dtype('float32'), minimum=0.0, maximum=1.0)
-        else:
-            state_spec = ()
+        self.nr_states = stormpy_model.nr_states
+        state_spec = ()
 
         super(FSC_Critic, self).__init__(
                 input_tensor_spec=input_tensor_spec,
@@ -87,12 +82,7 @@ class FSC_Critic(network.Network):
     
     @tf.function
     def get_initial_state(self, batch_size=None):
-        if batch_size is None:
-            init_belief = tf.one_hot([self.initial_state], self.belief_updater.nr_states)
-        else:
-            initial_state_expanded = tf.fill([batch_size], self.initial_state)
-            init_belief = tf.one_hot(initial_state_expanded, self.belief_updater.nr_states)
-        return init_belief
+        return ()
     
     def unbatched_belief_computation(self, beliefs):
         qvalues_table = tf.expand_dims(self.qvalues_table, axis=0)
@@ -132,7 +122,7 @@ class FSC_Critic(network.Network):
             # belief = self.belief_updater.next_belief_without_known_action(belief, indices)
         if indices.shape == (1, 1): # single observation
             values = tf.multiply(self.qvalues_table, tf.transpose(belief))
-            values = tf.reduce_mean(values, axis=0)
+            values = tf.reduce_sum(values, axis=0)
             values = tf.reduce_max(values, axis=-1)
         else:
             beliefs = self.belief_updater.compute_beliefs_for_consequent_steps(belief, indices)
@@ -144,9 +134,25 @@ class FSC_Critic(network.Network):
                 belief = beliefs[:, -1, :]
         return values, belief
 
+    def q_values_function_simplified(self, observations, step_type, network_state):
+        if len(observations.shape) == 2:  # Unbatched observation
+            observations = tf.expand_dims(observations, axis=0)
+        indices = tf.zeros_like(
+            observations[:, :, -1] * self.nr_states, dtype=tf.int32)
+        if indices.shape == (1, 1): # Single observation
+            values = tf.gather(self.qvalues_table, indices)
+            values = tf.reduce_max(values, axis=-1)
+        else:
+            q_values_table = self.qvalues_table
+            qvalues = tf.gather(q_values_table, indices)
+            values = tf.reduce_max(qvalues, axis=-1)
+        return values
+            
+        
     def call(self, observations, step_type, network_state, training=False):
-        values, network_state = self.qvalues_function(
-            observations, step_type, network_state)
+        # values, network_state = self.qvalues_function(
+        #     observations, step_type, network_state)
+        values = self.q_values_function_simplified(observations, step_type, network_state)
         if step_type.shape == (1,):
             values = tf.constant(values, shape=(1, 1))
 

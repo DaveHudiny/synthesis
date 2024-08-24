@@ -15,7 +15,7 @@ run_saynt() {
     for entry in `ls $1`; do
         if [ -d $1/$entry ]; then
             echo "Running Paynt on $entry"
-            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 600 10 20 $1/$entry > $1/$entry/saynt_paynt_critic_rl.log
+            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 600 30 5 $1/$entry > $1/$entry/saynt_critic_lambda_095.txt
         fi
     done
 }

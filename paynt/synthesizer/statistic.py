@@ -125,7 +125,11 @@ class Statistic:
         
         time_elapsed = int(self.synthesis_timer.read())
         ret_str += f", elapsed {time_elapsed} s"
-        time_estimate = int(time_estimate)
+        try:
+            time_estimate = int(time_estimate)
+        except:
+            import sys
+            time_estimate = sys.maxint
         ret_str += f", estimated {time_estimate} s"
         time_estimate_hours = math.floor(time_estimate/3600)
         time_estimate_days = math.floor(time_estimate_hours/24)

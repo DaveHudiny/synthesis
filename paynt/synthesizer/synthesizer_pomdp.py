@@ -78,29 +78,40 @@ class SynthesizerPomdp:
         self.total_iters += iters_mdp
         return assignment
     
+    def get_qvalues_by_property(self, property : str = f"", prism = None, assignment = None):
+        parsed_property = stormpy.parse_properties(property, context=prism)[0]
+        opt_property = paynt.verification.property.OptimalityProperty(parsed_property)
+        qvalues = self.quotient.compute_qvalues(assignment, prop=opt_property)
+        tensorable_qvalues = make_qvalues_table_tensorable(qvalues)
+        return tensorable_qvalues
+        
+        
+
+    
     def fix_qvalues(self, assignment, original_qvalues, original_property_str):
         original_qvalues = make_qvalues_table_tensorable(original_qvalues)
         if "Pmax" in original_property_str:
             qvalues = np.multiply(original_qvalues, self.rl_args.evaluation_goal)
             # TODO: More possible names of reward model
-            cumulative_reward_property_str = f"R{{\"steps\"}}min=? [ C<={self.rl_args.max_steps} ]"
+            try:
+                reward_model_name = list(self.quotient.pomdp.reward_models.keys())[-1]
+            except:
+                reward_model_name = "steps"
             prism = PrismParser.prism # Not a good way to access the prism object
-            cumulative_property = stormpy.parse_properties(cumulative_reward_property_str, context=prism)[0]
-            cumulative_opt_property = paynt.verification.property.OptimalityProperty(cumulative_property)
-            cumulative_reward_qvalues = self.quotient.compute_qvalues(assignment, prop=cumulative_opt_property)
-            cumulative_reward_qvalues = make_qvalues_table_tensorable(cumulative_reward_qvalues)      
-            qvalues += cumulative_reward_qvalues
+            trap_qvalues = self.get_qvalues_by_property(f"Pmin=? [ F (!\"notbad\" & !\"goal\")]", prism, assignment)
+            cum_reward_qvalues = self.get_qvalues_by_property(f"R{{\"{reward_model_name}\"}}min=? [ C<={self.rl_args.max_steps} ]", prism, assignment)
+            qvalues = qvalues + trap_qvalues * self.rl_args.evaluation_antigoal - cum_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction
             qvalues = self.rl_args.evaluation_antigoal * original_qvalues
         elif RegexPatterns.check_max_property(original_property_str):
             qvalues = original_qvalues + self.rl_args.evaluation_goal
         elif RegexPatterns.check_min_property(original_property_str):
-            
             qvalues = (-original_qvalues) + self.rl_args.evaluation_goal
         else:
             logger.info(f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
             qvalues = original_qvalues
+        print(qvalues)
         return qvalues
 
     def compute_qvalues_for_rl(self, assignment):
@@ -259,26 +270,26 @@ class SynthesizerPomdp:
         rl_synthesiser = Synthesizer_RL(
             self.quotient.pomdp, self.rl_args, qvalues=qvalues, 
             action_labels_at_observation=self.quotient.action_labels_at_observation)
-        rl_synthesiser.train_agent(2000)
+        rl_synthesiser.train_agent(200)
         rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
     
     def init_rl_args(self, qvalues_flag: bool = False):
         if qvalues_flag:
             args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
-                                trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50,
-                                discount_factor=0.9, batch_size=4)
+                                trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
+                                discount_factor=0.9, batch_size=32)
         else:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
-                                trajectory_num_steps=20, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-50,
+                                trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
                                 discount_factor=0.9)
         return args
 
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.qvalues_flag = False
+        self.qvalues_flag = True
         self.rl_args = self.init_rl_args(qvalues_flag=self.qvalues_flag)
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue

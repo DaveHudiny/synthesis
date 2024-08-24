@@ -229,7 +229,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             return tf.constant(observation_vector, dtype=tf.float32)
         elif self.encoding_method == "Valuations++":
             observation_vector = create_valuations_encoding_plus(
-                observation, self.stormpy_model)
+                observation, self.stormpy_model, self.simulator._report_state())
             return tf.constant(observation_vector, dtype=tf.float32)
 
     def _reset(self):

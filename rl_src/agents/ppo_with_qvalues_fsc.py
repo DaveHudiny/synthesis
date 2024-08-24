@@ -59,7 +59,7 @@ class PPO_with_QValues_FSC(FatherAgent):
             debug_summaries=False,
             summarize_grads_and_vars=False,
             train_step_counter=tf.Variable(0),
-            lambda_value=0.5,
+            lambda_value=0.95,
             name='PPO_with_QValues_FSC',
             greedy_eval=False
         )

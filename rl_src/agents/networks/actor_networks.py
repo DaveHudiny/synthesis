@@ -5,6 +5,7 @@ from tf_agents.networks import actor_distribution_rnn_network
 from tf_agents.environments import tf_py_environment
 
 import tensorflow as tf
+import numpy as np
 
 def create_recurrent_actor_net_demasked(tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
     preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
