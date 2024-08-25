@@ -61,7 +61,8 @@ class PPO_with_QValues_FSC(FatherAgent):
             train_step_counter=tf.Variable(0),
             lambda_value=0.95,
             name='PPO_with_QValues_FSC',
-            greedy_eval=False
+            greedy_eval=False,
+            discount_factor=0.99
         )
         self.agent.initialize()
         logging.info("Agent initialized")

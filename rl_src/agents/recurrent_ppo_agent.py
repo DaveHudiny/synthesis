@@ -71,7 +71,7 @@ class Recurrent_PPO_agent(FatherAgent):
             num_epochs=3,
             train_step_counter=train_step_counter,
             greedy_eval=False,
-            discount_factor=0.9,
+            discount_factor=0.99,
             use_gae=True,
             lambda_value=0.85,
         )

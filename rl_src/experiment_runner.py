@@ -80,16 +80,16 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic"]:
-            if learning_method != "PPO_FSC_Critic":
+            if learning_method != "PPO":
                 continue
             if any(not keyword in model for keyword in ["mba"]):
                 continue
-            for encoding_method in ["Valuations++"]:
+            for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
-                                    max_steps=400, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=30)
+                                    max_steps=400, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=30, discount_factor=0.99)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")

@@ -270,7 +270,7 @@ class SynthesizerPomdp:
         rl_synthesiser = Synthesizer_RL(
             self.quotient.pomdp, self.rl_args, qvalues=qvalues, 
             action_labels_at_observation=self.quotient.action_labels_at_observation)
-        rl_synthesiser.train_agent(200)
+        rl_synthesiser.train_agent(2000)
         rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
     
     def init_rl_args(self, qvalues_flag: bool = False):
@@ -278,7 +278,7 @@ class SynthesizerPomdp:
             args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
                                 trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
-                                discount_factor=0.9, batch_size=32)
+                                discount_factor=0.99, batch_size=32)
         else:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,

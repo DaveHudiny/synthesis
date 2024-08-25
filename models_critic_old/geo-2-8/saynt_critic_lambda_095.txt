@@ -1,0 +1,1902 @@
+2024-08-24 15:53:25,083 - cli.py - This is Paynt version 0.1.0.
+2024-08-24 15:53:25,083 - sketch.py - loading sketch from models_critic//geo-2-8/sketch.templ ...
+2024-08-24 15:53:25,083 - sketch.py - assuming sketch in PRISM format...
+2024-08-24 15:53:25,086 - prism_parser.py - PRISM model type: POMDP
+2024-08-24 15:53:25,086 - prism_parser.py - loading properties from models_critic//geo-2-8/sketch.props ...
+2024-08-24 15:53:25,086 - prism_parser.py - found the following specification: optimality: Pmax=? ["notbad" U "goal"] 
+2024-08-24 15:53:25,408 - sketch.py - sketch parsing OK
+2024-08-24 15:53:25,462 - sketch.py - constructed explicit quotient having 45391 states and 166762 actions
+2024-08-24 15:53:25,462 - property.py - converting until formula to eventually...
+2024-08-24 15:53:25,463 - sketch.py - found the following specification optimality: Pmax=? [F "goal"] 
+2024-08-24 15:53:25,510 - pomdp.py - constructed POMDP having 7 observations.
+2024-08-24 15:53:25,521 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-08-24 15:53:25,574 - pomdp.py - constructed quotient MDP having 45391 states and 166762 actions.
+2024-08-24 15:53:26,281 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-08-24 15:53:26,472 - __init__.py - Creating converter from 7 to 5
+2024-08-24 15:53:26,472 - __init__.py - Creating converter from 5 to 7
+2024-08-24 15:53:26,472 - __init__.py - Creating converter from 7 to 5
+2024-08-24 15:53:26,473 - __init__.py - Creating converter from 5 to 7
+2024-08-24 15:53:27,208 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-08-24 15:53:27,208 - synthesizer_pomdp.py - Storm settings: iterative - (600, 30, 5), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-08-24 15:53:27,245 - synthesizer_pomdp.py - Timeout for PAYNT started
+> progress 0.0%, elapsed 3 s, estimated 3310507 s (38 days), iters = {MDP: 3}
+-----------PAYNT-----------                     
+Value = 0.5319965092335829 | Time elapsed = 3.4s | FSC size = 14
+
+> progress 25.0%, elapsed 7 s, estimated 30 s, iters = {MDP: 8}, opt = 0.532
+-----------PAYNT-----------                     
+Value = 0.5694957103184766 | Time elapsed = 8.6s | FSC size = 14
+
+> progress 75.0%, elapsed 10 s, estimated 14 s, iters = {MDP: 18}, opt = 0.569
+2024-08-24 15:53:37,907 - synthesizer.py - double-checking specification satisfiability:  : 0.5694957103184766
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 10.67 s
+number of holes: 2, family size: 16, quotient: 45391 states / 166762 actions
+explored: 100 %
+MDP stats: avg MDP size: 21859, iterations: 21
+
+optimum: 0.569496
+--------------------
+[[ 64.66712375]
+ [389.63984654]
+ [486.74299283]
+ ...
+ [500.        ]
+ [500.        ]
+ [500.        ]]
+2024-08-24 15:55:01,915 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-08-24 15:55:01,923 - pomdp.py - unfolding 2-FSC template into POMDP...
+2024-08-24 15:55:02,558 - pomdp.py - constructed quotient MDP having 90782 states and 667048 actions.
+2024-08-24 15:55:03,417 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 15:55:03,517 - storm_pomdp_control.py - Interactive Storm started
+2024-08-24 15:55:03,517 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-08-24 15:55:10,524 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.6125160295208801 | Time elapsed = 113.7s | FSC size = 4579
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6125160295208801
+controller size: 4579
+
+------------------------------------
+
+2024-08-24 15:55:21,746 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-24 15:55:22,443 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-24 15:55:22,443 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 18, family size: 1e6, quotient: 90782 states / 667048 actions
+explored: 0 %
+
+optimum: 0.569496
+--------------------
+2024-08-24 15:55:22,443 - synthesizer_pomdp.py - Assignment is None
+2024-08-24 15:55:22,443 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-08-24 15:55:22,478 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-08-24 15:55:24,129 - pomdp.py - constructed quotient MDP having 166762 states and 2597857 actions.
+2024-08-24 15:55:27,253 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+> progress 0.0%, elapsed 4 s, estimated 4870190 s (56 days), iters = {MDP: 2}, opt = 0.569
+> progress 0.0%, elapsed 10 s, estimated 10851878 s (125 days), iters = {MDP: 3}, opt = 0.569
+> progress 0.0%, elapsed 16 s, estimated 16664039 s (192 days), iters = {MDP: 4}, opt = 0.569
+> progress 0.0%, elapsed 22 s, estimated 22352988 s (258 days), iters = {MDP: 5}, opt = 0.569
+2024-08-24 15:55:59,312 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 15:55:59,396 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-24 15:55:59,396 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-24 15:56:05,406 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.61302711775006 | Time elapsed = 179.6s | FSC size = 4859
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.61302711775006
+controller size: 4859
+
+------------------------------------
+
+2024-08-24 15:56:27,632 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-24 15:56:28,347 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-24 15:56:28,348 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:56:28,348 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:56:28,349 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:56:28,349 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:56:28,349 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:56:28,349 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 15, Subfamilies - 0
+> progress 0.39%, elapsed 32 s, estimated 8306 s (2 hours), iters = {MDP: 7}, opt = 0.569
+> progress 0.39%, elapsed 39 s, estimated 10168 s (2 hours), iters = {MDP: 8}, opt = 0.569
+> progress 0.39%, elapsed 45 s, estimated 11743 s (3 hours), iters = {MDP: 9}, opt = 0.569
+> progress 0.39%, elapsed 51 s, estimated 13254 s (3 hours), iters = {MDP: 10}, opt = 0.569
+> progress 0.39%, elapsed 57 s, estimated 14748 s (4 hours), iters = {MDP: 11}, opt = 0.569
+2024-08-24 15:56:59,143 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 15:56:59,144 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-24 15:56:59,145 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-24 15:57:05,153 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.6156825642957465 | Time elapsed = 245.4s | FSC size = 5872
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6156825642957465
+controller size: 5872
+
+------------------------------------
+
+2024-08-24 15:57:33,374 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-24 15:57:34,183 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-24 15:57:34,183 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:57:34,183 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:57:34,184 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:57:34,185 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:57:34,185 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:57:34,185 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:57:34,185 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:57:34,185 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:57:34,185 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:57:34,185 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 29, Subfamilies - 0
+> progress 0.39%, elapsed 63 s, estimated 16164 s (4 hours), iters = {MDP: 12}, opt = 0.569
+> progress 0.39%, elapsed 68 s, estimated 17568 s (4 hours), iters = {MDP: 13}, opt = 0.569
+> progress 0.39%, elapsed 72 s, estimated 18646 s (5 hours), iters = {MDP: 14}, opt = 0.569
+> progress 0.39%, elapsed 77 s, estimated 19807 s (5 hours), iters = {MDP: 15}, opt = 0.569
+> progress 0.39%, elapsed 85 s, estimated 21774 s (6 hours), iters = {MDP: 16}, opt = 0.569
+> progress 0.39%, elapsed 91 s, estimated 23549 s (6 hours), iters = {MDP: 18}, opt = 0.569
+2024-08-24 15:58:04,500 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 15:58:05,199 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-24 15:58:05,199 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-24 15:58:11,208 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.6167333800017228 | Time elapsed = 313.4s | FSC size = 10736
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6167333800017228
+controller size: 10736
+
+------------------------------------
+
+2024-08-24 15:58:41,440 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-24 15:58:41,543 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-24 15:58:41,543 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:58:41,543 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:58:41,544 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 15:58:41,545 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 256 to 256
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 256 to 256
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:58:41,546 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:58:41,546 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 46, Subfamilies - 0
+> progress 0.39%, elapsed 95 s, estimated 24519 s (6 hours), iters = {MDP: 24}, opt = 0.569
+> progress 0.39%, elapsed 99 s, estimated 25354 s (7 hours), iters = {MDP: 29}, opt = 0.569
+> progress 0.39%, elapsed 102 s, estimated 26356 s (7 hours), iters = {MDP: 33}, opt = 0.569
+> progress 0.39%, elapsed 119 s, estimated 30667 s (8 hours), iters = {MDP: 40}, opt = 0.569
+2024-08-24 15:59:15,090 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 15:59:15,115 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-24 15:59:15,116 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-24 15:59:21,120 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.6167333800017228 | Time elapsed = 386.3s | FSC size = 10739
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6167333800017228
+controller size: 10739
+
+------------------------------------
+
+2024-08-24 15:59:54,362 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-24 15:59:55,137 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-24 15:59:55,138 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:59:55,138 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:59:55,139 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 15:59:55,140 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 15:59:55,141 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 15:59:55,141 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 15:59:55,141 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:59:55,141 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:59:55,141 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:59:55,141 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16 to 16
+2024-08-24 15:59:55,141 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 44, Subfamilies - 0
+> progress 0.39%, elapsed 126 s, estimated 32451 s (9 hours), iters = {MDP: 41}, opt = 0.569
+> progress 0.39%, elapsed 138 s, estimated 35345 s (9 hours), iters = {MDP: 46}, opt = 0.569
+> progress 0.39%, elapsed 145 s, estimated 37273 s (10 hours), iters = {MDP: 50}, opt = 0.569
+> progress 0.39%, elapsed 154 s, estimated 39487 s (10 hours), iters = {MDP: 51}, opt = 0.569
+2024-08-24 16:00:24,941 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 16:00:25,041 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-24 16:00:25,041 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-24 16:00:31,050 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.6167333800017228 | Time elapsed = 457.3s | FSC size = 10739
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6167333800017228
+controller size: 10739
+
+------------------------------------
+
+2024-08-24 16:01:05,296 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-24 16:01:05,989 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-24 16:01:05,989 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-24 16:01:05,989 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 16:01:05,989 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 16:01:05,989 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 16:01:05,989 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:01:05,989 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:01:05,990 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 16:01:05,991 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 16:01:06,116 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 16:01:06,116 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 16:01:06,116 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 16:01:06,116 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 16:01:06,117 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 16:01:06,117 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 38, Subfamilies - 0
+> progress 0.39%, elapsed 163 s, estimated 41913 s (11 hours), iters = {MDP: 56}, opt = 0.569
+> progress 0.39%, elapsed 175 s, estimated 45010 s (12 hours), iters = {MDP: 61}, opt = 0.569
+> progress 0.39%, elapsed 181 s, estimated 46471 s (12 hours), iters = {MDP: 62}, opt = 0.569
+2024-08-24 16:01:48,615 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 16:01:48,698 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-24 16:01:48,698 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-24 16:01:54,707 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.6167333800017228 | Time elapsed = 542.9s | FSC size = 10739
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6167333800017228
+controller size: 10739
+
+------------------------------------
+
+2024-08-24 16:02:30,949 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-24 16:02:31,664 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-24 16:02:31,664 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-24 16:02:31,664 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:02:31,665 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 16:02:31,666 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 65536 to 65536
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 256 to 256
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 256 to 256
+2024-08-24 16:02:31,667 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 16:02:31,668 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 16:02:31,668 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 16:02:31,668 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-08-24 16:02:31,668 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 42, Subfamilies - 0
+> progress 0.39%, elapsed 199 s, estimated 50977 s (14 hours), iters = {MDP: 67}, opt = 0.569
+> progress 0.39%, elapsed 202 s, estimated 51827 s (14 hours), iters = {MDP: 71}, opt = 0.569
+> progress 0.39%, elapsed 210 s, estimated 53769 s (14 hours), iters = {MDP: 80}, opt = 0.569
+> progress 0.39%, elapsed 221 s, estimated 56619 s (15 hours), iters = {MDP: 81}, opt = 0.569
+> progress 0.39%, elapsed 225 s, estimated 57761 s (16 hours), iters = {MDP: 86}, opt = 0.569
+2024-08-24 16:03:01,093 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-24 16:03:01,098 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-24 16:03:01,098 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-24 16:03:07,106 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.6167333800017228 | Time elapsed = 618.4s | FSC size = 10739
+
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6167333800017228
+controller size: 10739
+
+------------------------------------
+
+2024-08-24 16:03:47,144 - synthesizer_ar_storm.py - Terminating controller synthesis
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 228.44 s
+number of holes: 18, family size: 1e10, quotient: 166762 states / 2597857 actions
+explored: 0 %
+MDP stats: avg MDP size: 99240, iterations: 89
+
+optimum: 0.569496
+--------------------
+2024-08-24 16:03:47,151 - synthesizer_pomdp.py - Assignment is None
+2024-08-24 16:03:47,655 - storm_pomdp_control.py - Storm POMDP analysis completed
+2024-08-24 16:03:49,828 - synthesizer_rl.py - RL Environment initialized
+2024-08-24 16:03:52,215 - ppo_with_qvalues_fsc.py - Agent initialized
+2024-08-24 16:03:52,252 - ppo_with_qvalues_fsc.py - Replay buffer initialized
+2024-08-24 16:03:53,544 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:53,750 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:53,899 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:54,072 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:54,089 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:54,400 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:54,431 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:54,580 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:54,919 - environment_wrapper.py - Goal reached!
+2024-08-24 16:03:55,159 - father_agent.py - Training agent
+2024-08-24 16:03:55,200 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:55,244 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:55,450 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:56,941 - father_agent.py - Step: 0, Training loss: 27351.27734375
+2024-08-24 16:03:59,466 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:03:59,917 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,024 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,035 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,057 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,065 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,074 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,252 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,332 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,347 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,386 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,561 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,748 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,795 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:00,959 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:01,138 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:01,218 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:01,388 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:01,692 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:01,726 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:01,884 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:02,053 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,102 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,236 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,324 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,387 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,425 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,438 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,520 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,541 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,555 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,664 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:02,745 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,801 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,846 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,890 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,903 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,936 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:02,960 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:03,201 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:03,417 - father_agent.py - Average Return = -40.82500076293945
+2024-08-24 16:04:03,417 - father_agent.py - Average Virtual Goal Value = -425.0
+2024-08-24 16:04:03,417 - father_agent.py - Goal Reach Probability = 0.075
+2024-08-24 16:04:03,452 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:03,695 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:03,776 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:03,934 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,016 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,177 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,189 - father_agent.py - Step: 10, Training loss: 26138.203125
+2024-08-24 16:04:04,204 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,366 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,526 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,552 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,580 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:04,954 - father_agent.py - Step: 20, Training loss: 23342.45703125
+2024-08-24 16:04:05,304 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:05,364 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:05,430 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:05,531 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:05,547 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:05,587 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:05,712 - father_agent.py - Step: 30, Training loss: 19955.8359375
+2024-08-24 16:04:05,777 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:05,987 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,059 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,102 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,217 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,299 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,366 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,388 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,470 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,487 - father_agent.py - Step: 40, Training loss: 17794.47265625
+2024-08-24 16:04:06,592 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:06,698 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:07,066 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:07,108 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:07,154 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:07,181 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:07,256 - father_agent.py - Step: 50, Training loss: 23600.05859375
+2024-08-24 16:04:07,560 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:07,668 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:07,931 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:08,023 - father_agent.py - Step: 60, Training loss: 18388.703125
+2024-08-24 16:04:08,044 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:08,075 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:08,215 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:08,308 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:08,776 - father_agent.py - Step: 70, Training loss: 12880.2421875
+2024-08-24 16:04:09,055 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,082 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,122 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,392 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,536 - father_agent.py - Step: 80, Training loss: 16663.265625
+2024-08-24 16:04:09,648 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,795 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,869 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,884 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,958 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:09,973 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:10,303 - father_agent.py - Step: 90, Training loss: 16434.591796875
+2024-08-24 16:04:10,341 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:10,929 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:11,033 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:11,050 - father_agent.py - Step: 100, Training loss: 13034.7890625
+2024-08-24 16:04:11,372 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:11,530 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:11,540 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:11,588 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:11,703 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:11,862 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:12,144 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:12,329 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:12,595 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:13,028 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:13,049 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:13,086 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:13,403 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:13,431 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:13,599 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:14,899 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:14,930 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,152 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,382 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,508 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,523 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,651 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,689 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,707 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,866 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:15,891 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:16,182 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:16,228 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:16,287 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:16,375 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:16,400 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,168 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,205 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,254 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,300 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,559 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,581 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,622 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:17,624 - father_agent.py - Average Return = -72.375
+2024-08-24 16:04:17,624 - father_agent.py - Average Virtual Goal Value = -475.0
+2024-08-24 16:04:17,624 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:04:18,107 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:18,338 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:18,375 - father_agent.py - Step: 110, Training loss: 18913.677734375
+2024-08-24 16:04:18,394 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:18,687 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:18,773 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:18,795 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:18,810 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:19,014 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:19,134 - father_agent.py - Step: 120, Training loss: 16362.43359375
+2024-08-24 16:04:19,229 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:19,257 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:19,342 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:19,557 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:19,891 - father_agent.py - Step: 130, Training loss: 14532.7353515625
+2024-08-24 16:04:20,224 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:20,339 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:20,510 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:20,636 - father_agent.py - Step: 140, Training loss: 15850.3203125
+2024-08-24 16:04:20,769 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:20,949 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:20,992 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:21,387 - father_agent.py - Step: 150, Training loss: 18665.734375
+2024-08-24 16:04:21,791 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:21,884 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:21,947 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,023 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,093 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,129 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,147 - father_agent.py - Step: 160, Training loss: 18534.1328125
+2024-08-24 16:04:22,160 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,419 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,730 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,890 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:22,921 - father_agent.py - Step: 170, Training loss: 13707.3505859375
+2024-08-24 16:04:23,467 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:23,579 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:23,686 - father_agent.py - Step: 180, Training loss: 8949.5869140625
+2024-08-24 16:04:23,745 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:24,015 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:24,400 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:24,450 - father_agent.py - Step: 190, Training loss: 13440.7041015625
+2024-08-24 16:04:24,617 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:24,635 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:25,090 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:25,212 - father_agent.py - Step: 200, Training loss: 14713.0419921875
+2024-08-24 16:04:25,616 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:25,633 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:26,173 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:26,238 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:26,293 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:26,323 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:26,470 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:26,502 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:26,785 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,029 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,089 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,137 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,169 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,468 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,502 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,571 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,584 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,597 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,623 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,635 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,651 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,799 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,814 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,852 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,861 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:27,935 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,019 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,037 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,050 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,078 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,100 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,147 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,173 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,263 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,272 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,298 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,329 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,436 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,548 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,686 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,689 - father_agent.py - Average Return = -31.225000381469727
+2024-08-24 16:04:28,689 - father_agent.py - Average Virtual Goal Value = -475.0
+2024-08-24 16:04:28,689 - father_agent.py - Goal Reach Probability = 0.025
+2024-08-24 16:04:28,748 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:28,877 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:29,474 - father_agent.py - Step: 210, Training loss: 14539.275390625
+2024-08-24 16:04:29,638 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:29,716 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:29,732 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:29,755 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:29,855 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:29,900 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:29,935 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,047 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,077 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,112 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,288 - father_agent.py - Step: 220, Training loss: 18234.8515625
+2024-08-24 16:04:30,306 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,380 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,437 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,516 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,532 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,632 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,673 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,717 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,745 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:30,816 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,076 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,098 - father_agent.py - Step: 230, Training loss: 17285.17578125
+2024-08-24 16:04:31,131 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,147 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,194 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,244 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,342 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,369 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,420 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,447 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,533 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,644 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:31,956 - father_agent.py - Step: 240, Training loss: 16456.521484375
+2024-08-24 16:04:32,043 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:32,082 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:32,139 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:32,161 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:32,226 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:32,448 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:32,736 - father_agent.py - Step: 250, Training loss: 12571.54296875
+2024-08-24 16:04:32,826 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:33,486 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:33,523 - father_agent.py - Step: 260, Training loss: 13854.75
+2024-08-24 16:04:33,793 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:33,819 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:33,848 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:34,029 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:34,059 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:34,231 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:34,289 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:34,322 - father_agent.py - Step: 270, Training loss: 15180.6064453125
+2024-08-24 16:04:34,559 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:34,729 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:34,926 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:35,071 - father_agent.py - Step: 280, Training loss: 18435.009765625
+2024-08-24 16:04:35,308 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:35,418 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:35,611 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:35,686 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:35,717 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:35,749 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:35,825 - father_agent.py - Step: 290, Training loss: 16612.0859375
+2024-08-24 16:04:36,003 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:36,036 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:36,096 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:36,564 - father_agent.py - Step: 300, Training loss: 11987.7626953125
+2024-08-24 16:04:37,082 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:37,104 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:37,151 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:37,195 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:37,205 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:37,249 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:37,298 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:37,326 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:38,110 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:38,192 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:38,217 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:38,685 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:38,743 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:39,171 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:39,374 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:40,822 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:40,857 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:41,722 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:41,757 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:41,879 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:41,970 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,175 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,291 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,300 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,613 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,625 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,728 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,760 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,801 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,834 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:42,944 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:43,038 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:43,584 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:43,622 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:43,842 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:43,868 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:43,903 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:43,905 - father_agent.py - Average Return = -83.92500305175781
+2024-08-24 16:04:43,905 - father_agent.py - Average Virtual Goal Value = -437.5
+2024-08-24 16:04:43,905 - father_agent.py - Goal Reach Probability = 0.025
+2024-08-24 16:04:43,963 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:44,004 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:44,116 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:44,319 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:44,657 - father_agent.py - Step: 310, Training loss: 11313.0556640625
+2024-08-24 16:04:44,704 - environment_wrapper.py - Goal reached!
+2024-08-24 16:04:44,719 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:44,787 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:44,826 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:44,867 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:45,402 - father_agent.py - Step: 320, Training loss: 13938.45703125
+2024-08-24 16:04:46,137 - father_agent.py - Step: 330, Training loss: 20352.166015625
+2024-08-24 16:04:46,758 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:46,941 - father_agent.py - Step: 340, Training loss: 17882.9921875
+2024-08-24 16:04:47,139 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:47,678 - father_agent.py - Step: 350, Training loss: 12281.48046875
+2024-08-24 16:04:48,416 - father_agent.py - Step: 360, Training loss: 14291.0732421875
+2024-08-24 16:04:48,698 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:48,748 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:48,836 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:48,861 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:49,018 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:49,197 - father_agent.py - Step: 370, Training loss: 13440.462890625
+2024-08-24 16:04:49,200 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:49,930 - father_agent.py - Step: 380, Training loss: 12646.685546875
+2024-08-24 16:04:49,969 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:50,056 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:50,233 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:50,260 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:50,679 - father_agent.py - Step: 390, Training loss: 12901.404296875
+2024-08-24 16:04:50,767 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:50,806 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:50,940 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:51,177 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:51,415 - father_agent.py - Step: 400, Training loss: 5323.32373046875
+2024-08-24 16:04:51,792 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:52,418 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:52,473 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:52,504 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,084 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,183 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,200 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,226 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,665 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,758 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,778 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,802 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,878 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:53,890 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:54,162 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:54,535 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:54,583 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:54,726 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:54,821 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:54,970 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:55,016 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:55,097 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:55,114 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:56,099 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:56,229 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:56,555 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:56,564 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:56,610 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:56,652 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:56,661 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:57,032 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:57,655 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:57,677 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:57,689 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:57,729 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:57,828 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,168 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,219 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,250 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,252 - father_agent.py - Average Return = -76.9749984741211
+2024-08-24 16:04:58,252 - father_agent.py - Average Virtual Goal Value = -487.5
+2024-08-24 16:04:58,252 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:04:58,337 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,352 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,445 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,501 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,553 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:58,986 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:59,010 - father_agent.py - Step: 410, Training loss: 19825.109375
+2024-08-24 16:04:59,306 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:59,340 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:59,406 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:04:59,754 - father_agent.py - Step: 420, Training loss: 12499.55078125
+2024-08-24 16:04:59,921 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:00,070 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:00,231 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:00,439 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:00,473 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:00,505 - father_agent.py - Step: 430, Training loss: 6597.5810546875
+2024-08-24 16:05:01,237 - father_agent.py - Step: 440, Training loss: 20637.19140625
+2024-08-24 16:05:01,754 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:01,846 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:01,977 - father_agent.py - Step: 450, Training loss: 11360.0439453125
+2024-08-24 16:05:02,078 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:02,388 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:02,508 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:02,593 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:02,614 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:02,689 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:02,724 - father_agent.py - Step: 460, Training loss: 10051.0634765625
+2024-08-24 16:05:02,761 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:03,182 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:03,426 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:03,460 - father_agent.py - Step: 470, Training loss: 8109.234375
+2024-08-24 16:05:03,681 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:03,996 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:04,068 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:04,179 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:04,205 - father_agent.py - Step: 480, Training loss: 10162.36328125
+2024-08-24 16:05:04,301 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:04,443 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:04,599 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:04,709 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:04,966 - father_agent.py - Step: 490, Training loss: 14675.03125
+2024-08-24 16:05:05,229 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:05,244 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:05,467 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:05,639 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:05,712 - father_agent.py - Step: 500, Training loss: 2880.908203125
+2024-08-24 16:05:06,038 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:06,175 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:06,203 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:07,006 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:07,082 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:07,263 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:07,793 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:07,806 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:07,845 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:07,857 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:08,405 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:08,425 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:08,718 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:08,727 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:08,900 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:09,320 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:09,414 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:09,449 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:09,462 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:09,538 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:09,637 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:09,999 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:10,029 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,177 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,311 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,594 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,610 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,727 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,738 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,819 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,909 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:10,986 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:11,376 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:11,921 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:11,950 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:11,959 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:12,513 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:12,579 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:12,636 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:12,638 - father_agent.py - Average Return = -80.125
+2024-08-24 16:05:12,638 - father_agent.py - Average Virtual Goal Value = -437.5
+2024-08-24 16:05:12,638 - father_agent.py - Goal Reach Probability = 0.05
+2024-08-24 16:05:12,813 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:12,840 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:13,103 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:13,130 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:13,314 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:13,382 - father_agent.py - Step: 510, Training loss: 14479.0322265625
+2024-08-24 16:05:13,655 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:13,689 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:13,740 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:14,123 - father_agent.py - Step: 520, Training loss: 11441.826171875
+2024-08-24 16:05:14,283 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:14,308 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:14,349 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:14,677 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:14,869 - father_agent.py - Step: 530, Training loss: 6426.53515625
+2024-08-24 16:05:15,022 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:15,412 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:15,536 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:15,610 - father_agent.py - Step: 540, Training loss: 13612.462890625
+2024-08-24 16:05:16,097 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:16,208 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:16,224 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:16,239 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:16,254 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:16,364 - father_agent.py - Step: 550, Training loss: 6297.27392578125
+2024-08-24 16:05:16,373 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:16,563 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:17,103 - father_agent.py - Step: 560, Training loss: 8829.888671875
+2024-08-24 16:05:17,280 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:17,339 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:17,518 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:17,812 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:17,851 - father_agent.py - Step: 570, Training loss: 8267.60546875
+2024-08-24 16:05:17,857 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:18,080 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:18,603 - father_agent.py - Step: 580, Training loss: 15253.4482421875
+2024-08-24 16:05:18,718 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:18,787 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:18,814 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:18,865 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:19,162 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:19,270 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:19,357 - father_agent.py - Step: 590, Training loss: 10188.3798828125
+2024-08-24 16:05:19,605 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:20,031 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:20,097 - father_agent.py - Step: 600, Training loss: 9321.0224609375
+2024-08-24 16:05:20,397 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:20,502 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,282 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,326 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,346 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,397 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,412 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,427 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,490 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,538 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:21,556 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,054 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,113 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,179 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,231 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,269 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,309 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,406 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,784 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,907 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:22,965 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,164 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,330 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,440 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,475 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,518 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,557 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,624 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,653 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,675 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,687 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,705 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,762 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:23,831 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:24,022 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:24,036 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:24,124 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:24,246 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:24,358 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:24,360 - father_agent.py - Average Return = -44.375
+2024-08-24 16:05:24,360 - father_agent.py - Average Virtual Goal Value = -462.5
+2024-08-24 16:05:24,360 - father_agent.py - Goal Reach Probability = 0.025
+2024-08-24 16:05:24,388 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:25,156 - father_agent.py - Step: 610, Training loss: 17262.697265625
+2024-08-24 16:05:25,673 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:25,843 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:25,972 - father_agent.py - Step: 620, Training loss: 13801.9072265625
+2024-08-24 16:05:26,464 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:26,530 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:26,583 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:26,738 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:26,816 - father_agent.py - Step: 630, Training loss: 8808.171875
+2024-08-24 16:05:27,475 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:27,546 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:27,616 - father_agent.py - Step: 640, Training loss: 15308.3046875
+2024-08-24 16:05:27,834 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:28,380 - father_agent.py - Step: 650, Training loss: 9986.970703125
+2024-08-24 16:05:29,142 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:29,162 - father_agent.py - Step: 660, Training loss: 8977.099609375
+2024-08-24 16:05:29,942 - father_agent.py - Step: 670, Training loss: 12393.9423828125
+2024-08-24 16:05:30,335 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:30,517 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:30,603 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:30,659 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:30,717 - father_agent.py - Step: 680, Training loss: 9061.8564453125
+2024-08-24 16:05:30,778 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:30,840 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:30,943 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:30,994 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:31,017 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:31,077 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:31,138 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:31,166 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:31,502 - father_agent.py - Step: 690, Training loss: 11145.572265625
+2024-08-24 16:05:31,677 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:31,806 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:32,090 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:32,162 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:32,202 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:32,358 - father_agent.py - Step: 700, Training loss: 14953.59375
+2024-08-24 16:05:33,184 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:33,538 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:33,578 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:33,596 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:33,828 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:34,183 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:34,393 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:34,849 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:34,859 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:35,037 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:35,074 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:35,299 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:35,318 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:35,360 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:35,450 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:35,467 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:35,755 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:36,610 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:36,712 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:36,723 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:36,796 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:36,972 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,145 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,280 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,427 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,465 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,527 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,542 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,606 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:37,698 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,124 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,177 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,260 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,281 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,379 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,395 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,411 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,506 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,638 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:38,641 - father_agent.py - Average Return = -67.32499694824219
+2024-08-24 16:05:38,641 - father_agent.py - Average Virtual Goal Value = -462.5
+2024-08-24 16:05:38,641 - father_agent.py - Goal Reach Probability = 0.025
+2024-08-24 16:05:38,668 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:39,113 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:39,394 - father_agent.py - Step: 710, Training loss: 13017.3349609375
+2024-08-24 16:05:40,002 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:40,029 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:40,135 - father_agent.py - Step: 720, Training loss: 7944.62109375
+2024-08-24 16:05:40,472 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:40,517 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:40,592 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:40,885 - father_agent.py - Step: 730, Training loss: 3368.60498046875
+2024-08-24 16:05:41,068 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:41,205 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:41,637 - father_agent.py - Step: 740, Training loss: 10746.4560546875
+2024-08-24 16:05:41,688 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:42,080 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:42,422 - father_agent.py - Step: 750, Training loss: 10083.0888671875
+2024-08-24 16:05:42,520 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:42,619 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:42,682 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:43,168 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:43,225 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:43,238 - father_agent.py - Step: 760, Training loss: 15000.9658203125
+2024-08-24 16:05:43,565 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:44,068 - father_agent.py - Step: 770, Training loss: 12047.8525390625
+2024-08-24 16:05:44,827 - father_agent.py - Step: 780, Training loss: 9734.4169921875
+2024-08-24 16:05:45,373 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:45,576 - father_agent.py - Step: 790, Training loss: 8783.5205078125
+2024-08-24 16:05:46,306 - father_agent.py - Step: 800, Training loss: 6846.00732421875
+2024-08-24 16:05:46,672 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:46,796 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:46,848 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:46,875 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:47,263 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:47,287 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:47,342 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:48,151 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:48,173 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:48,456 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:48,566 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:48,582 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:49,771 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:50,023 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:50,089 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:50,122 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:50,201 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:50,235 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:50,278 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:51,141 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:51,444 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:51,549 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:51,616 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:51,641 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:52,366 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:52,382 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:52,656 - environment_wrapper.py - Goal reached!
+2024-08-24 16:05:52,739 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:52,787 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:52,817 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:52,908 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:53,065 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:53,453 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:53,572 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:53,598 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:53,625 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:54,306 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:54,326 - father_agent.py - Average Return = -91.75
+2024-08-24 16:05:54,326 - father_agent.py - Average Virtual Goal Value = -412.5
+2024-08-24 16:05:54,326 - father_agent.py - Goal Reach Probability = 0.05
+2024-08-24 16:05:54,431 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:54,564 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:54,682 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:54,719 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:54,951 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:54,972 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:55,047 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:55,098 - father_agent.py - Step: 810, Training loss: 7681.02001953125
+2024-08-24 16:05:55,237 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:55,370 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:55,848 - father_agent.py - Step: 820, Training loss: 8453.8837890625
+2024-08-24 16:05:56,585 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:56,629 - father_agent.py - Step: 830, Training loss: 13399.439453125
+2024-08-24 16:05:57,236 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:57,376 - father_agent.py - Step: 840, Training loss: 9176.2392578125
+2024-08-24 16:05:57,563 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:57,587 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:57,616 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:57,666 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:58,125 - father_agent.py - Step: 850, Training loss: 13085.9326171875
+2024-08-24 16:05:58,828 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:58,890 - father_agent.py - Step: 860, Training loss: 9752.6669921875
+2024-08-24 16:05:58,919 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:59,638 - father_agent.py - Step: 870, Training loss: 7282.5908203125
+2024-08-24 16:05:59,747 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:05:59,948 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:00,394 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:00,440 - father_agent.py - Step: 880, Training loss: 7988.83740234375
+2024-08-24 16:06:00,480 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:00,535 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:00,788 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:01,181 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:01,199 - father_agent.py - Step: 890, Training loss: 11690.060546875
+2024-08-24 16:06:01,318 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:01,971 - father_agent.py - Step: 900, Training loss: 9241.533203125
+2024-08-24 16:06:04,145 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:04,279 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:05,325 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:05,433 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:05,536 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:05,567 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:06,478 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:06,908 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:06,941 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:07,016 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:07,089 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:07,104 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:07,354 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:07,565 - environment_wrapper.py - Goal reached!
+2024-08-24 16:06:08,074 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:08,217 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:08,784 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:09,171 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:09,594 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:09,673 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:10,629 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:10,698 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:11,875 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,003 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,386 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,683 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,747 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,803 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,849 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,886 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:12,906 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:13,112 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:13,525 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:13,555 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:13,571 - father_agent.py - Average Return = -142.5
+2024-08-24 16:06:13,571 - father_agent.py - Average Virtual Goal Value = -400.0
+2024-08-24 16:06:13,571 - father_agent.py - Goal Reach Probability = 0.025
+2024-08-24 16:06:14,155 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:14,322 - father_agent.py - Step: 910, Training loss: 6800.43408203125
+2024-08-24 16:06:14,331 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:14,375 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:15,058 - father_agent.py - Step: 920, Training loss: 9133.080078125
+2024-08-24 16:06:15,785 - father_agent.py - Step: 930, Training loss: 9657.482421875
+2024-08-24 16:06:15,977 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:16,515 - father_agent.py - Step: 940, Training loss: 7214.7294921875
+2024-08-24 16:06:16,833 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:16,990 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:17,256 - father_agent.py - Step: 950, Training loss: 5007.66650390625
+2024-08-24 16:06:17,559 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:17,614 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:17,998 - father_agent.py - Step: 960, Training loss: 7914.02099609375
+2024-08-24 16:06:18,281 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:18,489 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:18,534 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:18,631 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:18,750 - father_agent.py - Step: 970, Training loss: 10586.5400390625
+2024-08-24 16:06:19,284 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:19,491 - father_agent.py - Step: 980, Training loss: 6134.2998046875
+2024-08-24 16:06:20,033 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:20,220 - father_agent.py - Step: 990, Training loss: 2881.900390625
+2024-08-24 16:06:20,948 - father_agent.py - Step: 1000, Training loss: 4891.60791015625
+2024-08-24 16:06:22,045 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:22,057 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:22,231 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:23,027 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:23,117 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:23,172 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:23,199 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:23,332 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:23,388 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:24,199 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:24,789 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:26,427 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:26,760 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:27,332 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:27,464 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:27,522 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:27,626 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:27,897 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:27,936 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:28,114 - environment_wrapper.py - Goal reached!
+2024-08-24 16:06:28,888 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:29,087 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:29,857 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:29,976 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:30,093 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,075 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,255 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,317 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,382 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,425 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,614 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,722 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:31,741 - father_agent.py - Average Return = -129.60000610351562
+2024-08-24 16:06:31,741 - father_agent.py - Average Virtual Goal Value = -375.0
+2024-08-24 16:06:31,741 - father_agent.py - Goal Reach Probability = 0.025
+2024-08-24 16:06:32,214 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:32,277 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:32,437 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:32,492 - father_agent.py - Step: 1010, Training loss: 2450.3056640625
+2024-08-24 16:06:32,545 - environment_wrapper.py - Goal reached!
+2024-08-24 16:06:32,882 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:33,107 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:33,232 - father_agent.py - Step: 1020, Training loss: 6529.14306640625
+2024-08-24 16:06:33,734 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:33,979 - father_agent.py - Step: 1030, Training loss: 1121.1085205078125
+2024-08-24 16:06:34,081 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:34,105 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:34,527 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:34,724 - father_agent.py - Step: 1040, Training loss: 9262.1845703125
+2024-08-24 16:06:35,461 - father_agent.py - Step: 1050, Training loss: 11344.0615234375
+2024-08-24 16:06:36,198 - father_agent.py - Step: 1060, Training loss: 8836.2587890625
+2024-08-24 16:06:36,598 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:36,935 - father_agent.py - Step: 1070, Training loss: 4880.08349609375
+2024-08-24 16:06:37,312 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:37,395 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:37,560 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:37,677 - father_agent.py - Step: 1080, Training loss: 7351.80419921875
+2024-08-24 16:06:38,213 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:38,311 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:38,419 - father_agent.py - Step: 1090, Training loss: 12380.158203125
+2024-08-24 16:06:38,481 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:38,850 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:39,154 - father_agent.py - Step: 1100, Training loss: 5603.9443359375
+2024-08-24 16:06:39,501 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:40,051 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,393 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,433 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,482 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,611 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,631 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,676 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,814 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:41,949 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:43,452 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:43,509 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:43,531 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:43,565 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:43,587 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:44,451 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:45,226 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:45,456 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:45,464 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:45,485 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:45,624 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:46,135 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:46,928 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:46,952 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:47,081 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:47,334 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:47,987 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:49,335 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:49,554 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:50,109 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:50,336 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:50,606 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:51,018 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:51,021 - father_agent.py - Average Return = -142.22500610351562
+2024-08-24 16:06:51,021 - father_agent.py - Average Virtual Goal Value = -412.5
+2024-08-24 16:06:51,021 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:06:51,753 - father_agent.py - Step: 1110, Training loss: 8450.42578125
+2024-08-24 16:06:51,815 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:52,506 - father_agent.py - Step: 1120, Training loss: 4812.22021484375
+2024-08-24 16:06:53,251 - father_agent.py - Step: 1130, Training loss: 1115.1568603515625
+2024-08-24 16:06:53,992 - father_agent.py - Step: 1140, Training loss: 1733.6353759765625
+2024-08-24 16:06:54,734 - father_agent.py - Step: 1150, Training loss: 4179.84326171875
+2024-08-24 16:06:55,062 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:55,464 - father_agent.py - Step: 1160, Training loss: 6253.3017578125
+2024-08-24 16:06:56,137 - environment_wrapper.py - Goal reached!
+2024-08-24 16:06:56,165 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:56,195 - father_agent.py - Step: 1170, Training loss: 4908.85498046875
+2024-08-24 16:06:56,445 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:56,493 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:56,927 - father_agent.py - Step: 1180, Training loss: 6165.72314453125
+2024-08-24 16:06:57,010 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:57,657 - father_agent.py - Step: 1190, Training loss: 3514.659423828125
+2024-08-24 16:06:58,390 - father_agent.py - Step: 1200, Training loss: 5394.32421875
+2024-08-24 16:06:58,972 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:06:59,721 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:00,485 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:00,543 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:01,239 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:01,414 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:01,850 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:01,869 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:02,619 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:02,758 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:03,236 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:04,005 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:04,213 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:04,233 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:04,289 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:04,391 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:04,408 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:04,804 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:05,750 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:06,356 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:06,365 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:07,804 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:08,059 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:08,563 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:08,626 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:08,685 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:08,708 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:09,246 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:09,777 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:10,000 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:11,107 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:11,120 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:11,160 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:11,162 - father_agent.py - Average Return = -160.77499389648438
+2024-08-24 16:07:11,162 - father_agent.py - Average Virtual Goal Value = -412.5
+2024-08-24 16:07:11,162 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:07:11,907 - father_agent.py - Step: 1210, Training loss: 4047.677734375
+2024-08-24 16:07:12,638 - father_agent.py - Step: 1220, Training loss: 3795.752197265625
+2024-08-24 16:07:12,662 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:13,141 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:13,376 - father_agent.py - Step: 1230, Training loss: 6274.486328125
+2024-08-24 16:07:13,700 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:13,715 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:14,048 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:14,114 - father_agent.py - Step: 1240, Training loss: 2997.393798828125
+2024-08-24 16:07:14,504 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:14,522 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:14,858 - father_agent.py - Step: 1250, Training loss: 2070.5078125
+2024-08-24 16:07:14,904 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:15,607 - father_agent.py - Step: 1260, Training loss: 5185.3291015625
+2024-08-24 16:07:16,476 - father_agent.py - Step: 1270, Training loss: 7005.5732421875
+2024-08-24 16:07:16,563 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:17,383 - father_agent.py - Step: 1280, Training loss: 4311.134765625
+2024-08-24 16:07:18,319 - father_agent.py - Step: 1290, Training loss: 2742.932373046875
+2024-08-24 16:07:19,069 - father_agent.py - Step: 1300, Training loss: 8280.4912109375
+2024-08-24 16:07:19,421 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:20,029 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:20,076 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:20,092 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:21,055 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:22,198 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:22,499 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:22,539 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:23,006 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:23,015 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:23,028 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:23,131 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:23,971 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:24,107 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:24,191 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:25,743 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:25,756 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:26,771 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:26,888 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:26,965 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:27,017 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:28,089 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:28,391 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:29,933 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:30,915 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:30,935 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:30,955 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:31,065 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:31,550 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:31,576 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:31,578 - father_agent.py - Average Return = -149.625
+2024-08-24 16:07:31,578 - father_agent.py - Average Virtual Goal Value = -375.0
+2024-08-24 16:07:31,578 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:07:32,247 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:32,297 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:32,324 - father_agent.py - Step: 1310, Training loss: 5017.14892578125
+2024-08-24 16:07:33,064 - father_agent.py - Step: 1320, Training loss: 5637.99072265625
+2024-08-24 16:07:33,814 - father_agent.py - Step: 1330, Training loss: 2472.529296875
+2024-08-24 16:07:34,546 - father_agent.py - Step: 1340, Training loss: 1130.98681640625
+2024-08-24 16:07:35,286 - father_agent.py - Step: 1350, Training loss: 1116.423095703125
+2024-08-24 16:07:36,024 - father_agent.py - Step: 1360, Training loss: 4691.7470703125
+2024-08-24 16:07:36,750 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:36,761 - father_agent.py - Step: 1370, Training loss: 6552.76123046875
+2024-08-24 16:07:36,845 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:37,495 - father_agent.py - Step: 1380, Training loss: 2398.367919921875
+2024-08-24 16:07:37,802 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:38,239 - father_agent.py - Step: 1390, Training loss: 4868.56396484375
+2024-08-24 16:07:38,628 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:38,986 - father_agent.py - Step: 1400, Training loss: 5775.75634765625
+2024-08-24 16:07:40,432 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:40,441 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:40,452 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:40,470 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:40,483 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:42,005 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:42,271 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:42,295 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:42,911 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:42,920 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:44,424 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:44,938 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:45,081 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:45,401 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:45,421 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:46,541 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:46,759 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:46,771 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:49,699 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:52,405 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:53,291 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:53,319 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:55,119 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:56,823 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:56,842 - father_agent.py - Average Return = -219.1999969482422
+2024-08-24 16:07:56,842 - father_agent.py - Average Virtual Goal Value = -300.0
+2024-08-24 16:07:56,842 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:07:57,120 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:57,139 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:57,172 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:57,601 - father_agent.py - Step: 1410, Training loss: 6349.4130859375
+2024-08-24 16:07:58,364 - father_agent.py - Step: 1420, Training loss: 4663.783203125
+2024-08-24 16:07:58,706 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:58,733 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:07:59,131 - father_agent.py - Step: 1430, Training loss: 4671.23681640625
+2024-08-24 16:07:59,889 - father_agent.py - Step: 1440, Training loss: 4137.8251953125
+2024-08-24 16:08:00,326 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:00,652 - father_agent.py - Step: 1450, Training loss: 5142.12890625
+2024-08-24 16:08:00,711 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:00,912 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:01,396 - father_agent.py - Step: 1460, Training loss: 4298.77783203125
+2024-08-24 16:08:02,138 - father_agent.py - Step: 1470, Training loss: 1148.3575439453125
+2024-08-24 16:08:02,316 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:02,902 - father_agent.py - Step: 1480, Training loss: 3730.41650390625
+2024-08-24 16:08:03,652 - father_agent.py - Step: 1490, Training loss: 1115.448974609375
+2024-08-24 16:08:04,404 - father_agent.py - Step: 1500, Training loss: 3551.967041015625
+2024-08-24 16:08:06,603 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:06,941 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:07,232 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:08,573 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:08,827 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:08,930 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:10,354 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:10,561 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:10,617 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:10,839 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:10,861 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:11,291 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:12,071 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:12,578 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:12,592 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:13,520 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:14,092 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:15,623 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:16,913 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:16,922 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:18,198 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:19,231 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:21,729 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:22,027 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:22,290 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:23,026 - father_agent.py - Average Return = -233.52499389648438
+2024-08-24 16:08:23,026 - father_agent.py - Average Virtual Goal Value = -312.5
+2024-08-24 16:08:23,026 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:08:23,761 - father_agent.py - Step: 1510, Training loss: 2484.334716796875
+2024-08-24 16:08:24,490 - father_agent.py - Step: 1520, Training loss: 5576.451171875
+2024-08-24 16:08:24,517 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:25,227 - father_agent.py - Step: 1530, Training loss: 1127.4779052734375
+2024-08-24 16:08:25,962 - father_agent.py - Step: 1540, Training loss: 3874.83642578125
+2024-08-24 16:08:26,114 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:26,144 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:26,698 - father_agent.py - Step: 1550, Training loss: 1109.6151123046875
+2024-08-24 16:08:27,425 - father_agent.py - Step: 1560, Training loss: 1126.548583984375
+2024-08-24 16:08:28,152 - father_agent.py - Step: 1570, Training loss: 2155.738525390625
+2024-08-24 16:08:28,880 - father_agent.py - Step: 1580, Training loss: 2245.146728515625
+2024-08-24 16:08:29,575 - environment_wrapper.py - Goal reached!
+2024-08-24 16:08:29,596 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:29,620 - father_agent.py - Step: 1590, Training loss: 3089.248046875
+2024-08-24 16:08:29,628 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:30,019 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:30,348 - father_agent.py - Step: 1600, Training loss: 4912.54736328125
+2024-08-24 16:08:30,661 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:31,463 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:32,944 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:33,025 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:34,813 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:36,378 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:39,340 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:39,884 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:41,510 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:42,272 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:43,772 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:43,832 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:44,068 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:45,257 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:45,273 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:46,593 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:46,907 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:47,653 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:47,704 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:49,202 - father_agent.py - Average Return = -243.77499389648438
+2024-08-24 16:08:49,202 - father_agent.py - Average Virtual Goal Value = -237.5
+2024-08-24 16:08:49,202 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:08:49,930 - father_agent.py - Step: 1610, Training loss: 2467.1171875
+2024-08-24 16:08:50,651 - father_agent.py - Step: 1620, Training loss: 5199.69775390625
+2024-08-24 16:08:51,257 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:51,376 - father_agent.py - Step: 1630, Training loss: 2541.02978515625
+2024-08-24 16:08:52,103 - father_agent.py - Step: 1640, Training loss: 2309.353271484375
+2024-08-24 16:08:52,828 - father_agent.py - Step: 1650, Training loss: 1143.9727783203125
+2024-08-24 16:08:53,552 - father_agent.py - Step: 1660, Training loss: 2395.8984375
+2024-08-24 16:08:54,180 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:54,280 - father_agent.py - Step: 1670, Training loss: 3542.472900390625
+2024-08-24 16:08:55,004 - father_agent.py - Step: 1680, Training loss: 3715.69140625
+2024-08-24 16:08:55,278 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:55,729 - father_agent.py - Step: 1690, Training loss: 4023.647216796875
+2024-08-24 16:08:55,891 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:56,453 - father_agent.py - Step: 1700, Training loss: 1119.3154296875
+2024-08-24 16:08:58,666 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:08:59,341 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:00,151 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:00,162 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:00,271 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:02,199 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:02,234 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:03,044 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:03,076 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:06,437 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:08,661 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:08,683 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:09,759 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:10,449 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:11,223 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:13,105 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:13,358 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:14,287 - environment_wrapper.py - Goal reached!
+2024-08-24 16:09:14,501 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:15,349 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:16,113 - father_agent.py - Average Return = -253.6750030517578
+2024-08-24 16:09:16,113 - father_agent.py - Average Virtual Goal Value = -225.0
+2024-08-24 16:09:16,113 - father_agent.py - Goal Reach Probability = 0.025
+2024-08-24 16:09:16,857 - father_agent.py - Step: 1710, Training loss: 3003.37841796875
+2024-08-24 16:09:17,581 - father_agent.py - Step: 1720, Training loss: 4828.04833984375
+2024-08-24 16:09:18,320 - father_agent.py - Step: 1730, Training loss: 1127.5546875
+2024-08-24 16:09:19,050 - father_agent.py - Step: 1740, Training loss: 1166.2958984375
+2024-08-24 16:09:19,783 - father_agent.py - Step: 1750, Training loss: 2527.75146484375
+2024-08-24 16:09:20,508 - father_agent.py - Step: 1760, Training loss: 2141.408203125
+2024-08-24 16:09:21,238 - father_agent.py - Step: 1770, Training loss: 2449.083740234375
+2024-08-24 16:09:21,965 - father_agent.py - Step: 1780, Training loss: 1176.1910400390625
+2024-08-24 16:09:21,979 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:22,048 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:22,696 - father_agent.py - Step: 1790, Training loss: 1147.0018310546875
+2024-08-24 16:09:22,918 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:23,425 - father_agent.py - Step: 1800, Training loss: 2283.900390625
+2024-08-24 16:09:24,041 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:25,522 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:26,300 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:32,964 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:33,355 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:34,552 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:34,564 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:36,049 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:37,272 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:38,812 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:38,826 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:38,846 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:40,420 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:41,560 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:42,546 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:42,555 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:42,734 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:43,121 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:43,123 - father_agent.py - Average Return = -254.85000610351562
+2024-08-24 16:09:43,123 - father_agent.py - Average Virtual Goal Value = -225.0
+2024-08-24 16:09:43,123 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:09:43,855 - father_agent.py - Step: 1810, Training loss: 4995.2548828125
+2024-08-24 16:09:44,581 - father_agent.py - Step: 1820, Training loss: 3037.343017578125
+2024-08-24 16:09:44,614 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:44,644 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:45,309 - father_agent.py - Step: 1830, Training loss: 5300.80908203125
+2024-08-24 16:09:46,036 - father_agent.py - Step: 1840, Training loss: 4601.3583984375
+2024-08-24 16:09:46,770 - father_agent.py - Step: 1850, Training loss: 2358.468505859375
+2024-08-24 16:09:47,493 - father_agent.py - Step: 1860, Training loss: 4799.2265625
+2024-08-24 16:09:48,227 - father_agent.py - Step: 1870, Training loss: 2187.500244140625
+2024-08-24 16:09:48,949 - father_agent.py - Step: 1880, Training loss: 1879.85693359375
+2024-08-24 16:09:49,674 - father_agent.py - Step: 1890, Training loss: 1606.1905517578125
+2024-08-24 16:09:50,400 - father_agent.py - Step: 1900, Training loss: 2342.94970703125
+2024-08-24 16:09:50,705 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:51,793 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:51,833 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:53,210 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:53,976 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:54,919 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:56,150 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:56,159 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:56,954 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:09:59,573 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:00,996 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:01,095 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:04,001 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:04,015 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:05,726 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:09,010 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:09,019 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:09,029 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:09,362 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:10,153 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:10,155 - father_agent.py - Average Return = -250.72500610351562
+2024-08-24 16:10:10,155 - father_agent.py - Average Virtual Goal Value = -250.0
+2024-08-24 16:10:10,155 - father_agent.py - Goal Reach Probability = 0.0
+2024-08-24 16:10:10,881 - father_agent.py - Step: 1910, Training loss: 2270.727783203125
+2024-08-24 16:10:11,606 - father_agent.py - Step: 1920, Training loss: 3535.799072265625
+2024-08-24 16:10:12,332 - father_agent.py - Step: 1930, Training loss: 1102.997314453125
+2024-08-24 16:10:13,075 - father_agent.py - Step: 1940, Training loss: 1148.7672119140625
+2024-08-24 16:10:13,675 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:13,696 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:13,711 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:13,822 - father_agent.py - Step: 1950, Training loss: 1211.9217529296875
+2024-08-24 16:10:14,071 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:14,553 - father_agent.py - Step: 1960, Training loss: 7176.49658203125
+2024-08-24 16:10:15,280 - father_agent.py - Step: 1970, Training loss: 1209.4713134765625
+2024-08-24 16:10:15,544 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:16,015 - father_agent.py - Step: 1980, Training loss: 2471.503173828125
+2024-08-24 16:10:16,741 - father_agent.py - Step: 1990, Training loss: 5438.62255859375
+2024-08-24 16:10:18,516 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:22,210 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:23,199 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:23,220 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:23,990 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:24,872 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:25,886 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:25,908 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:25,982 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:26,081 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:26,733 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:26,757 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:28,403 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:29,421 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:29,512 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:29,637 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:31,903 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:32,514 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:33,469 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:33,945 - environment_wrapper.py - Goal reached!
+2024-08-24 16:10:34,059 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:34,807 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:34,872 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:35,604 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:36,693 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:37,005 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:37,612 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:37,633 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:37,660 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:37,669 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:39,975 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:39,988 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:42,231 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:42,991 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:43,102 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:46,862 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:47,351 - environment_wrapper.py - Goal reached!
+2024-08-24 16:10:47,363 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:48,866 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:48,892 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:49,016 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:50,233 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:52,209 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:52,485 - environment_wrapper.py - Ended, but not in a goal state: []
+2024-08-24 16:10:52,488 - father_agent.py - Average Return = -227.72500610351562
+2024-08-24 16:10:52,488 - father_agent.py - Average Virtual Goal Value = -250.0
+2024-08-24 16:10:52,488 - father_agent.py - Goal Reach Probability = 0.025
+
+------------------------------------
+
+PAYNT results: 
+0.5694957103184766
+controller size: 14
+
+Storm results: 
+0.6167333800017228
+controller size: 10739
+
+------------------------------------
+
