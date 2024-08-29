@@ -1,0 +1,1482 @@
+2024-08-25 16:02:50,381 - cli.py - This is Paynt version 0.1.0.
+2024-08-25 16:02:50,381 - sketch.py - loading sketch from models_critic/rocks-16/sketch.templ ...
+2024-08-25 16:02:50,381 - sketch.py - assuming sketch in PRISM format...
+2024-08-25 16:02:50,394 - prism_parser.py - PRISM model type: POMDP
+2024-08-25 16:02:50,394 - prism_parser.py - loading properties from models_critic/rocks-16/sketch.props ...
+2024-08-25 16:02:50,394 - prism_parser.py - found the following specification: optimality: R{"cost"}min=? [F "goal"] 
+2024-08-25 16:02:50,582 - sketch.py - sketch parsing OK
+2024-08-25 16:02:50,620 - sketch.py - constructed explicit quotient having 11017 states and 54289 actions
+2024-08-25 16:02:50,620 - sketch.py - found the following specification optimality: R{"cost"}min=? [F "goal"] 
+2024-08-25 16:02:50,648 - pomdp.py - constructed POMDP having 2761 observations.
+2024-08-25 16:02:50,782 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-08-25 16:02:50,801 - pomdp.py - constructed quotient MDP having 11017 states and 54289 actions.
+2024-08-25 16:02:52,850 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-08-25 16:02:53,250 - __init__.py - Creating converter from 7 to 5
+2024-08-25 16:02:53,250 - __init__.py - Creating converter from 5 to 7
+2024-08-25 16:02:53,250 - __init__.py - Creating converter from 7 to 5
+2024-08-25 16:02:53,250 - __init__.py - Creating converter from 5 to 7
+2024-08-25 16:02:55,222 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-08-25 16:02:55,222 - synthesizer_pomdp.py - Storm settings: iterative - (400, 30, 5), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-08-25 16:02:55,233 - synthesizer_pomdp.py - Timeout for PAYNT started
+-----------PAYNT-----------                     
+Value = 46.0 | Time elapsed = 2.0s | FSC size = 5522
+
+> progress 0.0%, elapsed 3 s, estimated 5958880311847722868127788132072423424 s (188954855144841540717680525312 years), iters = {MDP: 114}, opt = 46.0
+> progress 0.0%, elapsed 6 s, estimated 11346145253111448821854766344825733120 s (359783905793741999674006437888 years), iters = {MDP: 274}, opt = 46.0
+> progress 0.0%, elapsed 9 s, estimated 15809276980924674118167247042176352256 s (501308884478839226649454575616 years), iters = {MDP: 443}, opt = 46.0
+> progress 0.0%, elapsed 12 s, estimated 19871741637003571437029225449778053120 s (630128793664496811459016130560 years), iters = {MDP: 604}, opt = 46.0
+> progress 0.0%, elapsed 15 s, estimated 20978745452855788286250386161464770560 s (665231654390404253236785577984 years), iters = {MDP: 773}, opt = 46.0
+> progress 0.0%, elapsed 18 s, estimated 15810589548499959018650055491759112192 s (501350505723616169846416343040 years), iters = {MDP: 950}, opt = 46.0
+> progress 0.0%, elapsed 21 s, estimated 8097547993702456062289925104795123712 s (256771562458855149153843937280 years), iters = {MDP: 1145}, opt = 46.0
+> progress 0.0%, elapsed 24 s, estimated 9170099698598265431292767804367831040 s (290781953912933305528499568640 years), iters = {MDP: 1325}, opt = 46.0
+> progress 0.0%, elapsed 27 s, estimated 9171042009891136982272371972278059008 s (290811834408014242257991368704 years), iters = {MDP: 1517}, opt = 46.0
+2024-08-25 16:03:25,294 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:03:25,373 - storm_pomdp_control.py - Interactive Storm started
+2024-08-25 16:03:25,373 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-08-25 16:03:31,379 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 45.2s | FSC size = 19897
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19897
+
+------------------------------------
+
+2024-08-25 16:03:40,569 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-25 16:03:41,310 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-25 16:03:41,310 - synthesizer_ar_storm.py - Additional memory needed
+2024-08-25 16:03:41,324 - synthesizer.py - double-checking specification satisfiability:  : 46.0
+--------------------
+Synthesis summary:
+optimality objective: R{"cost"}min=? [F "goal"] 
+
+method: AR, synthesis time: 30.07 s
+number of holes: 2590, family size: 1e1828, quotient: 11017 states / 54289 actions
+explored: 0 %
+MDP stats: avg MDP size: 4551, iterations: 1716
+
+optimum: 46.0
+--------------------
+[[454.]
+ [424.]
+ [454.]
+ ...
+ [500.]
+ [500.]
+ [500.]]
+2024-08-25 16:03:42,370 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-08-25 16:03:42,374 - pomdp.py - unfolding 3-FSC template into POMDP...
+2024-08-25 16:03:42,507 - pomdp.py - constructed quotient MDP having 11049 states and 56641 actions.
+2024-08-25 16:03:42,581 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e1861 to 1e31
+2024-08-25 16:03:45,334 - synthesizer_ar_storm.py - Main family synthesis done
+2024-08-25 16:03:45,334 - synthesizer_ar_storm.py - Subfamilies buffer contains: 2598 families
+> progress 0.0%, elapsed 3 s, estimated 3002143 s (34 days), iters = {MDP: 931}, opt = 46.0
+> progress 0.0%, elapsed 6 s, estimated 6012877 s (69 days), iters = {MDP: 1107}, opt = 46.0
+> progress 0.0%, elapsed 9 s, estimated 9019121 s (104 days), iters = {MDP: 1264}, opt = 46.0
+> progress 0.0%, elapsed 12 s, estimated 12021560 s (139 days), iters = {MDP: 1440}, opt = 46.0
+> progress 0.0%, elapsed 15 s, estimated 15035526 s (174 days), iters = {MDP: 1580}, opt = 46.0
+> progress 0.0%, elapsed 18 s, estimated 18040950 s (208 days), iters = {MDP: 1706}, opt = 46.0
+> progress 0.0%, elapsed 21 s, estimated 21050534 s (243 days), iters = {MDP: 1879}, opt = 46.0
+> progress 0.0%, elapsed 24 s, estimated 24054804 s (278 days), iters = {MDP: 2031}, opt = 46.0
+2024-08-25 16:04:10,599 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:04:10,684 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-25 16:04:10,685 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-25 16:04:16,691 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 96.5s | FSC size = 19897
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19897
+
+------------------------------------
+
+2024-08-25 16:04:31,890 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-25 16:04:32,621 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-25 16:04:32,621 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-25 16:04:34,413 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 0, Subfamilies - 1534
+> progress 0.0%, elapsed 27 s, estimated 27059492 s (313 days), iters = {MDP: 2182}, opt = 46.0
+> progress 0.0%, elapsed 30 s, estimated 30073622 s (348 days), iters = {MDP: 2317}, opt = 46.0
+> progress 0.0%, elapsed 33 s, estimated 33090954 s (1 year), iters = {MDP: 2460}, opt = 46.0
+> progress 0.0%, elapsed 36 s, estimated 36099439 s (1 year), iters = {MDP: 2619}, opt = 46.0
+> progress 0.0%, elapsed 39 s, estimated 39111737 s (1 year), iters = {MDP: 2780}, opt = 46.0
+> progress 0.0%, elapsed 42 s, estimated 42125094 s (1 year), iters = {MDP: 2948}, opt = 46.0
+> progress 0.0%, elapsed 45 s, estimated 45146301 s (1 year), iters = {MDP: 3123}, opt = 46.0
+> progress 0.0%, elapsed 48 s, estimated 48146896 s (1 year), iters = {MDP: 3276}, opt = 46.0
+> progress 0.0%, elapsed 51 s, estimated 51155862 s (1 year), iters = {MDP: 3427}, opt = 46.0
+2024-08-25 16:05:01,924 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:05:02,023 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-25 16:05:02,023 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-25 16:05:08,029 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 150.9s | FSC size = 19899
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19899
+
+------------------------------------
+
+2024-08-25 16:05:26,252 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-25 16:05:26,949 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-25 16:05:26,949 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: R{"cost"}min=? [F "goal"] 
+
+method: AR, synthesis time: 52.78 s
+number of holes: 2682, family size: 1e1861, quotient: 11049 states / 56641 actions
+explored: 0 %
+MDP stats: avg MDP size: 4296, iterations: 3524
+
+optimum: 46.0
+--------------------
+2024-08-25 16:05:26,954 - synthesizer_pomdp.py - Assignment is None
+2024-08-25 16:05:26,955 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-08-25 16:05:26,959 - pomdp.py - unfolding 3-FSC template into POMDP...
+2024-08-25 16:05:27,110 - pomdp.py - constructed quotient MDP having 11053 states and 56977 actions.
+2024-08-25 16:05:27,192 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e1865 to 1e35
+2024-08-25 16:05:29,934 - synthesizer_ar_storm.py - Main family synthesis done
+2024-08-25 16:05:29,934 - synthesizer_ar_storm.py - Subfamilies buffer contains: 2599 families
+> progress 0.0%, elapsed 3 s, estimated 3006549 s (34 days), iters = {MDP: 917}, opt = 46.0
+> progress 0.0%, elapsed 6 s, estimated 6077478 s (70 days), iters = {MDP: 1092}, opt = 46.0
+> progress 0.0%, elapsed 9 s, estimated 9092337 s (105 days), iters = {MDP: 1256}, opt = 46.0
+> progress 0.0%, elapsed 12 s, estimated 12110888 s (140 days), iters = {MDP: 1422}, opt = 46.0
+> progress 0.0%, elapsed 15 s, estimated 15113287 s (174 days), iters = {MDP: 1572}, opt = 46.0
+> progress 0.0%, elapsed 18 s, estimated 18136504 s (209 days), iters = {MDP: 1704}, opt = 46.0
+> progress 0.0%, elapsed 21 s, estimated 21141705 s (244 days), iters = {MDP: 1876}, opt = 46.0
+> progress 0.0%, elapsed 24 s, estimated 24148974 s (279 days), iters = {MDP: 2016}, opt = 46.0
+2024-08-25 16:05:56,271 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:05:56,370 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-25 16:05:56,370 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-25 16:06:02,376 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 209.2s | FSC size = 19903
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19903
+
+------------------------------------
+
+2024-08-25 16:06:24,785 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-25 16:06:25,299 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-25 16:06:25,299 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: R{"cost"}min=? [F "goal"] 
+
+method: AR, synthesis time: 26.34 s
+number of holes: 2696, family size: 1e1865, quotient: 11053 states / 56977 actions
+explored: 0 %
+MDP stats: avg MDP size: 3770, iterations: 2112
+
+optimum: 46.0
+--------------------
+2024-08-25 16:06:25,303 - synthesizer_pomdp.py - Assignment is None
+2024-08-25 16:06:25,304 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-08-25 16:06:25,309 - pomdp.py - unfolding 3-FSC template into POMDP...
+2024-08-25 16:06:25,322 - pomdp.py - constructed quotient MDP having 11057 states and 57301 actions.
+2024-08-25 16:06:25,539 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e1870 to 1e40
+2024-08-25 16:06:28,253 - synthesizer_ar_storm.py - Main family synthesis done
+2024-08-25 16:06:28,253 - synthesizer_ar_storm.py - Subfamilies buffer contains: 2600 families
+> progress 0.0%, elapsed 3 s, estimated 3008447 s (34 days), iters = {MDP: 909}, opt = 46.0
+> progress 0.0%, elapsed 6 s, estimated 6025402 s (69 days), iters = {MDP: 1099}, opt = 46.0
+> progress 0.0%, elapsed 9 s, estimated 9040446 s (104 days), iters = {MDP: 1222}, opt = 46.0
+> progress 0.0%, elapsed 12 s, estimated 12050857 s (139 days), iters = {MDP: 1354}, opt = 46.0
+> progress 0.0%, elapsed 15 s, estimated 15052519 s (174 days), iters = {MDP: 1477}, opt = 46.0
+> progress 0.0%, elapsed 18 s, estimated 18058168 s (209 days), iters = {MDP: 1601}, opt = 46.0
+> progress 0.0%, elapsed 21 s, estimated 21064674 s (243 days), iters = {MDP: 1736}, opt = 46.0
+> progress 0.0%, elapsed 24 s, estimated 24097845 s (278 days), iters = {MDP: 1863}, opt = 46.0
+2024-08-25 16:06:54,964 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:06:55,052 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-25 16:06:55,053 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-25 16:07:01,059 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 269.9s | FSC size = 19903
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19903
+
+------------------------------------
+
+2024-08-25 16:07:25,265 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-25 16:07:25,994 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-25 16:07:25,995 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-25 16:07:27,871 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 0, Subfamilies - 1533
+> progress 0.0%, elapsed 27 s, estimated 27113396 s (313 days), iters = {MDP: 1988}, opt = 46.0
+> progress 0.0%, elapsed 30 s, estimated 30139628 s (348 days), iters = {MDP: 2112}, opt = 46.0
+> progress 0.0%, elapsed 33 s, estimated 33163616 s (1 year), iters = {MDP: 2244}, opt = 46.0
+> progress 0.0%, elapsed 36 s, estimated 36171125 s (1 year), iters = {MDP: 2367}, opt = 46.0
+> progress 0.0%, elapsed 39 s, estimated 39180936 s (1 year), iters = {MDP: 2494}, opt = 46.0
+> progress 0.0%, elapsed 42 s, estimated 42183473 s (1 year), iters = {MDP: 2621}, opt = 46.0
+> progress 0.0%, elapsed 45 s, estimated 45187955 s (1 year), iters = {MDP: 2744}, opt = 46.0
+> progress 0.0%, elapsed 48 s, estimated 48201143 s (1 year), iters = {MDP: 2875}, opt = 46.0
+> progress 0.0%, elapsed 51 s, estimated 51226345 s (1 year), iters = {MDP: 3013}, opt = 46.0
+2024-08-25 16:07:55,281 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:07:55,381 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-25 16:07:55,381 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-25 16:08:01,389 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 334.2s | FSC size = 19903
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19903
+
+------------------------------------
+
+2024-08-25 16:08:29,653 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-25 16:08:30,316 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-25 16:08:30,317 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-25 16:08:32,193 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 0, Subfamilies - 1539
+> progress 0.0%, elapsed 54 s, estimated 54240789 s (1 year), iters = {MDP: 3140}, opt = 46.0
+> progress 0.0%, elapsed 57 s, estimated 57254760 s (1 year), iters = {MDP: 3268}, opt = 46.0
+> progress 0.0%, elapsed 60 s, estimated 60279718 s (1 year), iters = {MDP: 3394}, opt = 46.0
+> progress 0.0%, elapsed 63 s, estimated 63282218 s (2 years), iters = {MDP: 3521}, opt = 46.0
+> progress 0.0%, elapsed 66 s, estimated 66290294 s (2 years), iters = {MDP: 3636}, opt = 46.0
+> progress 0.0%, elapsed 69 s, estimated 69328681 s (2 years), iters = {MDP: 3764}, opt = 46.0
+> progress 0.0%, elapsed 72 s, estimated 72348867 s (2 years), iters = {MDP: 3884}, opt = 46.0
+> progress 0.0%, elapsed 75 s, estimated 75399330 s (2 years), iters = {MDP: 4008}, opt = 46.0
+> progress 0.0%, elapsed 78 s, estimated 78407931 s (2 years), iters = {MDP: 4124}, opt = 46.0
+> progress 0.0%, elapsed 81 s, estimated 81419911 s (2 years), iters = {MDP: 4245}, opt = 46.0
+2024-08-25 16:08:59,670 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:08:59,765 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-25 16:08:59,765 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-25 16:09:05,767 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 399.6s | FSC size = 19903
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19903
+
+------------------------------------
+
+2024-08-25 16:09:34,978 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-08-25 16:09:35,704 - synthesizer_ar_storm.py - Resuming synthesis
+2024-08-25 16:09:35,704 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-08-25 16:09:37,511 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 0, Subfamilies - 1535
+> progress 0.0%, elapsed 84 s, estimated 84422202 s (2 years), iters = {MDP: 4372}, opt = 46.0
+> progress 0.0%, elapsed 87 s, estimated 87434514 s (2 years), iters = {MDP: 4498}, opt = 46.0
+> progress 0.0%, elapsed 90 s, estimated 90490003 s (2 years), iters = {MDP: 4629}, opt = 46.0
+> progress 0.0%, elapsed 93 s, estimated 93517536 s (2 years), iters = {MDP: 4760}, opt = 46.0
+> progress 0.0%, elapsed 96 s, estimated 96527099 s (3 years), iters = {MDP: 4879}, opt = 46.0
+> progress 0.0%, elapsed 99 s, estimated 99540888 s (3 years), iters = {MDP: 5000}, opt = 46.0
+> progress 0.0%, elapsed 102 s, estimated 102552648 s (3 years), iters = {MDP: 5122}, opt = 46.0
+> progress 0.0%, elapsed 105 s, estimated 105725876 s (3 years), iters = {MDP: 5253}, opt = 46.0
+> progress 0.0%, elapsed 108 s, estimated 108749285 s (3 years), iters = {MDP: 5387}, opt = 46.0
+2024-08-25 16:10:05,101 - synthesizer_ar_storm.py - Pausing synthesis
+2024-08-25 16:10:05,190 - storm_pomdp_control.py - Interactive Storm resumed
+2024-08-25 16:10:05,190 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-08-25 16:10:11,196 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 36.91176470587299 | Time elapsed = 466.1s | FSC size = 19903
+
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19903
+
+------------------------------------
+
+2024-08-25 16:10:42,137 - synthesizer_ar_storm.py - Terminating controller synthesis
+--------------------
+Synthesis summary:
+optimality objective: R{"cost"}min=? [F "goal"] 
+
+method: AR, synthesis time: 109.19 s
+number of holes: 2710, family size: 1e1870, quotient: 11057 states / 57301 actions
+explored: 0 %
+MDP stats: avg MDP size: 5569, iterations: 5400
+
+optimum: 46.0
+--------------------
+2024-08-25 16:10:42,142 - synthesizer_pomdp.py - Assignment is None
+2024-08-25 16:10:42,144 - storm_pomdp_control.py - Storm POMDP analysis completed
+2024-08-25 16:10:42,570 - synthesizer_rl.py - RL Environment initialized
+2024-08-25 16:10:42,694 - ppo_with_qvalues_fsc.py - Agent initialized
+2024-08-25 16:10:42,706 - ppo_with_qvalues_fsc.py - Replay buffer initialized
+2024-08-25 16:10:45,188 - father_agent.py - Training agent
+2024-08-25 16:10:46,863 - father_agent.py - Step: 0, Training loss: 4859.94140625
+2024-08-25 16:10:50,215 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:50,749 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:51,852 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:53,318 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:56,075 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:56,489 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:57,897 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:58,338 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:59,093 - environment_wrapper.py - Goal reached!
+2024-08-25 16:10:59,458 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:00,128 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:02,356 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:02,645 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:03,102 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:03,805 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:05,151 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:05,858 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:06,485 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:06,787 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:07,393 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:07,501 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:09,539 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:09,717 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:10,204 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:13,252 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:14,043 - father_agent.py - Average Return = -339.2749938964844
+2024-08-25 16:11:14,043 - father_agent.py - Average Virtual Goal Value = 312.5
+2024-08-25 16:11:14,043 - father_agent.py - Goal Reach Probability = 0.625
+2024-08-25 16:11:14,611 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:14,817 - father_agent.py - Step: 10, Training loss: 4866.37548828125
+2024-08-25 16:11:15,588 - father_agent.py - Step: 20, Training loss: 4538.16064453125
+2024-08-25 16:11:15,705 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:16,341 - father_agent.py - Step: 30, Training loss: 4852.572265625
+2024-08-25 16:11:16,591 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:17,102 - father_agent.py - Step: 40, Training loss: 4808.94873046875
+2024-08-25 16:11:17,349 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:17,849 - father_agent.py - Step: 50, Training loss: 4414.0673828125
+2024-08-25 16:11:17,870 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:18,572 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:18,609 - father_agent.py - Step: 60, Training loss: 4697.466796875
+2024-08-25 16:11:19,045 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:19,362 - father_agent.py - Step: 70, Training loss: 4749.634765625
+2024-08-25 16:11:20,100 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:20,112 - father_agent.py - Step: 80, Training loss: 4640.5693359375
+2024-08-25 16:11:20,866 - father_agent.py - Step: 90, Training loss: 4776.3076171875
+2024-08-25 16:11:21,623 - father_agent.py - Step: 100, Training loss: 4405.00341796875
+2024-08-25 16:11:23,381 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:23,923 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:25,021 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:25,387 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:25,728 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:26,291 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:26,689 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:27,394 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:27,820 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:28,422 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:28,965 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:29,243 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:29,704 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:29,906 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:30,089 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:30,323 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:31,818 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:32,350 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:32,796 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:33,716 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:34,792 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:35,053 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:35,278 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:37,097 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:37,548 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:37,942 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:39,175 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:39,822 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:40,166 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:40,447 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:40,801 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:40,983 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:40,999 - father_agent.py - Average Return = -273.8500061035156
+2024-08-25 16:11:40,999 - father_agent.py - Average Virtual Goal Value = 400.0
+2024-08-25 16:11:40,999 - father_agent.py - Goal Reach Probability = 0.8
+2024-08-25 16:11:41,744 - father_agent.py - Step: 110, Training loss: 4378.3017578125
+2024-08-25 16:11:42,300 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:42,476 - father_agent.py - Step: 120, Training loss: 7577.07421875
+2024-08-25 16:11:43,162 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:43,210 - father_agent.py - Step: 130, Training loss: 4633.20263671875
+2024-08-25 16:11:43,947 - father_agent.py - Step: 140, Training loss: 4669.2958984375
+2024-08-25 16:11:44,687 - father_agent.py - Step: 150, Training loss: 4653.65478515625
+2024-08-25 16:11:45,431 - father_agent.py - Step: 160, Training loss: 5761.2216796875
+2024-08-25 16:11:46,179 - father_agent.py - Step: 170, Training loss: 4575.9013671875
+2024-08-25 16:11:46,944 - father_agent.py - Step: 180, Training loss: 4568.611328125
+2024-08-25 16:11:47,627 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:47,744 - father_agent.py - Step: 190, Training loss: 7384.5595703125
+2024-08-25 16:11:48,435 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:48,505 - father_agent.py - Step: 200, Training loss: 4812.37255859375
+2024-08-25 16:11:53,297 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:55,161 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:56,385 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:56,778 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:57,313 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:58,044 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:58,282 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:58,622 - environment_wrapper.py - Goal reached!
+2024-08-25 16:11:59,368 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:00,093 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:00,445 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:01,101 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:01,443 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:01,921 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:02,449 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:03,195 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:04,560 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:04,880 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:05,848 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:06,179 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:06,492 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:07,090 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:07,296 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:09,853 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:10,235 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:11,745 - father_agent.py - Average Return = -320.3500061035156
+2024-08-25 16:12:11,745 - father_agent.py - Average Virtual Goal Value = 312.5
+2024-08-25 16:12:11,745 - father_agent.py - Goal Reach Probability = 0.625
+2024-08-25 16:12:12,216 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:12,493 - father_agent.py - Step: 210, Training loss: 4524.45654296875
+2024-08-25 16:12:13,225 - father_agent.py - Step: 220, Training loss: 4665.50146484375
+2024-08-25 16:12:13,350 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:13,966 - father_agent.py - Step: 230, Training loss: 4706.16259765625
+2024-08-25 16:12:13,991 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:14,703 - father_agent.py - Step: 240, Training loss: 7140.79150390625
+2024-08-25 16:12:14,742 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:15,443 - father_agent.py - Step: 250, Training loss: 6964.28173828125
+2024-08-25 16:12:15,775 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:16,178 - father_agent.py - Step: 260, Training loss: 4546.95849609375
+2024-08-25 16:12:16,590 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:16,919 - father_agent.py - Step: 270, Training loss: 5498.126953125
+2024-08-25 16:12:17,501 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:17,666 - father_agent.py - Step: 280, Training loss: 4716.41455078125
+2024-08-25 16:12:18,040 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:18,409 - father_agent.py - Step: 290, Training loss: 4374.669921875
+2024-08-25 16:12:19,150 - father_agent.py - Step: 300, Training loss: 4547.716796875
+2024-08-25 16:12:20,847 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:21,311 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:21,703 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:22,220 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:22,418 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:22,765 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:23,462 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:24,090 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:24,387 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:25,109 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:26,217 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:26,875 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:27,152 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:27,633 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:28,026 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:28,454 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:28,664 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:29,147 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:29,395 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:29,824 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:31,287 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:32,293 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:32,610 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:33,184 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:33,483 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:34,495 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:35,851 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:37,205 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:38,489 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:38,882 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:39,300 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:39,716 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:39,718 - father_agent.py - Average Return = -294.7250061035156
+2024-08-25 16:12:39,718 - father_agent.py - Average Virtual Goal Value = 400.0
+2024-08-25 16:12:39,718 - father_agent.py - Goal Reach Probability = 0.8
+2024-08-25 16:12:40,533 - father_agent.py - Step: 310, Training loss: 4683.4951171875
+2024-08-25 16:12:41,396 - father_agent.py - Step: 320, Training loss: 4693.73486328125
+2024-08-25 16:12:42,254 - father_agent.py - Step: 330, Training loss: 5079.73388671875
+2024-08-25 16:12:43,043 - father_agent.py - Step: 340, Training loss: 6607.49072265625
+2024-08-25 16:12:43,760 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:43,857 - father_agent.py - Step: 350, Training loss: 4741.0458984375
+2024-08-25 16:12:44,431 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:44,622 - father_agent.py - Step: 360, Training loss: 7466.681640625
+2024-08-25 16:12:45,448 - father_agent.py - Step: 370, Training loss: 4777.6904296875
+2024-08-25 16:12:45,879 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:46,285 - father_agent.py - Step: 380, Training loss: 6986.04736328125
+2024-08-25 16:12:46,721 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:47,083 - father_agent.py - Step: 390, Training loss: 4739.828125
+2024-08-25 16:12:47,527 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:47,890 - father_agent.py - Step: 400, Training loss: 4699.41162109375
+2024-08-25 16:12:48,614 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:49,384 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:49,582 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:50,035 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:50,474 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:50,836 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:51,405 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:52,001 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:52,962 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:54,773 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:55,253 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:55,715 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:56,164 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:56,494 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:57,678 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:58,612 - environment_wrapper.py - Goal reached!
+2024-08-25 16:12:59,797 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:00,458 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:00,743 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:01,909 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:02,287 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:02,915 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:04,053 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:04,563 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:05,021 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:05,606 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:05,890 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:07,928 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:08,160 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:08,463 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:08,465 - father_agent.py - Average Return = -286.0249938964844
+2024-08-25 16:13:08,465 - father_agent.py - Average Virtual Goal Value = 375.0
+2024-08-25 16:13:08,465 - father_agent.py - Goal Reach Probability = 0.75
+2024-08-25 16:13:08,964 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:09,271 - father_agent.py - Step: 410, Training loss: 7777.72802734375
+2024-08-25 16:13:10,061 - father_agent.py - Step: 420, Training loss: 4809.84716796875
+2024-08-25 16:13:10,079 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:10,572 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:10,847 - father_agent.py - Step: 430, Training loss: 4509.37744140625
+2024-08-25 16:13:11,659 - father_agent.py - Step: 440, Training loss: 4664.478515625
+2024-08-25 16:13:12,444 - father_agent.py - Step: 450, Training loss: 4646.89404296875
+2024-08-25 16:13:12,611 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:13,238 - father_agent.py - Step: 460, Training loss: 4736.7021484375
+2024-08-25 16:13:13,321 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:13,811 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:14,038 - father_agent.py - Step: 470, Training loss: 4390.9560546875
+2024-08-25 16:13:14,527 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:14,824 - father_agent.py - Step: 480, Training loss: 5038.42724609375
+2024-08-25 16:13:15,235 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:15,604 - father_agent.py - Step: 490, Training loss: 7392.40283203125
+2024-08-25 16:13:16,381 - father_agent.py - Step: 500, Training loss: 4601.55029296875
+2024-08-25 16:13:18,682 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:19,417 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:21,538 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:22,109 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:22,717 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:23,475 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:23,880 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:24,096 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:24,317 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:24,912 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:25,643 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:25,853 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:27,333 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:28,358 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:29,090 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:29,323 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:31,307 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:33,231 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:33,597 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:34,947 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:35,514 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:37,343 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:37,762 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:38,199 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:38,369 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:39,541 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:39,544 - father_agent.py - Average Return = -310.3999938964844
+2024-08-25 16:13:39,544 - father_agent.py - Average Virtual Goal Value = 325.0
+2024-08-25 16:13:39,544 - father_agent.py - Goal Reach Probability = 0.65
+2024-08-25 16:13:40,293 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:40,356 - father_agent.py - Step: 510, Training loss: 4898.46533203125
+2024-08-25 16:13:41,110 - father_agent.py - Step: 520, Training loss: 6243.00732421875
+2024-08-25 16:13:41,281 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:41,915 - father_agent.py - Step: 530, Training loss: 6605.26220703125
+2024-08-25 16:13:42,631 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:42,743 - father_agent.py - Step: 540, Training loss: 4761.9248046875
+2024-08-25 16:13:43,532 - father_agent.py - Step: 550, Training loss: 4393.8037109375
+2024-08-25 16:13:43,809 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:44,298 - father_agent.py - Step: 560, Training loss: 4649.26708984375
+2024-08-25 16:13:44,799 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:45,095 - father_agent.py - Step: 570, Training loss: 4329.689453125
+2024-08-25 16:13:45,616 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:45,884 - father_agent.py - Step: 580, Training loss: 4795.07763671875
+2024-08-25 16:13:46,674 - father_agent.py - Step: 590, Training loss: 6471.34375
+2024-08-25 16:13:46,958 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:47,429 - father_agent.py - Step: 600, Training loss: 4579.849609375
+2024-08-25 16:13:49,799 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:51,715 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:51,952 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:52,463 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:52,638 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:53,998 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:55,076 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:56,266 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:57,507 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:57,888 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:58,127 - environment_wrapper.py - Goal reached!
+2024-08-25 16:13:59,653 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:00,207 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:00,509 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:04,439 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:04,868 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:05,065 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:05,709 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:06,144 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:08,282 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:08,898 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:09,398 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:10,180 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:10,937 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:11,510 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:11,512 - father_agent.py - Average Return = -316.8500061035156
+2024-08-25 16:14:11,512 - father_agent.py - Average Virtual Goal Value = 312.5
+2024-08-25 16:14:11,512 - father_agent.py - Goal Reach Probability = 0.625
+2024-08-25 16:14:11,858 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:12,258 - father_agent.py - Step: 610, Training loss: 4574.84033203125
+2024-08-25 16:14:12,305 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:13,008 - father_agent.py - Step: 620, Training loss: 4559.71923828125
+2024-08-25 16:14:13,751 - father_agent.py - Step: 630, Training loss: 4345.08203125
+2024-08-25 16:14:13,754 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:14,523 - father_agent.py - Step: 640, Training loss: 4704.3095703125
+2024-08-25 16:14:14,563 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:15,287 - father_agent.py - Step: 650, Training loss: 4327.18701171875
+2024-08-25 16:14:15,664 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:16,037 - father_agent.py - Step: 660, Training loss: 4727.93408203125
+2024-08-25 16:14:16,826 - father_agent.py - Step: 670, Training loss: 4432.591796875
+2024-08-25 16:14:17,573 - father_agent.py - Step: 680, Training loss: 4415.65869140625
+2024-08-25 16:14:18,377 - father_agent.py - Step: 690, Training loss: 4663.951171875
+2024-08-25 16:14:18,467 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:19,140 - father_agent.py - Step: 700, Training loss: 4450.306640625
+2024-08-25 16:14:19,798 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:20,985 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:21,460 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:21,782 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:22,009 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:23,525 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:23,997 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:24,468 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:25,209 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:25,589 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:25,778 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:26,159 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:26,654 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:27,105 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:27,343 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:28,563 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:29,074 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:29,757 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:30,971 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:31,349 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:31,618 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:32,317 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:32,728 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:33,441 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:34,081 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:35,177 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:35,352 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:36,317 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:36,800 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:37,937 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:38,205 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:38,951 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:39,501 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:39,521 - father_agent.py - Average Return = -282.1000061035156
+2024-08-25 16:14:39,521 - father_agent.py - Average Virtual Goal Value = 412.5
+2024-08-25 16:14:39,521 - father_agent.py - Goal Reach Probability = 0.825
+2024-08-25 16:14:40,287 - father_agent.py - Step: 710, Training loss: 4757.9638671875
+2024-08-25 16:14:40,290 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:41,102 - father_agent.py - Step: 720, Training loss: 4666.5126953125
+2024-08-25 16:14:41,645 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:41,931 - father_agent.py - Step: 730, Training loss: 4682.0400390625
+2024-08-25 16:14:42,137 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:42,550 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:42,720 - father_agent.py - Step: 740, Training loss: 4614.615234375
+2024-08-25 16:14:43,548 - father_agent.py - Step: 750, Training loss: 4618.62353515625
+2024-08-25 16:14:44,024 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:44,300 - father_agent.py - Step: 760, Training loss: 4434.67529296875
+2024-08-25 16:14:44,664 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:45,061 - father_agent.py - Step: 770, Training loss: 4600.7099609375
+2024-08-25 16:14:45,397 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:45,809 - father_agent.py - Step: 780, Training loss: 5075.96337890625
+2024-08-25 16:14:46,575 - father_agent.py - Step: 790, Training loss: 6187.90087890625
+2024-08-25 16:14:46,806 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:47,323 - father_agent.py - Step: 800, Training loss: 4529.67529296875
+2024-08-25 16:14:47,971 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:48,289 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:48,758 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:49,163 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:49,536 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:50,243 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:50,638 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:51,024 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:51,583 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:52,184 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:52,896 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:53,367 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:53,885 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:54,500 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:55,004 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:55,311 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:56,439 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:56,946 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:57,274 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:57,720 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:58,014 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:58,332 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:58,892 - environment_wrapper.py - Goal reached!
+2024-08-25 16:14:59,591 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:00,038 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:00,400 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:00,584 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:01,191 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:01,863 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:02,264 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:02,706 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:03,141 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:03,469 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:04,541 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:05,770 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:07,203 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:07,222 - father_agent.py - Average Return = -268.07501220703125
+2024-08-25 16:15:07,222 - father_agent.py - Average Virtual Goal Value = 450.0
+2024-08-25 16:15:07,222 - father_agent.py - Goal Reach Probability = 0.9
+2024-08-25 16:15:07,799 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:08,036 - father_agent.py - Step: 810, Training loss: 4338.53857421875
+2024-08-25 16:15:08,390 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:08,811 - father_agent.py - Step: 820, Training loss: 4599.54931640625
+2024-08-25 16:15:09,263 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:09,604 - father_agent.py - Step: 830, Training loss: 4626.36767578125
+2024-08-25 16:15:10,418 - father_agent.py - Step: 840, Training loss: 4672.36328125
+2024-08-25 16:15:11,215 - father_agent.py - Step: 850, Training loss: 4513.94384765625
+2024-08-25 16:15:12,013 - father_agent.py - Step: 860, Training loss: 4639.22412109375
+2024-08-25 16:15:12,250 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:12,683 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:12,828 - father_agent.py - Step: 870, Training loss: 4523.7490234375
+2024-08-25 16:15:13,261 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:13,647 - father_agent.py - Step: 880, Training loss: 4647.49365234375
+2024-08-25 16:15:14,352 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:14,448 - father_agent.py - Step: 890, Training loss: 7753.439453125
+2024-08-25 16:15:15,106 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:15,259 - father_agent.py - Step: 900, Training loss: 5943.2529296875
+2024-08-25 16:15:16,798 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:16,953 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:17,232 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:17,448 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:17,652 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:18,757 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:20,135 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:20,468 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:21,006 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:21,208 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:22,236 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:22,961 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:23,724 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:23,968 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:24,306 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:25,398 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:25,571 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:26,236 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:26,733 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:27,256 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:27,520 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:28,679 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:29,139 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:29,642 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:30,273 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:30,611 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:31,035 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:31,366 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:32,045 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:32,444 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:35,206 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:35,213 - father_agent.py - Average Return = -274.6000061035156
+2024-08-25 16:15:35,213 - father_agent.py - Average Virtual Goal Value = 387.5
+2024-08-25 16:15:35,213 - father_agent.py - Goal Reach Probability = 0.775
+2024-08-25 16:15:36,014 - father_agent.py - Step: 910, Training loss: 4494.77294921875
+2024-08-25 16:15:36,666 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:36,755 - father_agent.py - Step: 920, Training loss: 4585.328125
+2024-08-25 16:15:37,147 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:37,499 - father_agent.py - Step: 930, Training loss: 4382.89404296875
+2024-08-25 16:15:38,243 - father_agent.py - Step: 940, Training loss: 4647.50244140625
+2024-08-25 16:15:38,353 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:39,034 - father_agent.py - Step: 950, Training loss: 4541.39013671875
+2024-08-25 16:15:39,248 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:39,827 - father_agent.py - Step: 960, Training loss: 4508.32080078125
+2024-08-25 16:15:40,575 - father_agent.py - Step: 970, Training loss: 4602.13232421875
+2024-08-25 16:15:40,766 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:41,310 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:41,360 - father_agent.py - Step: 980, Training loss: 4630.8466796875
+2024-08-25 16:15:42,156 - father_agent.py - Step: 990, Training loss: 4467.15625
+2024-08-25 16:15:42,946 - father_agent.py - Step: 1000, Training loss: 4507.52392578125
+2024-08-25 16:15:44,489 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:45,052 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:46,124 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:47,423 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:47,962 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:48,659 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:48,898 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:49,130 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:50,903 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:51,361 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:52,009 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:52,493 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:52,632 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:53,809 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:54,132 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:54,613 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:55,051 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:55,333 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:55,663 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:56,147 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:56,321 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:56,998 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:58,446 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:59,078 - environment_wrapper.py - Goal reached!
+2024-08-25 16:15:59,802 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:00,322 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:00,727 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:01,984 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:02,339 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:02,864 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:03,540 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:03,793 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:03,796 - father_agent.py - Average Return = -288.2250061035156
+2024-08-25 16:16:03,796 - father_agent.py - Average Virtual Goal Value = 400.0
+2024-08-25 16:16:03,796 - father_agent.py - Goal Reach Probability = 0.8
+2024-08-25 16:16:04,544 - father_agent.py - Step: 1010, Training loss: 4563.4248046875
+2024-08-25 16:16:05,353 - father_agent.py - Step: 1020, Training loss: 4687.283203125
+2024-08-25 16:16:06,188 - father_agent.py - Step: 1030, Training loss: 4807.7578125
+2024-08-25 16:16:06,430 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:06,987 - father_agent.py - Step: 1040, Training loss: 8355.3291015625
+2024-08-25 16:16:07,221 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:07,545 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:07,781 - father_agent.py - Step: 1050, Training loss: 8329.6435546875
+2024-08-25 16:16:08,289 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:08,630 - father_agent.py - Step: 1060, Training loss: 5755.50830078125
+2024-08-25 16:16:09,016 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:09,400 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:09,449 - father_agent.py - Step: 1070, Training loss: 7231.7783203125
+2024-08-25 16:16:10,320 - father_agent.py - Step: 1080, Training loss: 4584.841796875
+2024-08-25 16:16:10,979 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:11,182 - father_agent.py - Step: 1090, Training loss: 4602.259765625
+2024-08-25 16:16:11,966 - father_agent.py - Step: 1100, Training loss: 4579.419921875
+2024-08-25 16:16:12,434 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:12,976 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:13,685 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:14,916 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:15,299 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:15,929 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:16,328 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:16,886 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:17,218 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:17,932 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:18,147 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:18,459 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:18,850 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:19,265 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:19,521 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:19,819 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:20,176 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:20,392 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:20,685 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:20,971 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:21,560 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:21,904 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:22,355 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:22,744 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:23,132 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:23,306 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:23,720 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:24,965 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:25,136 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:25,448 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:25,629 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:26,260 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:26,660 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:27,260 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:27,722 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:28,870 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:29,105 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:29,125 - father_agent.py - Average Return = -243.39999389648438
+2024-08-25 16:16:29,126 - father_agent.py - Average Virtual Goal Value = 462.5
+2024-08-25 16:16:29,126 - father_agent.py - Goal Reach Probability = 0.925
+2024-08-25 16:16:29,888 - father_agent.py - Step: 1110, Training loss: 6373.771484375
+2024-08-25 16:16:30,642 - father_agent.py - Step: 1120, Training loss: 6432.93896484375
+2024-08-25 16:16:31,156 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:31,408 - father_agent.py - Step: 1130, Training loss: 7018.078125
+2024-08-25 16:16:31,908 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:32,168 - father_agent.py - Step: 1140, Training loss: 4663.94677734375
+2024-08-25 16:16:32,753 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:32,928 - father_agent.py - Step: 1150, Training loss: 4680.05908203125
+2024-08-25 16:16:33,681 - father_agent.py - Step: 1160, Training loss: 4630.25537109375
+2024-08-25 16:16:33,775 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:34,224 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:34,436 - father_agent.py - Step: 1170, Training loss: 5588.51708984375
+2024-08-25 16:16:34,677 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:35,189 - father_agent.py - Step: 1180, Training loss: 10750.69140625
+2024-08-25 16:16:35,458 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:35,938 - father_agent.py - Step: 1190, Training loss: 4593.99169921875
+2024-08-25 16:16:36,259 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:36,680 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:36,692 - father_agent.py - Step: 1200, Training loss: 4669.5224609375
+2024-08-25 16:16:37,387 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:37,719 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:38,685 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:39,091 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:39,302 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:40,435 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:40,725 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:41,073 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:41,772 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:42,446 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:43,079 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:43,265 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:44,661 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:45,139 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:45,774 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:46,922 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:48,303 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:48,876 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:49,469 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:50,013 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:50,202 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:50,714 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:51,337 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:51,674 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:51,808 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:52,441 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:52,709 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:53,008 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:53,300 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:54,667 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:54,990 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:55,349 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:55,822 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:56,590 - father_agent.py - Average Return = -276.70001220703125
+2024-08-25 16:16:56,591 - father_agent.py - Average Virtual Goal Value = 412.5
+2024-08-25 16:16:56,591 - father_agent.py - Goal Reach Probability = 0.825
+2024-08-25 16:16:57,357 - father_agent.py - Step: 1210, Training loss: 4619.7314453125
+2024-08-25 16:16:58,117 - father_agent.py - Step: 1220, Training loss: 7003.9482421875
+2024-08-25 16:16:58,879 - father_agent.py - Step: 1230, Training loss: 4660.5576171875
+2024-08-25 16:16:59,620 - environment_wrapper.py - Goal reached!
+2024-08-25 16:16:59,660 - father_agent.py - Step: 1240, Training loss: 4369.955078125
+2024-08-25 16:17:00,339 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:00,437 - father_agent.py - Step: 1250, Training loss: 5833.1875
+2024-08-25 16:17:01,206 - father_agent.py - Step: 1260, Training loss: 4323.095703125
+2024-08-25 16:17:01,689 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:01,964 - father_agent.py - Step: 1270, Training loss: 4592.94873046875
+2024-08-25 16:17:02,718 - father_agent.py - Step: 1280, Training loss: 4693.76123046875
+2024-08-25 16:17:02,768 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:03,476 - father_agent.py - Step: 1290, Training loss: 4380.8466796875
+2024-08-25 16:17:03,517 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:03,809 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:04,234 - father_agent.py - Step: 1300, Training loss: 4778.2158203125
+2024-08-25 16:17:05,003 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:05,329 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:05,886 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:06,551 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:07,209 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:07,503 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:08,191 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:08,496 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:09,980 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:11,486 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:11,795 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:12,108 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:12,290 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:12,634 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:14,351 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:14,592 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:15,889 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:16,487 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:16,728 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:17,186 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:17,359 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:18,700 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:18,959 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:19,307 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:19,666 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:20,386 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:20,817 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:22,816 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:23,317 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:23,557 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:24,239 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:24,635 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:24,637 - father_agent.py - Average Return = -278.9750061035156
+2024-08-25 16:17:24,637 - father_agent.py - Average Virtual Goal Value = 400.0
+2024-08-25 16:17:24,637 - father_agent.py - Goal Reach Probability = 0.8
+2024-08-25 16:17:25,030 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:25,394 - father_agent.py - Step: 1310, Training loss: 4568.18310546875
+2024-08-25 16:17:25,496 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:25,985 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:26,193 - father_agent.py - Step: 1320, Training loss: 4456.78076171875
+2024-08-25 16:17:26,532 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:26,964 - father_agent.py - Step: 1330, Training loss: 4803.73388671875
+2024-08-25 16:17:26,987 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:27,757 - father_agent.py - Step: 1340, Training loss: 4465.14013671875
+2024-08-25 16:17:27,838 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:28,177 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:28,515 - father_agent.py - Step: 1350, Training loss: 4648.71728515625
+2024-08-25 16:17:29,269 - father_agent.py - Step: 1360, Training loss: 5721.73974609375
+2024-08-25 16:17:30,023 - father_agent.py - Step: 1370, Training loss: 4438.99560546875
+2024-08-25 16:17:30,718 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:30,777 - father_agent.py - Step: 1380, Training loss: 4688.63330078125
+2024-08-25 16:17:31,532 - father_agent.py - Step: 1390, Training loss: 7697.978515625
+2024-08-25 16:17:32,210 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:32,285 - father_agent.py - Step: 1400, Training loss: 4777.92578125
+2024-08-25 16:17:32,808 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:33,134 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:33,601 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:33,956 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:34,268 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:34,658 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:34,945 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:35,333 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:36,514 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:36,924 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:38,213 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:39,429 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:39,785 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:40,293 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:41,567 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:41,881 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:43,073 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:43,310 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:43,762 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:44,329 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:44,782 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:46,156 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:46,642 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:47,141 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:47,441 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:49,216 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:50,555 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:50,905 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:51,556 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:52,721 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:52,723 - father_agent.py - Average Return = -284.2250061035156
+2024-08-25 16:17:52,723 - father_agent.py - Average Virtual Goal Value = 375.0
+2024-08-25 16:17:52,723 - father_agent.py - Goal Reach Probability = 0.75
+2024-08-25 16:17:53,479 - father_agent.py - Step: 1410, Training loss: 4517.533203125
+2024-08-25 16:17:53,575 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:54,247 - father_agent.py - Step: 1420, Training loss: 4491.533203125
+2024-08-25 16:17:54,838 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:55,015 - father_agent.py - Step: 1430, Training loss: 4820.39111328125
+2024-08-25 16:17:55,701 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:55,772 - father_agent.py - Step: 1440, Training loss: 4488.93212890625
+2024-08-25 16:17:56,496 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:56,534 - father_agent.py - Step: 1450, Training loss: 4623.83544921875
+2024-08-25 16:17:57,295 - father_agent.py - Step: 1460, Training loss: 4776.0419921875
+2024-08-25 16:17:57,491 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:58,041 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:58,052 - father_agent.py - Step: 1470, Training loss: 4356.966796875
+2024-08-25 16:17:58,240 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:58,818 - father_agent.py - Step: 1480, Training loss: 4572.00927734375
+2024-08-25 16:17:58,824 - environment_wrapper.py - Goal reached!
+2024-08-25 16:17:59,572 - father_agent.py - Step: 1490, Training loss: 6987.3837890625
+2024-08-25 16:18:00,326 - father_agent.py - Step: 1500, Training loss: 4523.5634765625
+2024-08-25 16:18:00,896 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:01,174 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:01,478 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:01,889 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:02,191 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:02,877 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:03,591 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:04,062 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:04,521 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:05,575 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:05,821 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:06,124 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:07,374 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:08,541 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:09,512 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:09,682 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:10,431 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:12,243 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:13,939 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:14,181 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:14,782 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:15,309 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:15,918 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:16,196 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:17,589 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:18,103 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:18,448 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:19,071 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:19,564 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:19,927 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:20,696 - father_agent.py - Average Return = -283.6499938964844
+2024-08-25 16:18:20,696 - father_agent.py - Average Virtual Goal Value = 375.0
+2024-08-25 16:18:20,696 - father_agent.py - Goal Reach Probability = 0.75
+2024-08-25 16:18:21,468 - father_agent.py - Step: 1510, Training loss: 4768.11669921875
+2024-08-25 16:18:21,780 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:22,224 - father_agent.py - Step: 1520, Training loss: 4426.609375
+2024-08-25 16:18:22,234 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:22,840 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:22,988 - father_agent.py - Step: 1530, Training loss: 4663.95166015625
+2024-08-25 16:18:23,737 - father_agent.py - Step: 1540, Training loss: 4662.908203125
+2024-08-25 16:18:24,501 - father_agent.py - Step: 1550, Training loss: 4358.021484375
+2024-08-25 16:18:25,264 - father_agent.py - Step: 1560, Training loss: 4578.71044921875
+2024-08-25 16:18:26,025 - father_agent.py - Step: 1570, Training loss: 4356.62353515625
+2024-08-25 16:18:26,662 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:26,789 - father_agent.py - Step: 1580, Training loss: 4822.201171875
+2024-08-25 16:18:27,441 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:27,567 - father_agent.py - Step: 1590, Training loss: 4675.4072265625
+2024-08-25 16:18:28,323 - father_agent.py - Step: 1600, Training loss: 5955.87548828125
+2024-08-25 16:18:29,018 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:29,585 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:29,884 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:30,474 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:30,798 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:31,060 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:31,393 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:32,290 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:32,756 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:32,920 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:33,538 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:35,621 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:35,936 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:36,189 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:37,291 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:37,595 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:38,045 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:38,672 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:38,916 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:39,374 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:39,921 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:40,260 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:40,425 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:41,123 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:41,379 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:41,666 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:42,213 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:42,441 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:43,133 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:43,870 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:44,063 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:44,469 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:45,005 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:45,367 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:45,838 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:46,605 - father_agent.py - Average Return = -265.0
+2024-08-25 16:18:46,605 - father_agent.py - Average Virtual Goal Value = 437.5
+2024-08-25 16:18:46,605 - father_agent.py - Goal Reach Probability = 0.875
+2024-08-25 16:18:47,412 - father_agent.py - Step: 1610, Training loss: 4479.17724609375
+2024-08-25 16:18:48,170 - father_agent.py - Step: 1620, Training loss: 6262.47607421875
+2024-08-25 16:18:48,650 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:48,946 - father_agent.py - Step: 1630, Training loss: 4753.3076171875
+2024-08-25 16:18:49,683 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:49,734 - father_agent.py - Step: 1640, Training loss: 7081.4228515625
+2024-08-25 16:18:50,147 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:50,520 - father_agent.py - Step: 1650, Training loss: 4444.6767578125
+2024-08-25 16:18:51,310 - father_agent.py - Step: 1660, Training loss: 4579.12158203125
+2024-08-25 16:18:52,132 - father_agent.py - Step: 1670, Training loss: 4711.0966796875
+2024-08-25 16:18:52,941 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:53,051 - father_agent.py - Step: 1680, Training loss: 4778.255859375
+2024-08-25 16:18:54,024 - father_agent.py - Step: 1690, Training loss: 4638.04052734375
+2024-08-25 16:18:54,330 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:54,909 - father_agent.py - Step: 1700, Training loss: 4636.62060546875
+2024-08-25 16:18:55,859 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:56,245 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:56,845 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:58,781 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:59,211 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:59,492 - environment_wrapper.py - Goal reached!
+2024-08-25 16:18:59,948 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:00,201 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:00,460 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:00,845 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:01,458 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:01,917 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:02,203 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:02,483 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:02,741 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:03,286 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:03,527 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:04,108 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:04,489 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:05,239 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:05,512 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:05,941 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:06,145 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:06,388 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:06,600 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:07,020 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:07,457 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:07,862 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:07,983 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:08,657 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:08,993 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:10,476 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:10,758 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:10,964 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:11,257 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:12,681 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:12,684 - father_agent.py - Average Return = -246.89999389648438
+2024-08-25 16:19:12,684 - father_agent.py - Average Virtual Goal Value = 450.0
+2024-08-25 16:19:12,684 - father_agent.py - Goal Reach Probability = 0.9
+2024-08-25 16:19:13,025 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:13,526 - father_agent.py - Step: 1710, Training loss: 4647.74755859375
+2024-08-25 16:19:14,022 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:14,323 - father_agent.py - Step: 1720, Training loss: 4843.93310546875
+2024-08-25 16:19:14,574 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:15,126 - father_agent.py - Step: 1730, Training loss: 6667.25927734375
+2024-08-25 16:19:15,531 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:15,911 - father_agent.py - Step: 1740, Training loss: 4420.04443359375
+2024-08-25 16:19:16,541 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:16,696 - father_agent.py - Step: 1750, Training loss: 4982.60205078125
+2024-08-25 16:19:17,463 - father_agent.py - Step: 1760, Training loss: 5809.73388671875
+2024-08-25 16:19:18,228 - father_agent.py - Step: 1770, Training loss: 6375.64013671875
+2024-08-25 16:19:18,998 - father_agent.py - Step: 1780, Training loss: 4796.40185546875
+2024-08-25 16:19:19,767 - father_agent.py - Step: 1790, Training loss: 10560.5625
+2024-08-25 16:19:20,278 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:20,530 - father_agent.py - Step: 1800, Training loss: 5485.9140625
+2024-08-25 16:19:21,231 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:21,565 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:21,854 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:22,096 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:22,489 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:22,687 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:22,952 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:23,241 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:23,681 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:24,124 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:24,458 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:25,796 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:26,247 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:26,728 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:27,022 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:28,067 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:28,605 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:31,110 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:31,350 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:34,388 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:34,709 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:35,214 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:35,445 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:35,918 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:36,266 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:36,490 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:36,962 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:37,245 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:37,474 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:37,924 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:38,453 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:38,940 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:38,942 - father_agent.py - Average Return = -263.29998779296875
+2024-08-25 16:19:38,942 - father_agent.py - Average Virtual Goal Value = 400.0
+2024-08-25 16:19:38,942 - father_agent.py - Goal Reach Probability = 0.8
+2024-08-25 16:19:39,440 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:39,710 - father_agent.py - Step: 1810, Training loss: 6914.38232421875
+2024-08-25 16:19:40,462 - father_agent.py - Step: 1820, Training loss: 4536.79736328125
+2024-08-25 16:19:41,175 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:41,220 - father_agent.py - Step: 1830, Training loss: 5371.1669921875
+2024-08-25 16:19:41,969 - father_agent.py - Step: 1840, Training loss: 4689.4765625
+2024-08-25 16:19:42,214 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:42,723 - father_agent.py - Step: 1850, Training loss: 4560.9140625
+2024-08-25 16:19:42,849 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:43,345 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:43,478 - father_agent.py - Step: 1860, Training loss: 4678.541015625
+2024-08-25 16:19:44,234 - father_agent.py - Step: 1870, Training loss: 9894.74609375
+2024-08-25 16:19:44,616 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:44,988 - father_agent.py - Step: 1880, Training loss: 4539.375
+2024-08-25 16:19:45,567 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:45,746 - father_agent.py - Step: 1890, Training loss: 4644.2021484375
+2024-08-25 16:19:46,507 - father_agent.py - Step: 1900, Training loss: 4606.31494140625
+2024-08-25 16:19:47,104 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:48,364 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:49,401 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:49,741 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:50,168 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:50,886 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:51,245 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:51,799 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:53,134 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:53,477 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:53,639 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:53,987 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:54,411 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:54,631 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:54,827 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:55,523 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:56,635 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:57,128 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:57,367 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:58,391 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:59,099 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:59,580 - environment_wrapper.py - Goal reached!
+2024-08-25 16:19:59,955 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:00,121 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:00,604 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:01,076 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:01,535 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:01,776 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:02,248 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:02,551 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:03,287 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:03,537 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:03,952 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:04,910 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:04,912 - father_agent.py - Average Return = -250.625
+2024-08-25 16:20:04,912 - father_agent.py - Average Virtual Goal Value = 425.0
+2024-08-25 16:20:04,912 - father_agent.py - Goal Reach Probability = 0.85
+2024-08-25 16:20:05,551 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:05,675 - father_agent.py - Step: 1910, Training loss: 6522.31787109375
+2024-08-25 16:20:06,434 - father_agent.py - Step: 1920, Training loss: 4537.49560546875
+2024-08-25 16:20:07,197 - father_agent.py - Step: 1930, Training loss: 4556.509765625
+2024-08-25 16:20:07,561 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:07,961 - father_agent.py - Step: 1940, Training loss: 4328.162109375
+2024-08-25 16:20:08,530 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:08,714 - father_agent.py - Step: 1950, Training loss: 4730.033203125
+2024-08-25 16:20:09,123 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:09,476 - father_agent.py - Step: 1960, Training loss: 5646.9423828125
+2024-08-25 16:20:10,231 - father_agent.py - Step: 1970, Training loss: 4708.767578125
+2024-08-25 16:20:10,537 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:10,994 - father_agent.py - Step: 1980, Training loss: 4848.3251953125
+2024-08-25 16:20:11,166 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:11,686 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:11,767 - father_agent.py - Step: 1990, Training loss: 5647.19140625
+2024-08-25 16:20:14,733 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:15,116 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:15,236 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:16,322 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:17,034 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:17,249 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:17,543 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:17,878 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:18,396 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:18,563 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:18,904 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:19,050 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:19,353 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:19,714 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:20,198 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:21,210 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:21,875 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:22,547 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:23,109 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:23,744 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:23,946 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:24,107 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:24,831 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:25,529 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:25,739 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:26,067 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:26,321 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:26,493 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:28,305 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:28,775 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:29,274 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:29,945 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:30,572 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:30,726 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:30,982 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:32,375 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:32,675 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:32,893 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:33,175 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:33,393 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:33,732 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:34,119 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:34,350 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:34,830 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:34,920 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:35,360 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:35,863 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:36,357 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:36,843 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:37,511 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:37,735 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:38,317 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:39,598 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:40,000 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:40,270 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:40,740 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:41,062 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:41,720 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:42,142 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:42,354 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:43,032 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:43,623 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:44,924 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:45,406 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:45,958 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:46,627 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:47,900 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:48,173 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:48,929 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:49,193 - environment_wrapper.py - Goal reached!
+2024-08-25 16:20:49,195 - father_agent.py - Average Return = -264.82501220703125
+2024-08-25 16:20:49,196 - father_agent.py - Average Virtual Goal Value = 437.5
+2024-08-25 16:20:49,196 - father_agent.py - Goal Reach Probability = 0.875
+
+------------------------------------
+
+PAYNT results: 
+46.0
+controller size: 5522
+
+Storm results: 
+36.91176470587299
+controller size: 19903
+
+------------------------------------
+

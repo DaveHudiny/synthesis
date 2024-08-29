@@ -111,7 +111,8 @@ class SynthesizerPomdp:
         else:
             logger.info(f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
             qvalues = original_qvalues
-        print(qvalues)
+        if self.rl_args.normalize_simulator_rewards:
+            qvalues = qvalues / self.rl_args.evaluation_goal
         return qvalues
 
     def compute_qvalues_for_rl(self, assignment):
@@ -222,9 +223,9 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(
                     self.storm_control.latest_paynt_result)
-                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
-                # self.storm_control.qvalues = self.compute_qvalues_for_rl(
-                #     assignment=assignment)
+                # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
+                self.storm_control.qvalues = self.compute_qvalues_for_rl(
+                    assignment=assignment)
             else:
                 logging.info("Assignment is None")
 
@@ -289,7 +290,7 @@ class SynthesizerPomdp:
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.qvalues_flag = False
+        self.qvalues_flag = True
         self.saynt = False
         self.rl_args = self.init_rl_args(qvalues_flag=self.qvalues_flag)
         

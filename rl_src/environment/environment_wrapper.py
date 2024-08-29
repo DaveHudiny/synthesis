@@ -21,6 +21,8 @@ from tf_agents.trajectories import time_step_spec
 from tools.encoding_methods import *
 from environment.reward_shaping_models import *
 
+from tools.args_emulator import ArgsEmulator
+
 import json
 import argparse
 
@@ -34,7 +36,7 @@ logging.basicConfig(level=logging.INFO)
 class Environment_Wrapper(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
-    def __init__(self, stormpy_model: storage.SparsePomdp, args: argparse.Namespace):
+    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator):
         """Initializes the environment wrapper.
         
         Args:
@@ -82,6 +84,11 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.special_labels = ["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))"]
         # Sometimes the goal is not labeled as "goal" but as "done" or as a special label.
         self.virtual_value = tf.constant(0.0, dtype=tf.float32)
+        self.normalize_simulator_rewards = self.args.normalize_simulator_rewards
+        if self.normalize_simulator_rewards:
+            self.normalizer = 1.0/tf.abs(self.goal_value)
+        else:
+            self.normalizer = tf.constant(1.0)
         
     def create_new_environment(self):
         return Environment_Wrapper(self.stormpy_model, self.args)
@@ -242,9 +249,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         observation = stepino[0]
         if stepino[1] == []:
             self.empty_reward = True
-            reward = tf.constant(self.reward_multiplier, dtype=tf.float32)
+            reward = tf.constant(0, dtype=tf.float32)
         else:
-            reward = tf.constant(self.reward_multiplier * stepino[1][0], dtype=tf.float32)
+            reward = tf.constant(self.reward_multiplier * stepino[1][0] * self.normalizer, dtype=tf.float32)
         if not self.action_filtering:
             mask = self.compute_mask()
             observation_vector = self.create_encoding(observation)
@@ -392,7 +399,20 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         else:
             self.reward = tf.constant(
                 self.reward_multiplier * simulator_reward + penalty, dtype=tf.float32)
-        return self.evaluate_simulator()
+        evaluated_step = self.evaluate_simulator()
+        normalized_step = self.normalize_reward_in_time_step(evaluated_step)
+        # print(normalized_step)
+        return normalized_step
+    
+    def normalize_reward_in_time_step(self, time_step : ts.TimeStep):
+        new_reward = time_step.reward * self.normalizer
+        new_time_step = ts.TimeStep(
+            step_type=time_step.step_type,
+            reward=new_reward,
+            discount=time_step.discount,
+            observation=time_step.observation
+        )
+        return new_time_step
 
     def current_time_step(self) -> ts.TimeStep:
         return self._current_time_step

@@ -21,6 +21,7 @@ from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from tools.evaluators import *
 from agents.policies.fsc_policy import FSC_Policy, FSC
+from tools.args_emulator import ArgsEmulator
 
 import logging
 
@@ -53,7 +54,7 @@ class FatherAgent(AbstractAgent):
         return fsc
 
     def common_init(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
-                    args, load=False, agent_folder=None, wrapper: tf_agents.policies.tf_policy.TFPolicy = None):
+                    args : ArgsEmulator, load=False, agent_folder=None, wrapper: tf_agents.policies.tf_policy.TFPolicy = None):
         """Common initialization of the agents.
 
         Args:
