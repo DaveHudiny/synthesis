@@ -64,10 +64,12 @@ class Recurrent_DQN_agent(FatherAgent):
             tf_environment._action_spec,
             q_network=self.q_net,
             optimizer=optimizer,
-            td_errors_loss_fn=common.element_wise_squared_loss,
+            # td_errors_loss_fn=common.element_wise_squared_loss,
             train_step_counter=train_step_counter,
             observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
-            epsilon_greedy=0.14
+            epsilon_greedy=0.14,
+            gradient_clipping=0.7,
+            gamma=0.99
         )
         self.policy_state = self.agent.policy.get_initial_state(None)
         self.agent.initialize()

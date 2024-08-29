@@ -149,7 +149,7 @@ class ArgsEmulator:
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False,
-                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False):
+                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards=False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
@@ -232,6 +232,7 @@ class ArgsEmulator:
         self.set_ppo_on_policy = set_ppo_on_policy
         self.evaluate_random_policy = evaluate_random_policy
         self.prefer_stochastic = prefer_stochastic
+        self.normalize_simulator_rewards = normalize_simulator_rewards
 
 
 class Initializer:
@@ -347,7 +348,7 @@ class Initializer:
                 # qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
                 qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
                     sketch_path, props_path)
-            assert action_labels_at_observation is not None # Action labels must be provided
+            assert action_labels_at_observation is not None  # Action labels must be provided
             agent = PPO_with_QValues_FSC(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
                 qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
@@ -363,7 +364,8 @@ class Initializer:
         returns:
             FatherAgent: The initialized agent.
         """
-        agent = self.select_agent_type(qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
+        agent = self.select_agent_type(
+            qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
         if self.args.restart_weights > 0:
             agent = self.select_best_starting_weights(agent)
         return agent

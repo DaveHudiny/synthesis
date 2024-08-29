@@ -116,7 +116,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.act_to_keywords = dict([[self.action_indices[i], i]
                                      for i in self.action_indices])
 
-    def create_observation_spec(self):
+    def create_observation_spec(self) -> tensor_spec:
         """Creates the observation spec based on the encoding method."""
         if self.encoding_method == "One-Hot":
             observation_spec = tensor_spec.TensorSpec(shape=(
@@ -192,7 +192,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
     def time_step_spec(self) -> ts.TimeStep:
         return self._time_step_spec
 
-    def compute_mask(self):
+    def compute_mask(self) -> tf.Tensor:
         """Computes the mask for the actions based on the current state. True means the action is legal, False means it is illegal.
            The mask is focused on idexation used by the RL agent.
         """
@@ -215,7 +215,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             tf.ones(shape=(1, self.nr_actions), dtype=tf.bool), mask)
         return mask
 
-    def create_encoding(self, observation):
+    def create_encoding(self, observation) -> tf.Tensor:
         """Creates the encoding for the observation based on the encoding method."""
         if self.encoding_method == "One-Hot":
             observation_vector = create_one_hot_encoding(
@@ -232,7 +232,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation, self.stormpy_model, self.simulator._report_state())
             return tf.constant(observation_vector, dtype=tf.float32)
 
-    def _reset(self):
+    def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
         self._finished = False
         self._num_steps = 0
@@ -260,7 +260,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         
         return self._current_time_step
 
-    def _convert_action(self, action):
+    def _convert_action(self, action) -> int:
         """Converts the action from the RL agent to the action used by the Storm model."""
         act_keyword = self.act_to_keywords[int(action)]
         choice_list = self.get_choice_labels()
@@ -270,7 +270,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             action = 0
         return action
 
-    def compute_square_root_distance_from_goal(self):
+    def compute_square_root_distance_from_goal(self) -> float:
         """Computes the square root distance from the goal. Used for reward shaping."""
         self.simulator.set_observation_mode(
             stormpy.simulator.SimulatorObservationMode.PROGRAM_LEVEL)
@@ -282,7 +282,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             stormpy.simulator.SimulatorObservationMode.STATE_LEVEL)
         return distance
     
-    def get_coordinates(self):
+    def get_coordinates(self) -> tuple:
         """Gets the coordinates of the agent. Experimental feature used for exact reward shaping."""
         self.simulator.set_observation_mode(
             stormpy.simulator.SimulatorObservationMode.PROGRAM_LEVEL)
@@ -293,14 +293,14 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             stormpy.simulator.SimulatorObservationMode.STATE_LEVEL)
         return ax, ay
     
-    def is_goal_state(self, labels):
+    def is_goal_state(self, labels) -> bool:
         """Checks if the current state is a goal state."""
         for label in labels:
             if label in self.special_labels:
                 return True
         return False
 
-    def evaluate_simulator(self):
+    def evaluate_simulator(self) -> ts.TimeStep:
         """Evaluates the simulator and returns the current time step. Primarily used to determine, whether the state is the last one or not."""
         self.labels = list(self.simulator._report_labels())
         self.flag_goal = False
@@ -332,7 +332,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation=self.get_observation(), reward=self.antigoal_value + self.reward)
         return self._current_time_step
 
-    def is_legal_action(self, action):
+    def is_legal_action(self, action) -> bool:
         """Checks if the action is legal."""
         act_keyword = self.act_to_keywords[int(action)]
         choice_list = self.get_choice_labels()
@@ -341,7 +341,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         else:
             return False
 
-    def get_random_legal_action(self):
+    def get_random_legal_action(self) -> np.int32:
         available_actions = self.simulator.available_actions()
         return np.random.choice(available_actions)
 
@@ -354,8 +354,11 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         else:
             return ts.termination(observation=self.get_observation(), reward=tf.constant(self.reward, dtype=tf.float32))
 
-    def _do_step_in_simulator(self, action):
-        """Does the step in the Stormpy simulator."""
+    def _do_step_in_simulator(self, action) -> tuple[ts.TimeStep, float]:
+        """Does the step in the Stormpy simulator.
+        
+            returns:
+                tuple of new TimeStep and penalty for performed action"""
         penalty = 0.0
         self._num_steps += 1
         self.last_action = action
@@ -376,7 +379,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             stepino = self.simulator.step(int(action))
         return stepino, penalty
 
-    def _step(self, action):
+    def _step(self, action) -> ts.TimeStep:
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
         self.virtual_value = tf.constant(0.0, dtype=tf.float32)
         if self._finished:
@@ -394,13 +397,13 @@ class Environment_Wrapper(py_environment.PyEnvironment):
     def current_time_step(self) -> ts.TimeStep:
         return self._current_time_step
 
-    def observation_spec(self):
+    def observation_spec(self) -> ts.tensor_spec:
         return self._observation_spec
 
-    def action_spec(self):
+    def action_spec(self) -> ts.tensor_spec:
         return self._action_spec
 
-    def get_observation(self):
+    def get_observation(self) -> dict[str: tf.Tensor]:
         observation = self.simulator._report_observation()
         if not self.action_filtering:
             mask = self.compute_mask()
@@ -409,7 +412,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         else:
             return self.create_encoding(observation)
 
-    def get_choice_labels(self):
+    def get_choice_labels(self) -> list[str]:
         """Converts the current legal actions to the keywords used by the Storm model."""
         labels = []
         for action_index in range(self.simulator.nr_available_actions()):
@@ -422,6 +425,6 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             labels.append(label)
         return labels
 
-    def get_simulator_observation(self):
+    def get_simulator_observation(self) -> int:
         observation = self.simulator._report_observation()
         return observation

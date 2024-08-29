@@ -223,8 +223,8 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(
                     self.storm_control.latest_paynt_result)
                 self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
-                self.storm_control.qvalues = self.compute_qvalues_for_rl(
-                    assignment=assignment)
+                # self.storm_control.qvalues = self.compute_qvalues_for_rl(
+                #     assignment=assignment)
             else:
                 logging.info("Assignment is None")
 
