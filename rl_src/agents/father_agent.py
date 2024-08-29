@@ -169,7 +169,8 @@ class FatherAgent(AbstractAgent):
         """Get the initial state of the agent."""
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc : FSC = None, soft_decision=False, fsc_multiplier=2.0):
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc : FSC = None, 
+                               soft_decision=False, fsc_multiplier=2.0, need_logits : bool = True):
         """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
 
         Args:
@@ -178,10 +179,11 @@ class FatherAgent(AbstractAgent):
             soft_decision: Whether to use soft decision for FSC. Used only in PPO initialization.
             fsc_multiplier: The multiplier for the FSC. Used only in PPO initialization.
         """
+        self.need_logits = need_logits
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
-                                     info_spec=self.agent.policy.info_spec)
+                                     info_spec=self.agent.policy.info_spec, need_logits=need_logits)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         
@@ -191,6 +193,7 @@ class FatherAgent(AbstractAgent):
             observers=[self.replay_buffer.add_batch],
             num_episodes=1
         )
+        
 
     def get_evaluation_policy(self):
         """Get the policy for evaluation. Important, when using wrappers."""

@@ -147,7 +147,7 @@ class FSC_Policy(TFPolicy):
     def __init__(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC,
                  observation_and_action_constraint_splitter=None, tf_action_keywords=[],
                  info_spec=None, parallel_policy : TFPolicy = None, soft_decision = False,
-                 soft_decision_multiplier : float = 2.0):
+                 soft_decision_multiplier : float = 2.0, need_logits : bool = True):
         """Implementation of FSC policy based on FSC object obtained from Paynt (or elsewhere).
 
         Args:
@@ -244,9 +244,10 @@ class FSC_Policy(TFPolicy):
                 parallel_policy_step = self._parallel_policy_function(time_step, self._hidden_ppo_state, seed)
                 self._hidden_ppo_state = parallel_policy_step.state
                 policy_info = parallel_policy_step.info
-        if policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
+        elif policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
             policy_info = self._create_one_hot_fake_info(action_number)
         
         policy_step = PolicyStep(action=tf.convert_to_tensor(
             [action_number], dtype=tf.int32), state=new_policy_state, info=policy_info)
+        print(policy_step.info)
         return policy_step

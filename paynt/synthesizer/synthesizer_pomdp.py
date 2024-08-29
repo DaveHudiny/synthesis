@@ -255,7 +255,7 @@ class SynthesizerPomdp:
             logger.info("Training agent with FSC.")
             if fsc and (first_time or repeated_fsc):
                 rl_synthesiser.train_agent_with_fsc_data(
-                    200, fsc, soft_decision=soft_decision)
+                    100, fsc, soft_decision=soft_decision)
                 first_time = False
             if soft_decision:
                 rl_synthesiser.update_fsc_multiplier(0.5)
@@ -280,7 +280,7 @@ class SynthesizerPomdp:
                                 trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
                                 discount_factor=0.99, batch_size=32)
         else:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
+            args = ArgsEmulator(load_agent=False, learning_method="DQN", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
                                 trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
                                 discount_factor=0.9)
@@ -289,8 +289,10 @@ class SynthesizerPomdp:
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.qvalues_flag = True
+        self.qvalues_flag = False
+        self.saynt = False
         self.rl_args = self.init_rl_args(qvalues_flag=self.qvalues_flag)
+        
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
         self.storm_control.interactive_storm_setup()
@@ -352,7 +354,7 @@ class SynthesizerPomdp:
         self.saynt_timer.stop()
         
         if self.run_rl and not self.qvalues_flag:
-            self.run_rl_synthesis()
+            self.run_rl_synthesis(self.saynt)
         elif self.run_rl and self.qvalues_flag:
             self.run_rl_synthesis_critic()
 

@@ -435,7 +435,7 @@ class Synthesizer_RL:
         except:
             logger.info("Agent not loaded, training from scratch.")
         self.agent.init_fsc_policy_driver(
-            self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier)
+            self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier, need_logits=False)
         self.agent.train_agent_off_policy(iterations)
 
     def train_agent_combined_with_fsc(self, iterations: int, fsc: FSC):
