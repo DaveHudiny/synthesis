@@ -88,14 +88,14 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
-        for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic"]:
-            if learning_method != "PPO":
+        for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic", "Periodic_FSC_Neural_PPO"]:
+            if learning_method != "Periodic_FSC_Neural_PPO":
                 continue
-            if "maze" in model:
+            if not "mba" in model:
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue
-            for encoding_method in ["Valuations"]:
+            for encoding_method in ["Valuations++"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
@@ -108,4 +108,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_qvalues_fsc", "./models_large")
+    run_experiments("experiments_qvalues_fsc", "./models")

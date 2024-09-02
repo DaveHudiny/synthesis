@@ -15,6 +15,7 @@ from agents.recurrent_ppo_agent import Recurrent_PPO_agent
 from agents.recurrent_ddqn_agent import Recurrent_DDQN_agent
 from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from agents.ppo_with_qvalues_fsc import PPO_with_QValues_FSC
+from agents.periodic_fsc_neural_ppo import Periodic_FSC_Neural_PPO
 
 import paynt.parser.sketch
 import paynt.synthesizer.synthesizer_pomdp
@@ -256,6 +257,16 @@ class Initializer:
                     sketch_path, props_path)
             assert action_labels_at_observation is not None  # Action labels must be provided
             agent = PPO_with_QValues_FSC(
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
+                qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
+        elif learning_method == "Periodic_FSC_Neural_PPO":
+            if qvalues_table is None:  # If Q-values table is not provided, compute it from the sketch and properties
+                sketch_path = self.args.prism_model
+                props_path = self.args.prism_properties
+                qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
+                    sketch_path, props_path)
+                assert action_labels_at_observation is not None  # Action labels must be provided
+            agent = Periodic_FSC_Neural_PPO(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
                 qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
         else:
