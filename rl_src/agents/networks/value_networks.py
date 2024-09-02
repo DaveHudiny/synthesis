@@ -83,14 +83,19 @@ class Periodic_FSC_Neural_Critic(tf_agents.networks.value_rnn_network.ValueRnnNe
     def update_current_mode(self):
         self.current_step_index = (self.current_step_index + 1) % self.periode_length
         if self.current_step_index == 0:
-            self.current_mode = not self.current_mode
+            if self.current_mode == self.Periodic_Modes.COMBINED_VALUE:
+                self.current_mode = self.Periodic_Modes.PURE_VALUE_NET
+            else:
+                self.current_mode = self.Periodic_Modes.COMBINED_VALUE
 
         
     def q_values_function_simplified(self, observations, step_type, network_state):
         if len(observations.shape) == 2:  # Unbatched observation
             observations = tf.expand_dims(observations, axis=0)
-        indices = tf.zeros_like(
-            observations[:, :, -1] * self.nr_states, dtype=tf.int32)
+        clipped_observations = tf.clip_by_value(observations[:, :, -1], 0.0, 1.0)
+        indices = tf.cast(
+            tf.round(clipped_observations * self.nr_states), dtype=tf.int32)
+        indices = tf.clip_by_value(indices, 0, self.nr_states - 1)
         if indices.shape == (1, 1): # Single observation
             values = tf.gather(self.qvalues_table, indices)
             values = tf.reduce_max(values, axis=-1)
@@ -107,10 +112,16 @@ class Periodic_FSC_Neural_Critic(tf_agents.networks.value_rnn_network.ValueRnnNe
         if self.current_mode == self.Periodic_Modes.COMBINED_VALUE:
             training = False
         values, network_state = super().call(observations, step_type, network_state, training)
-        # values, network_state = self.value_net.call(observations, step_type, network_state, training)
+        # print("Origo hodnoty:", values.numpy())
         if self.current_mode == self.Periodic_Modes.COMBINED_VALUE:
             values_fsc = self.q_values_function_simplified(observations, step_type, network_state)
+            preference = tf.where(values >= values_fsc, 0, 1)
             values = tf.maximum(values, values_fsc)
+           
+            # print("FSC Values:", values_fsc.numpy())
+            # print("Maximum values:", values.numpy())
+            # print("Preference vector:", preference.numpy())
+            # print("Sum preferenci origa:", tf.reduce_sum(preference).numpy())
         if step_type.shape == (1,):
             values = tf.constant(values, shape=(1, 1))
         self.update_current_mode()
@@ -224,8 +235,10 @@ class FSC_Critic(network.Network):
     def q_values_function_simplified(self, observations, step_type, network_state):
         if len(observations.shape) == 2:  # Unbatched observation
             observations = tf.expand_dims(observations, axis=0)
-        indices = tf.zeros_like(
-            observations[:, :, -1] * self.nr_states, dtype=tf.int32)
+        clipped_observations = tf.clip_by_value(observations[:, :, -1], 0.0, 1.0)
+        indices = tf.cast(
+            tf.round(clipped_observations * self.nr_states), dtype=tf.int32)
+        indices = tf.clip_by_value(indices, 0, self.nr_states - 1)
         if indices.shape == (1, 1): # Single observation
             values = tf.gather(self.qvalues_table, indices)
             values = tf.reduce_max(values, axis=-1)

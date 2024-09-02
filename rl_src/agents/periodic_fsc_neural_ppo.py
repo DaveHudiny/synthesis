@@ -41,7 +41,7 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
             qvalues_table=self.qvalues_function, nr_observations=environment.nr_obs,
             stormpy_model=environment.stormpy_model, 
             tf_environment=tf_environment,
-            periode_length=1
+            periode_length=2
             )
         
         time_step_spec = tf_environment.time_step_spec()

@@ -3,7 +3,7 @@
 # multi-core compilation
 # COMPILE_JOBS=$(nproc)
 # single-core compilation:
-export COMPILE_JOBS=4
+export COMPILE_JOBS=8
 
 # environment variables
 PAYNT_ROOT=`pwd`
@@ -12,7 +12,7 @@ PREREQUISITES=${PAYNT_ROOT}/prerequisites # modify this to install prerequisites
 # storm and stormpy dependencies
 sudo apt update -qq
 sudo apt install -y build-essential git cmake libboost-all-dev libcln-dev libgmp-dev libginac-dev automake libglpk-dev libhwloc-dev libz3-dev libxerces-c-dev libeigen3-dev
-sudo apt install -y maven uuid-dev python3-dev python3-venv python3-pip
+sudo apt install -y maven uuid-dev python3.10-dev python3.10-venv python3.10-pip
 
 # prerequisites
 mkdir -p ${PREREQUISITES}
@@ -39,7 +39,7 @@ make storm storm-pomdp storm-counterexamples --jobs ${COMPILE_JOBS}
 # make check --jobs ${COMPILE_JOBS}
 
 # setup and activate python environment
-python3 -m venv ${PREREQUISITES}/venv
+python3.10 -m venv ${PREREQUISITES}/venv
 source ${PREREQUISITES}/venv/bin/activate
 pip3 install wheel
 
@@ -47,7 +47,7 @@ pip3 install wheel
 cd ${PREREQUISITES}
 git clone https://github.com/moves-rwth/pycarl.git pycarl
 cd ${PREREQUISITES}/pycarl
-python3 setup.py develop
+python3.10 setup.py develop
 #[TEST] python3 setup.py test
 
 # build stormpy
