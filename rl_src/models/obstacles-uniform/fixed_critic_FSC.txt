@@ -1,0 +1,751 @@
+2024-09-03 13:20:59,546 - cli.py - This is Paynt version 0.1.0.
+2024-09-03 13:20:59,546 - sketch.py - loading sketch from rl_src/models/obstacles-uniform/sketch.templ ...
+2024-09-03 13:20:59,546 - sketch.py - assuming sketch in PRISM format...
+2024-09-03 13:20:59,557 - prism_parser.py - PRISM model type: POMDP
+2024-09-03 13:20:59,557 - prism_parser.py - loading properties from rl_src/models/obstacles-uniform/sketch.props ...
+2024-09-03 13:20:59,558 - prism_parser.py - found the following specification: optimality: R{"penalty"}min=? [F ((x = (10 - 1)) & (y = (10 - 1)))] 
+2024-09-03 13:20:59,683 - sketch.py - sketch parsing OK
+2024-09-03 13:20:59,701 - sketch.py - constructed explicit quotient having 24259 states and 48316 actions
+2024-09-03 13:20:59,702 - sketch.py - found the following specification optimality: R{"penalty"}min=? [F ((x = (10 - 1)) & (y = (10 - 1)))] 
+2024-09-03 13:20:59,712 - pomdp.py - constructed POMDP having 14 observations.
+2024-09-03 13:20:59,717 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-09-03 13:20:59,733 - pomdp.py - constructed quotient MDP having 24259 states and 48316 actions.
+2024-09-03 13:21:00,347 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-09-03 13:21:00,540 - __init__.py - Creating converter from 7 to 5
+2024-09-03 13:21:00,540 - __init__.py - Creating converter from 5 to 7
+2024-09-03 13:21:00,541 - __init__.py - Creating converter from 7 to 5
+2024-09-03 13:21:00,541 - __init__.py - Creating converter from 5 to 7
+2024-09-03 13:21:01,294 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-09-03 13:21:01,294 - synthesizer_pomdp.py - Storm settings: iterative - (150, 10, 7), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-09-03 13:21:01,301 - synthesizer_pomdp.py - Timeout for PAYNT started
+--------------------
+Synthesis summary:
+optimality objective: R{"penalty"}min=? [F ((x = (10 - 1)) & (y = (10 - 1)))] 
+
+method: AR, synthesis time: 0.35 s
+number of holes: 4, family size: 256, quotient: 24259 states / 48316 actions
+explored: 100 %
+MDP stats: avg MDP size: 13482, iterations: 22
+
+feasible: no
+--------------------
+2024-09-03 13:21:01,640 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 13:21:01,640 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 13:21:01,642 - pomdp.py - unfolding 2-FSC template into POMDP...
+2024-09-03 13:21:01,856 - pomdp.py - constructed quotient MDP having 48518 states and 193264 actions.
+-----------PAYNT-----------                     
+Value = 107.31232480459319 | Time elapsed = 2.9s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 107.21729165400677 | Time elapsed = 3.1s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 107.16478715092036 | Time elapsed = 3.5s | FSC size = 56
+
+> progress 0.027%, elapsed 3 s, estimated 10800 s (3 hours), iters = {MDP: 75}, opt = 107.165
+-----------PAYNT-----------                     
+Value = 98.36973695586171 | Time elapsed = 4.2s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 97.22538098555307 | Time elapsed = 4.3s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 97.22485594052222 | Time elapsed = 6.4s | FSC size = 56
+
+> progress 0.027%, elapsed 6 s, estimated 21667 s (6 hours), iters = {MDP: 190}, opt = 97.225
+2024-09-03 13:21:18,553 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 13:21:18,608 - storm_pomdp_control.py - Interactive Storm started
+2024-09-03 13:21:18,609 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-09-03 13:21:26,617 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 16.587185827993697 | Time elapsed = 26.4s | FSC size = 482
+
+
+------------------------------------
+
+PAYNT results: 
+97.22485594052222
+controller size: 56
+
+Storm results: 
+16.587185827993697
+controller size: 482
+
+------------------------------------
+
+2024-09-03 13:21:27,833 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 13:21:28,564 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 13:21:28,564 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 13:21:28,565 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e12 to 1e10
+2024-09-03 13:21:28,565 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e12 to 1e10
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e11 to 1e9
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e11 to 1e9
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e9
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e9
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e8
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e7
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e7
+2024-09-03 13:21:28,566 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e6
+2024-09-03 13:21:28,567 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:21:28,567 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 524288
+2024-09-03 13:21:28,567 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 12, Subfamilies - 56
+> progress 0.027%, elapsed 16 s, estimated 57991 s (16 hours), iters = {MDP: 309}, opt = 97.225
+> progress 0.028%, elapsed 19 s, estimated 68469 s (19 hours), iters = {MDP: 412}, opt = 97.225
+> progress 0.028%, elapsed 22 s, estimated 79248 s (22 hours), iters = {MDP: 529}, opt = 97.225
+-----------PAYNT-----------                     
+Value = 66.72274200189494 | Time elapsed = 34.5s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 66.62770885130851 | Time elapsed = 34.8s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 66.57520434822209 | Time elapsed = 35.3s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 57.78015415316345 | Time elapsed = 36.2s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 56.635798182854806 | Time elapsed = 36.3s | FSC size = 56
+
+> progress 0.028%, elapsed 25 s, estimated 90020 s (25 hours), iters = {MDP: 619}, opt = 56.636
+2024-09-03 13:21:48,883 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 13:21:48,940 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 13:21:48,940 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 13:21:56,953 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 16.38134185724097 | Time elapsed = 57.7s | FSC size = 553
+
+
+------------------------------------
+
+PAYNT results: 
+56.635798182854806
+controller size: 56
+
+Storm results: 
+16.38134185724097
+controller size: 553
+
+------------------------------------
+
+2024-09-03 13:21:59,177 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 13:21:59,895 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 13:21:59,895 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 13:21:59,896 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 13:21:59,896 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 13:21:59,896 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:21:59,896 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:21:59,896 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:21:59,896 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 524288 to 524288
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-09-03 13:21:59,897 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 32768 to 32768
+2024-09-03 13:21:59,898 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 8192 to 8192
+2024-09-03 13:21:59,898 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 2048 to 2048
+2024-09-03 13:21:59,898 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 512 to 512
+2024-09-03 13:21:59,898 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 17, Subfamilies - 0
+> progress 0.028%, elapsed 36 s, estimated 129824 s (36 hours), iters = {MDP: 624}, opt = 56.636
+> progress 0.028%, elapsed 39 s, estimated 140520 s (39 hours), iters = {MDP: 712}, opt = 56.636
+> progress 0.028%, elapsed 42 s, estimated 151209 s (42 hours), iters = {MDP: 808}, opt = 56.636
+> progress 0.028%, elapsed 45 s, estimated 161863 s (44 hours), iters = {MDP: 902}, opt = 56.636
+2024-09-03 13:22:20,728 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 13:22:20,827 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 13:22:20,827 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 13:22:28,838 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 15.575107023196376 | Time elapsed = 91.6s | FSC size = 585
+
+
+------------------------------------
+
+PAYNT results: 
+56.635798182854806
+controller size: 56
+
+Storm results: 
+15.575107023196376
+controller size: 585
+
+------------------------------------
+
+2024-09-03 13:22:33,058 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 13:22:33,742 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 13:22:33,743 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 13:22:33,743 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 13:22:33,743 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 13:22:33,743 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-09-03 13:22:33,744 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 8192 to 8192
+2024-09-03 13:22:33,745 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-09-03 13:22:33,745 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 2048 to 2048
+2024-09-03 13:22:33,745 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1024 to 1024
+2024-09-03 13:22:33,745 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 512 to 512
+2024-09-03 13:22:33,745 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 256 to 256
+2024-09-03 13:22:33,745 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 256 to 256
+2024-09-03 13:22:33,745 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 20, Subfamilies - 0
+> progress 0.028%, elapsed 57 s, estimated 203727 s (2 days), iters = {MDP: 907}, opt = 56.636
+-----------PAYNT-----------                     
+Value = 55.4847432401108 | Time elapsed = 92.7s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 55.38971008952438 | Time elapsed = 93.5s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 55.33720558643796 | Time elapsed = 94.6s | FSC size = 56
+
+> progress 0.028%, elapsed 60 s, estimated 214400 s (2 days), iters = {MDP: 997}, opt = 55.337
+-----------PAYNT-----------                     
+Value = 46.54215539137932 | Time elapsed = 96.7s | FSC size = 56
+
+-----------PAYNT-----------                     
+Value = 45.39779942107067 | Time elapsed = 96.8s | FSC size = 56
+
+> progress 0.028%, elapsed 63 s, estimated 225124 s (2 days), iters = {MDP: 1093}, opt = 45.398
+> progress 0.028%, elapsed 66 s, estimated 235880 s (2 days), iters = {MDP: 1190}, opt = 45.398
+2024-09-03 13:22:53,288 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 13:22:53,317 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 13:22:53,318 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 13:23:01,330 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 15.575107023196376 | Time elapsed = 124.1s | FSC size = 613
+
+
+------------------------------------
+
+PAYNT results: 
+45.39779942107067
+controller size: 56
+
+Storm results: 
+15.575107023196376
+controller size: 613
+
+------------------------------------
+
+2024-09-03 13:23:05,551 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 13:23:06,303 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 13:23:06,303 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-09-03 13:23:06,304 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e6 to 1e6
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 262144 to 262144
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 16384 to 16384
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 8192 to 8192
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 4096 to 4096
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 512 to 512
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 256 to 256
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 128 to 128
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-09-03 13:23:06,305 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 64 to 64
+2024-09-03 13:23:06,305 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 20, Subfamilies - 0
+> progress 0.028%, elapsed 76 s, estimated 273123 s (3 days), iters = {MDP: 1199}, opt = 45.398
+> progress 0.028%, elapsed 79 s, estimated 283820 s (3 days), iters = {MDP: 1294}, opt = 45.398
+> progress 0.028%, elapsed 82 s, estimated 294554 s (3 days), iters = {MDP: 1390}, opt = 45.398
+> progress 0.028%, elapsed 86 s, estimated 305362 s (3 days), iters = {MDP: 1476}, opt = 45.398
+2024-09-03 13:23:25,538 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 13:23:25,595 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 13:23:25,595 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 13:23:33,606 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 15.575107023196376 | Time elapsed = 158.4s | FSC size = 627
+
+
+------------------------------------
+
+PAYNT results: 
+45.39779942107067
+controller size: 56
+
+Storm results: 
+15.575107023196376
+controller size: 627
+
+------------------------------------
+
+2024-09-03 13:23:40,554 - synthesizer_ar_storm.py - Terminating controller synthesis
+2024-09-03 13:23:40,567 - synthesizer.py - double-checking specification satisfiability:  : 45.39779942107067
+--------------------
+Synthesis summary:
+optimality objective: R{"penalty"}min=? [F ((x = (10 - 1)) & (y = (10 - 1)))] 
+
+method: AR, synthesis time: 96.14 s
+number of holes: 36, family size: 1e13, quotient: 48518 states / 193264 actions
+explored: 0 %
+MDP stats: avg MDP size: 17480, iterations: 1483
+
+optimum: 45.397799
+--------------------
+2024-09-03 13:24:04,513 - storm_pomdp_control.py - Storm POMDP analysis completed
+2024-09-03 13:24:04,732 - synthesizer_rl.py - RL Environment initialized
+2024-09-03 13:24:04,856 - ppo_with_qvalues_fsc.py - Agent initialized
+2024-09-03 13:24:04,868 - ppo_with_qvalues_fsc.py - Replay buffer initialized
+2024-09-03 13:24:06,706 - father_agent.py - Training agent
+2024-09-03 13:24:08,327 - father_agent.py - Step: 0, Training loss: 0.09616513550281525
+2024-09-03 13:24:16,952 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:17,268 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:19,039 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:19,508 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:19,741 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:21,173 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:26,373 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:26,588 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:27,621 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:27,840 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:29,601 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:29,723 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:31,112 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:31,153 - father_agent.py - Average Return = -308.8500061035156
+2024-09-03 13:24:31,153 - father_agent.py - Average Virtual Goal Value = -162.5
+2024-09-03 13:24:31,153 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:24:31,750 - father_agent.py - Step: 10, Training loss: 0.09210378676652908
+2024-09-03 13:24:32,329 - father_agent.py - Step: 20, Training loss: 0.08806372433900833
+2024-09-03 13:24:32,907 - father_agent.py - Step: 30, Training loss: 0.0798216313123703
+2024-09-03 13:24:33,485 - father_agent.py - Step: 40, Training loss: 0.07439588755369186
+2024-09-03 13:24:34,123 - father_agent.py - Step: 50, Training loss: 0.06043092533946037
+2024-09-03 13:24:34,707 - father_agent.py - Step: 60, Training loss: 0.046338945627212524
+2024-09-03 13:24:35,140 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:35,315 - father_agent.py - Step: 70, Training loss: -0.01120007038116455
+2024-09-03 13:24:35,903 - father_agent.py - Step: 80, Training loss: -0.03208920359611511
+2024-09-03 13:24:36,484 - father_agent.py - Step: 90, Training loss: -0.003964856266975403
+2024-09-03 13:24:37,066 - father_agent.py - Step: 100, Training loss: 0.11199907213449478
+2024-09-03 13:24:38,497 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:44,071 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:44,394 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:45,490 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:53,388 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:57,393 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:57,794 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:58,691 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:24:59,317 - father_agent.py - Average Return = -302.0
+2024-09-03 13:24:59,317 - father_agent.py - Average Virtual Goal Value = -100.0
+2024-09-03 13:24:59,317 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:24:59,894 - father_agent.py - Step: 110, Training loss: 0.08268746733665466
+2024-09-03 13:25:00,422 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:00,479 - father_agent.py - Step: 120, Training loss: 2.059908390045166
+2024-09-03 13:25:01,062 - father_agent.py - Step: 130, Training loss: 4.069430828094482
+2024-09-03 13:25:01,646 - father_agent.py - Step: 140, Training loss: 2.0168168544769287
+2024-09-03 13:25:02,165 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:02,271 - father_agent.py - Step: 150, Training loss: 0.6922421455383301
+2024-09-03 13:25:02,851 - father_agent.py - Step: 160, Training loss: 0.11778151243925095
+2024-09-03 13:25:03,430 - father_agent.py - Step: 170, Training loss: 0.10973000526428223
+2024-09-03 13:25:04,004 - father_agent.py - Step: 180, Training loss: 0.07404874265193939
+2024-09-03 13:25:04,585 - father_agent.py - Step: 190, Training loss: 0.07933558523654938
+2024-09-03 13:25:05,156 - father_agent.py - Step: 200, Training loss: 0.08720526844263077
+2024-09-03 13:25:05,665 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:07,345 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:09,814 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:17,125 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:18,799 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:21,092 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:22,774 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:23,126 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:26,895 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:26,897 - father_agent.py - Average Return = -329.29998779296875
+2024-09-03 13:25:26,897 - father_agent.py - Average Virtual Goal Value = -112.5
+2024-09-03 13:25:26,897 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:25:27,489 - father_agent.py - Step: 210, Training loss: 0.08166223764419556
+2024-09-03 13:25:28,111 - father_agent.py - Step: 220, Training loss: 0.08866570889949799
+2024-09-03 13:25:28,693 - father_agent.py - Step: 230, Training loss: 0.09032953530550003
+2024-09-03 13:25:29,275 - father_agent.py - Step: 240, Training loss: 0.07820813357830048
+2024-09-03 13:25:29,851 - father_agent.py - Step: 250, Training loss: 0.10399852693080902
+2024-09-03 13:25:30,436 - father_agent.py - Step: 260, Training loss: 0.07091547548770905
+2024-09-03 13:25:31,014 - father_agent.py - Step: 270, Training loss: 0.07291097193956375
+2024-09-03 13:25:31,590 - father_agent.py - Step: 280, Training loss: 0.09231504052877426
+2024-09-03 13:25:32,093 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:32,227 - father_agent.py - Step: 290, Training loss: 0.06890478730201721
+2024-09-03 13:25:32,799 - father_agent.py - Step: 300, Training loss: 0.09012521803379059
+2024-09-03 13:25:35,337 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:35,730 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:37,190 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:38,754 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:39,203 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:43,031 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:45,954 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:48,195 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:51,850 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:52,248 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:54,586 - father_agent.py - Average Return = -353.1499938964844
+2024-09-03 13:25:54,586 - father_agent.py - Average Virtual Goal Value = -125.0
+2024-09-03 13:25:54,586 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:25:55,156 - father_agent.py - Step: 310, Training loss: 0.10437807440757751
+2024-09-03 13:25:55,707 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:25:55,735 - father_agent.py - Step: 320, Training loss: 0.07110688090324402
+2024-09-03 13:25:56,312 - father_agent.py - Step: 330, Training loss: 0.045960623770952225
+2024-09-03 13:25:56,888 - father_agent.py - Step: 340, Training loss: 0.07003709673881531
+2024-09-03 13:25:57,466 - father_agent.py - Step: 350, Training loss: 0.05852842330932617
+2024-09-03 13:25:58,091 - father_agent.py - Step: 360, Training loss: 0.03088204935193062
+2024-09-03 13:25:58,662 - father_agent.py - Step: 370, Training loss: 0.0200515054166317
+2024-09-03 13:25:59,238 - father_agent.py - Step: 380, Training loss: 0.017529435455799103
+2024-09-03 13:25:59,817 - father_agent.py - Step: 390, Training loss: 0.08951230347156525
+2024-09-03 13:26:00,445 - father_agent.py - Step: 400, Training loss: 0.004230918362736702
+2024-09-03 13:26:10,863 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:12,231 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:13,141 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:14,744 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:17,655 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:19,166 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:22,841 - father_agent.py - Average Return = -295.8999938964844
+2024-09-03 13:26:22,841 - father_agent.py - Average Virtual Goal Value = -75.0
+2024-09-03 13:26:22,841 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:26:23,430 - father_agent.py - Step: 410, Training loss: 0.05023456737399101
+2024-09-03 13:26:24,013 - father_agent.py - Step: 420, Training loss: 0.04506813734769821
+2024-09-03 13:26:24,274 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:24,599 - father_agent.py - Step: 430, Training loss: 0.014534229412674904
+2024-09-03 13:26:24,833 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:25,176 - father_agent.py - Step: 440, Training loss: 0.018902050331234932
+2024-09-03 13:26:25,754 - father_agent.py - Step: 450, Training loss: 0.10121345520019531
+2024-09-03 13:26:25,992 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:26,386 - father_agent.py - Step: 460, Training loss: 0.2747158110141754
+2024-09-03 13:26:26,968 - father_agent.py - Step: 470, Training loss: 0.26579055190086365
+2024-09-03 13:26:27,549 - father_agent.py - Step: 480, Training loss: 0.29931920766830444
+2024-09-03 13:26:28,132 - father_agent.py - Step: 490, Training loss: 0.17100511491298676
+2024-09-03 13:26:28,718 - father_agent.py - Step: 500, Training loss: 0.21294081211090088
+2024-09-03 13:26:29,511 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:31,199 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:31,355 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:32,099 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:32,336 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:32,469 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:36,990 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:40,861 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:43,694 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:47,201 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:48,987 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:50,188 - father_agent.py - Average Return = -329.9750061035156
+2024-09-03 13:26:50,188 - father_agent.py - Average Virtual Goal Value = -137.5
+2024-09-03 13:26:50,188 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:26:50,763 - father_agent.py - Step: 510, Training loss: 0.22483430802822113
+2024-09-03 13:26:51,344 - father_agent.py - Step: 520, Training loss: 0.14181233942508698
+2024-09-03 13:26:51,953 - father_agent.py - Step: 530, Training loss: 0.13180705904960632
+2024-09-03 13:26:52,212 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:26:52,543 - father_agent.py - Step: 540, Training loss: 0.12719567120075226
+2024-09-03 13:26:53,118 - father_agent.py - Step: 550, Training loss: 0.08682969212532043
+2024-09-03 13:26:53,697 - father_agent.py - Step: 560, Training loss: 0.07783542573451996
+2024-09-03 13:26:54,276 - father_agent.py - Step: 570, Training loss: 0.18128365278244019
+2024-09-03 13:26:54,850 - father_agent.py - Step: 580, Training loss: 0.1514190286397934
+2024-09-03 13:26:55,433 - father_agent.py - Step: 590, Training loss: 0.13598190248012543
+2024-09-03 13:26:56,063 - father_agent.py - Step: 600, Training loss: 0.14190852642059326
+2024-09-03 13:26:59,077 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:02,605 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:03,514 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:04,072 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:04,585 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:17,155 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:18,898 - father_agent.py - Average Return = -341.82501220703125
+2024-09-03 13:27:18,898 - father_agent.py - Average Virtual Goal Value = -75.0
+2024-09-03 13:27:18,898 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:27:19,477 - father_agent.py - Step: 610, Training loss: 0.23867911100387573
+2024-09-03 13:27:20,105 - father_agent.py - Step: 620, Training loss: 0.1520971655845642
+2024-09-03 13:27:20,688 - father_agent.py - Step: 630, Training loss: 0.10707306861877441
+2024-09-03 13:27:21,068 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:21,267 - father_agent.py - Step: 640, Training loss: 0.09905999898910522
+2024-09-03 13:27:21,845 - father_agent.py - Step: 650, Training loss: 0.10290442407131195
+2024-09-03 13:27:22,474 - father_agent.py - Step: 660, Training loss: 0.08072417229413986
+2024-09-03 13:27:23,060 - father_agent.py - Step: 670, Training loss: 0.08148029446601868
+2024-09-03 13:27:23,318 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:23,649 - father_agent.py - Step: 680, Training loss: 0.08471211791038513
+2024-09-03 13:27:24,273 - father_agent.py - Step: 690, Training loss: 0.06614802777767181
+2024-09-03 13:27:24,314 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:24,860 - father_agent.py - Step: 700, Training loss: 0.07245796173810959
+2024-09-03 13:27:28,024 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:32,287 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:32,842 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:34,578 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:36,601 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:41,594 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:41,975 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:43,494 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:44,599 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:44,980 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:45,491 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:46,710 - father_agent.py - Average Return = -310.79998779296875
+2024-09-03 13:27:46,710 - father_agent.py - Average Virtual Goal Value = -137.5
+2024-09-03 13:27:46,710 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:27:47,299 - father_agent.py - Step: 710, Training loss: 0.11757829785346985
+2024-09-03 13:27:47,905 - father_agent.py - Step: 720, Training loss: 0.132452130317688
+2024-09-03 13:27:48,505 - father_agent.py - Step: 730, Training loss: 0.12377214431762695
+2024-09-03 13:27:49,081 - father_agent.py - Step: 740, Training loss: 0.11744001507759094
+2024-09-03 13:27:49,665 - father_agent.py - Step: 750, Training loss: 0.13595277070999146
+2024-09-03 13:27:50,242 - father_agent.py - Step: 760, Training loss: 0.0777743011713028
+2024-09-03 13:27:50,822 - father_agent.py - Step: 770, Training loss: 0.1760907620191574
+2024-09-03 13:27:51,401 - father_agent.py - Step: 780, Training loss: 0.10176030546426773
+2024-09-03 13:27:52,020 - father_agent.py - Step: 790, Training loss: 0.08599838614463806
+2024-09-03 13:27:52,059 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:27:52,600 - father_agent.py - Step: 800, Training loss: 0.20073392987251282
+2024-09-03 13:28:02,455 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:05,661 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:06,605 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:07,633 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:10,185 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:15,118 - father_agent.py - Average Return = -343.375
+2024-09-03 13:28:15,119 - father_agent.py - Average Virtual Goal Value = -62.5
+2024-09-03 13:28:15,119 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:28:15,692 - father_agent.py - Step: 810, Training loss: 0.16438184678554535
+2024-09-03 13:28:16,317 - father_agent.py - Step: 820, Training loss: 0.1430385261774063
+2024-09-03 13:28:16,908 - father_agent.py - Step: 830, Training loss: 0.14664795994758606
+2024-09-03 13:28:17,484 - father_agent.py - Step: 840, Training loss: 0.17099778354167938
+2024-09-03 13:28:18,071 - father_agent.py - Step: 850, Training loss: 0.1068069189786911
+2024-09-03 13:28:18,649 - father_agent.py - Step: 860, Training loss: 0.0834885984659195
+2024-09-03 13:28:19,232 - father_agent.py - Step: 870, Training loss: 0.08625964820384979
+2024-09-03 13:28:19,807 - father_agent.py - Step: 880, Training loss: 0.09522915631532669
+2024-09-03 13:28:20,285 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:20,439 - father_agent.py - Step: 890, Training loss: 0.17678901553153992
+2024-09-03 13:28:21,019 - father_agent.py - Step: 900, Training loss: 0.09575024992227554
+2024-09-03 13:28:22,876 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:24,914 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:25,307 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:25,839 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:28,653 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:30,706 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:31,219 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:37,293 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:41,856 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:43,027 - father_agent.py - Average Return = -308.375
+2024-09-03 13:28:43,027 - father_agent.py - Average Virtual Goal Value = -112.5
+2024-09-03 13:28:43,027 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:28:43,605 - father_agent.py - Step: 910, Training loss: 0.08437484502792358
+2024-09-03 13:28:44,235 - father_agent.py - Step: 920, Training loss: 0.08688463270664215
+2024-09-03 13:28:44,819 - father_agent.py - Step: 930, Training loss: 0.09397134184837341
+2024-09-03 13:28:45,400 - father_agent.py - Step: 940, Training loss: 0.08272033929824829
+2024-09-03 13:28:46,019 - father_agent.py - Step: 950, Training loss: 0.08566667139530182
+2024-09-03 13:28:46,595 - father_agent.py - Step: 960, Training loss: 0.08346995711326599
+2024-09-03 13:28:47,175 - father_agent.py - Step: 970, Training loss: 0.09233976900577545
+2024-09-03 13:28:47,761 - father_agent.py - Step: 980, Training loss: 0.09015074372291565
+2024-09-03 13:28:48,339 - father_agent.py - Step: 990, Training loss: 0.07271382212638855
+2024-09-03 13:28:48,917 - father_agent.py - Step: 1000, Training loss: 0.09466173499822617
+2024-09-03 13:28:52,044 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:53,127 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:28:54,798 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:04,107 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:05,204 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:05,299 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:08,073 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:11,594 - father_agent.py - Average Return = -298.5
+2024-09-03 13:29:11,594 - father_agent.py - Average Virtual Goal Value = -87.5
+2024-09-03 13:29:11,594 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:29:12,183 - father_agent.py - Step: 1010, Training loss: 0.08311870694160461
+2024-09-03 13:29:12,762 - father_agent.py - Step: 1020, Training loss: 0.07439029216766357
+2024-09-03 13:29:13,346 - father_agent.py - Step: 1030, Training loss: 0.10499458014965057
+2024-09-03 13:29:13,963 - father_agent.py - Step: 1040, Training loss: 0.11787775158882141
+2024-09-03 13:29:14,551 - father_agent.py - Step: 1050, Training loss: 0.09941001236438751
+2024-09-03 13:29:15,142 - father_agent.py - Step: 1060, Training loss: 0.09812045097351074
+2024-09-03 13:29:15,718 - father_agent.py - Step: 1070, Training loss: 0.14345219731330872
+2024-09-03 13:29:16,338 - father_agent.py - Step: 1080, Training loss: 0.1421891450881958
+2024-09-03 13:29:16,929 - father_agent.py - Step: 1090, Training loss: 0.0932677760720253
+2024-09-03 13:29:17,509 - father_agent.py - Step: 1100, Training loss: 0.09688901901245117
+2024-09-03 13:29:22,271 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:25,051 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:26,910 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:35,079 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:38,236 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:40,026 - father_agent.py - Average Return = -302.20001220703125
+2024-09-03 13:29:40,027 - father_agent.py - Average Virtual Goal Value = -62.5
+2024-09-03 13:29:40,027 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:29:40,606 - father_agent.py - Step: 1110, Training loss: 0.11110246926546097
+2024-09-03 13:29:41,182 - father_agent.py - Step: 1120, Training loss: 0.0808640569448471
+2024-09-03 13:29:41,766 - father_agent.py - Step: 1130, Training loss: 0.07007718831300735
+2024-09-03 13:29:42,349 - father_agent.py - Step: 1140, Training loss: 0.07575099170207977
+2024-09-03 13:29:42,924 - father_agent.py - Step: 1150, Training loss: 0.08272708207368851
+2024-09-03 13:29:43,507 - father_agent.py - Step: 1160, Training loss: 0.0908668041229248
+2024-09-03 13:29:44,134 - father_agent.py - Step: 1170, Training loss: 0.13352662324905396
+2024-09-03 13:29:44,714 - father_agent.py - Step: 1180, Training loss: 0.1930203139781952
+2024-09-03 13:29:45,292 - father_agent.py - Step: 1190, Training loss: 0.15503156185150146
+2024-09-03 13:29:45,873 - father_agent.py - Step: 1200, Training loss: 0.13101668655872345
+2024-09-03 13:29:56,725 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:57,052 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:57,348 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:57,832 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:29:57,954 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:04,410 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:06,679 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:08,451 - father_agent.py - Average Return = -375.0249938964844
+2024-09-03 13:30:08,451 - father_agent.py - Average Virtual Goal Value = -87.5
+2024-09-03 13:30:08,451 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:30:09,033 - father_agent.py - Step: 1210, Training loss: 0.10137584060430527
+2024-09-03 13:30:09,614 - father_agent.py - Step: 1220, Training loss: 0.08139985054731369
+2024-09-03 13:30:10,195 - father_agent.py - Step: 1230, Training loss: 0.07957788556814194
+2024-09-03 13:30:10,771 - father_agent.py - Step: 1240, Training loss: 0.09098483622074127
+2024-09-03 13:30:11,349 - father_agent.py - Step: 1250, Training loss: 0.06546473503112793
+2024-09-03 13:30:11,974 - father_agent.py - Step: 1260, Training loss: 0.08612596988677979
+2024-09-03 13:30:12,559 - father_agent.py - Step: 1270, Training loss: 0.09275791794061661
+2024-09-03 13:30:13,138 - father_agent.py - Step: 1280, Training loss: 0.07662789523601532
+2024-09-03 13:30:13,602 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:13,713 - father_agent.py - Step: 1290, Training loss: 0.09869100153446198
+2024-09-03 13:30:13,786 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:14,336 - father_agent.py - Step: 1300, Training loss: 0.12201976031064987
+2024-09-03 13:30:16,680 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:17,679 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:23,769 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:27,796 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:28,192 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:29,450 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:29,673 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:30,815 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:33,278 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:35,332 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:35,334 - father_agent.py - Average Return = -333.875
+2024-09-03 13:30:35,341 - father_agent.py - Average Virtual Goal Value = -125.0
+2024-09-03 13:30:35,341 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:30:35,930 - father_agent.py - Step: 1310, Training loss: 0.12667223811149597
+2024-09-03 13:30:36,507 - father_agent.py - Step: 1320, Training loss: 0.08099782466888428
+2024-09-03 13:30:37,091 - father_agent.py - Step: 1330, Training loss: 0.05595400184392929
+2024-09-03 13:30:37,665 - father_agent.py - Step: 1340, Training loss: 0.14738009870052338
+2024-09-03 13:30:38,289 - father_agent.py - Step: 1350, Training loss: 0.09467937052249908
+2024-09-03 13:30:38,871 - father_agent.py - Step: 1360, Training loss: 0.14713343977928162
+2024-09-03 13:30:39,452 - father_agent.py - Step: 1370, Training loss: 0.09122468531131744
+2024-09-03 13:30:40,024 - father_agent.py - Step: 1380, Training loss: 0.03285318613052368
+2024-09-03 13:30:40,600 - father_agent.py - Step: 1390, Training loss: 0.028404567390680313
+2024-09-03 13:30:41,172 - father_agent.py - Step: 1400, Training loss: 0.0970483273267746
+2024-09-03 13:30:44,263 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:45,338 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:51,630 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:53,957 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:30:57,677 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:31:04,165 - father_agent.py - Average Return = -252.0500030517578
+2024-09-03 13:31:04,165 - father_agent.py - Average Virtual Goal Value = -62.5
+2024-09-03 13:31:04,165 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:31:04,747 - father_agent.py - Step: 1410, Training loss: 0.1544538140296936
+2024-09-03 13:31:05,323 - father_agent.py - Step: 1420, Training loss: 0.09894811362028122
+2024-09-03 13:31:05,935 - father_agent.py - Step: 1430, Training loss: 0.048000767827034
+2024-09-03 13:31:06,530 - father_agent.py - Step: 1440, Training loss: 0.07410454750061035
+2024-09-03 13:31:07,111 - father_agent.py - Step: 1450, Training loss: 0.07746580243110657
+2024-09-03 13:31:07,688 - father_agent.py - Step: 1460, Training loss: 0.09220843017101288
+2024-09-03 13:31:08,272 - father_agent.py - Step: 1470, Training loss: 0.17854341864585876
+2024-09-03 13:31:08,848 - father_agent.py - Step: 1480, Training loss: 0.11634577810764313
+2024-09-03 13:31:09,432 - father_agent.py - Step: 1490, Training loss: 0.08466239273548126
+2024-09-03 13:31:10,055 - father_agent.py - Step: 1500, Training loss: 0.11629738658666611
+2024-09-03 13:31:32,326 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:31:33,326 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:31:33,349 - father_agent.py - Average Return = -296.6499938964844
+2024-09-03 13:31:33,349 - father_agent.py - Average Virtual Goal Value = -25.0
+2024-09-03 13:31:33,349 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:31:33,976 - father_agent.py - Step: 1510, Training loss: 0.10229182243347168
+2024-09-03 13:31:34,564 - father_agent.py - Step: 1520, Training loss: 0.12204128503799438
+2024-09-03 13:31:35,143 - father_agent.py - Step: 1530, Training loss: 0.1766778826713562
+2024-09-03 13:31:35,723 - father_agent.py - Step: 1540, Training loss: 0.09371905773878098
+2024-09-03 13:31:36,304 - father_agent.py - Step: 1550, Training loss: 0.09339562058448792
+2024-09-03 13:31:36,881 - father_agent.py - Step: 1560, Training loss: 0.09586462378501892
+2024-09-03 13:31:37,466 - father_agent.py - Step: 1570, Training loss: 0.12742272019386292
+2024-09-03 13:31:38,101 - father_agent.py - Step: 1580, Training loss: 0.11902771145105362
+2024-09-03 13:31:38,684 - father_agent.py - Step: 1590, Training loss: 0.0923384353518486
+2024-09-03 13:31:39,260 - father_agent.py - Step: 1600, Training loss: 0.08923587203025818
+2024-09-03 13:31:45,857 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:31:51,148 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:01,503 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:02,705 - father_agent.py - Average Return = -274.4750061035156
+2024-09-03 13:32:02,705 - father_agent.py - Average Virtual Goal Value = -37.5
+2024-09-03 13:32:02,705 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:32:03,290 - father_agent.py - Step: 1610, Training loss: 0.1168580874800682
+2024-09-03 13:32:03,871 - father_agent.py - Step: 1620, Training loss: 0.08775385469198227
+2024-09-03 13:32:04,487 - father_agent.py - Step: 1630, Training loss: 0.08203551173210144
+2024-09-03 13:32:05,063 - father_agent.py - Step: 1640, Training loss: 0.12591558694839478
+2024-09-03 13:32:05,641 - father_agent.py - Step: 1650, Training loss: 0.11133728921413422
+2024-09-03 13:32:06,224 - father_agent.py - Step: 1660, Training loss: 0.06882436573505402
+2024-09-03 13:32:06,807 - father_agent.py - Step: 1670, Training loss: 0.07803651690483093
+2024-09-03 13:32:07,391 - father_agent.py - Step: 1680, Training loss: 0.09341169893741608
+2024-09-03 13:32:08,011 - father_agent.py - Step: 1690, Training loss: 0.09958551824092865
+2024-09-03 13:32:08,318 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:08,599 - father_agent.py - Step: 1700, Training loss: 0.07914282381534576
+2024-09-03 13:32:10,393 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:12,654 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:14,737 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:25,130 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:31,140 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:32:31,713 - father_agent.py - Average Return = -291.82501220703125
+2024-09-03 13:32:31,714 - father_agent.py - Average Virtual Goal Value = -62.5
+2024-09-03 13:32:31,714 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:32:32,304 - father_agent.py - Step: 1710, Training loss: 0.11408247798681259
+2024-09-03 13:32:32,886 - father_agent.py - Step: 1720, Training loss: 0.08128722757101059
+2024-09-03 13:32:33,469 - father_agent.py - Step: 1730, Training loss: 0.08891377598047256
+2024-09-03 13:32:34,097 - father_agent.py - Step: 1740, Training loss: 0.09740445017814636
+2024-09-03 13:32:34,684 - father_agent.py - Step: 1750, Training loss: 0.08987699449062347
+2024-09-03 13:32:35,262 - father_agent.py - Step: 1760, Training loss: 0.08693081885576248
+2024-09-03 13:32:35,845 - father_agent.py - Step: 1770, Training loss: 0.11827560514211655
+2024-09-03 13:32:36,463 - father_agent.py - Step: 1780, Training loss: 0.08548815548419952
+2024-09-03 13:32:37,045 - father_agent.py - Step: 1790, Training loss: 0.06517937034368515
+2024-09-03 13:32:37,619 - father_agent.py - Step: 1800, Training loss: 0.08963451534509659
+2024-09-03 13:32:39,444 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:00,603 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:01,190 - father_agent.py - Average Return = -304.375
+2024-09-03 13:33:01,190 - father_agent.py - Average Virtual Goal Value = -25.0
+2024-09-03 13:33:01,190 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:33:01,764 - father_agent.py - Step: 1810, Training loss: 0.06440059840679169
+2024-09-03 13:33:02,393 - father_agent.py - Step: 1820, Training loss: 0.09152331948280334
+2024-09-03 13:33:02,975 - father_agent.py - Step: 1830, Training loss: 0.09656734019517899
+2024-09-03 13:33:03,559 - father_agent.py - Step: 1840, Training loss: 0.0708000585436821
+2024-09-03 13:33:04,152 - father_agent.py - Step: 1850, Training loss: 0.06897903978824615
+2024-09-03 13:33:04,736 - father_agent.py - Step: 1860, Training loss: 0.1380489319562912
+2024-09-03 13:33:05,317 - father_agent.py - Step: 1870, Training loss: 0.10992757230997086
+2024-09-03 13:33:05,925 - father_agent.py - Step: 1880, Training loss: 0.2033710479736328
+2024-09-03 13:33:06,519 - father_agent.py - Step: 1890, Training loss: 0.15652690827846527
+2024-09-03 13:33:07,101 - father_agent.py - Step: 1900, Training loss: 0.13197006285190582
+2024-09-03 13:33:21,027 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:25,090 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:25,509 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:30,115 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:30,714 - father_agent.py - Average Return = -269.2749938964844
+2024-09-03 13:33:30,714 - father_agent.py - Average Virtual Goal Value = -50.0
+2024-09-03 13:33:30,714 - father_agent.py - Goal Reach Probability = 0.0
+2024-09-03 13:33:31,294 - father_agent.py - Step: 1910, Training loss: 0.13132581114768982
+2024-09-03 13:33:31,872 - father_agent.py - Step: 1920, Training loss: 0.10668642073869705
+2024-09-03 13:33:32,451 - father_agent.py - Step: 1930, Training loss: 0.08345532417297363
+2024-09-03 13:33:33,038 - father_agent.py - Step: 1940, Training loss: 0.08644282072782516
+2024-09-03 13:33:33,615 - father_agent.py - Step: 1950, Training loss: 0.06736457347869873
+2024-09-03 13:33:34,242 - father_agent.py - Step: 1960, Training loss: 0.08540472388267517
+2024-09-03 13:33:34,823 - father_agent.py - Step: 1970, Training loss: 0.13566884398460388
+2024-09-03 13:33:35,406 - father_agent.py - Step: 1980, Training loss: 0.09403060376644135
+2024-09-03 13:33:35,986 - father_agent.py - Step: 1990, Training loss: 0.09098813682794571
+2024-09-03 13:33:40,247 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:40,995 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:43,904 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:33:47,680 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:34:16,693 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:34:22,426 - environment_wrapper.py - Ended, but not in a goal state: ['((x = (10 - 1)) & (y = (10 - 1)))']
+2024-09-03 13:34:22,987 - father_agent.py - Average Return = -277.1875
+2024-09-03 13:34:22,987 - father_agent.py - Average Virtual Goal Value = -37.5
+2024-09-03 13:34:22,987 - father_agent.py - Goal Reach Probability = 0.0
+
+------------------------------------
+
+PAYNT results: 
+45.39779942107067
+controller size: 56
+
+Storm results: 
+15.575107023196376
+controller size: 627
+
+------------------------------------
+

@@ -7,8 +7,9 @@ class ArgsEmulator:
                  buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
-                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy=False,
-                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards=True):
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy : bool =False,
+                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards : bool =True,
+                 random_start_simulator = "False"):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
@@ -52,6 +53,9 @@ class ArgsEmulator:
         with_refusing (bool, optional): Whether to use refusing when interpreting. Defaults to None.
         set_ppo_on_policy (bool, optional): Set PPO to on-policy. With other methods, this parameter has no effect. Defaults to False.
         prefer_stochastic (bool, optional): Prefer stochastic actions (in case of PPO) for evaluation. Defaults to False.
+        normalize_simulator_rewards (bool, optional): Normalize rewards obtained from simulator (reward = reward / goal_reward)
+        random_start_simulator (bool, optional): Sets initialized simulator to work with uniformly random initial states 
+
         """
         self.prism_model = prism_model
         self.prism_properties = prism_properties
@@ -92,3 +96,4 @@ class ArgsEmulator:
         self.evaluate_random_policy = evaluate_random_policy
         self.prefer_stochastic = prefer_stochastic
         self.normalize_simulator_rewards = normalize_simulator_rewards
+        self.random_start_simulator = random_start_simulator

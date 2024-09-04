@@ -81,7 +81,8 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.last_action = 0
         self.visited_states = []
         self.empty_reward = False
-        self.special_labels = ["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))"]
+        self.special_labels = ["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
+                               "((x = (10 - 1)) & (y = (10 - 1)))"]
         # Sometimes the goal is not labeled as "goal" but as "done" or as a special label.
         self.virtual_value = tf.constant(0.0, dtype=tf.float32)
         self.normalize_simulator_rewards = self.args.normalize_simulator_rewards
@@ -89,6 +90,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             self.normalizer = 1.0/tf.abs(self.goal_value)
         else:
             self.normalizer = tf.constant(1.0)
+
+        self.random_start_simulator = self.args.random_start_simulator
+        self.original_init_state = self.stormpy_model.initial_states
         
     def create_new_environment(self):
         return Environment_Wrapper(self.stormpy_model, self.args)
@@ -238,12 +242,21 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             observation_vector = create_valuations_encoding_plus(
                 observation, self.stormpy_model, self.simulator._report_state())
             return tf.constant(observation_vector, dtype=tf.float32)
+        
+    def _restart_simulator(self):
+        if self.random_start_simulator:
+            nr_states = self.stormpy_model.nr_states
+            index = np.random.randint(0, nr_states)
+            indices_bitvector = stormpy.BitVector(nr_states, [index])
+            model.set_initial_states(indices_bitvector)
+        else:
+            return self.simulator.restart()
 
     def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
         self._finished = False
         self._num_steps = 0
-        stepino = self.simulator.restart()
+        stepino = self._restart_simulator
         self.labels = list(self.simulator._report_labels())
         self.virtual_value = tf.constant(0.0, dtype=tf.float32)
         observation = stepino[0]

@@ -273,7 +273,9 @@ class SynthesizerPomdp:
     
     def init_rl_args(self, qvalues_flag: bool = False):
         if qvalues_flag:
-            args = ArgsEmulator(load_agent=False, learning_method="Periodic_FSC_Neural_PPO", encoding_method="Valuations++",
+            # "Periodic_FSC_Neural_PPO"
+            # "PPO_FSC_Critic"
+            args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
                                 trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
                                 discount_factor=0.99, batch_size=32)

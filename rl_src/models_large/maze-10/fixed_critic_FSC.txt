@@ -1,0 +1,1321 @@
+2024-09-03 16:06:38,697 - cli.py - This is Paynt version 0.1.0.
+2024-09-03 16:06:38,697 - sketch.py - loading sketch from rl_src/models_large//maze-10/sketch.templ ...
+2024-09-03 16:06:38,697 - sketch.py - assuming sketch in PRISM format...
+2024-09-03 16:06:38,708 - prism_parser.py - PRISM model type: POMDP
+2024-09-03 16:06:38,708 - prism_parser.py - loading properties from rl_src/models_large//maze-10/sketch.props ...
+2024-09-03 16:06:38,709 - prism_parser.py - found the following specification: optimality: R{"rew"}max=? [F "goal"] 
+2024-09-03 16:06:38,874 - sketch.py - sketch parsing OK
+2024-09-03 16:06:38,880 - sketch.py - constructed explicit quotient having 4805 states and 19049 actions
+2024-09-03 16:06:38,880 - sketch.py - found the following specification optimality: R{"rew"}max=? [F "goal"] 
+2024-09-03 16:06:38,884 - pomdp.py - constructed POMDP having 22 observations.
+2024-09-03 16:06:38,886 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-09-03 16:06:38,891 - pomdp.py - constructed quotient MDP having 4805 states and 19049 actions.
+2024-09-03 16:06:39,469 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-09-03 16:06:39,646 - __init__.py - Creating converter from 7 to 5
+2024-09-03 16:06:39,647 - __init__.py - Creating converter from 5 to 7
+2024-09-03 16:06:39,647 - __init__.py - Creating converter from 7 to 5
+2024-09-03 16:06:39,647 - __init__.py - Creating converter from 5 to 7
+2024-09-03 16:06:40,364 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-09-03 16:06:40,364 - synthesizer_pomdp.py - Storm settings: iterative - (400, 30, 5), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-09-03 16:06:40,374 - synthesizer_pomdp.py - Timeout for PAYNT started
+> progress 0.0%, elapsed 3 s, estimated 3001742 s (34 days), iters = {MDP: 10}
+> progress 0.0%, elapsed 6 s, estimated 6242352 s (72 days), iters = {MDP: 18}
+-----------PAYNT-----------                     
+Value = 4.059582211008662 | Time elapsed = 7.1s | FSC size = 44
+
+> progress 0.0%, elapsed 9 s, estimated 158329639 s (5 years), iters = {MDP: 41}, opt = 4.06
+> progress 0.0%, elapsed 12 s, estimated 168508983 s (5 years), iters = {MDP: 47}, opt = 4.06
+-----------PAYNT-----------                     
+Value = 4.242784200923493 | Time elapsed = 13.8s | FSC size = 44
+
+> progress 0.0%, elapsed 15 s, estimated 209681195 s (6 years), iters = {MDP: 58}, opt = 4.243
+-----------PAYNT-----------                     
+Value = 4.243876255513613 | Time elapsed = 17.1s | FSC size = 44
+
+> progress 0.0%, elapsed 18 s, estimated 252444195 s (8 years), iters = {MDP: 70}, opt = 4.244
+> progress 0.0%, elapsed 22 s, estimated 296122720 s (9 years), iters = {MDP: 83}, opt = 4.244
+> progress 0.0%, elapsed 25 s, estimated 341399376 s (10 years), iters = {MDP: 96}, opt = 4.244
+> progress 0.0%, elapsed 28 s, estimated 381029406 s (12 years), iters = {MDP: 106}, opt = 4.244
+2024-09-03 16:07:10,729 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 16:07:10,760 - storm_pomdp_control.py - Interactive Storm started
+2024-09-03 16:07:10,761 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-09-03 16:07:16,766 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 8.593825846478637 | Time elapsed = 50.4s | FSC size = 2068
+
+
+------------------------------------
+
+PAYNT results: 
+4.243876255513613
+controller size: 44
+
+Storm results: 
+8.593825846478637
+controller size: 2068
+
+------------------------------------
+
+2024-09-03 16:07:30,845 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 16:07:31,751 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 16:07:31,751 - synthesizer_ar_storm.py - Additional memory needed
+2024-09-03 16:07:31,789 - synthesizer.py - double-checking specification satisfiability:  : 4.243876255513613
+--------------------
+Synthesis summary:
+optimality objective: R{"rew"}max=? [F "goal"] 
+
+method: AR, synthesis time: 30.36 s
+number of holes: 21, family size: 1e12, quotient: 4805 states / 19049 actions
+explored: 0 %
+MDP stats: avg MDP size: 4805, iterations: 111
+
+optimum: 4.243876
+--------------------
+2024-09-03 16:07:32,422 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 16:07:32,423 - pomdp.py - unfolding 3-FSC template into POMDP...
+2024-09-03 16:07:32,769 - pomdp.py - constructed quotient MDP having 11507 states and 134161 actions.
+2024-09-03 16:07:33,059 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e50 to 1e39
+> progress 0.0%, elapsed 3 s, estimated 3128766 s (36 days), iters = {MDP: 6}, opt = 4.244
+> progress 0.0%, elapsed 6 s, estimated 6243280 s (72 days), iters = {MDP: 12}, opt = 4.244
+> progress 0.0%, elapsed 9 s, estimated 9516427 s (110 days), iters = {MDP: 19}, opt = 4.244
+> progress 0.0%, elapsed 13 s, estimated 13443894 s (155 days), iters = {MDP: 23}, opt = 4.244
+> progress 0.0%, elapsed 16 s, estimated 16664150 s (192 days), iters = {MDP: 25}, opt = 4.244
+> progress 0.0%, elapsed 19 s, estimated 19976899 s (231 days), iters = {MDP: 27}, opt = 4.244
+> progress 0.0%, elapsed 23 s, estimated 23412450 s (270 days), iters = {MDP: 29}, opt = 4.244
+> progress 0.0%, elapsed 27 s, estimated 56617398480942565045567488 s (1795325928492597760 years), iters = {MDP: 32}, opt = 4.244
+2024-09-03 16:08:01,688 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 16:08:01,788 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 16:08:01,789 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 16:08:07,796 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 8.593825846478637 | Time elapsed = 103.5s | FSC size = 2068
+
+
+------------------------------------
+
+PAYNT results: 
+4.243876255513613
+controller size: 44
+
+Storm results: 
+8.593825846478637
+controller size: 2068
+
+------------------------------------
+
+2024-09-03 16:08:23,880 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 16:08:24,713 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 16:08:24,713 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 16:08:24,714 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:08:24,714 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:08:24,715 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:08:24,715 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:08:24,715 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:08:24,715 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:08:24,716 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:08:24,716 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:08:24,716 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:08:24,716 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:08:24,716 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:08:24,717 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:08:24,717 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:08:24,717 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:08:24,717 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:08:24,717 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:08:24,717 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:08:24,718 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:08:24,718 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:08:24,718 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:08:24,718 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:08:24,718 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:08:24,719 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:08:24,719 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:08:24,719 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:08:24,719 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:08:24,719 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:08:24,720 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:08:24,720 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:08:24,720 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:08:24,720 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:08:24,720 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:08:24,720 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:08:24,721 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:08:24,721 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:08:24,721 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:08:24,721 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:08:24,721 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:08:24,722 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:08:24,722 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:08:24,722 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:08:24,722 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:08:24,722 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:08:24,722 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:08:24,723 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:08:24,723 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:08:24,723 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:08:24,723 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:08:24,723 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:08:24,724 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:08:24,724 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:08:24,724 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:08:24,724 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:08:24,724 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:08:24,724 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:08:24,725 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:08:24,725 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 56, Subfamilies - 0
+> progress 0.0%, elapsed 31 s, estimated 43278648269007728148480000 s (1372356933948748288 years), iters = {MDP: 35}, opt = 4.244
+> progress 0.0%, elapsed 34 s, estimated 47573526495221369486180352 s (1508546629097582592 years), iters = {MDP: 37}, opt = 4.244
+> progress 0.0%, elapsed 38 s, estimated 51705382235682048539885568 s (1639566915134514176 years), iters = {MDP: 39}, opt = 4.244
+> progress 0.0%, elapsed 42 s, estimated 57634942122532633225199616 s (1827592025701821184 years), iters = {MDP: 42}, opt = 4.244
+> progress 0.0%, elapsed 45 s, estimated 61759703452430639132835840 s (1958387349455563008 years), iters = {MDP: 44}, opt = 4.244
+> progress 0.0%, elapsed 48 s, estimated 65858996815012026541670400 s (2088375089263445760 years), iters = {MDP: 47}, opt = 4.244
+> progress 0.0%, elapsed 52 s, estimated 71043610840898199741267968 s (2252778121540404736 years), iters = {MDP: 50}, opt = 4.244
+> progress 0.0%, elapsed 56 s, estimated 76216487039462215044300800 s (2416808949754636288 years), iters = {MDP: 53}, opt = 4.244
+2024-09-03 16:08:54,405 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 16:08:54,492 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 16:08:54,493 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 16:09:00,500 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 8.593825846478637 | Time elapsed = 160.2s | FSC size = 2068
+
+
+------------------------------------
+
+PAYNT results: 
+4.243876255513613
+controller size: 44
+
+Storm results: 
+8.593825846478637
+controller size: 2068
+
+------------------------------------
+
+2024-09-03 16:09:20,580 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 16:09:21,429 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 16:09:21,429 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 16:09:21,430 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:09:21,430 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:09:21,431 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:09:21,431 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:09:21,431 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:09:21,431 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:09:21,431 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:09:21,432 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:09:21,432 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:09:21,432 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:09:21,432 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:09:21,432 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:09:21,433 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:09:21,433 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:09:21,433 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:09:21,433 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:09:21,433 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:09:21,433 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:09:21,434 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:09:21,434 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:09:21,434 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:09:21,434 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:09:21,434 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:09:21,435 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:09:21,435 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:09:21,435 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:09:21,435 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:09:21,435 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:09:21,436 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:09:21,436 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:09:21,436 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:09:21,436 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:09:21,436 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:09:21,436 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:09:21,437 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:09:21,437 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:09:21,437 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:09:21,437 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:09:21,437 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:09:21,438 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:09:21,438 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:09:21,438 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:09:21,438 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:09:21,438 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:09:21,438 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:09:21,439 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:09:21,439 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:09:21,439 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:09:21,439 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:09:21,439 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:09:21,439 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:09:21,440 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:09:21,440 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:09:21,440 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:09:21,440 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:09:21,440 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:09:21,441 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:09:21,441 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:09:21,441 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:09:21,441 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:09:21,441 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:09:21,441 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:09:21,442 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:09:21,442 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:09:21,442 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:09:21,442 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:09:21,442 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:09:21,443 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:09:21,443 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:09:21,443 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:09:21,443 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:09:21,443 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:09:21,443 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:09:21,444 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e20 to 1e20
+2024-09-03 16:09:21,444 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e20 to 1e20
+2024-09-03 16:09:21,444 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:09:21,444 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:09:21,444 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:09:21,445 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e18 to 1e18
+2024-09-03 16:09:21,445 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e18 to 1e18
+2024-09-03 16:09:21,445 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e18 to 1e18
+2024-09-03 16:09:21,445 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e18 to 1e18
+2024-09-03 16:09:21,445 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 82, Subfamilies - 0
+> progress 0.0%, elapsed 59 s, estimated 81338796736827064305319936 s (2579236324734496256 years), iters = {MDP: 56}, opt = 4.244
+> progress 0.0%, elapsed 63 s, estimated 86294746736059832017616896 s (2736388468292105216 years), iters = {MDP: 59}, opt = 4.244
+> progress 0.0%, elapsed 66 s, estimated 90955741699296870164070400 s (2884187649013726208 years), iters = {MDP: 63}, opt = 4.244
+> progress 0.0%, elapsed 70 s, estimated 96179411890191256478810112 s (3049829144158779392 years), iters = {MDP: 67}, opt = 4.244
+> progress 0.0%, elapsed 74 s, estimated 101312928769352824671698944 s (3212611896542136832 years), iters = {MDP: 72}, opt = 4.244
+> progress 0.0%, elapsed 77 s, estimated 106027463855281358111768576 s (3362108823417090048 years), iters = {MDP: 76}, opt = 4.244
+> progress 0.0%, elapsed 82 s, estimated 111933820780436336913940480 s (3549398172895622144 years), iters = {MDP: 80}, opt = 4.244
+> progress 0.0%, elapsed 85 s, estimated 116528999100801875984777216 s (3695110321562717696 years), iters = {MDP: 84}, opt = 4.244
+2024-09-03 16:09:50,873 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 16:09:50,958 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 16:09:50,958 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 16:09:56,966 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 8.593825846478637 | Time elapsed = 221.6s | FSC size = 2068
+
+
+------------------------------------
+
+PAYNT results: 
+4.243876255513613
+controller size: 44
+
+Storm results: 
+8.593825846478637
+controller size: 2068
+
+------------------------------------
+
+2024-09-03 16:10:22,052 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 16:10:22,907 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 16:10:22,907 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 16:10:22,908 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:10:22,908 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:10:22,908 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:10:22,909 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:10:22,909 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:10:22,909 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:10:22,909 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:10:22,909 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:10:22,910 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:10:22,910 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:10:22,910 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:10:22,910 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:10:22,910 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:10:22,911 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:10:22,911 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:10:22,911 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:10:22,911 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:10:22,911 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:10:22,912 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:10:22,912 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:10:22,912 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:10:22,912 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:10:22,912 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:10:22,912 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:10:22,913 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:10:22,913 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:10:22,913 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:10:22,913 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:10:22,913 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:10:22,914 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:10:22,914 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:10:22,914 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:10:22,914 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:10:22,914 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:10:22,915 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:10:22,915 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:10:22,915 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:10:22,915 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:10:22,915 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:10:22,916 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:10:22,916 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:10:22,916 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:10:22,916 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:10:22,916 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:10:22,917 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:10:22,917 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:10:22,917 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:10:22,917 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:10:22,917 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:10:22,918 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:10:22,918 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:10:22,918 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:10:22,918 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:10:22,918 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:10:22,919 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:10:22,919 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:10:22,919 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:10:22,919 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:10:22,919 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:10:22,920 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:10:22,920 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:10:22,920 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:10:22,920 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:10:22,920 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:10:22,921 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:10:22,921 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:10:22,921 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:10:22,921 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:10:22,921 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:10:22,921 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:10:22,922 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:10:22,922 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:10:22,922 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:10:22,922 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e20 to 1e20
+2024-09-03 16:10:22,922 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e20 to 1e20
+2024-09-03 16:10:22,923 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:10:22,923 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:10:22,923 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:10:22,923 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e18 to 1e18
+2024-09-03 16:10:22,923 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e17 to 1e17
+2024-09-03 16:10:22,924 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e17 to 1e17
+2024-09-03 16:10:22,924 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e17 to 1e17
+2024-09-03 16:10:22,924 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e17 to 1e17
+2024-09-03 16:10:22,924 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 83, Subfamilies - 0
+> progress 0.0%, elapsed 89 s, estimated 122274243697673135097643008 s (3877290832625353216 years), iters = {MDP: 89}, opt = 4.244
+> progress 0.0%, elapsed 93 s, estimated 126873616404416129725890560 s (4023135984411978240 years), iters = {MDP: 93}, opt = 4.244
+> progress 0.0%, elapsed 96 s, estimated 131322965883119744814415872 s (4164223930844740608 years), iters = {MDP: 97}, opt = 4.244
+> progress 0.0%, elapsed 100 s, estimated 136018413689573697206091776 s (4313115604058019328 years), iters = {MDP: 100}, opt = 4.244
+> progress 0.0%, elapsed 103 s, estimated 140544883930777620622344192 s (4456649033827296768 years), iters = {MDP: 103}, opt = 4.244
+> progress 0.0%, elapsed 106 s, estimated 145470673492656860921069568 s (4612844796190285824 years), iters = {MDP: 107}, opt = 4.244
+> progress 0.0%, elapsed 110 s, estimated 149710099525532611185213440 s (4747276113823332352 years), iters = {MDP: 110}, opt = 4.244
+> progress 0.0%, elapsed 113 s, estimated 153896499436595710571577344 s (4880025984163993600 years), iters = {MDP: 113}, opt = 4.244
+> progress 0.0%, elapsed 116 s, estimated 158145110992407107521740800 s (5014748572818591744 years), iters = {MDP: 116}, opt = 4.244
+2024-09-03 16:10:52,478 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 16:10:52,574 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 16:10:52,574 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 16:10:58,582 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 8.593825846478637 | Time elapsed = 285.3s | FSC size = 2068
+
+
+------------------------------------
+
+PAYNT results: 
+4.243876255513613
+controller size: 44
+
+Storm results: 
+8.593825846478637
+controller size: 2068
+
+------------------------------------
+
+2024-09-03 16:11:25,666 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 16:11:26,512 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 16:11:26,512 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 16:11:26,513 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:11:26,513 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:11:26,513 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:11:26,514 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:11:26,514 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:11:26,514 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:11:26,514 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:11:26,514 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:11:26,515 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:11:26,515 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:11:26,515 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:11:26,515 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:11:26,515 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:11:26,516 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:11:26,516 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:11:26,516 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:11:26,516 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:11:26,516 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:11:26,517 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:11:26,517 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:11:26,517 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:11:26,517 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:11:26,517 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:11:26,517 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:11:26,518 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:11:26,518 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:11:26,518 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:11:26,518 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:11:26,518 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:11:26,519 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:11:26,519 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:11:26,519 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:11:26,519 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:11:26,519 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:11:26,520 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:11:26,520 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:11:26,520 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:11:26,520 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:11:26,520 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:11:26,521 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:11:26,521 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:11:26,521 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:11:26,521 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:11:26,521 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:11:26,522 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:11:26,522 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:11:26,522 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:11:26,522 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:11:26,522 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:11:26,522 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:11:26,523 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:11:26,523 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:11:26,523 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:11:26,523 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:11:26,523 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:11:26,524 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:11:26,524 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:11:26,524 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:11:26,524 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:11:26,524 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:11:26,525 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:11:26,525 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:11:26,525 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:11:26,525 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:11:26,525 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:11:26,526 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:11:26,526 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:11:26,526 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:11:26,526 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e22 to 1e22
+2024-09-03 16:11:26,526 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:11:26,527 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:11:26,527 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:11:26,527 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e21 to 1e21
+2024-09-03 16:11:26,527 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e20 to 1e20
+2024-09-03 16:11:26,527 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e20 to 1e20
+2024-09-03 16:11:26,528 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:11:26,528 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:11:26,528 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e19 to 1e19
+2024-09-03 16:11:26,528 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e18 to 1e18
+2024-09-03 16:11:26,528 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e17 to 1e17
+2024-09-03 16:11:26,529 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e16 to 1e16
+2024-09-03 16:11:26,529 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e16 to 1e16
+2024-09-03 16:11:26,529 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e15 to 1e15
+2024-09-03 16:11:26,529 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e15 to 1e15
+2024-09-03 16:11:26,529 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e15 to 1e15
+2024-09-03 16:11:26,530 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e14 to 1e14
+2024-09-03 16:11:26,530 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e14 to 1e14
+2024-09-03 16:11:26,530 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e14 to 1e14
+2024-09-03 16:11:26,530 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e14 to 1e14
+2024-09-03 16:11:26,530 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e13 to 1e13
+2024-09-03 16:11:26,531 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e13 to 1e13
+2024-09-03 16:11:26,531 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e13 to 1e13
+2024-09-03 16:11:26,531 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e12 to 1e12
+2024-09-03 16:11:26,531 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e12 to 1e12
+2024-09-03 16:11:26,531 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e12 to 1e12
+2024-09-03 16:11:26,532 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e12 to 1e12
+2024-09-03 16:11:26,532 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e11 to 1e11
+2024-09-03 16:11:26,532 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e11 to 1e11
+2024-09-03 16:11:26,532 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e11 to 1e11
+2024-09-03 16:11:26,532 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e11 to 1e11
+2024-09-03 16:11:26,533 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 16:11:26,533 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 16:11:26,533 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e10 to 1e10
+2024-09-03 16:11:26,533 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 16:11:26,533 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 16:11:26,534 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e9 to 1e9
+2024-09-03 16:11:26,534 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 16:11:26,534 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 16:11:26,534 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 16:11:26,534 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 16:11:26,535 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e8 to 1e8
+2024-09-03 16:11:26,535 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-09-03 16:11:26,535 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-09-03 16:11:26,535 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-09-03 16:11:26,535 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7 to 1e7
+2024-09-03 16:11:26,535 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 115, Subfamilies - 0
+> progress 0.0%, elapsed 119 s, estimated 162302089559512151194861568 s (5146565498462459904 years), iters = {MDP: 119}, opt = 4.244
+-----------PAYNT-----------                     
+Value = 4.42855637384992 | Time elapsed = 289.6s | FSC size = 98
+
+> progress 0.0%, elapsed 122 s, estimated 166473139414552774774358016 s (5278828621719709696 years), iters = {MDP: 128}, opt = 4.429
+> progress 0.0%, elapsed 125 s, estimated 170558213277745766381649920 s (5408365464159873024 years), iters = {MDP: 139}, opt = 4.429
+> progress 0.0%, elapsed 128 s, estimated 174843534084716964215783424 s (5544252095532627968 years), iters = {MDP: 148}, opt = 4.429
+> progress 0.0%, elapsed 131 s, estimated 179088267017969955541876736 s (5678851693872715776 years), iters = {MDP: 156}, opt = 4.429
+> progress 0.0%, elapsed 135 s, estimated 184024492339459928753176576 s (5835378372002153472 years), iters = {MDP: 163}, opt = 4.429
+> progress 0.0%, elapsed 138 s, estimated 188850759965046008411324416 s (5988418314467465216 years), iters = {MDP: 168}, opt = 4.429
+> progress 0.0%, elapsed 142 s, estimated 193819334641812107106975744 s (6145970783923519488 years), iters = {MDP: 173}, opt = 4.429
+> progress 0.0%, elapsed 146 s, estimated 198002434888177761795440640 s (6278616022583008256 years), iters = {MDP: 178}, opt = 4.429
+2024-09-03 16:11:58,454 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 16:11:58,468 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 16:11:58,468 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 16:12:04,475 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 8.593825846478637 | Time elapsed = 352.1s | FSC size = 2122
+
+
+------------------------------------
+
+PAYNT results: 
+4.42855637384992
+controller size: 98
+
+Storm results: 
+8.593825846478637
+controller size: 2122
+
+------------------------------------
+
+2024-09-03 16:12:32,556 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 16:12:33,492 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 16:12:33,492 - synthesizer_ar_storm.py - Applying family split according to Storm results
+2024-09-03 16:12:33,492 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:12:33,493 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e39 to 1e39
+2024-09-03 16:12:33,493 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:12:33,493 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:12:33,494 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:12:33,494 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e38 to 1e38
+2024-09-03 16:12:33,494 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:12:33,494 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:12:33,494 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:12:33,495 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e37 to 1e37
+2024-09-03 16:12:33,495 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:12:33,495 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:12:33,495 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:12:33,495 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e36 to 1e36
+2024-09-03 16:12:33,496 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:12:33,496 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:12:33,496 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:12:33,496 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e35 to 1e35
+2024-09-03 16:12:33,496 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:12:33,497 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:12:33,497 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:12:33,497 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:12:33,497 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e34 to 1e34
+2024-09-03 16:12:33,497 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:12:33,497 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:12:33,498 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e33 to 1e33
+2024-09-03 16:12:33,498 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:12:33,498 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:12:33,498 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:12:33,498 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e32 to 1e32
+2024-09-03 16:12:33,499 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:12:33,499 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:12:33,499 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:12:33,499 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e31 to 1e31
+2024-09-03 16:12:33,499 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:12:33,500 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:12:33,500 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:12:33,500 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e30 to 1e30
+2024-09-03 16:12:33,500 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:12:33,500 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:12:33,501 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:12:33,501 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e29 to 1e29
+2024-09-03 16:12:33,501 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:12:33,501 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:12:33,501 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:12:33,501 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e28 to 1e28
+2024-09-03 16:12:33,502 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:12:33,502 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:12:33,502 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:12:33,502 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:12:33,502 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:12:33,503 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e27 to 1e27
+2024-09-03 16:12:33,503 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:12:33,503 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:12:33,509 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e26 to 1e26
+2024-09-03 16:12:33,510 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:12:33,510 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e25 to 1e25
+2024-09-03 16:12:33,510 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:12:33,510 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:12:33,510 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:12:33,511 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e24 to 1e24
+2024-09-03 16:12:33,511 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:12:33,511 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:12:33,511 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e23 to 1e23
+2024-09-03 16:12:33,511 - synthesizer_ar_storm.py - State after Storm splitting: Main families - 64, Subfamilies - 0
+> progress 0.0%, elapsed 149 s, estimated 202108073143988238757658624 s (6408804957635345408 years), iters = {MDP: 179}, opt = 4.429
+> progress 0.0%, elapsed 152 s, estimated 205622954940663213125009408 s (6520261128255429632 years), iters = {MDP: 182}, opt = 4.429
+> progress 0.0%, elapsed 156 s, estimated 209792069201312756602503168 s (6652462874217172992 years), iters = {MDP: 186}, opt = 4.429
+> progress 0.0%, elapsed 160 s, estimated 214086521448836876967346176 s (6788639061670372352 years), iters = {MDP: 190}, opt = 4.429
+> progress 0.0%, elapsed 164 s, estimated 218863039370570864529506304 s (6940101451375280128 years), iters = {MDP: 193}, opt = 4.429
+> progress 0.0%, elapsed 168 s, estimated 224537686035842982043713536 s (7120043316712423424 years), iters = {MDP: 197}, opt = 4.429
+> progress 0.0%, elapsed 171 s, estimated 228916890516081380868227072 s (7258906979835153408 years), iters = {MDP: 200}, opt = 4.429
+> progress 0.0%, elapsed 176 s, estimated 234453433368808059029159936 s (7434469602004314112 years), iters = {MDP: 203}, opt = 4.429
+2024-09-03 16:13:04,490 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 16:13:04,536 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 16:13:04,536 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 16:13:10,544 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 8.593825846478637 | Time elapsed = 419.2s | FSC size = 2122
+
+
+------------------------------------
+
+PAYNT results: 
+4.42855637384992
+controller size: 98
+
+Storm results: 
+8.593825846478637
+controller size: 2122
+
+------------------------------------
+
+2024-09-03 16:13:40,520 - synthesizer_ar_storm.py - Terminating controller synthesis
+2024-09-03 16:13:40,605 - synthesizer.py - double-checking specification satisfiability:  : 4.42855637384992
+--------------------
+Synthesis summary:
+optimality objective: R{"rew"}max=? [F "goal"] 
+
+method: AR, synthesis time: 180.19 s
+number of holes: 96, family size: 1e50, quotient: 11507 states / 134161 actions
+explored: 0 %
+MDP stats: avg MDP size: 10998, iterations: 204
+
+optimum: 4.428556
+--------------------
+2024-09-03 16:13:43,675 - storm_pomdp_control.py - Storm POMDP analysis completed
+2024-09-03 16:13:43,726 - synthesizer_rl.py - RL Environment initialized
+2024-09-03 16:13:43,839 - ppo_with_qvalues_fsc.py - Agent initialized
+2024-09-03 16:13:43,849 - ppo_with_qvalues_fsc.py - Replay buffer initialized
+2024-09-03 16:13:45,579 - father_agent.py - Training agent
+2024-09-03 16:13:46,896 - father_agent.py - Step: 0, Training loss: 0.11847513914108276
+2024-09-03 16:13:49,810 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:50,237 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:50,595 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:50,681 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:50,795 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:51,116 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:52,258 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:52,943 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:53,655 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:54,019 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:55,495 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:55,836 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:56,121 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:58,015 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:58,401 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:58,729 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:59,030 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:59,457 - environment_wrapper.py - Goal reached!
+2024-09-03 16:13:59,561 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:00,564 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:01,610 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:05,000 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:06,482 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:06,519 - father_agent.py - Average Return = 3.849997043609619
+2024-09-03 16:14:06,520 - father_agent.py - Average Virtual Goal Value = 287.5
+2024-09-03 16:14:06,520 - father_agent.py - Goal Reach Probability = 0.575
+2024-09-03 16:14:07,110 - father_agent.py - Step: 10, Training loss: 0.11578074097633362
+2024-09-03 16:14:07,265 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:07,698 - father_agent.py - Step: 20, Training loss: 0.1189057007431984
+2024-09-03 16:14:08,283 - father_agent.py - Step: 30, Training loss: 0.1134558618068695
+2024-09-03 16:14:08,879 - father_agent.py - Step: 40, Training loss: 0.10357581824064255
+2024-09-03 16:14:09,466 - father_agent.py - Step: 50, Training loss: 0.0916806012392044
+2024-09-03 16:14:10,039 - father_agent.py - Step: 60, Training loss: 0.05866469070315361
+2024-09-03 16:14:10,619 - father_agent.py - Step: 70, Training loss: 0.08187473565340042
+2024-09-03 16:14:11,194 - father_agent.py - Step: 80, Training loss: 0.07018749415874481
+2024-09-03 16:14:11,616 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:11,775 - father_agent.py - Step: 90, Training loss: 0.07254011929035187
+2024-09-03 16:14:12,346 - father_agent.py - Step: 100, Training loss: 0.09637242555618286
+2024-09-03 16:14:13,820 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:15,146 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:17,272 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:18,266 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:18,999 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:22,430 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:26,818 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:30,082 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:30,621 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:32,306 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:32,725 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:33,303 - father_agent.py - Average Return = 4.0749969482421875
+2024-09-03 16:14:33,304 - father_agent.py - Average Virtual Goal Value = 137.5
+2024-09-03 16:14:33,304 - father_agent.py - Goal Reach Probability = 0.275
+2024-09-03 16:14:33,883 - father_agent.py - Step: 110, Training loss: 0.33935078978538513
+2024-09-03 16:14:34,463 - father_agent.py - Step: 120, Training loss: 0.18067330121994019
+2024-09-03 16:14:34,896 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:35,051 - father_agent.py - Step: 130, Training loss: 0.10258003324270248
+2024-09-03 16:14:35,613 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:35,634 - father_agent.py - Step: 140, Training loss: 0.07608218491077423
+2024-09-03 16:14:35,973 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:36,186 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:36,223 - father_agent.py - Step: 150, Training loss: 0.06356920301914215
+2024-09-03 16:14:36,808 - father_agent.py - Step: 160, Training loss: 0.0915430337190628
+2024-09-03 16:14:37,398 - father_agent.py - Step: 170, Training loss: 0.1041761040687561
+2024-09-03 16:14:37,989 - father_agent.py - Step: 180, Training loss: 0.08691297471523285
+2024-09-03 16:14:38,576 - father_agent.py - Step: 190, Training loss: 0.09863512963056564
+2024-09-03 16:14:39,171 - father_agent.py - Step: 200, Training loss: 0.07658078521490097
+2024-09-03 16:14:40,738 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:41,409 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:41,573 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:41,700 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:43,582 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:43,701 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:44,980 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:45,166 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:47,185 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:47,371 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:49,481 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:50,798 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:52,279 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:54,852 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:57,243 - father_agent.py - Average Return = 3.8749969005584717
+2024-09-03 16:14:57,243 - father_agent.py - Average Virtual Goal Value = 175.0
+2024-09-03 16:14:57,243 - father_agent.py - Goal Reach Probability = 0.35
+2024-09-03 16:14:57,856 - father_agent.py - Step: 210, Training loss: 0.14654649794101715
+2024-09-03 16:14:58,448 - father_agent.py - Step: 220, Training loss: 0.12291132658720016
+2024-09-03 16:14:58,898 - environment_wrapper.py - Goal reached!
+2024-09-03 16:14:59,064 - father_agent.py - Step: 230, Training loss: 0.1041993647813797
+2024-09-03 16:14:59,671 - father_agent.py - Step: 240, Training loss: 0.10797514021396637
+2024-09-03 16:15:00,280 - father_agent.py - Step: 250, Training loss: 0.0979367047548294
+2024-09-03 16:15:00,880 - father_agent.py - Step: 260, Training loss: 0.10486781597137451
+2024-09-03 16:15:01,479 - father_agent.py - Step: 270, Training loss: 0.09812740236520767
+2024-09-03 16:15:02,082 - father_agent.py - Step: 280, Training loss: 0.08413411676883698
+2024-09-03 16:15:02,702 - father_agent.py - Step: 290, Training loss: 0.07630006968975067
+2024-09-03 16:15:03,309 - father_agent.py - Step: 300, Training loss: 0.08961339294910431
+2024-09-03 16:15:05,143 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:13,152 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:14,142 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:14,641 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:16,667 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:18,519 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:18,617 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:21,623 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:25,258 - father_agent.py - Average Return = 3.9999969005584717
+2024-09-03 16:15:25,259 - father_agent.py - Average Virtual Goal Value = 100.0
+2024-09-03 16:15:25,259 - father_agent.py - Goal Reach Probability = 0.2
+2024-09-03 16:15:25,851 - father_agent.py - Step: 310, Training loss: 0.15067453682422638
+2024-09-03 16:15:26,383 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:26,438 - father_agent.py - Step: 320, Training loss: 0.1363900899887085
+2024-09-03 16:15:27,026 - father_agent.py - Step: 330, Training loss: 0.11640983819961548
+2024-09-03 16:15:27,613 - father_agent.py - Step: 340, Training loss: 0.08910796046257019
+2024-09-03 16:15:28,214 - father_agent.py - Step: 350, Training loss: 0.09151307493448257
+2024-09-03 16:15:28,829 - father_agent.py - Step: 360, Training loss: 0.09332943707704544
+2024-09-03 16:15:29,442 - father_agent.py - Step: 370, Training loss: 0.09599468111991882
+2024-09-03 16:15:30,095 - father_agent.py - Step: 380, Training loss: 0.08195790648460388
+2024-09-03 16:15:30,720 - father_agent.py - Step: 390, Training loss: 0.08710503578186035
+2024-09-03 16:15:31,341 - father_agent.py - Step: 400, Training loss: 0.08769257366657257
+2024-09-03 16:15:31,891 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:32,329 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:32,541 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:34,130 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:36,080 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:38,933 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:39,862 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:41,385 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:44,414 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:46,328 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:46,606 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:46,934 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:47,476 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:50,197 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:50,405 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:52,657 - father_agent.py - Average Return = 3.8749969005584717
+2024-09-03 16:15:52,658 - father_agent.py - Average Virtual Goal Value = 187.5
+2024-09-03 16:15:52,658 - father_agent.py - Goal Reach Probability = 0.375
+2024-09-03 16:15:53,414 - father_agent.py - Step: 410, Training loss: 0.09800028800964355
+2024-09-03 16:15:54,099 - father_agent.py - Step: 420, Training loss: 0.08163680881261826
+2024-09-03 16:15:54,733 - father_agent.py - Step: 430, Training loss: 0.11712884157896042
+2024-09-03 16:15:55,382 - father_agent.py - Step: 440, Training loss: 0.10134617984294891
+2024-09-03 16:15:56,028 - father_agent.py - Step: 450, Training loss: 0.09909562766551971
+2024-09-03 16:15:56,641 - father_agent.py - Step: 460, Training loss: 0.11699993908405304
+2024-09-03 16:15:57,425 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:57,527 - father_agent.py - Step: 470, Training loss: 0.1118900254368782
+2024-09-03 16:15:58,172 - father_agent.py - Step: 480, Training loss: 0.10122404992580414
+2024-09-03 16:15:58,795 - father_agent.py - Step: 490, Training loss: 0.08920729160308838
+2024-09-03 16:15:59,142 - environment_wrapper.py - Goal reached!
+2024-09-03 16:15:59,417 - father_agent.py - Step: 500, Training loss: 0.07797785103321075
+2024-09-03 16:16:00,580 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:03,735 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:04,873 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:05,794 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:26,917 - father_agent.py - Average Return = 3.924996852874756
+2024-09-03 16:16:26,917 - father_agent.py - Average Virtual Goal Value = 50.0
+2024-09-03 16:16:26,917 - father_agent.py - Goal Reach Probability = 0.1
+2024-09-03 16:16:27,193 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:27,554 - father_agent.py - Step: 510, Training loss: 0.09233394265174866
+2024-09-03 16:16:28,180 - father_agent.py - Step: 520, Training loss: 0.09023915231227875
+2024-09-03 16:16:28,820 - father_agent.py - Step: 530, Training loss: 0.09015314280986786
+2024-09-03 16:16:29,128 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:29,597 - father_agent.py - Step: 540, Training loss: 0.1207907497882843
+2024-09-03 16:16:30,266 - father_agent.py - Step: 550, Training loss: 0.09974422305822372
+2024-09-03 16:16:30,332 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:30,872 - father_agent.py - Step: 560, Training loss: 0.1075349897146225
+2024-09-03 16:16:31,523 - father_agent.py - Step: 570, Training loss: 0.1070956215262413
+2024-09-03 16:16:32,080 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:32,139 - father_agent.py - Step: 580, Training loss: 0.11429570615291595
+2024-09-03 16:16:32,816 - father_agent.py - Step: 590, Training loss: 0.09620475769042969
+2024-09-03 16:16:33,455 - father_agent.py - Step: 600, Training loss: 0.11591970920562744
+2024-09-03 16:16:34,751 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:36,498 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:43,611 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:47,059 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:47,515 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:49,960 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:51,417 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:52,692 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:53,450 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:54,425 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:55,655 - father_agent.py - Average Return = 4.274996757507324
+2024-09-03 16:16:55,655 - father_agent.py - Average Virtual Goal Value = 125.0
+2024-09-03 16:16:55,655 - father_agent.py - Goal Reach Probability = 0.25
+2024-09-03 16:16:55,943 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:56,264 - father_agent.py - Step: 610, Training loss: 0.11455383896827698
+2024-09-03 16:16:56,856 - father_agent.py - Step: 620, Training loss: 0.11607853323221207
+2024-09-03 16:16:57,455 - father_agent.py - Step: 630, Training loss: 0.09562526643276215
+2024-09-03 16:16:58,042 - father_agent.py - Step: 640, Training loss: 0.10426373779773712
+2024-09-03 16:16:58,141 - environment_wrapper.py - Goal reached!
+2024-09-03 16:16:58,641 - father_agent.py - Step: 650, Training loss: 0.10543818771839142
+2024-09-03 16:16:59,231 - father_agent.py - Step: 660, Training loss: 0.08090811967849731
+2024-09-03 16:16:59,822 - father_agent.py - Step: 670, Training loss: 0.09679023176431656
+2024-09-03 16:17:00,416 - father_agent.py - Step: 680, Training loss: 0.1031937301158905
+2024-09-03 16:17:00,463 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:01,003 - father_agent.py - Step: 690, Training loss: 0.10435892641544342
+2024-09-03 16:17:01,593 - father_agent.py - Step: 700, Training loss: 0.0837290957570076
+2024-09-03 16:17:02,608 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:02,864 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:02,984 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:04,263 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:05,865 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:06,840 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:07,020 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:07,207 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:08,518 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:09,468 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:11,364 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:11,527 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:13,602 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:14,396 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:16,006 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:16,331 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:17,299 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:19,642 - father_agent.py - Average Return = 3.8749969005584717
+2024-09-03 16:17:19,642 - father_agent.py - Average Virtual Goal Value = 212.5
+2024-09-03 16:17:19,642 - father_agent.py - Goal Reach Probability = 0.425
+2024-09-03 16:17:20,225 - father_agent.py - Step: 710, Training loss: 0.09988819062709808
+2024-09-03 16:17:20,808 - father_agent.py - Step: 720, Training loss: 0.09333919733762741
+2024-09-03 16:17:21,395 - father_agent.py - Step: 730, Training loss: 0.10888773947954178
+2024-09-03 16:17:21,978 - father_agent.py - Step: 740, Training loss: 0.08702360838651657
+2024-09-03 16:17:22,559 - father_agent.py - Step: 750, Training loss: 0.09170114994049072
+2024-09-03 16:17:23,110 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:23,146 - father_agent.py - Step: 760, Training loss: 0.1042577475309372
+2024-09-03 16:17:23,723 - father_agent.py - Step: 770, Training loss: 0.11335441470146179
+2024-09-03 16:17:24,308 - father_agent.py - Step: 780, Training loss: 0.11392207443714142
+2024-09-03 16:17:24,886 - father_agent.py - Step: 790, Training loss: 0.0860522985458374
+2024-09-03 16:17:25,475 - father_agent.py - Step: 800, Training loss: 0.09691264480352402
+2024-09-03 16:17:26,301 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:26,600 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:26,806 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:28,342 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:29,889 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:33,728 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:37,615 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:38,974 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:39,729 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:43,882 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:44,093 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:45,870 - father_agent.py - Average Return = 3.9999969005584717
+2024-09-03 16:17:45,870 - father_agent.py - Average Virtual Goal Value = 137.5
+2024-09-03 16:17:45,870 - father_agent.py - Goal Reach Probability = 0.275
+2024-09-03 16:17:46,459 - father_agent.py - Step: 810, Training loss: 0.08960556238889694
+2024-09-03 16:17:47,051 - father_agent.py - Step: 820, Training loss: 0.10838262736797333
+2024-09-03 16:17:47,636 - father_agent.py - Step: 830, Training loss: 0.1022842675447464
+2024-09-03 16:17:48,221 - father_agent.py - Step: 840, Training loss: 0.08864879608154297
+2024-09-03 16:17:48,806 - father_agent.py - Step: 850, Training loss: 0.08759136497974396
+2024-09-03 16:17:48,884 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:49,401 - father_agent.py - Step: 860, Training loss: 0.08924838900566101
+2024-09-03 16:17:49,993 - father_agent.py - Step: 870, Training loss: 0.08414635807275772
+2024-09-03 16:17:50,585 - father_agent.py - Step: 880, Training loss: 0.07825364172458649
+2024-09-03 16:17:51,089 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:51,181 - father_agent.py - Step: 890, Training loss: 0.09454065561294556
+2024-09-03 16:17:51,765 - father_agent.py - Step: 900, Training loss: 0.1008431687951088
+2024-09-03 16:17:55,797 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:56,302 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:57,923 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:58,436 - environment_wrapper.py - Goal reached!
+2024-09-03 16:17:58,571 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:03,467 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:04,837 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:08,450 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:09,222 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:11,175 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:12,053 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:12,055 - father_agent.py - Average Return = 3.7750000953674316
+2024-09-03 16:18:12,055 - father_agent.py - Average Virtual Goal Value = 137.5
+2024-09-03 16:18:12,055 - father_agent.py - Goal Reach Probability = 0.275
+2024-09-03 16:18:12,634 - father_agent.py - Step: 910, Training loss: 0.1021597757935524
+2024-09-03 16:18:12,949 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:13,216 - father_agent.py - Step: 920, Training loss: 0.11351098120212555
+2024-09-03 16:18:13,804 - father_agent.py - Step: 930, Training loss: 0.10271923243999481
+2024-09-03 16:18:14,382 - father_agent.py - Step: 940, Training loss: 0.10498179495334625
+2024-09-03 16:18:14,959 - father_agent.py - Step: 950, Training loss: 0.07679271697998047
+2024-09-03 16:18:15,548 - father_agent.py - Step: 960, Training loss: 0.09782292693853378
+2024-09-03 16:18:15,671 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:16,136 - father_agent.py - Step: 970, Training loss: 0.11646823585033417
+2024-09-03 16:18:16,714 - father_agent.py - Step: 980, Training loss: 0.10794441401958466
+2024-09-03 16:18:17,305 - father_agent.py - Step: 990, Training loss: 0.09241847693920135
+2024-09-03 16:18:17,885 - father_agent.py - Step: 1000, Training loss: 0.10586734116077423
+2024-09-03 16:18:19,991 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:21,473 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:25,098 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:25,424 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:25,647 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:26,766 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:27,733 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:28,132 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:28,443 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:29,730 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:32,947 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:33,922 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:34,283 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:36,988 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:38,147 - father_agent.py - Average Return = 3.7749969959259033
+2024-09-03 16:18:38,147 - father_agent.py - Average Virtual Goal Value = 175.0
+2024-09-03 16:18:38,147 - father_agent.py - Goal Reach Probability = 0.35
+2024-09-03 16:18:38,735 - father_agent.py - Step: 1010, Training loss: 0.07985775172710419
+2024-09-03 16:18:39,325 - father_agent.py - Step: 1020, Training loss: 0.09959407895803452
+2024-09-03 16:18:39,912 - father_agent.py - Step: 1030, Training loss: 0.08800169080495834
+2024-09-03 16:18:40,001 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:40,502 - father_agent.py - Step: 1040, Training loss: 0.10227208584547043
+2024-09-03 16:18:40,570 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:41,093 - father_agent.py - Step: 1050, Training loss: 0.11548654735088348
+2024-09-03 16:18:41,671 - father_agent.py - Step: 1060, Training loss: 0.09847207367420197
+2024-09-03 16:18:41,703 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:42,259 - father_agent.py - Step: 1070, Training loss: 0.11247295141220093
+2024-09-03 16:18:42,841 - father_agent.py - Step: 1080, Training loss: 0.10054698586463928
+2024-09-03 16:18:43,432 - father_agent.py - Step: 1090, Training loss: 0.11275531351566315
+2024-09-03 16:18:44,023 - father_agent.py - Step: 1100, Training loss: 0.10930152237415314
+2024-09-03 16:18:44,576 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:45,399 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:45,481 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:48,928 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:49,162 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:49,956 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:51,991 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:53,050 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:53,166 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:55,264 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:55,810 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:56,606 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:57,161 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:58,120 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:58,602 - environment_wrapper.py - Goal reached!
+2024-09-03 16:18:59,138 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:00,605 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:01,756 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:03,191 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:03,997 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:03,999 - father_agent.py - Average Return = 4.0749969482421875
+2024-09-03 16:19:03,999 - father_agent.py - Average Virtual Goal Value = 250.0
+2024-09-03 16:19:03,999 - father_agent.py - Goal Reach Probability = 0.5
+2024-09-03 16:19:04,428 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:04,592 - father_agent.py - Step: 1110, Training loss: 0.09407120943069458
+2024-09-03 16:19:05,183 - father_agent.py - Step: 1120, Training loss: 0.10086693614721298
+2024-09-03 16:19:05,770 - father_agent.py - Step: 1130, Training loss: 0.10986913740634918
+2024-09-03 16:19:06,359 - father_agent.py - Step: 1140, Training loss: 0.10712430626153946
+2024-09-03 16:19:06,944 - father_agent.py - Step: 1150, Training loss: 0.11245041340589523
+2024-09-03 16:19:07,549 - father_agent.py - Step: 1160, Training loss: 0.10128482431173325
+2024-09-03 16:19:08,132 - father_agent.py - Step: 1170, Training loss: 0.09480270743370056
+2024-09-03 16:19:08,719 - father_agent.py - Step: 1180, Training loss: 0.07453690469264984
+2024-09-03 16:19:09,319 - father_agent.py - Step: 1190, Training loss: 0.12413348257541656
+2024-09-03 16:19:09,910 - father_agent.py - Step: 1200, Training loss: 0.11602624505758286
+2024-09-03 16:19:11,025 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:11,541 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:12,495 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:14,328 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:15,023 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:16,612 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:17,498 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:20,369 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:22,242 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:22,752 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:23,204 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:24,148 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:24,208 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:25,236 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:26,310 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:26,705 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:26,841 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:29,154 - father_agent.py - Average Return = 3.8999969959259033
+2024-09-03 16:19:29,154 - father_agent.py - Average Virtual Goal Value = 212.5
+2024-09-03 16:19:29,154 - father_agent.py - Goal Reach Probability = 0.425
+2024-09-03 16:19:29,750 - father_agent.py - Step: 1210, Training loss: 0.0983961969614029
+2024-09-03 16:19:30,336 - father_agent.py - Step: 1220, Training loss: 0.10644645243883133
+2024-09-03 16:19:30,561 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:30,929 - father_agent.py - Step: 1230, Training loss: 0.08731886744499207
+2024-09-03 16:19:31,521 - father_agent.py - Step: 1240, Training loss: 0.09873327612876892
+2024-09-03 16:19:32,111 - father_agent.py - Step: 1250, Training loss: 0.14958328008651733
+2024-09-03 16:19:32,417 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:32,702 - father_agent.py - Step: 1260, Training loss: 0.1116233766078949
+2024-09-03 16:19:33,293 - father_agent.py - Step: 1270, Training loss: 0.09857022762298584
+2024-09-03 16:19:33,876 - father_agent.py - Step: 1280, Training loss: 0.07964742183685303
+2024-09-03 16:19:33,888 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:34,467 - father_agent.py - Step: 1290, Training loss: 0.07032357156276703
+2024-09-03 16:19:35,051 - father_agent.py - Step: 1300, Training loss: 0.1293860375881195
+2024-09-03 16:19:36,872 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:37,817 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:38,814 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:39,365 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:39,711 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:40,942 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:41,279 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:42,151 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:42,822 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:43,616 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:44,377 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:44,576 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:49,250 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:50,687 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:52,291 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:55,096 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:55,098 - father_agent.py - Average Return = 4.124997138977051
+2024-09-03 16:19:55,098 - father_agent.py - Average Virtual Goal Value = 200.0
+2024-09-03 16:19:55,098 - father_agent.py - Goal Reach Probability = 0.4
+2024-09-03 16:19:55,253 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:55,683 - father_agent.py - Step: 1310, Training loss: 0.12850448489189148
+2024-09-03 16:19:56,273 - father_agent.py - Step: 1320, Training loss: 0.08982615917921066
+2024-09-03 16:19:56,407 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:56,859 - father_agent.py - Step: 1330, Training loss: 0.07516229897737503
+2024-09-03 16:19:57,450 - father_agent.py - Step: 1340, Training loss: 0.07416023313999176
+2024-09-03 16:19:58,039 - father_agent.py - Step: 1350, Training loss: 0.09597368538379669
+2024-09-03 16:19:58,628 - father_agent.py - Step: 1360, Training loss: 0.14340849220752716
+2024-09-03 16:19:59,218 - father_agent.py - Step: 1370, Training loss: 0.14440253376960754
+2024-09-03 16:19:59,767 - environment_wrapper.py - Goal reached!
+2024-09-03 16:19:59,804 - father_agent.py - Step: 1380, Training loss: 0.08339463174343109
+2024-09-03 16:20:00,395 - father_agent.py - Step: 1390, Training loss: 0.07824206352233887
+2024-09-03 16:20:00,538 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:00,982 - father_agent.py - Step: 1400, Training loss: 0.07654862850904465
+2024-09-03 16:20:01,319 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:02,566 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:03,231 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:04,253 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:05,630 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:07,131 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:08,046 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:09,400 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:09,767 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:10,672 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:11,129 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:12,762 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:14,255 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:14,814 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:15,895 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:17,366 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:17,548 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:19,894 - father_agent.py - Average Return = 3.6999969482421875
+2024-09-03 16:20:19,894 - father_agent.py - Average Virtual Goal Value = 212.5
+2024-09-03 16:20:19,894 - father_agent.py - Goal Reach Probability = 0.425
+2024-09-03 16:20:20,488 - father_agent.py - Step: 1410, Training loss: 0.1510196030139923
+2024-09-03 16:20:21,077 - father_agent.py - Step: 1420, Training loss: 0.16617266833782196
+2024-09-03 16:20:21,665 - father_agent.py - Step: 1430, Training loss: 0.07678446173667908
+2024-09-03 16:20:22,250 - father_agent.py - Step: 1440, Training loss: 0.08994001150131226
+2024-09-03 16:20:22,832 - father_agent.py - Step: 1450, Training loss: 0.07062942534685135
+2024-09-03 16:20:23,421 - father_agent.py - Step: 1460, Training loss: 0.1067238375544548
+2024-09-03 16:20:23,752 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:24,003 - father_agent.py - Step: 1470, Training loss: 0.13554182648658752
+2024-09-03 16:20:24,584 - father_agent.py - Step: 1480, Training loss: 0.11454750597476959
+2024-09-03 16:20:25,172 - father_agent.py - Step: 1490, Training loss: 0.11285871267318726
+2024-09-03 16:20:25,753 - father_agent.py - Step: 1500, Training loss: 0.10918572545051575
+2024-09-03 16:20:27,963 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:28,184 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:35,267 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:36,737 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:37,214 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:44,152 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:44,287 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:45,222 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:46,224 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:46,492 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:46,494 - father_agent.py - Average Return = 4.024996757507324
+2024-09-03 16:20:46,494 - father_agent.py - Average Virtual Goal Value = 125.0
+2024-09-03 16:20:46,494 - father_agent.py - Goal Reach Probability = 0.25
+2024-09-03 16:20:47,083 - father_agent.py - Step: 1510, Training loss: 0.09372365474700928
+2024-09-03 16:20:47,586 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:47,668 - father_agent.py - Step: 1520, Training loss: 0.09743212163448334
+2024-09-03 16:20:48,251 - father_agent.py - Step: 1530, Training loss: 0.09867151081562042
+2024-09-03 16:20:48,624 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:48,829 - father_agent.py - Step: 1540, Training loss: 0.15763428807258606
+2024-09-03 16:20:49,411 - father_agent.py - Step: 1550, Training loss: 0.11384962499141693
+2024-09-03 16:20:49,990 - father_agent.py - Step: 1560, Training loss: 0.08708623051643372
+2024-09-03 16:20:50,577 - father_agent.py - Step: 1570, Training loss: 0.07770821452140808
+2024-09-03 16:20:51,169 - father_agent.py - Step: 1580, Training loss: 0.0803656280040741
+2024-09-03 16:20:51,749 - father_agent.py - Step: 1590, Training loss: 0.08654434978961945
+2024-09-03 16:20:52,329 - father_agent.py - Step: 1600, Training loss: 0.0957220271229744
+2024-09-03 16:20:55,110 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:55,227 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:58,053 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:58,727 - environment_wrapper.py - Goal reached!
+2024-09-03 16:20:59,024 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:01,149 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:01,275 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:01,961 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:02,104 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:02,784 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:02,953 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:04,441 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:05,239 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:07,279 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:08,671 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:10,418 - father_agent.py - Average Return = 3.9749999046325684
+2024-09-03 16:21:10,419 - father_agent.py - Average Virtual Goal Value = 187.5
+2024-09-03 16:21:10,419 - father_agent.py - Goal Reach Probability = 0.375
+2024-09-03 16:21:11,011 - father_agent.py - Step: 1610, Training loss: 0.1893955022096634
+2024-09-03 16:21:11,599 - father_agent.py - Step: 1620, Training loss: 0.12883292138576508
+2024-09-03 16:21:11,967 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:12,181 - father_agent.py - Step: 1630, Training loss: 0.09907396137714386
+2024-09-03 16:21:12,758 - father_agent.py - Step: 1640, Training loss: 0.09073563665151596
+2024-09-03 16:21:13,336 - father_agent.py - Step: 1650, Training loss: 0.07313278317451477
+2024-09-03 16:21:13,941 - father_agent.py - Step: 1660, Training loss: 0.07879848778247833
+2024-09-03 16:21:14,148 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:14,529 - father_agent.py - Step: 1670, Training loss: 0.10982386767864227
+2024-09-03 16:21:15,114 - father_agent.py - Step: 1680, Training loss: 0.1170235127210617
+2024-09-03 16:21:15,692 - father_agent.py - Step: 1690, Training loss: 0.11440441757440567
+2024-09-03 16:21:16,277 - father_agent.py - Step: 1700, Training loss: 0.10771156847476959
+2024-09-03 16:21:18,372 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:19,517 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:20,346 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:21,024 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:25,965 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:32,682 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:33,602 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:34,435 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:36,253 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:36,830 - father_agent.py - Average Return = 3.9749999046325684
+2024-09-03 16:21:36,830 - father_agent.py - Average Virtual Goal Value = 112.5
+2024-09-03 16:21:36,830 - father_agent.py - Goal Reach Probability = 0.225
+2024-09-03 16:21:37,479 - father_agent.py - Step: 1710, Training loss: 0.1166364848613739
+2024-09-03 16:21:38,061 - father_agent.py - Step: 1720, Training loss: 0.09320229291915894
+2024-09-03 16:21:38,647 - father_agent.py - Step: 1730, Training loss: 0.10922915488481522
+2024-09-03 16:21:39,232 - father_agent.py - Step: 1740, Training loss: 0.09684248268604279
+2024-09-03 16:21:39,809 - father_agent.py - Step: 1750, Training loss: 0.09141135215759277
+2024-09-03 16:21:40,391 - father_agent.py - Step: 1760, Training loss: 0.10892503708600998
+2024-09-03 16:21:40,973 - father_agent.py - Step: 1770, Training loss: 0.1048053652048111
+2024-09-03 16:21:41,485 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:41,562 - father_agent.py - Step: 1780, Training loss: 0.10616908967494965
+2024-09-03 16:21:42,150 - father_agent.py - Step: 1790, Training loss: 0.09948340058326721
+2024-09-03 16:21:42,727 - father_agent.py - Step: 1800, Training loss: 0.09470540285110474
+2024-09-03 16:21:45,941 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:47,781 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:51,147 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:52,415 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:54,425 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:56,598 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:56,665 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:56,993 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:58,895 - environment_wrapper.py - Goal reached!
+2024-09-03 16:21:59,915 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:00,030 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:02,337 - father_agent.py - Average Return = 4.025000095367432
+2024-09-03 16:22:02,337 - father_agent.py - Average Virtual Goal Value = 137.5
+2024-09-03 16:22:02,338 - father_agent.py - Goal Reach Probability = 0.275
+2024-09-03 16:22:02,931 - father_agent.py - Step: 1810, Training loss: 0.10513186454772949
+2024-09-03 16:22:03,080 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:03,521 - father_agent.py - Step: 1820, Training loss: 0.09757895022630692
+2024-09-03 16:22:04,106 - father_agent.py - Step: 1830, Training loss: 0.08334564417600632
+2024-09-03 16:22:04,693 - father_agent.py - Step: 1840, Training loss: 0.08650821447372437
+2024-09-03 16:22:04,909 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:05,274 - father_agent.py - Step: 1850, Training loss: 0.10790051519870758
+2024-09-03 16:22:05,423 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:05,865 - father_agent.py - Step: 1860, Training loss: 0.10411912202835083
+2024-09-03 16:22:06,447 - father_agent.py - Step: 1870, Training loss: 0.09480055421590805
+2024-09-03 16:22:07,033 - father_agent.py - Step: 1880, Training loss: 0.10532653331756592
+2024-09-03 16:22:07,246 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:07,622 - father_agent.py - Step: 1890, Training loss: 0.11145080626010895
+2024-09-03 16:22:08,210 - father_agent.py - Step: 1900, Training loss: 0.10371693968772888
+2024-09-03 16:22:09,217 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:09,337 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:10,448 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:11,164 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:11,510 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:11,899 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:13,910 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:16,963 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:17,752 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:18,398 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:18,834 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:21,986 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:23,486 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:26,215 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:27,371 - father_agent.py - Average Return = 3.9499969482421875
+2024-09-03 16:22:27,371 - father_agent.py - Average Virtual Goal Value = 175.0
+2024-09-03 16:22:27,371 - father_agent.py - Goal Reach Probability = 0.35
+2024-09-03 16:22:27,949 - father_agent.py - Step: 1910, Training loss: 0.08525119721889496
+2024-09-03 16:22:28,532 - father_agent.py - Step: 1920, Training loss: 0.1952069103717804
+2024-09-03 16:22:29,118 - father_agent.py - Step: 1930, Training loss: 0.12846918404102325
+2024-09-03 16:22:29,696 - father_agent.py - Step: 1940, Training loss: 0.0892309844493866
+2024-09-03 16:22:30,284 - father_agent.py - Step: 1950, Training loss: 0.08341514319181442
+2024-09-03 16:22:30,866 - father_agent.py - Step: 1960, Training loss: 0.0954086184501648
+2024-09-03 16:22:31,446 - father_agent.py - Step: 1970, Training loss: 0.14387303590774536
+2024-09-03 16:22:32,028 - father_agent.py - Step: 1980, Training loss: 0.12919020652770996
+2024-09-03 16:22:32,609 - father_agent.py - Step: 1990, Training loss: 0.09454715251922607
+2024-09-03 16:22:34,710 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:34,737 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:36,874 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:40,481 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:40,663 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:41,114 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:41,729 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:42,076 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:42,949 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:44,108 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:44,491 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:45,034 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:45,893 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:47,657 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:48,613 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:48,897 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:49,675 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:53,046 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:53,537 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:53,793 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:54,598 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:54,653 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:56,177 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:56,250 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:58,349 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:59,158 - environment_wrapper.py - Goal reached!
+2024-09-03 16:22:59,865 - environment_wrapper.py - Goal reached!
+2024-09-03 16:23:00,008 - environment_wrapper.py - Goal reached!
+2024-09-03 16:23:04,633 - environment_wrapper.py - Goal reached!
+2024-09-03 16:23:04,828 - environment_wrapper.py - Goal reached!
+2024-09-03 16:23:05,122 - environment_wrapper.py - Goal reached!
+2024-09-03 16:23:06,331 - environment_wrapper.py - Goal reached!
+2024-09-03 16:23:08,697 - environment_wrapper.py - Goal reached!
+2024-09-03 16:23:09,272 - father_agent.py - Average Return = 3.949998378753662
+2024-09-03 16:23:09,272 - father_agent.py - Average Virtual Goal Value = 206.25
+2024-09-03 16:23:09,272 - father_agent.py - Goal Reach Probability = 0.4125
+
+------------------------------------
+
+PAYNT results: 
+4.42855637384992
+controller size: 98
+
+Storm results: 
+8.593825846478637
+controller size: 2122
+
+------------------------------------
+

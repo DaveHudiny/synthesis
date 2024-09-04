@@ -89,13 +89,13 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic", "Periodic_FSC_Neural_PPO"]:
-            if learning_method != "Periodic_FSC_Neural_PPO":
+            if learning_method != "PPO":
                 continue
-            if not "mba" in model:
+            if not "obstacle" in model:
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue
-            for encoding_method in ["Valuations++"]:
+            for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,

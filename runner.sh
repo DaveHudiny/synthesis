@@ -15,7 +15,7 @@ run_saynt() {
     for entry in `ls $1`; do
         if [ -d $1/$entry ]; then
             echo "Running Paynt on $entry"
-            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 5 $1/$entry > $1/$entry/normalized_qvalues.txt
+            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 5 $1/$entry > $1/$entry/fixed_critic_FSC.txt
         fi
     done
 }

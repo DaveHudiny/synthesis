@@ -1,0 +1,142 @@
+2024-09-03 13:58:26,836 - cli.py - This is Paynt version 0.1.0.
+2024-09-03 13:58:26,836 - sketch.py - loading sketch from rl_src/models/super_intercept/sketch.templ ...
+2024-09-03 13:58:26,836 - sketch.py - assuming sketch in PRISM format...
+2024-09-03 13:58:26,847 - prism_parser.py - PRISM model type: POMDP
+2024-09-03 13:58:26,848 - prism_parser.py - loading properties from rl_src/models/super_intercept/sketch.props ...
+2024-09-03 13:58:26,848 - prism_parser.py - found the following specification: optimality: Pmax=? ["notbad" U "goal"] 
+2024-09-03 13:58:27,310 - sketch.py - sketch parsing OK
+2024-09-03 13:58:27,421 - sketch.py - converting state rewards 'steps' to state-action rewards
+2024-09-03 13:58:27,486 - sketch.py - constructed explicit quotient having 100801 states and 250657 actions
+2024-09-03 13:58:27,486 - property.py - converting until formula to eventually...
+2024-09-03 13:58:27,486 - sketch.py - found the following specification optimality: Pmax=? [F "goal"] 
+2024-09-03 13:58:27,549 - pomdp.py - constructed POMDP having 17346 observations.
+2024-09-03 13:58:28,198 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-09-03 13:58:28,296 - pomdp.py - constructed quotient MDP having 100801 states and 250657 actions.
+2024-09-03 13:58:30,245 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-09-03 13:58:30,355 - __init__.py - Creating converter from 7 to 5
+2024-09-03 13:58:30,355 - __init__.py - Creating converter from 5 to 7
+2024-09-03 13:58:30,355 - __init__.py - Creating converter from 7 to 5
+2024-09-03 13:58:30,355 - __init__.py - Creating converter from 5 to 7
+2024-09-03 13:58:30,998 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-09-03 13:58:30,998 - synthesizer_pomdp.py - Storm settings: iterative - (150, 10, 7), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-09-03 13:58:31,004 - synthesizer_pomdp.py - Timeout for PAYNT started
+> progress 0.0%, elapsed 3 s, estimated 3135104 s (36 days), iters = {MDP: 8}
+> progress 0.0%, elapsed 6 s, estimated 6309051 s (73 days), iters = {MDP: 15}
+> progress 0.0%, elapsed 9 s, estimated 9373577 s (108 days), iters = {MDP: 21}
+2024-09-03 13:58:41,213 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 13:58:41,260 - storm_pomdp_control.py - Interactive Storm started
+2024-09-03 13:58:41,260 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-09-03 13:58:51,270 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.8478865523602241 | Time elapsed = 30.0s | FSC size = 274876
+
+
+------------------------------------
+
+PAYNT results: 
+None
+controller size: None
+
+Storm results: 
+0.8478865523602241
+controller size: 274876
+
+------------------------------------
+
+2024-09-03 13:59:16,527 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 13:59:17,475 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 13:59:17,476 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 10.21 s
+number of holes: 8331, family size: 1e5015, quotient: 100801 states / 250657 actions
+explored: 0 %
+MDP stats: avg MDP size: 100545, iterations: 22
+
+feasible: no
+--------------------
+2024-09-03 13:59:17,503 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 13:59:17,507 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 13:59:17,531 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-09-03 13:59:18,018 - pomdp.py - constructed quotient MDP having 147421 states and 492420 actions.
+2024-09-03 13:59:20,554 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7089 to 1e2115
+2024-09-03 13:59:27,580 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 13:59:27,599 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 13:59:27,600 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 13:59:35,603 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.848673849221679 | Time elapsed = 79.2s | FSC size = 277764
+
+
+------------------------------------
+
+PAYNT results: 
+None
+controller size: None
+
+Storm results: 
+0.848673849221679
+controller size: 277764
+
+------------------------------------
+
+2024-09-03 14:00:08,875 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 14:00:09,762 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 14:00:09,763 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 1.32 s
+number of holes: 12276, family size: 1e7089, quotient: 147421 states / 492420 actions
+explored: 0 %
+MDP stats: avg MDP size: 110493, iterations: 1
+
+feasible: no
+--------------------
+2024-09-03 14:00:09,769 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 14:00:09,771 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 14:00:09,806 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-09-03 14:00:10,350 - pomdp.py - constructed quotient MDP having 151367 states and 512797 actions.
+2024-09-03 14:00:12,303 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e7245 to 1e2275
+2024-09-03 14:00:19,588 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 14:00:19,682 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 14:00:19,682 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 14:00:27,691 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 0.8486874453991756 | Time elapsed = 137.0s | FSC size = 281602
+
+
+------------------------------------
+
+PAYNT results: 
+None
+controller size: None
+
+Storm results: 
+0.8486874453991756
+controller size: 281602
+
+------------------------------------
+
+2024-09-03 14:01:10,801 - synthesizer_ar_storm.py - Terminating controller synthesis
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 12582, family size: 1e7245, quotient: 151367 states / 512797 actions
+explored: 0 %
+
+feasible: no
+--------------------
+2024-09-03 14:01:10,805 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 14:01:10,813 - storm_pomdp_control.py - Storm POMDP analysis completed
