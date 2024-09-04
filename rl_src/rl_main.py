@@ -192,12 +192,17 @@ class Initializer:
         self.pomdp_model = self.initialize_prism_model()
         logger.info("Model initialized")
         if random_init_simulator:
+            sketch_path = self.args.prism_model
+            props_path = self.args.prism_properties
+            # qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
+            qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
+                sketch_path, props_path)
             self.second_pomdp_model = self.initialize_prism_model() # Second instance of StormPy model
             self.args.random_start_simulator = False
             rand_args = copy.deepcopy(self.args)
             rand_args.random_start_simulator = True
             self.environment = {"eval_model": Environment_Wrapper(self.pomdp_model, self.args),
-                                "train_model": Environment_Wrapper(self.second_pomdp_model, rand_args)}
+                                "train_model": Environment_Wrapper(self.second_pomdp_model, rand_args, qvalues_table)}
         else:
             self.environment = Environment_Wrapper(self.pomdp_model, self.args)
         if parallelized:

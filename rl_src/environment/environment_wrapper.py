@@ -245,10 +245,14 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation, self.stormpy_model, self.simulator._report_state())
             return tf.constant(observation_vector, dtype=tf.float32)
         
-    def _uniformly_change_init_state(self, nr_states):
-        index = np.random.randint(0, nr_states)
+    def _set_init_state(self, index : int = 0):
+        nr_states = self.stormpy_model.nr_states
         indices_bitvector = stormpy.BitVector(nr_states, [index])
-        self.stormpy_model.set_initial_states(indices_bitvector)
+        
+    def _uniformly_change_init_state(self):
+        nr_states = self.stormpy_model.nr_states
+        index = np.random.randint(0, nr_states)
+        self._set_init_state(index)
 
     def sort_q_values(self, q_values_table) -> tf.Tensor:
         maximums = tf.reduce_max(q_values_table, axis=-1)
@@ -274,14 +278,22 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         probabilities = self.compute_rank_based_probabilities(selection_pressure, self.arg_sorted_q_values)
         index = tfp.distributions.Categorical(probs=probabilities)
         return index
+    
+    def _change_init_state_by_q_values_ranked(self):
+        index = self._rank_selection()
+        self._set_init_state(index)
         
     def _restart_simulator(self):
         if self.random_start_simulator:
             nr_states = self.stormpy_model.nr_states
-            self._uniformly_change_init_state(nr_states)
+            if self.q_values_table is None:
+                randomly_change_init_state = self._uniformly_change_init_state
+            else:
+                randomly_change_init_state = self._rank_selection
+            randomly_change_init_state()
             stepino = self.simulator.restart()
             while self.simulator.is_done():
-                self._uniformly_change_init_state(nr_states)
+                randomly_change_init_state()
                 stepino = self.simulator.restart()
             return stepino
         else:

@@ -93,6 +93,8 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue
+            if model not in "mba":
+                continue
             for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
