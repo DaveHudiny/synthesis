@@ -5,6 +5,7 @@
 
 import numpy as np
 import tensorflow as tf
+import tensorflow_probability as tfp
 
 from stormpy import simulator
 from stormpy.storage import storage
@@ -36,7 +37,7 @@ logging.basicConfig(level=logging.INFO)
 class Environment_Wrapper(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
-    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator):
+    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table : list[list] = None):
         """Initializes the environment wrapper.
         
         Args:
@@ -93,6 +94,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
         self.random_start_simulator = self.args.random_start_simulator
         self.original_init_state = self.stormpy_model.initial_states
+        self.q_values_table = q_values_table
         
     def create_new_environment(self):
         return Environment_Wrapper(self.stormpy_model, self.args)
@@ -247,6 +249,31 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         index = np.random.randint(0, nr_states)
         indices_bitvector = stormpy.BitVector(nr_states, [index])
         self.stormpy_model.set_initial_states(indices_bitvector)
+
+    def sort_q_values(self, q_values_table) -> tf.Tensor:
+        maximums = tf.reduce_max(q_values_table, axis=-1)
+        sorted_qvalues = tf.argsort(maximums, direction="DESCENDING")
+        return sorted_qvalues
+
+    @tf.function
+    def compute_rank_based_probabilities(self, selection_pressure, arg_sorted_q_values, n) -> tf.Tensor:
+        probabilities = (self.sorted_q_values - 1) / (n - 1)
+        probabilities = (2 * selection_pressure - 2) * probabilities
+        probabilities = (selection_pressure - probabilities) / n
+        return probabilities
+    
+    def _rank_selection(self, selection_pressure : float = 1.5) -> int:
+        """Selection based on rank selection in genetic algorithms. See https://en.wikipedia.org/wiki/Selection_(genetic_algorithm).
+
+        Args:
+            selection_pressure (float): Rate of selection pressure. 1 means totally random, 2 means high selection pressure.
+        """
+        n = self.stormpy_model.nr_states
+        if not hasattr(self, "arg_sorted_qvalues"):
+            self.arg_sorted_q_values = self.sort_q_values(self.q_values_table)
+        probabilities = self.compute_rank_based_probabilities(selection_pressure, self.arg_sorted_q_values)
+        index = tfp.distributions.Categorical(probs=probabilities)
+        return index
         
     def _restart_simulator(self):
         if self.random_start_simulator:

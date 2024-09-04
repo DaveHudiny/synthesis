@@ -61,7 +61,7 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
                     save_dictionaries(name_of_experiment, model, learning_method,
                                     quality_typ, obs_action_dict, memory_dict, labels)
                 except:
-                    print(obs_action_dict.keys())
+                    print(dicts)
                     
         else:
             try:
@@ -89,9 +89,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic", "Periodic_FSC_Neural_PPO"]:
-            if learning_method != "Stochastic_PPO":
-                continue
-            if not "refuel" in model:
+            if not (learning_method in ["Stochastic_PPO", "PPO"]):
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue

@@ -319,7 +319,7 @@ class Initializer:
 
     def tracing_interpretation(self, with_refusing=None):
         interpret = TracingInterpret(self.environment, self.tf_environment,
-                                     self.args.encoding_method, self.environment._possible_observations)
+                                     self.args.encoding_method)
         for quality in ["last", "best"]:
             logger.info(f"Interpreting agent with {quality} quality")
             if with_refusing == None:

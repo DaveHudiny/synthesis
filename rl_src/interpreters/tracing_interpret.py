@@ -17,10 +17,10 @@ class ResultInfo:
                             "max_step_end", "unknown_end"]
         self.ending_stats_dict = {key: 0 for key in self.ending_list}
 
-    def update_ending_stats(self, steps, max_steps, is_done, report_labels):
+    def update_ending_stats(self, steps, max_steps, is_done, report_labels, is_goal_state : callable):
         if steps >= max_steps:
             self.ending_stats_dict["max_step_end"] += 1
-        elif is_done and ('goal' in report_labels or 'done' in report_labels):
+        elif is_done and is_goal_state(report_labels):
             self.ending_stats_dict["goal_end"] += 1
         elif is_done and 'traps' in report_labels:
             self.ending_stats_dict["trap_end"] += 1
@@ -38,7 +38,7 @@ class TracingInterpret(Interpret):
     Result of the tracing is a dictionary of observations to actions, which is usable by the Paynt."""
 
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
-                 encoding_type="One-Hot", possible_observations=None):
+                 encoding_type="One-Hot"):
         """Initializes the TracingInterpret class.
 
         Args:
@@ -47,19 +47,19 @@ class TracingInterpret(Interpret):
             encoding_type (str, optional): The encoding type of the observations. Defaults to "One-Hot".
             possible_observations (list, optional): The list of possible observations. Important when working with One-Hot encoding. Defaults to None."
         """
-        self.environment = self.parse_environment(environment)
+        self.environment, _ = self.parse_environment(environment)
         self.tf_environment, _ = self.parse_tf_environment(tf_environment)
         self.obs_action_dict = {}
         self.encoding_type = encoding_type
-        self.possible_observations = possible_observations
+        self.possible_observations = self.environment._possible_observations
 
-    def parse_environment(self, environment):
+    def parse_environment(self, environment) -> tuple[Environment_Wrapper, Environment_Wrapper]:
         if isinstance(environment, dict):
             return environment["eval_model"], environment["train_model"]
         else:
             return environment, environment
 
-    def parse_tf_environment(self, tf_environment):
+    def parse_tf_environment(self, tf_environment) -> tuple[tf_py_environment.TFPyEnvironment, tf_py_environment.TFPyEnvironment]:
         if isinstance(tf_environment, dict):
             return tf_environment["eval_sim"], tf_environment["train_sim"]
         else:
@@ -220,7 +220,7 @@ class TracingInterpret(Interpret):
                 steps += 1
                 reward += time_step.reward
             labels = self.environment.simulator._report_labels()
-            if 'goal' in labels:
+            if self.environment.is_goal_state(labels):
                 reward -= self.environment.goal_value
             else:
                 reward -= time_step.reward  # Removing the last reward (goal)
@@ -228,12 +228,12 @@ class TracingInterpret(Interpret):
             step_rewards.append(reward.numpy())
             final_rewards.append(goal_reward.numpy())
             if with_refusing:
-                if time_step.is_last() and ('goal' in labels or 'done' in labels):
+                if time_step.is_last() and self.environment.is_goal_state(labels):
                     self.obs_act_dict = self.merge_dicts(
                         self.obs_act_dict, self.aux_obs_act_dict)
 
             result_info.update_ending_stats(steps, self.environment._max_steps, time_step.is_last(),
-                                            self.environment.simulator._report_labels())
+                                            self.environment.simulator._report_labels(), self.environment.is_goal_state)
 
         logger.info(f"{result_info}")
         logger.info(f"Average reward without goal: {np.mean(step_rewards)}")
