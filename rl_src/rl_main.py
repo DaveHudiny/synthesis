@@ -26,6 +26,7 @@ from tools.evaluators import *
 from environment.environment_wrapper import *
 from environment.pomdp_builder import *
 from tools.args_emulator import ArgsEmulator
+from tools.weight_initialization import WeightInitializationMethods 
 
 import tensorflow as tf
 import sys
@@ -33,6 +34,7 @@ import os
 import rl_parser
 
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -186,43 +188,32 @@ class Initializer:
                 time_step = next_time_step
                 is_last = time_step.is_last()
 
-    def initialize_environment(self, parallelized: bool = False, num_parallel_environments: int = 4):
+    def initialize_environment(self, parallelized: bool = False, num_parallel_environments: int = 4, random_init_simulator : bool = False):
         self.pomdp_model = self.initialize_prism_model()
         logger.info("Model initialized")
-        self.environment = Environment_Wrapper(self.pomdp_model, self.args)
+        if random_init_simulator:
+            self.second_pomdp_model = self.initialize_prism_model() # Second instance of StormPy model
+            self.args.random_start_simulator = False
+            rand_args = copy.deepcopy(self.args)
+            rand_args.random_start_simulator = True
+            self.environment = {"eval_model": Environment_Wrapper(self.pomdp_model, self.args),
+                                "train_model": Environment_Wrapper(self.second_pomdp_model, rand_args)}
+        else:
+            self.environment = Environment_Wrapper(self.pomdp_model, self.args)
         if parallelized:
             tf_environment = parallel_py_environment.ParallelPyEnvironment(
                 [self.environment.create_new_environment] * num_parallel_environments)
         else:
-            tf_environment = tf_py_environment.TFPyEnvironment(
-                self.environment)
+            if random_init_simulator:
+                tf_environment = {"eval_sim": tf_py_environment.TFPyEnvironment(self.environment["eval_model"]),
+                                  "train_sim": tf_py_environment.TFPyEnvironment(self.environment["train_model"])}
+            else:
+                tf_environment = tf_py_environment.TFPyEnvironment(
+                        self.environment)
         logger.info("Environment initialized")
         return tf_environment
 
-    def select_best_starting_weights(self, agent: FatherAgent):
-        logger.info("Selecting best starting weights")
-        best_cumulative_return, best_average_last_episode_return, _ = compute_average_return(
-            agent.get_evaluation_policy(), self.tf_environment, self.args.evaluation_episodes)
-        agent.save_agent()
-        for i in range(self.args.restart_weights):
-            logger.info(f"Restarting weights {i + 1}")
-            agent.reset_weights()
-            cumulative_return, average_last_episode_return, _ = compute_average_return(
-                agent.get_evaluation_policy(), self.tf_environment, self.args.evaluation_episodes)
-            if average_last_episode_return > best_average_last_episode_return:
-                best_cumulative_return = cumulative_return
-                best_average_last_episode_return = average_last_episode_return
-                agent.save_agent()
-            elif average_last_episode_return == best_average_last_episode_return:
-                if cumulative_return > best_cumulative_return:
-                    best_cumulative_return = cumulative_return
-                    agent.save_agent()
-        logger.info(f"Best cumulative return: {best_cumulative_return}")
-        logger.info(
-            f"Best average last episode return: {best_average_last_episode_return}")
-        logger.info("Agent with best ")
-        agent.load_agent()
-        return agent
+    
 
     def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
@@ -273,6 +264,19 @@ class Initializer:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
         return agent
+    
+    def get_tf_environment_eval(self):
+        if isinstance(self.tf_environment, dict):
+            return self.tf_environment["eval_sim"]
+        else:
+            return self.tf_environment
+        
+    def get_tf_environment_train(self):
+        if isinstance(self.tf_environment, dict):
+            return self.tf_environment["train_sim"]
+        else:
+            return self.tf_environment
+
 
     def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
@@ -284,7 +288,8 @@ class Initializer:
         agent = self.select_agent_type(
             qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
         if self.args.restart_weights > 0:
-            agent = self.select_best_starting_weights(agent)
+            tf_environment = self.get_tf_environment_eval()
+            agent = WeightInitializationMethods.select_best_starting_weights(agent, tf_environment, self.args)
         return agent
 
     def initialize_fsc_agent(self):
@@ -336,9 +341,10 @@ class Initializer:
         try:
             self.asserts()
         except ValueError as e:
+
             logger.error(e)
             return
-        self.tf_environment = self.initialize_environment()
+        self.tf_environment = self.initialize_environment(random_init_simulator=self.args.random_start_simulator)
         if self.args.evaluate_random_policy:  # Evaluate random policy
             return self.evaluate_random_policy()
 

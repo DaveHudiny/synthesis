@@ -50,9 +50,8 @@ class Recurrent_PPO_agent(FatherAgent):
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(
             learning_rate=args.learning_rate, clipnorm=1.0)
-
+        tf_environment = self.tf_environment
         action_spec = tf_environment.action_spec()
-
         self.actor_net = create_recurrent_actor_net_demasked(
             tf_environment, action_spec)
         
@@ -79,7 +78,8 @@ class Recurrent_PPO_agent(FatherAgent):
         logging.info("Agent initialized")
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_collector_driver(tf_environment)
+
+        self.init_collector_driver(self.tf_environment_train)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         if load:

@@ -24,6 +24,7 @@ class Recurrent_DDQN_agent(FatherAgent):
     def __init__(self, environment : Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
+        tf_environment = self.tf_environment
         optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=1.0)
         # preprocessing_layer = tf.keras.layers.Dense(32, activation='relu')
         layer_params = (50, 50, )
@@ -59,11 +60,11 @@ class Recurrent_DDQN_agent(FatherAgent):
         logging.info("Agent initialized")
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_collector_driver(tf_environment)
+        self.init_collector_driver(self.tf_environment_train)
         logging.info("Collector driver initialized")
         if load:
             self.load_agent()
-        self.init_random_collector_driver(tf_environment)
+        self.init_random_collector_driver(self.tf_environment_train)
 
 
     def reset_weights(self):

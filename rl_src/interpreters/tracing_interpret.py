@@ -47,11 +47,23 @@ class TracingInterpret(Interpret):
             encoding_type (str, optional): The encoding type of the observations. Defaults to "One-Hot".
             possible_observations (list, optional): The list of possible observations. Important when working with One-Hot encoding. Defaults to None."
         """
-        self.environment = environment
-        self.tf_environment = tf_environment
+        self.environment = self.parse_environment(environment)
+        self.tf_environment, _ = self.parse_tf_environment(tf_environment)
         self.obs_action_dict = {}
         self.encoding_type = encoding_type
         self.possible_observations = possible_observations
+
+    def parse_environment(self, environment):
+        if isinstance(environment, dict):
+            return environment["eval_model"], environment["train_model"]
+        else:
+            return environment, environment
+
+    def parse_tf_environment(self, tf_environment):
+        if isinstance(tf_environment, dict):
+            return tf_environment["eval_sim"], tf_environment["train_sim"]
+        else:
+            return tf_environment, tf_environment
 
     def create_observation_prioritizer_by_sorting(self, obs_act_dict_counts):
         """Creates the observation prioritizer by sorting the observations.

@@ -89,9 +89,9 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic", "Periodic_FSC_Neural_PPO"]:
-            if learning_method != "PPO":
+            if learning_method != "Stochastic_PPO":
                 continue
-            if not "obstacle" in model:
+            if not "refuel" in model:
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue
@@ -101,7 +101,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=150, evaluation_antigoal=-150, trajectory_num_steps=30, discount_factor=0.99,
-                                    normalize_simulator_rewards=True, buffer_size=500)
+                                    normalize_simulator_rewards=True, buffer_size=5000, random_start_simulator=True)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")

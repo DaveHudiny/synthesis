@@ -29,6 +29,7 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
                  args, load=False, agent_folder=None, qvalues_table=None, action_labels_at_observation=None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
+        tf_environment = self.tf_environment
         self.agent = None
         self.policy_state = None
         assert qvalues_table is not None  # Q-values function must be provided
@@ -71,7 +72,7 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
         self.args.prefer_stochastic = True
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_collector_driver(tf_environment)
+        self.init_collector_driver(self.tf_environment_train)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy

@@ -243,12 +243,20 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation, self.stormpy_model, self.simulator._report_state())
             return tf.constant(observation_vector, dtype=tf.float32)
         
+    def _uniformly_change_init_state(self, nr_states):
+        index = np.random.randint(0, nr_states)
+        indices_bitvector = stormpy.BitVector(nr_states, [index])
+        self.stormpy_model.set_initial_states(indices_bitvector)
+        
     def _restart_simulator(self):
         if self.random_start_simulator:
             nr_states = self.stormpy_model.nr_states
-            index = np.random.randint(0, nr_states)
-            indices_bitvector = stormpy.BitVector(nr_states, [index])
-            model.set_initial_states(indices_bitvector)
+            self._uniformly_change_init_state(nr_states)
+            stepino = self.simulator.restart()
+            while self.simulator.is_done():
+                self._uniformly_change_init_state(nr_states)
+                stepino = self.simulator.restart()
+            return stepino
         else:
             return self.simulator.restart()
 
@@ -256,7 +264,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
         self._finished = False
         self._num_steps = 0
-        stepino = self._restart_simulator
+        stepino = self._restart_simulator()
         self.labels = list(self.simulator._report_labels())
         self.virtual_value = tf.constant(0.0, dtype=tf.float32)
         observation = stepino[0]
