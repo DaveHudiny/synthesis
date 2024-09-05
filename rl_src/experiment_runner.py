@@ -61,7 +61,7 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
                     save_dictionaries(name_of_experiment, model, learning_method,
                                     quality_typ, obs_action_dict, memory_dict, labels)
                 except:
-                    print(dicts)
+                    logger.error("Storing dictionaries failed!")
                     
         else:
             try:
@@ -72,7 +72,7 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
                 save_dictionaries(name_of_experiment, model, learning_method,
                                 refusing, obs_action_dict, memory_dict, labels)
             except:
-                print("Saving stats failed")
+                logger.error("Saving stats failed!")
 
     # Save evaluation results, if file exists, write to new file.
     save_statistics_to_new_json(name_of_experiment, model, learning_method, 
@@ -93,7 +93,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue
-            if model not in "mba":
+            if not "mba" in model:
                 continue
             for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
@@ -108,4 +108,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_qvalues_fsc", "./models")
+    run_experiments("experiments_large_q_inits", "./models")

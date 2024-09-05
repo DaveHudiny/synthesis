@@ -31,7 +31,12 @@ OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
 import logging
+
+logger = logging.getLogger(__name__)
+
 logging.basicConfig(level=logging.INFO)
+
+
 
 
 class Environment_Wrapper(py_environment.PyEnvironment):
@@ -256,26 +261,32 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
     def sort_q_values(self, q_values_table) -> tf.Tensor:
         maximums = tf.reduce_max(q_values_table, axis=-1)
-        sorted_qvalues = tf.argsort(maximums, direction="DESCENDING")
-        return sorted_qvalues
+        arg_sorted_qvalues = tf.argsort(maximums, direction="DESCENDING")
+        rank_tensor = tf.zeros_like(maximums, dtype=tf.int32)
+        rank_tensor = tf.tensor_scatter_nd_update(rank_tensor, 
+                                                tf.expand_dims(arg_sorted_qvalues, axis=1), 
+                                                tf.range(tf.size(maximums)))
+        logger.info("Computed q-values ranking.")
+        return rank_tensor + 1
+
 
     @tf.function
     def compute_rank_based_probabilities(self, selection_pressure, arg_sorted_q_values, n) -> tf.Tensor:
-        probabilities = (self.sorted_q_values - 1) / (n - 1)
+        probabilities = (arg_sorted_q_values - 1) / (n - 1)
         probabilities = (2 * selection_pressure - 2) * probabilities
         probabilities = (selection_pressure - probabilities) / n
         return probabilities
     
-    def _rank_selection(self, selection_pressure : float = 1.5) -> int:
+    def _rank_selection(self, selection_pressure : float = 1.2) -> int:
         """Selection based on rank selection in genetic algorithms. See https://en.wikipedia.org/wiki/Selection_(genetic_algorithm).
-
+        
         Args:
             selection_pressure (float): Rate of selection pressure. 1 means totally random, 2 means high selection pressure.
         """
         n = self.stormpy_model.nr_states
-        if not hasattr(self, "arg_sorted_qvalues"):
-            self.arg_sorted_q_values = self.sort_q_values(self.q_values_table)
-        probabilities = self.compute_rank_based_probabilities(selection_pressure, self.arg_sorted_q_values)
+        if not hasattr(self, "q_values_ranking"):
+            self.q_values_ranking = self.sort_q_values(self.q_values_table)
+        probabilities = self.compute_rank_based_probabilities(selection_pressure, self.q_values_ranking, n)
         index = tfp.distributions.Categorical(probs=probabilities)
         return index
     
@@ -285,7 +296,6 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         
     def _restart_simulator(self):
         if self.random_start_simulator:
-            nr_states = self.stormpy_model.nr_states
             if self.q_values_table is None:
                 randomly_change_init_state = self._uniformly_change_init_state
             else:
