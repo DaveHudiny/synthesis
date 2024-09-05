@@ -100,7 +100,21 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.random_start_simulator = self.args.random_start_simulator
         self.original_init_state = self.stormpy_model.initial_states
         self.q_values_table = q_values_table
-        
+
+    def set_random_starts_simulation(self, flag : bool = True):
+        self.random_start_simulator = flag
+        if not flag:
+            nr_states = self.stormpy_model.nr_states
+            bitvector = stormpy.BitVector(nr_states, self.original_init_state)
+            self.stormpy_model.set_initial_states(bitvector)
+
+    def set_new_qvalues_table(self, qvalues_table):
+        self.q_values_table = qvalues_table
+        self.q_values_ranking = None # Because we want to re-compute the ranking later
+
+    def set_selection_pressure(self, sp : float = 1.5):
+        self.selection_pressure = sp
+
     def create_new_environment(self):
         return Environment_Wrapper(self.stormpy_model, self.args)
 
@@ -253,12 +267,14 @@ class Environment_Wrapper(py_environment.PyEnvironment):
     def _set_init_state(self, index : int = 0):
         nr_states = self.stormpy_model.nr_states
         indices_bitvector = stormpy.BitVector(nr_states, [index])
+        self.stormpy_model.set_initial_states(indices_bitvector)
         
     def _uniformly_change_init_state(self):
         nr_states = self.stormpy_model.nr_states
         index = np.random.randint(0, nr_states)
         self._set_init_state(index)
 
+    @tf.function
     def sort_q_values(self, q_values_table) -> tf.Tensor:
         maximums = tf.reduce_max(q_values_table, axis=-1)
         arg_sorted_qvalues = tf.argsort(maximums, direction="DESCENDING")
@@ -266,7 +282,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         rank_tensor = tf.tensor_scatter_nd_update(rank_tensor, 
                                                 tf.expand_dims(arg_sorted_qvalues, axis=1), 
                                                 tf.range(tf.size(maximums)))
-        logger.info("Computed q-values ranking.")
+        # logger.info("Computed q-values ranking.")
         return rank_tensor + 1
 
 
@@ -277,21 +293,28 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         probabilities = (selection_pressure - probabilities) / n
         return probabilities
     
-    def _rank_selection(self, selection_pressure : float = 1.2) -> int:
+    def _rank_selection(self, selection_pressure : float = 1.4) -> int:
         """Selection based on rank selection in genetic algorithms. See https://en.wikipedia.org/wiki/Selection_(genetic_algorithm).
-        
+
         Args:
             selection_pressure (float): Rate of selection pressure. 1 means totally random, 2 means high selection pressure.
         """
         n = self.stormpy_model.nr_states
-        if not hasattr(self, "q_values_ranking"):
+        updated = False
+        if not hasattr(self, "q_values_ranking") or self.q_values_ranking is None:
             self.q_values_ranking = self.sort_q_values(self.q_values_table)
-        probabilities = self.compute_rank_based_probabilities(selection_pressure, self.q_values_ranking, n)
-        index = tfp.distributions.Categorical(probs=probabilities)
+            updated = True
+        if updated or (not hasattr(self, "dist")) or self.dist is None:
+            probabilities = self.compute_rank_based_probabilities(selection_pressure, self.q_values_ranking, n)
+            self.dist = tfp.distributions.Categorical(probs=probabilities)
+        index = self.dist.sample().numpy()
         return index
     
     def _change_init_state_by_q_values_ranked(self):
-        index = self._rank_selection()
+        if hasattr(self, "selection_pressure"):
+            index = self._rank_selection(self.selection_pressure)
+        else:
+            index = self._rank_selection()
         self._set_init_state(index)
         
     def _restart_simulator(self):
@@ -299,7 +322,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             if self.q_values_table is None:
                 randomly_change_init_state = self._uniformly_change_init_state
             else:
-                randomly_change_init_state = self._rank_selection
+                randomly_change_init_state = self._change_init_state_by_q_values_ranked
             randomly_change_init_state()
             stepino = self.simulator.restart()
             while self.simulator.is_done():

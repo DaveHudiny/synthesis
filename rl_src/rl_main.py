@@ -60,7 +60,7 @@ class PAYNT_Playground:
                         len(qvalues[state])) if qvalues[state][i] is not None])
         return qvalues
 
-    @classmethod
+    @classmethod # Not a good implementation, if we work in a loop with multiple different models.
     def singleton_init_models(cls, sketch_path, properties_path):
         if not os.path.exists(sketch_path):
             raise ValueError(f"Sketch file {sketch_path} does not exist.")
@@ -76,7 +76,7 @@ class PAYNT_Playground:
     def compute_qvalues_function(cls):
         assignment = cls.synthesizer.synthesize()
         # before the quotient is modified we can use this assignment to compute Q-values
-        assert assignment is not None
+        assert assignment is not None, "Provided assignment cannot be None."
         qvalues = cls.quotient.compute_qvalues(assignment)
         # note Q(s,n) may be None if (s,n) exists in the unfolded POMDP but is not reachable in the induced DTMC
         memory_size = len(qvalues[0])
@@ -197,6 +197,7 @@ class Initializer:
             # qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
             qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
                 sketch_path, props_path)
+            # qvalues_table = None
             self.second_pomdp_model = self.initialize_prism_model() # Second instance of StormPy model
             self.args.random_start_simulator = False
             rand_args = copy.deepcopy(self.args)

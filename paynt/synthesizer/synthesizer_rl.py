@@ -371,7 +371,8 @@ class Synthesizer_RL:
 
     def __init__(self, stormpy_model, args: ArgsEmulator,
                  initial_fsc_multiplier: float = 1.0,
-                 qvalues: list = None, action_labels_at_observation: dict = None):
+                 qvalues: list = None, action_labels_at_observation: dict = None,
+                 random_init_starts_q_vals : bool = False):
         """Initialization of the interface.
         Args:
             stormpy_model: Model of the environment.
@@ -380,15 +381,21 @@ class Synthesizer_RL:
         """
 
         self.initializer = Initializer(args, stormpy_model)
+        self.random_initi_starts_q_vals = random_init_starts_q_vals
+        if random_init_starts_q_vals:
+            qvalues_env = qvalues
+
+        else:
+            qvalues_env = None
         self.initializer.environment = Environment_Wrapper(
-            self.initializer.pomdp_model, args)
+            self.initializer.pomdp_model, args, q_values_table=qvalues_env)
+    
         self.initializer.tf_environment = tf_py_environment.TFPyEnvironment(
             self.initializer.environment)
         logger.info("RL Environment initialized")
         self.agent = self.initializer.initialize_agent(qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
         self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment,
-                                          self.initializer.args.encoding_method,
-                                          possible_observations=self.initializer.environment._possible_observations)
+                                          self.initializer.args.encoding_method)
         self.fsc_multiplier = initial_fsc_multiplier
 
     def train_agent(self, iterations: int):
@@ -398,6 +405,12 @@ class Synthesizer_RL:
         """
         self.agent.train_agent_off_policy(iterations)
         self.agent.save_agent()
+
+    def train_agent_qval_randomization(self, iterations : int, qvalues : list):
+        self.initializer.environment.set_new_qvalues_table(
+            qvalues_table=qvalues
+        )
+        self.agent.train_agent_off_policy(iterations, q_vals_rand = True)
 
     def interpret_agent(self, best: bool = False, with_refusing: bool = False, greedy: bool = False):
         """Interpret the agent.

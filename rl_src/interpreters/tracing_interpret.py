@@ -221,7 +221,10 @@ class TracingInterpret(Interpret):
                 reward += time_step.reward
             labels = self.environment.simulator._report_labels()
             if self.environment.is_goal_state(labels):
-                reward -= self.environment.goal_value
+                if self.environment.normalize_simulator_rewards:
+                    reward -= 1.0
+                else:
+                    reward -= self.environment.goal_value
             else:
                 reward -= time_step.reward  # Removing the last reward (goal)
             goal_reward = time_step.reward

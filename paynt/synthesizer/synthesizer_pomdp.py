@@ -13,6 +13,7 @@ from .synthesizer_rl import Synthesizer_RL
 from .synthesizer_rl import SAYNT_Simulation_Controller
 
 from .saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
+from .saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes
 
 from paynt.synthesizer.saynt_rl_tools.regex_patterns import RegexPatterns
 from paynt.parser.prism_parser import PrismParser
@@ -270,28 +271,50 @@ class SynthesizerPomdp:
             action_labels_at_observation=self.quotient.action_labels_at_observation)
         rl_synthesiser.train_agent(2000)
         rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
+
+    def run_rl_synthesis_q_vals_rand(self):
+        qvalues = self.storm_control.qvalues
+        rl_synthesizer = Synthesizer_RL(
+            self.quotient.pomdp, self.rl_args, qvalues=qvalues,
+            action_labels_at_observation=self.quotient.action_labels_at_observation,
+            random_init_starts_q_vals=True
+        )
+        rl_synthesizer.train_agent_qval_randomization(2000, qvalues)
+        rl_synthesizer.save_to_json("PAYNTq_randomization")
     
-    def init_rl_args(self, qvalues_flag: bool = False):
-        if qvalues_flag:
+    def init_rl_args(self, mode : RL_SAYNT_Combo_Modes = RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE):
+        if mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
             # "Periodic_FSC_Neural_PPO"
             # "PPO_FSC_Critic"
             args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
                                 trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
                                 discount_factor=0.99, batch_size=32)
-        else:
-            args = ArgsEmulator(load_agent=False, learning_method="DQN", encoding_method="Valuations",
+        elif mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
                                 trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
                                 discount_factor=0.9)
+        elif mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
+                                max_steps=400, restart_weights=0, agent_name="Agent_with_random_starts", learning_rate=1e-4,
+                                trajectory_num_steps=25, evaluation_goal=150, evaluation_episodes=40, evaluation_antigoal=-150,
+                                discount_factor=0.99, random_start_simulator=True)
+        else:
+            logger.error("Mode:", mode, "not implemented yet.")
+            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
+                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
+                                trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
+                                discount_factor=0.9)
+            
         return args
 
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.qvalues_flag = True
+        self.combo_mode = RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE
         self.saynt = False
-        self.rl_args = self.init_rl_args(qvalues_flag=self.qvalues_flag)
+        self.rl_args = self.init_rl_args(mode=self.combo_mode)
         
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
@@ -353,10 +376,12 @@ class SynthesizerPomdp:
 
         self.saynt_timer.stop()
         
-        if self.run_rl and not self.qvalues_flag:
+        if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             self.run_rl_synthesis(self.saynt)
-        elif self.run_rl and self.qvalues_flag:
+        elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
             self.run_rl_synthesis_critic()
+        elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
+            self.run_rl_synthesis_q_vals_rand()
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

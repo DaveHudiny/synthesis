@@ -1,0 +1,87 @@
+2024-09-03 11:38:05,078 - cli.py - This is Paynt version 0.1.0.
+2024-09-03 11:38:05,078 - sketch.py - loading sketch from rl_src/models/avoid/sketch.templ ...
+2024-09-03 11:38:05,078 - sketch.py - assuming sketch in PRISM format...
+2024-09-03 11:38:05,082 - prism_parser.py - PRISM model type: POMDP
+2024-09-03 11:38:05,082 - prism_parser.py - loading properties from rl_src/models/avoid/sketch.props ...
+2024-09-03 11:38:05,083 - prism_parser.py - found the following specification: optimality: Pmax=? ["notbad" U "goal"] 
+2024-09-03 11:38:05,120 - sketch.py - sketch parsing OK
+2024-09-03 11:38:05,125 - sketch.py - converting state rewards 'steps' to state-action rewards
+2024-09-03 11:38:05,128 - sketch.py - constructed explicit quotient having 5976 states and 10080 actions
+2024-09-03 11:38:05,128 - property.py - converting until formula to eventually...
+2024-09-03 11:38:05,128 - sketch.py - found the following specification optimality: Pmax=? [F "goal"] 
+2024-09-03 11:38:05,131 - pomdp.py - constructed POMDP having 3300 observations.
+2024-09-03 11:38:05,153 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-09-03 11:38:05,155 - pomdp.py - constructed quotient MDP having 5976 states and 10080 actions.
+2024-09-03 11:38:05,787 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-09-03 11:38:05,964 - __init__.py - Creating converter from 7 to 5
+2024-09-03 11:38:05,964 - __init__.py - Creating converter from 5 to 7
+2024-09-03 11:38:05,964 - __init__.py - Creating converter from 7 to 5
+2024-09-03 11:38:05,964 - __init__.py - Creating converter from 5 to 7
+2024-09-03 11:38:06,665 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-09-03 11:38:06,665 - synthesizer_pomdp.py - Storm settings: iterative - (150, 10, 7), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-09-03 11:38:06,670 - synthesizer_pomdp.py - Timeout for PAYNT started
+> progress 0.0%, elapsed 3 s, estimated 3044011 s (35 days), iters = {MDP: 45}
+-----------PAYNT-----------                     
+Value = 0.0 | Time elapsed = 4.5s | FSC size = 6600
+
+-----------PAYNT-----------                     
+Value = 0.4999527931213379 | Time elapsed = 5.6s | FSC size = 6600
+
+> progress 0.0%, elapsed 6 s, estimated 68220534231437416582006181407154503680 s (2163258949500171682703288041472 years), iters = {MDP: 170}, opt = 0.5
+-----------PAYNT-----------                     
+Value = 1.0 | Time elapsed = 7.7s | FSC size = 6600
+
+2024-09-03 11:38:15,005 - synthesizer.py - double-checking specification satisfiability:  : 1.0
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 8.33 s
+number of holes: 777, family size: 1e414, quotient: 5976 states / 10080 actions
+explored: 100 %
+MDP stats: avg MDP size: 5146, iterations: 395
+
+optimum: 1.0
+--------------------
+2024-09-03 11:38:16,290 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 11:38:16,291 - pomdp.py - unfolding 2-FSC template into POMDP...
+2024-09-03 11:38:16,296 - pomdp.py - constructed quotient MDP having 9245 states and 29332 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.01 s
+number of holes: 2703, family size: 1e1038, quotient: 9245 states / 29332 actions
+explored: 100 %
+MDP stats: avg MDP size: 9245, iterations: 1
+
+optimum: 1.0
+--------------------
+2024-09-03 11:38:16,371 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 11:38:16,372 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 11:38:16,375 - pomdp.py - unfolding 3-FSC template into POMDP...
+2024-09-03 11:38:16,561 - pomdp.py - constructed quotient MDP having 12514 states and 60420 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.02 s
+number of holes: 3506, family size: 1e1725, quotient: 12514 states / 60420 actions
+explored: 100 %
+MDP stats: avg MDP size: 12514, iterations: 1
+
+optimum: 1.0
+--------------------
+2024-09-03 11:38:16,664 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 11:38:16,665 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 11:38:16,670 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-09-03 11:38:16,870 - pomdp.py - constructed quotient MDP having 15783 states and 103344 actions.
+2024-09-03 11:38:17,162 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 11:38:17,197 - storm_pomdp_control.py - Interactive Storm started
+2024-09-03 11:38:17,198 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-09-03 11:38:25,205 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 38.3s | FSC size = 108673
+

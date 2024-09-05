@@ -237,7 +237,7 @@ class FatherAgent(AbstractAgent):
             if i % 100 == 0:
                 self.evaluate_agent()
 
-    def train_agent_off_policy(self, num_iterations):
+    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False):
         """Train the agent off-policy. Main training function for the agents.
 
         Args:
@@ -250,12 +250,14 @@ class FatherAgent(AbstractAgent):
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.agent.train = common.function(self.agent.train)
-
+        self.environment.set_random_starts_simulation(False)
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
                 self.get_evaluation_policy(), self.tf_environment, self.evaluation_episodes, self.environment)))
         # Because sometimes FSC driver does not sample enough trajectories to start learning.
         for _ in range(5):
+            if q_vals_rand:
+                self.environment.set_random_starts_simulation(True)
             self.driver.run()
         for i in range(num_iterations):
             if False:
@@ -263,6 +265,8 @@ class FatherAgent(AbstractAgent):
             if (self.args.paynt_fsc_imitation or hasattr(self, "fsc_driver")) and i < self.args.fsc_policy_max_iteration:
                 self.fsc_driver.run()
             else:
+                if q_vals_rand:
+                    self.environment.set_random_starts_simulation(True)
                 self.driver.run()
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss
@@ -272,7 +276,9 @@ class FatherAgent(AbstractAgent):
             if i % 10 == 0:
                 logger.info(f"Step: {i}, Training loss: {train_loss}")
             if i % 100 == 0:
+                self.environment.set_random_starts_simulation(False)
                 self.evaluate_agent()
+        self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(True)
 
         self.replay_buffer.clear()
