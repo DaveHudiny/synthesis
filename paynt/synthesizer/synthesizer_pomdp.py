@@ -312,8 +312,8 @@ class SynthesizerPomdp:
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.combo_mode = RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE
-        self.saynt = False
+        self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
+        self.saynt = True
         self.rl_args = self.init_rl_args(mode=self.combo_mode)
         
         self.interactive_queue = Queue()

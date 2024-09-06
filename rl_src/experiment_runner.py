@@ -93,7 +93,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue
-            if not "mba" in model:
+            if not "obstacle" in model:
                 continue
             for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
@@ -101,11 +101,11 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=500, evaluation_goal=10, evaluation_antigoal=-10, trajectory_num_steps=30, discount_factor=0.99,
-                                    normalize_simulator_rewards=True, buffer_size=5000, random_start_simulator=True)
+                                    normalize_simulator_rewards=True, buffer_size=5000, random_start_simulator=False)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_qvals_init", "./models")
+    run_experiments("experiments_basic", "./models")
