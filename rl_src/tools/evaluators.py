@@ -24,6 +24,8 @@ class EvaluationResults:
         self.best_reach_prob = 0.0
         self.losses = []
         self.best_updated = False
+        self.each_episode_returns = []
+        self.each_episode_successes = []
         
     def set_experiment_settings(self, learning_algorithm: str = "", learning_rate: float = float("nan"), 
                                 nn_details: dict = {}, max_steps: int = float("nan")):
@@ -50,7 +52,7 @@ class EvaluationResults:
     def __str__(self):
         return str(self.__dict__)
 
-    def update(self, avg_return, avg_episodic_return, reach_prob):
+    def update(self, avg_return, avg_episodic_return, reach_prob, each_episode_return = None, each_episode_success = None):
         """Update the evaluation results in the object of EvaluationResults.
 
         Args:
@@ -62,6 +64,8 @@ class EvaluationResults:
         self.returns_episodic.append(avg_episodic_return)
         self.returns.append(avg_return)
         self.reach_probs.append(reach_prob)
+        self.each_episode_returns.append(each_episode_return)
+        self.each_episode_successes.append(each_episode_success)
         if avg_return > self.best_return:
             self.best_return = avg_return
             if avg_episodic_return >= self.best_episode_return:
@@ -91,9 +95,12 @@ def compute_average_return(policy, tf_environment : tf_py_environment.TFPyEnviro
     episode_return = 0.0
     goal_visited = 0
     policy_function = tf.function(policy.action)
+    returns = []
+    successes = []
     for _ in range(num_episodes):
         time_step = tf_environment._reset()
         policy_state = policy.get_initial_state(None)
+        cumulative_return = 0.0
         while not time_step.is_last():
             action_step = policy_function(
                 time_step, policy_state=policy_state)
@@ -101,11 +108,17 @@ def compute_average_return(policy, tf_environment : tf_py_environment.TFPyEnviro
             policy_state = action_step.state
             time_step = tf_environment.step(action)
             total_return += time_step.reward / environment.normalizer
+            cumulative_return += time_step.reward / environment.normalizer
         if environment is not None:
             total_return -= environment.virtual_value
+            cumulative_return -= environment.virtual_value
+            returns.append(cumulative_return.numpy()[0])
             episode_return += environment.virtual_value
             if environment.flag_goal:
                 goal_visited += 1
+                successes.append(True)
+            else:
+                successes.append(False)
         else:
             total_return -= time_step.reward
             episode_return += time_step.reward
@@ -115,5 +128,5 @@ def compute_average_return(policy, tf_environment : tf_py_environment.TFPyEnviro
     reach_prob = goal_visited / num_episodes
     
     if updator is not None:
-        updator(avg_return.numpy()[0], avg_episode_return.numpy(), reach_prob)
+        updator(avg_return.numpy()[0], avg_episode_return.numpy(), reach_prob, returns, successes)
     return avg_return.numpy()[0], avg_episode_return.numpy(), reach_prob
