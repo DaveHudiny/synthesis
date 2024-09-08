@@ -244,10 +244,10 @@ class FSC_Policy(TFPolicy):
                 parallel_policy_step = self._parallel_policy_function(time_step, self._hidden_ppo_state, seed)
                 self._hidden_ppo_state = parallel_policy_step.state
                 policy_info = parallel_policy_step.info
-        elif policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
+                print("Vygenerováno", policy_info)
+        if policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
             policy_info = self._create_one_hot_fake_info(action_number)
         
         policy_step = PolicyStep(action=tf.convert_to_tensor(
             [action_number], dtype=tf.int32), state=new_policy_state, info=policy_info)
-        print(policy_step.info)
         return policy_step
