@@ -98,7 +98,7 @@ class SynthesizerPomdp:
             prism = PrismParser.prism # Not a good way to access the prism object
             trap_qvalues = self.get_qvalues_by_property(f"Pmin=? [ F (!\"notbad\" & !\"goal\")]", prism, assignment)
             cum_reward_qvalues = self.get_qvalues_by_property(f"R{{\"{reward_model_name}\"}}min=? [ C<={self.rl_args.max_steps} ]", prism, assignment)
-            qvalues = qvalues # + trap_qvalues * self.rl_args.evaluation_antigoal - cum_reward_qvalues
+            qvalues = qvalues + trap_qvalues * self.rl_args.evaluation_antigoal - cum_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction
             qvalues = self.rl_args.evaluation_antigoal * original_qvalues
@@ -239,8 +239,6 @@ class SynthesizerPomdp:
     def run_rl_synthesis(self, saynt : bool = True):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
-        
-            
         fsc = self.storm_control.latest_paynt_result_fsc
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         if saynt:
@@ -250,6 +248,9 @@ class SynthesizerPomdp:
         first_time = True
         repeated_fsc = False
         soft_decision = False
+        logger.info("Training agent with combination of FSC and RL.")
+        rl_synthesiser.train_agent_combined_with_fsc_advanced(1000, fsc, self.storm_control.paynt_bounds)
+        return
         while True:
             logger.info("Training agent with FSC.")
             if fsc and (first_time or repeated_fsc):
@@ -292,9 +293,9 @@ class SynthesizerPomdp:
                                 discount_factor=0.99, batch_size=32)
         elif mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
-                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
-                                trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
-                                discount_factor=0.9)
+                                max_steps=400, restart_weights=0, agent_name="PAYNT_Traj", learning_rate=1e-4,
+                                trajectory_num_steps=20, evaluation_goal=100, evaluation_episodes=40, evaluation_antigoal=-100,
+                                discount_factor=0.99, batch_size=64)
         elif mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="Agent_with_random_starts", learning_rate=1e-4,
@@ -312,7 +313,7 @@ class SynthesizerPomdp:
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.combo_mode = RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE
+        self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
         self.saynt = False
         self.rl_args = self.init_rl_args(mode=self.combo_mode)
         

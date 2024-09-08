@@ -237,13 +237,13 @@ class FatherAgent(AbstractAgent):
             if i % 100 == 0:
                 self.evaluate_agent()
 
-    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False):
+    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False, random_init : bool = True, use_fsc : bool = False):
         """Train the agent off-policy. Main training function for the agents.
 
         Args:
             num_iterations: The number of iterations for training.
         """
-        if self.args.paynt_fsc_imitation:
+        if use_fsc:
             self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(
             num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
@@ -256,16 +256,16 @@ class FatherAgent(AbstractAgent):
                 self.get_evaluation_policy(), self.tf_environment, self.evaluation_episodes, self.environment)))
         # Because sometimes FSC driver does not sample enough trajectories to start learning.
         for _ in range(5):
-            if q_vals_rand:
+            if q_vals_rand or random_init:
                 self.environment.set_random_starts_simulation(True)
             self.driver.run()
         for i in range(num_iterations):
             if False:
                 self.random_driver.run()
-            if (self.args.paynt_fsc_imitation or hasattr(self, "fsc_driver")) and i < self.args.fsc_policy_max_iteration:
+            if use_fsc and hasattr(self, "fsc_driver"):
                 self.fsc_driver.run()
             else:
-                if q_vals_rand:
+                if q_vals_rand or random_init:
                     self.environment.set_random_starts_simulation(True)
                 self.driver.run()
             experience, _ = next(self.iterator)
@@ -279,9 +279,60 @@ class FatherAgent(AbstractAgent):
                 self.environment.set_random_starts_simulation(False)
                 self.evaluate_agent()
         self.environment.set_random_starts_simulation(False)
-        self.evaluate_agent(True)
-
+        self.evaluate_agent(last=True)
         self.replay_buffer.clear()
+        
+    def load_mixed_data(self):
+        self.environment.set_random_starts_simulation(False)
+        self.fsc_driver.run()
+        self.driver.run()
+        for _ in range(5):
+            self.environment.set_random_starts_simulation(True)
+            self.driver.run()
+
+    def mixed_fsc_train(self, iterations : int, on_policy: bool = True, performance_condition : float = None, fsc : FSC = None, soft_fsc : bool = False):
+        """Mixed training with FSC and PPO agent policy. 
+
+        Args:
+            iterations (int): Number of training iterations.
+            on_policy (bool, optional): If set, the replay buffer is cleared after each training iteration. Defaults to True.
+            performance_condition (float, optional) : If this value is set, the FSC data generation will be stopped. 
+        """
+        self.init_fsc_policy_driver(self.tf_environment, fsc=fsc, soft_decision=soft_fsc)
+        self.dataset = self.replay_buffer.as_dataset(
+            num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
+        self.iterator = iter(self.dataset)
+        logger.info("Training agent")
+        self.agent.train = common.function(self.agent.train)
+        for i in range(iterations):
+            if performance_condition is not None:
+                if self.evaluation_result.best_reach_prob > performance_condition:
+                    for _ in range(5):
+                        self.driver.run()
+                else:
+                    self.load_mixed_data()
+            else:
+                self.load_mixed_data()
+            experience, _ = next(self.iterator)
+            train_loss = self.agent.train(experience).loss
+            train_loss = train_loss.numpy()
+            self.agent.train_step_counter.assign_add(1)
+            self.evaluation_result.add_loss(train_loss)
+            if i % 10 == 0:
+                logger.info(f"Step: {i}, Training loss: {train_loss}")
+            if i % 100 == 0:
+                self.environment.set_random_starts_simulation(False)
+                self.evaluate_agent()
+            if on_policy:
+                self.replay_buffer.clear()
+        self.environment.set_random_starts_simulation(False)
+        self.evaluate_agent(last=True)
+        self.replay_buffer.clear()
+
+            
+
+
+
 
     def evaluate_agent(self, last=False):
         """Evaluate the agent. Used for evaluation of the agent during training.

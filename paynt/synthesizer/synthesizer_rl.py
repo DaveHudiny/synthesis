@@ -488,7 +488,7 @@ class Synthesizer_RL:
         except:
             logger.info("Agent not loaded, training from scratch.")
         self.agent.init_fsc_policy_driver(
-            self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier, need_logits=False)
+            self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier)
         self.agent.train_agent_off_policy(iterations)
 
     def train_agent_combined_with_fsc(self, iterations: int, fsc: FSC):
@@ -502,7 +502,24 @@ class Synthesizer_RL:
             fsc, self.initializer.environment.action_keywords)
         self.agent.init_collector_driver(
             self.initializer.tf_environment)
-        self.agent.train_agent_off_policy(iterations)
+        self.agent.train_agent_off_policy(iterations, use_fsc=True)
+
+    def train_agent_combined_with_fsc_advanced(self, iterations : int = 1000, fsc: FSC = None, condition : float = None):
+        """_summary_
+
+        Args:
+            iterations (int, optional): _description_. Defaults to 1000.
+            fsc (FSC, optional): _description_. Defaults to None.
+            condition (float, optional): _description_. Defaults to None.
+        """
+        try:
+            self.agent.load_agent()
+        except:
+            logger.info("Agent not loaded, training from scratch.")
+        self.agent.mixed_fsc_train(iterations, True, condition, fsc, False)
+
+        
+        
 
     def save_to_json(self, experiment_name: str = "PAYNTc+RL"):
         """Save the agent to JSON.

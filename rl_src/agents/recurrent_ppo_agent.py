@@ -110,7 +110,7 @@ class Recurrent_PPO_agent(FatherAgent):
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.demasked_observer()
-        self.driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
+        self.fsc_driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
             tf_environment,
             eager,
             observers=[observer],
