@@ -526,6 +526,7 @@ class Synthesizer_RL:
     def get_saynt_trajectories(self, storm_control, quotient, fsc: FSC = None):
         observer = self.agent.replay_buffer.add_batch
         tf_action_labels = self.initializer.environment.action_keywords
+        self.initializer.environment.set_selection_pressure(1.8)
         if not hasattr(self, "saynt_driver"):
             encoding_method = self.get_encoding_method(
                 self.initializer.args.encoding_method)

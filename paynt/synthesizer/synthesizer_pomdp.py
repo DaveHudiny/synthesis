@@ -98,7 +98,7 @@ class SynthesizerPomdp:
             prism = PrismParser.prism # Not a good way to access the prism object
             trap_qvalues = self.get_qvalues_by_property(f"Pmin=? [ F (!\"notbad\" & !\"goal\")]", prism, assignment)
             cum_reward_qvalues = self.get_qvalues_by_property(f"R{{\"{reward_model_name}\"}}min=? [ C<={self.rl_args.max_steps} ]", prism, assignment)
-            qvalues = qvalues + trap_qvalues * self.rl_args.evaluation_antigoal - cum_reward_qvalues
+            qvalues = qvalues # + trap_qvalues * self.rl_args.evaluation_antigoal - cum_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction
             qvalues = self.rl_args.evaluation_antigoal * original_qvalues
@@ -312,8 +312,8 @@ class SynthesizerPomdp:
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
-        self.saynt = True
+        self.combo_mode = RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE
+        self.saynt = False
         self.rl_args = self.init_rl_args(mode=self.combo_mode)
         
         self.interactive_queue = Queue()
