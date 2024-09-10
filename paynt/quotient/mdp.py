@@ -10,14 +10,11 @@ logger = logging.getLogger(__name__)
 
 class Variable:
 
-    def __init__(self, name, model):
+    def __init__(self, variable, name, state_valuations):
         self.name = name
-
-        assert model.has_state_valuations(), "model has no state valuations"
         domain = set()
-        for state in range(model.nr_states):
-            valuation = json.loads(str(model.state_valuations.get_json(state)))
-            value = valuation[name]
+        for state,valuation in enumerate(state_valuations):
+            value = valuation[variable]
             domain.add(value)
         domain = list(domain)
         # conversion of boolean variables to integers
@@ -56,7 +53,13 @@ class Variable:
     def from_model(cls, model):
         assert model.has_state_valuations(), "model has no state valuations"
         valuation = json.loads(str(model.state_valuations.get_json(0)))
-        variables = [Variable(var,model) for var in valuation]
+        variable_name = [var_name for var_name in valuation]
+        state_valuations = []
+        for state in range(model.nr_states):
+            valuation = json.loads(str(model.state_valuations.get_json(state)))
+            valuation = [valuation[var_name] for var_name in variable_name]
+            state_valuations.append(valuation)
+        variables = [Variable(var,var_name,state_valuations) for var,var_name in enumerate(variable_name)]
         variables = [v for v in variables if len(v.domain) > 1]
         return variables
 
@@ -74,7 +77,7 @@ class DecisionTreeNode:
 
     @property
     def is_terminal(self):
-        return self.variable_index is None
+        return self.child_false is None and self.child_true is None
 
     @property
     def child_nodes(self):
@@ -84,49 +87,15 @@ class DecisionTreeNode:
     def is_true_child(self):
         return self is self.parent.child_true
 
-    def set_variable(self, variable_index:int):
+    def add_decision(self):
         '''
         Associate (an index of) a variable with the node.
         '''
         if self.is_terminal:
             self.child_false = DecisionTreeNode(self)
             self.child_true = DecisionTreeNode(self)
-        self.variable_index = variable_index
 
-    def set_variable_by_name(self, variable_name:str, decision_tree):
-        variable_index = [variable.name for variable in decision_tree.variables].index(variable_name)
-        self.set_variable(variable_index)
-
-    def create_hole(self, family, action_labels, variables):
-        '''
-        Create a unique hole associated with this node. Terminal nodes are associated with actions selection, where
-        additional "don't care" action is added.
-        '''
-        # create a unique hole index based on the current number of holes
-        self.hole = family.num_holes
-        if self.is_terminal:
-            prefix = "A"
-            option_labels = action_labels
-        else:
-            prefix = variables[self.variable_index].name
-            option_labels = variables[self.variable_index].hole_domain
-        hole_name = f"{prefix}_{self.hole}"
-        family.add_hole(hole_name, option_labels)
-
-    def collect_bounds(self):
-        lower_bounds = []
-        upper_bounds = []
-        node = self
-        while node.parent is not None:
-            if node.is_true_child:
-                bounds = upper_bounds
-            else:
-                bounds = lower_bounds
-            bounds.append(node.parent.hole)
-            node = node.parent
-        return lower_bounds,upper_bounds
-
-    def assign_identifiers(self, identifier):
+    def assign_identifiers(self, identifier=0):
         self.identifier = identifier
         if self.is_terminal:
             return self.identifier
@@ -139,7 +108,7 @@ class DecisionTree:
 
     def __init__(self, model):
         self.variables = Variable.from_model(model)
-        logger.debug(f"found the following variables: {[str(v) for v in self.variables]}")
+        logger.debug(f"found the following {len(self.variables)} variables: {[str(v) for v in self.variables]}")
         self.reset()
 
     def reset(self):
@@ -149,7 +118,7 @@ class DecisionTree:
         self.reset()
         for level in range(depth):
             for node in self.collect_terminals():
-                node.set_variable(0)
+                node.add_decision()
 
     def collect_nodes(self, node_condition=None):
         if node_condition is None:
@@ -164,21 +133,13 @@ class DecisionTree:
         return output_nodes
 
     def collect_terminals(self):
-        node_condition = lambda node : node.is_terminal
-        return self.collect_nodes(node_condition)
+        return self.collect_nodes(lambda node : node.is_terminal)
 
     def collect_nonterminals(self):
-        node_condition = lambda node : not node.is_terminal
-        return self.collect_nodes(node_condition)
-
-    def create_family(self, action_labels):
-        family = paynt.family.family.Family()
-        for node in self.collect_nodes():
-            node.create_hole(family, action_labels, self.variables)
-        return family
+        return self.collect_nodes(lambda node : not node.is_terminal)
 
     def to_list(self):
-        self.root.assign_identifiers(0)
+        self.root.assign_identifiers()
         num_nodes = len(self.collect_nodes())
         node_info = [ None for node in range(num_nodes) ]
         for node in self.collect_nodes():
@@ -188,7 +149,14 @@ class DecisionTree:
             node_info[node.identifier] = (parent,child_true,child_false)
         return node_info
 
-
+    def collect_variables(self):
+        node_to_variable = None
+        nodes = self.collect_nodes()
+        node_to_variable = [len(self.variables) for node in range(len(nodes))]
+        for node in nodes:
+            if node.variable_index is not None:
+                node_to_variable[node.identifier] = node.variable_index
+        return node_to_variable
 
 class MdpQuotient(paynt.quotient.quotient.Quotient):
 
@@ -202,9 +170,7 @@ class MdpQuotient(paynt.quotient.quotient.Quotient):
         self.decision_tree = DecisionTree(mdp)
 
         self.coloring = None
-        self.design_space = None
-
-        self.is_action_hole = None
+        self.family = None
 
     def decide(self, node, var_name):
         node.set_variable_by_name(var_name,self.decision_tree)
@@ -213,63 +179,53 @@ class MdpQuotient(paynt.quotient.quotient.Quotient):
     Build the design space and coloring corresponding to the current decision tree.
     '''
     def build_coloring(self):
-        family = self.decision_tree.create_family(self.action_labels)
-        # print("family = ", family)
-
-        hole_bounds = [None for hole in range(family.num_holes)]
-        for node in self.decision_tree.collect_nodes():
-            hole_bounds[node.hole] = node.collect_bounds()
-        # print("hole bounds = ", hole_bounds)
-
-        hole_variable = ["" for _ in range(family.num_holes)]
-        hole_domain = [[] for h in range(family.num_holes)]
-        for node in self.decision_tree.collect_nonterminals():
-            hole_variable[node.hole] = self.decision_tree.variables[node.variable_index].name
-            hole_domain[node.hole] = family.hole_to_option_labels[node.hole]
-        # print("hole variables = ", hole_variable)
-        # print("hole domain = ", hole_domain)
-
-        self.is_action_hole = [var == "" for var in hole_variable]
-        self.coloring = payntbind.synthesis.ColoringSmt(
-            self.quotient_mdp.nondeterministic_choice_indices, self.choice_to_action,
-            self.quotient_mdp.state_valuations,
-            hole_variable, hole_bounds, hole_domain
-        )
-        self.design_space = paynt.family.family.DesignSpace(family)
-
-    def build_coloring_full(self):
-
+        # logger.debug("building coloring...")
         variables = self.decision_tree.variables
         variable_name = [v.name for v in variables]
         variable_domain = [v.domain for v in variables]
         tree_list = self.decision_tree.to_list()
-        self.coloring = payntbind.synthesis.ColoringSmtFull(
-            self.quotient_mdp.nondeterministic_choice_indices, self.choice_to_action, 
-            self.quotient_mdp.state_valuations,
-            variable_name, variable_domain, tree_list
-        )
+        self.coloring = payntbind.synthesis.ColoringSmt(self.quotient_mdp, variable_name, variable_domain, tree_list)
+
         # reconstruct the family
-        family = paynt.family.family.Family()
-        for hole_name,hole_type in self.coloring.getFamilyInfo():
+        hole_info = self.coloring.getFamilyInfo()
+        self.family = paynt.family.family.Family()
+        self.is_action_hole = [False for hole in hole_info]
+        self.is_decision_hole = [False for hole in hole_info]
+        self.is_variable_hole = [False for hole in hole_info]
+        domain_max = max([len(domain) for domain in variable_domain])
+        bound_domain = list(range(domain_max))
+        for hole,info in enumerate(hole_info):
+            hole_name,hole_type = info
             if hole_type == "__action__":
+                self.is_action_hole[hole] = True
                 option_labels = self.action_labels
             elif hole_type == "__decision__":
+                self.is_decision_hole[hole] = True
                 option_labels = variable_name
+            elif hole_type == "__bound__":
+                self.is_bound_hole[hole] = True
+                option_labels = bound_domain
             else:
+                self.is_variable_hole[hole] = True
                 variable = variable_name.index(hole_type)
                 option_labels = variables[variable].hole_domain
-            family.add_hole(hole_name, option_labels)
-        self.design_space = paynt.family.family.DesignSpace(family)
+            self.family.add_hole(hole_name, option_labels)
+
+
 
     def build_unsat_result(self):
-        constraints_result = paynt.verification.property_result.ConstraintsResult([])
-        optimality_result = paynt.verification.property_result.MdpOptimalityResult(None)
-        optimality_result.can_improve = False
-        analysis_result = paynt.verification.property_result.MdpSpecificationResult(constraints_result,optimality_result)
-        return analysis_result
+        spec_result = paynt.verification.property_result.MdpSpecificationResult()
+        spec_result.constraints_result = paynt.verification.property_result.ConstraintsResult([])
+        spec_result.optimality_result = paynt.verification.property_result.MdpOptimalityResult(None)
+        spec_result.evaluate(None)
+        spec_result.can_improve = False
+        return spec_result
 
     def build(self, family):
+        # logger.debug("building sub-MDP...")
+        # print("\nfamily = ", family, flush=True)
         # family.parent_info = None
+
         if family.parent_info is None:
             choices = self.coloring.selectCompatibleChoices(family.family)
         else:
@@ -282,12 +238,17 @@ class MdpQuotient(paynt.quotient.quotient.Quotient):
         # proceed as before
         family.selected_choices = choices
         family.mdp = self.build_from_choice_mask(choices)
-        # assert family.mdp.model.nr_choices == self.quotient_mdp.nr_choices
-        family.mdp.design_space = family
+        family.mdp.family = family
 
 
-    def areChoicesConsistent(self, choices, mdp):
-        return self.coloring.areChoicesConsistent(choices, mdp.design_space.family)
+    def are_choices_consistent(self, choices, family):
+        ''' Separate method for profiling purposes. '''
+        # print(self.family)
+        # print(family)
+        # for hole in range(family.num_holes):
+        #     print(f"{family.hole_name(hole)} = {family.hole_options(hole)}")
+        return self.coloring.areChoicesConsistent(choices, family.family)
+        return self.coloring.areChoicesConsistent2(choices, family.family)
 
     def scheduler_is_consistent(self, mdp, prop, result):
         ''' Get hole options involved in the scheduler selection. '''
@@ -296,57 +257,44 @@ class MdpQuotient(paynt.quotient.quotient.Quotient):
         assert scheduler.memoryless and scheduler.deterministic
         state_to_choice = self.scheduler_to_state_to_choice(mdp, scheduler)
         choices = self.state_to_choice_to_choices(state_to_choice)
-        consistent,hole_selection = self.areChoicesConsistent(choices, mdp)
+        if self.specification.is_single_property:
+            mdp.family.scheduler_choices = choices
+        consistent,hole_selection = self.are_choices_consistent(choices, mdp.family)
+        # print(mdp.family)
         # print(consistent,hole_selection)
 
-        # convert selection to actual hole options
-        # for hole,values in enumerate(hole_selection):
-        #     if self.is_action_hole[hole]:
-        #         continue
-        #     hole_selection[hole] = [self.design_space.hole_to_option_labels[hole].index(value) for value in values]
+        # if not consistent:
+        #     inconsistent_assignments = {hole:options for hole,options in enumerate(hole_selection) if len(options) > 1 }
+        #     assert len(inconsistent_assignments) > 0, f"obtained selection with no inconsistencies: {hole_selection}"
+
         for hole,options in enumerate(hole_selection):
             for option in options:
-                assert option in mdp.design_space.hole_options(hole), \
-                f"option {option} for hole {hole} ({mdp.design_space.hole_name(hole)}) is not in the family"
+                assert option in mdp.family.hole_options(hole), \
+                f"option {option} for hole {hole} ({mdp.family.hole_name(hole)}) is not in the family"
 
         return hole_selection, consistent
 
 
-    def scheduler_get_quantitative_values(self, mdp, prop, result, selection):
-        '''
-        :return choice values
-        :return expected visits
-        :return hole scores
-        '''
-
-        inconsistent_assignments = {hole:options for hole,options in enumerate(selection) if len(options) > 0 }
+    def scheduler_scores(self, mdp, prop, result, selection):
+        inconsistent_assignments = {hole:options for hole,options in enumerate(selection) if len(options) > 1 }
+        assert len(inconsistent_assignments) > 0, f"obtained selection with no inconsistencies: {selection}"
         inconsistent_action_holes = [(hole,options) for hole,options in inconsistent_assignments.items() if self.is_action_hole[hole]]
-        inconsistent_variable_holes = [(hole,options) for hole,options in inconsistent_assignments.items() if not self.is_action_hole[hole]]
+        inconsistent_decision_holes = [(hole,options) for hole,options in inconsistent_assignments.items() if self.is_decision_hole[hole]]
+        inconsistent_variable_holes = [(hole,options) for hole,options in inconsistent_assignments.items() if self.is_variable_hole[hole]]
 
-        # choose splitter and force its score
+        # choose one splitter and force its score
         splitter = None
 
-        # try action holes first
-        for hole,options in inconsistent_action_holes:
-            if len(options) > 1:
-                splitter = hole
-                break
+        # try action or decision holes first
+        if len(inconsistent_action_holes) > 0:
+            splitter = inconsistent_action_holes[0][0]
+        elif len(inconsistent_decision_holes) > 0:
+            splitter = inconsistent_decision_holes[0][0]
         else:
-            for hole,values in inconsistent_variable_holes:
-                # pick an arbitrary value and find the corresponding hole option
-                value = values[0]
-                for option in mdp.design_space.hole_options(hole):
-                    if mdp.design_space.hole_to_option_labels[hole][option] == value:
-                        splitter = hole
-                        selection[splitter] = [option]
-                        # TODO make sure this selection will split this hole in half
-                        break
-                else:
-                    assert False, "this should not occur..."
-        assert splitter is not None, "inconsistent action hole with exactly 1 option?"
+            splitter = inconsistent_variable_holes[0][0]
+        assert splitter is not None, "splitter not set"
+        return {splitter:10}
 
-        inconsistent_differences = {splitter:10}
-        return None, None, inconsistent_differences
 
     def split(self, family):
 
@@ -356,39 +304,46 @@ class MdpQuotient(paynt.quotient.quotient.Quotient):
         # split family wrt last undecided result
         result = family.analysis_result.undecided_result()
         hole_assignments = result.primary_selection
-        scores = result.primary_scores
+        scores = self.scheduler_scores(mdp, result.prop, result.primary.result, result.primary_selection)
 
         splitters = self.holes_with_max_score(scores)
         splitter = splitters[0]
-        if self.is_action_hole[splitter]:
+        if self.is_action_hole[splitter] or self.is_decision_hole[splitter]:
             assert len(hole_assignments[splitter]) > 1
             core_suboptions,other_suboptions = self.suboptions_enumerate(mdp, splitter, hole_assignments[splitter])
         else:
-            assert len(hole_assignments[splitter]) == 1
-            splitter_option = hole_assignments[splitter][0]
             subfamily_options = family.hole_options(splitter)
-            index = subfamily_options.index(splitter_option)
-            if index == 0:
-                core_suboptions = [subfamily_options[:1], subfamily_options[1:]]
-            else:
-                core_suboptions = [subfamily_options[:index], subfamily_options[index:]]
+
+            # split in half
+            index_split = len(subfamily_options)//2
+
+            assert len(hole_assignments[splitter]) == 2, "when does this not hold?"
+            option_1 = hole_assignments[splitter][0]
+            option_2 = hole_assignments[splitter][1]
+            index_split = subfamily_options.index(option_2)
+            # index_split = subfamily_options.index(option_1)+1
+
+            core_suboptions = [subfamily_options[:index_split], subfamily_options[index_split:]]
+
             for options in core_suboptions: assert len(options) > 0
             other_suboptions = []
 
-        new_design_space = mdp.design_space.copy()
+        new_family = mdp.family.copy()
         if len(other_suboptions) == 0:
             suboptions = core_suboptions
         else:
             suboptions = [other_suboptions] + core_suboptions  # DFS solves core first
 
-        # construct corresponding design subspaces
-        design_subspaces = []
+        # construct corresponding subfamilies
+        subfamilies = []
         family.splitter = splitter
         parent_info = family.collect_parent_info(self.specification)
+        parent_info.analysis_result = family.analysis_result
+        parent_info.scheduler_choices = family.scheduler_choices
         for suboption in suboptions:
-            subholes = new_design_space.subholes(splitter, suboption)
-            design_subspace = paynt.family.family.DesignSpace(subholes, parent_info)
-            design_subspace.hole_set_options(splitter, suboption)
-            design_subspaces.append(design_subspace)
+            subfamily = new_family.subholes(splitter, suboption)
+            subfamily.add_parent_info(parent_info)
+            subfamily.hole_set_options(splitter, suboption)
+            subfamilies.append(subfamily)
 
-        return design_subspaces
+        return subfamilies

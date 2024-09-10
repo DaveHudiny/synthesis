@@ -11,6 +11,18 @@
 namespace synthesis {
 
 template<typename ValueType>
+std::vector<std::vector<uint64_t>> computeChoiceDestinations(storm::models::sparse::Model<ValueType> const& model) {
+    uint64_t num_choices = model.getNumberOfChoices();
+    std::vector<std::vector<uint64_t>> choice_destinations(num_choices);
+    for(uint64_t choice = 0; choice < num_choices; ++choice) {
+        for(auto const& entry: model.getTransitionMatrix().getRow(choice)) {
+            choice_destinations[choice].push_back(entry.getColumn());
+        }
+    }
+    return choice_destinations;
+}
+
+template<typename ValueType>
 void addMissingChoiceLabelsLabeling(
     storm::models::sparse::Model<ValueType> const& model,
     storm::models::sparse::ChoiceLabeling& choice_labeling
@@ -51,7 +63,7 @@ bool assertChoiceLabelingIsCanonic(
             auto const& labels = choice_labeling.getLabelsOfChoice(choice);
             if(labels.size() != 1) {
                 if(throw_on_fail) {
-                    STORM_LOG_THROW(labels.size() == 1, storm::exceptions::InvalidModelException, "expected exactly 1 label for choice " << choice);
+                    STORM_LOG_THROW(false, storm::exceptions::InvalidModelException, "expected exactly 1 label for choice " << choice);
                 } else {
                     return false;
                 }
@@ -59,7 +71,7 @@ bool assertChoiceLabelingIsCanonic(
             std::string const& label = *(labels.begin());
             if(state_labels.find(label) != state_labels.end()) {
                 if(throw_on_fail) {
-                    STORM_LOG_THROW(state_labels.find(label) == state_labels.end(), storm::exceptions::InvalidModelException, "label " << label << " is used twice for choices in state " << state);
+                    STORM_LOG_THROW(false, storm::exceptions::InvalidModelException, "label " << label << " is used twice for choices in state " << state);
                 } else {
                     return false;
                 }
@@ -121,7 +133,7 @@ std::pair<std::vector<std::string>,std::vector<uint64_t>> extractActionLabels(
         action_labels.push_back(label);
     }
 
-    assertChoiceLabelingIsCanonic(model.getTransitionMatrix().getRowGroupIndices(), choice_labeling);
+    assertChoiceLabelingIsCanonic(model.getTransitionMatrix().getRowGroupIndices(), choice_labeling, false);
     std::vector<uint64_t> choice_to_action(model.getNumberOfChoices());
     for(uint64_t choice = 0; choice < model.getNumberOfChoices(); ++choice) {
         auto const& labels = choice_labeling.getLabelsOfChoice(choice);
@@ -305,6 +317,8 @@ std::shared_ptr<storm::models::sparse::Model<ValueType>> restoreActionsInAbsorbi
     return synthesis::removeAction(*model_absorbing_enabled, NO_ACTION_LABEL, absorbing_states);
 }
 
+template std::vector<std::vector<uint64_t>> computeChoiceDestinations<double>(
+    storm::models::sparse::Model<double> const& model);
 template std::pair<std::vector<std::string>,std::vector<uint64_t>> extractActionLabels<double>(
     storm::models::sparse::Model<double> const& model);
 template void addMissingChoiceLabelsLabeling<double>(
