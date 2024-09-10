@@ -305,7 +305,18 @@ class FatherAgent(AbstractAgent):
                 return True
             return False
 
-
+    def is_rl_better(self, evaluation_result : EvaluationResults, performance_condition : float):
+        import math
+        if performance_condition is None or math.isnan(performance_condition):
+            return True
+        if performance_condition > 1.001: # TODO: Find better way, how to check conditions.
+            if evaluation_result.best_episode_return <= performance_condition * 1.25: 
+                return True
+            return False
+        else: # Reachability condition
+            if evaluation_result.best_reach_prob >= performance_condition * 0.75:
+                return True
+            return False
 
 
     def mixed_fsc_train(self, iterations : int, on_policy: bool = True, performance_condition : float = None, fsc : FSC = None, soft_fsc : bool = False,
@@ -338,7 +349,12 @@ class FatherAgent(AbstractAgent):
                         self.load_mixed_data()
                 else:
                     self.load_mixed_data()
-            self.fsc_driver.run()
+            if self.is_rl_better(self.evaluation_result, performance_condition=performance_condition):
+                self.fsc_driver.run()
+            else:
+                self.environment.set_random_starts_simulation(True)
+                self.driver.run()
+                self.environment.set_random_starts_simulation(False)
             self.driver.run()
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss

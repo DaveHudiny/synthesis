@@ -209,7 +209,6 @@ def paynt_run(
             "rl_load_path": rl_load_path,
             "rl_load_memory_flag": rl_load_memory_flag
         }
-):
 
     profiler = None
     if profiling:

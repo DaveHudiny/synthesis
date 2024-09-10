@@ -504,6 +504,9 @@ class Synthesizer_RL:
             self.initializer.tf_environment)
         self.agent.train_agent_off_policy(iterations, use_fsc=True)
 
+    def sample_trajectories_with_fsc(self):
+        pass
+
     def train_agent_combined_with_fsc_advanced(self, iterations : int = 1000, fsc: FSC = None, condition : float = None):
         """_summary_
 
@@ -517,9 +520,6 @@ class Synthesizer_RL:
         except:
             logger.info("Agent not loaded, training from scratch.")
         self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
-
-        
-        
 
     def save_to_json(self, experiment_name: str = "PAYNTc+RL"):
         """Save the agent to JSON.
