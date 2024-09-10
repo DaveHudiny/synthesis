@@ -179,7 +179,6 @@ class StormPOMDPControl:
         self.storm_thread.start()
 
         control_thread.join()
-
         self.belief_explorer = belmc.get_interactive_belief_explorer()
 
     # resume interactive belief model checker, should be called only after belief model checker was previously started

@@ -248,7 +248,7 @@ class SynthesizerPomdp:
         repeated_fsc = False
         soft_decision = False
         logger.info("Training agent with combination of FSC and RL.")
-        rl_synthesiser.train_agent_combined_with_fsc_advanced(2000, fsc, self.storm_control.paynt_bounds)
+        rl_synthesiser.train_agent_combined_with_fsc_advanced(1000, fsc, self.storm_control.paynt_bounds)
         return
         while True:
             logger.info("Training agent with FSC.")

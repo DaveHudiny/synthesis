@@ -87,6 +87,8 @@ class SAYNT_Simulation_Controller:
         """
         self.storm_control = storm_control
         self.storm_control_result = storm_control.latest_storm_result
+        print(dir(self.storm_control.belief_explorer))
+        print(self.storm_control.belief_explorer)
         self.quotient = quotient
         self.current_state = None
         self.current_mode = SAYNT_Modes.BELIEF

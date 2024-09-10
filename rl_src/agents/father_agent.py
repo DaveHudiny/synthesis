@@ -297,7 +297,7 @@ class FatherAgent(AbstractAgent):
         if performance_condition is None or math.isnan(performance_condition):
             return False
         if performance_condition > 1.001: # TODO: Find better way, how to check conditions.
-            if evaluation_result.best_episode_return <= performance_condition * 1.25: 
+            if evaluation_result.best_return <= performance_condition * 1.25: 
                 return True
             return False
         else: # Reachability condition
@@ -310,7 +310,7 @@ class FatherAgent(AbstractAgent):
         if performance_condition is None or math.isnan(performance_condition):
             return True
         if performance_condition > 1.001: # TODO: Find better way, how to check conditions.
-            if evaluation_result.best_episode_return <= performance_condition * 1.25: 
+            if evaluation_result.best_return <= performance_condition * 1.25: 
                 return True
             return False
         else: # Reachability condition
@@ -350,11 +350,11 @@ class FatherAgent(AbstractAgent):
                 else:
                     self.load_mixed_data()
             if self.is_rl_better(self.evaluation_result, performance_condition=performance_condition):
-                self.fsc_driver.run()
-            else:
                 self.environment.set_random_starts_simulation(True)
                 self.driver.run()
                 self.environment.set_random_starts_simulation(False)
+            else:
+                self.fsc_driver.run()
             self.driver.run()
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss
