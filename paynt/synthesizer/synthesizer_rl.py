@@ -87,8 +87,6 @@ class SAYNT_Simulation_Controller:
         """
         self.storm_control = storm_control
         self.storm_control_result = storm_control.latest_storm_result
-        print(dir(self.storm_control.belief_explorer))
-        print(self.storm_control.belief_explorer)
         self.quotient = quotient
         self.current_state = None
         self.current_mode = SAYNT_Modes.BELIEF
@@ -506,8 +504,37 @@ class Synthesizer_RL:
             self.initializer.tf_environment)
         self.agent.train_agent_off_policy(iterations, use_fsc=True)
 
-    def sample_trajectories_with_fsc(self):
-        pass
+    def sample_trajectories_with_fsc(self, episodes = 10, fsc = None, soft_decision = False, fsc_multiplier = None, switch_probability = False):
+        from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter
+        parallel_policy = self.initializer.agent.wrapper
+        fsc_policy = FSC_Policy(self.initializer.tf_environment, fsc,
+                                     observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
+                                     tf_action_keywords=self.initializer.environment.action_keywords,
+                                     info_spec=self.initializer.agent.collect_policy.info_spec,
+                                     parallel_policy=parallel_policy, soft_decision=soft_decision,
+                                     soft_decision_multiplier=fsc_multiplier,
+                                     switch_probability=switch_probability)
+        class Step:
+            def __init__(self, state = None, observation = None, action = None):
+                self.state = state
+                self.observation = observation
+                self.action = action
+
+        tf_environment = self.initializer.tf_environment
+        environment = self.initializer.environment
+
+        episodes = []
+        for _ in episodes:
+            episode = []
+            time_step = tf_environment.reset()
+            policy_step = FSC_Policy.get_initial_state()
+            state = environment.simulator._report_state()
+            observation = environment.simulator._report_state()
+            while not time_step.is_last():
+                policy_step = fsc_policy.action(time_step, policy_step.state)
+                action = int(policy_step.action.numpy()[0])
+                tf_environment.step(policy_step.action)
+
 
     def train_agent_combined_with_fsc_advanced(self, iterations : int = 1000, fsc: FSC = None, condition : float = None):
         """_summary_
