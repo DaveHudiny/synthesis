@@ -98,7 +98,7 @@ class Recurrent_PPO_agent(FatherAgent):
             num_steps=self.traj_num_steps)
         
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
-                               fsc_multiplier: float = 2.0):
+                               fsc_multiplier: float = 2.0, switch_probability : float = None):
         """Initializes the driver for the FSC policy. Used for hard and soft FSC advices."""
         parallel_policy = self.wrapper
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
@@ -106,7 +106,8 @@ class Recurrent_PPO_agent(FatherAgent):
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec=self.agent.collect_policy.info_spec,
                                      parallel_policy=parallel_policy, soft_decision=soft_decision,
-                                     soft_decision_multiplier=fsc_multiplier)
+                                     soft_decision_multiplier=fsc_multiplier,
+                                     switch_probability=switch_probability)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.demasked_observer()

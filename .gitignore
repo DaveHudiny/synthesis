@@ -9,6 +9,7 @@ rl_src/plots/
 stuff_for_processing/
 measurements/
 models_rl/
+various_experimental_settings/
 
 .vscode
 

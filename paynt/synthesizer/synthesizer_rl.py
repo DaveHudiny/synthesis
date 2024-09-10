@@ -516,7 +516,7 @@ class Synthesizer_RL:
             self.agent.load_agent()
         except:
             logger.info("Agent not loaded, training from scratch.")
-        self.agent.mixed_fsc_train(iterations, True, condition, fsc, False)
+        self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
 
         
         

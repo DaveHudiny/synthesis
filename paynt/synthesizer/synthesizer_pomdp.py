@@ -221,9 +221,9 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(
                     self.storm_control.latest_paynt_result)
-                # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
-                self.storm_control.qvalues = self.compute_qvalues_for_rl(
-                    assignment=assignment)
+                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
+                # self.storm_control.qvalues = self.compute_qvalues_for_rl(
+                #     assignment=assignment)
             else:
                 logging.info("Assignment is None")
 
@@ -249,7 +249,7 @@ class SynthesizerPomdp:
         repeated_fsc = False
         soft_decision = False
         logger.info("Training agent with combination of FSC and RL.")
-        rl_synthesiser.train_agent_combined_with_fsc_advanced(1000, fsc, self.storm_control.paynt_bounds)
+        rl_synthesiser.train_agent_combined_with_fsc_advanced(2000, fsc, self.storm_control.paynt_bounds)
         return
         while True:
             logger.info("Training agent with FSC.")
@@ -294,8 +294,8 @@ class SynthesizerPomdp:
         elif mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="PAYNT_Traj", learning_rate=1e-4,
-                                trajectory_num_steps=20, evaluation_goal=100, evaluation_episodes=40, evaluation_antigoal=-100,
-                                discount_factor=0.99, batch_size=64)
+                                trajectory_num_steps=64, evaluation_goal=100, evaluation_episodes=40, evaluation_antigoal=-100,
+                                discount_factor=0.99, batch_size=32)
         elif mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
             args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                                 max_steps=400, restart_weights=0, agent_name="Agent_with_random_starts", learning_rate=1e-4,

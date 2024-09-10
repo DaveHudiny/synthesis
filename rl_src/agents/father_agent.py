@@ -183,7 +183,8 @@ class FatherAgent(AbstractAgent):
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None,
-                               soft_decision=False, fsc_multiplier=2.0, need_logits: bool = True):
+                               soft_decision=False, fsc_multiplier=2.0, need_logits: bool = True,
+                               switch_probability : float = None):
         """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
 
         Args:
@@ -196,7 +197,8 @@ class FatherAgent(AbstractAgent):
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
-                                     info_spec=self.agent.policy.info_spec, need_logits=need_logits)
+                                     info_spec=self.agent.policy.info_spec, need_logits=need_logits,
+                                     switch_probability=switch_probability)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
 
@@ -286,11 +288,28 @@ class FatherAgent(AbstractAgent):
         self.environment.set_random_starts_simulation(False)
         self.fsc_driver.run()
         self.driver.run()
-        for _ in range(5):
+        for _ in range(1):
             self.environment.set_random_starts_simulation(True)
             self.driver.run()
 
-    def mixed_fsc_train(self, iterations : int, on_policy: bool = True, performance_condition : float = None, fsc : FSC = None, soft_fsc : bool = False):
+    def _check_condition(self, evaluation_result : EvaluationResults, performance_condition : float):
+        import math
+        if performance_condition is None or math.isnan(performance_condition):
+            return False
+        if performance_condition > 1.001: # TODO: Find better way, how to check conditions.
+            if evaluation_result.best_episode_return <= performance_condition * 1.25: 
+                return True
+            return False
+        else: # Reachability condition
+            if evaluation_result.best_reach_prob >= performance_condition * 0.75:
+                return True
+            return False
+
+
+
+
+    def mixed_fsc_train(self, iterations : int, on_policy: bool = True, performance_condition : float = None, fsc : FSC = None, soft_fsc : bool = False,
+                        switch_probability : float = None):
         """Mixed training with FSC and PPO agent policy. 
 
         Args:
@@ -298,21 +317,29 @@ class FatherAgent(AbstractAgent):
             on_policy (bool, optional): If set, the replay buffer is cleared after each training iteration. Defaults to True.
             performance_condition (float, optional) : If this value is set, the FSC data generation will be stopped. 
         """
-        self.init_fsc_policy_driver(self.tf_environment, fsc=fsc, soft_decision=soft_fsc)
+        self.init_fsc_policy_driver(self.tf_environment, fsc=fsc, soft_decision=soft_fsc, switch_probability=switch_probability)
         self.dataset = self.replay_buffer.as_dataset(
             num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.agent.train = common.function(self.agent.train)
         for i in range(iterations):
-            if performance_condition is not None:
-                if self.evaluation_result.best_reach_prob > performance_condition:
-                    for _ in range(5):
-                        self.driver.run()
+            if False:
+                if performance_condition is not None:
+                    if self.evaluation_result.best_reach_prob > performance_condition:
+                        for _ in range(2):
+                            self.environment.set_random_starts_simulation(False)
+                            self.driver.run()
+                        for _ in range(1):
+                            self.environment.set_random_starts_simulation(True)
+                            self.driver.run()
+
+                    else:
+                        self.load_mixed_data()
                 else:
                     self.load_mixed_data()
-            else:
-                self.load_mixed_data()
+            self.fsc_driver.run()
+            self.driver.run()
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss
             train_loss = train_loss.numpy()
@@ -328,10 +355,6 @@ class FatherAgent(AbstractAgent):
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(last=True)
         self.replay_buffer.clear()
-
-            
-
-
 
 
     def evaluate_agent(self, last=False):

@@ -425,7 +425,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.antigoal_value + self.reward)
         else:  # Ended, but not in goal state :/
-            logging.info(f"Ended, but not in a goal state: {self.labels}")
+            # logging.info(f"Ended, but not in a goal state: {self.labels}")
             self._finished = True
             self.virtual_value = self.antigoal_value
             self._current_time_step = ts.termination(

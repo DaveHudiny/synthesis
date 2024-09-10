@@ -147,7 +147,8 @@ class FSC_Policy(TFPolicy):
     def __init__(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC,
                  observation_and_action_constraint_splitter=None, tf_action_keywords=[],
                  info_spec=None, parallel_policy : TFPolicy = None, soft_decision = False,
-                 soft_decision_multiplier : float = 2.0, need_logits : bool = True):
+                 soft_decision_multiplier : float = 2.0, need_logits : bool = True,
+                 switch_probability : float = None):
         """Implementation of FSC policy based on FSC object obtained from Paynt (or elsewhere).
 
         Args:
@@ -183,6 +184,12 @@ class FSC_Policy(TFPolicy):
             self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
         self._soft_decision = soft_decision
         self._fsc_update_coef = soft_decision_multiplier
+        self.switched = False
+        if switch_probability is not None:
+            self.switching = True
+            self.switch_probability = switch_probability
+        else:
+            self.switching = False
 
     tf.function
     def _set_hidden_ppo_state(self):
@@ -191,6 +198,7 @@ class FSC_Policy(TFPolicy):
 
     def _get_initial_state(self, batch_size):
         self._set_hidden_ppo_state()
+        self.switched = False
         return tf.constant([0], dtype=tf.int32)
 
     def _distribution(self, time_step, policy_state):
@@ -234,10 +242,22 @@ class FSC_Policy(TFPolicy):
     
     @tf.function
     def _action(self, time_step, policy_state, seed):
-        action_number, new_policy_state = self._generate_paynt_decision(time_step, policy_state, seed)
+        policy_info = ()
+        if self.switching:
+            import random
+            if random.random() < self.switch_probability:
+                self.switched = True
+            if self.switched:
+                parallel_policy_step = self._parallel_policy_function(time_step, self._hidden_ppo_state, seed)
+                self._hidden_ppo_state = parallel_policy_step.state
+                return PolicyStep(parallel_policy_step.action, policy_state, info=parallel_policy_step.info)
+            else:
+                action_number, new_policy_state = self._generate_paynt_decision(time_step, policy_state, seed)
+        else:
+            action_number, new_policy_state = self._generate_paynt_decision(time_step, policy_state, seed)
         if self._info_spec is None or self._info_spec == ():
             policy_info = ()
-        elif self._parallel_policy is not None: # Generate logits from PPO policy
+        elif self._parallel_policy is not None and policy_info == (): # Generate logits from PPO policy
             if self._soft_decision: # Use PPO policy to make a decision combined with FSC
                 action_number, policy_info = self._make_soft_decision(action_number, time_step, seed)
             else: # Hard FSC decision
