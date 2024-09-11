@@ -12,6 +12,7 @@ from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
 from rl_src.tools.encoding_methods import *
 from paynt.quotient.fsc import FSC
+from rl_src.agents.ppo_with_dqn_critic import PPO_with_DQN_Critic
 
 import paynt.quotient.storm_pomdp_control as Storm_POMDP_Control
 import paynt.quotient.pomdp as POMDP
@@ -586,5 +587,13 @@ class Synthesizer_RL:
 
     def dqn_and_ppo_training(self, fsc : FSC = None):
         assert fsc != None, "DQN pre-trained with FSC values to improve PPO learning have to know FSC."
-        self.dqn_agent.pre_train_with_fsc(1000, fsc)
-        print(self.dqn_agent.agent._q_network._network_output_spec)
+        self.dqn_agent.pre_train_with_fsc(10, fsc)
+        args = self.initializer.args
+        agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
+        self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
+                                         args, args.load_agent, agent_folder, self.dqn_agent.agent)
+        self.agent.train_agent_off_policy(1000)
+        # fake_init_state = self.dqn_agent.agent._q_network.get_initial_state(1)
+        # time_step = self.initializer.tf_environment.reset()
+        # print(self.dqn_agent.agent._q_network(time_step.observation["observation"], network_state = fake_init_state))
+        # print(type(self.dqn_agent.agent._q_network))

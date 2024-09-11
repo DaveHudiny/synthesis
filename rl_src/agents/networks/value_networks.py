@@ -115,17 +115,42 @@ class Periodic_FSC_Neural_Critic(tf_agents.networks.value_rnn_network.ValueRnnNe
         # print("Origo hodnoty:", values.numpy())
         if self.current_mode == self.Periodic_Modes.COMBINED_VALUE:
             values_fsc = self.q_values_function_simplified(observations, step_type, network_state)
-            preference = tf.where(values >= values_fsc, 0, 1)
             values = tf.maximum(values, values_fsc)
-           
-            # print("FSC Values:", values_fsc.numpy())
-            # print("Maximum values:", values.numpy())
-            # print("Preference vector:", preference.numpy())
-            # print("Sum preferenci origa:", tf.reduce_sum(preference).numpy())
         if step_type.shape == (1,):
             values = tf.constant(values, shape=(1, 1))
         self.update_current_mode()
         return values, network_state
+    
+
+class Value_DQNet(network.Network):
+    def __init__(self, q_net : network.Network):
+        self._network_output_spec = tf_agents.specs.ArraySpec((1,), dtype=np.float32)
+        super(Value_DQNet, self).__init__(
+            input_tensor_spec=q_net.input_tensor_spec,
+            state_spec=q_net.state_spec
+        )
+        self.q_net = q_net
+
+        self.get_initial_state = q_net.get_initial_state
+    
+    def call(self, observation, step_type = None, network_state=(), training=False):
+        values, network_state = self.q_net(observation, step_type, network_state, training)
+        value = tf.math.reduce_max(values, axis=-1, keepdims=True)
+        print(value)
+        print(network_state)
+        return value, network_state
+
+    
+    
+def get_alternative_call_of_qnet(q_net : network.Network):
+    func = q_net.__call__
+    def call(observation, step_type = None, network_state=(), training=False):
+        values, network_state = func(observation, step_type, network_state, training)
+        value = tf.math.reduce_max(values, axis=-1, keepdims=True)
+        return value, network_state
+    return call
+
+
 
 class FSC_Critic(network.Network):
     def __init__(self, input_tensor_spec, name="FSC_QValue_Estimator", qvalues_table=None,

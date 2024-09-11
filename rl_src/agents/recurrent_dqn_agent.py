@@ -84,21 +84,6 @@ class Recurrent_DQN_agent(FatherAgent):
         if load:
             self.load_agent()
 
-    def train(self, num_iterations):
-        """Specific training loop. Mostly unused in this project."""
-        for i in range(num_iterations):
-            if i % 10 == 0:
-                self.random_driver.run()
-            else:
-                self.driver.run()
-            experience = self.replay_buffer.gather_all()
-            train_loss = self.agent.train(experience)
-            self.replay_buffer.clear()
-            step = self.agent.train_step_counter.numpy()
-            if step % 100 == 0:
-                logging.info('step = {0}: loss = {1}'.format(
-                    step, train_loss.loss))
-
     def reset_weights(self):
         """Reset weights of the agent's Q-network."""
         for layer in self.agent._q_network.layers:

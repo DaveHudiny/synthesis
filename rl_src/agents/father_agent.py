@@ -286,7 +286,7 @@ class FatherAgent(AbstractAgent):
         self.evaluate_agent(last=True)
         self.replay_buffer.clear()
 
-    def pre_train_with_fsc(self, num_iterations : int, fsc : FSC, num_fsc_episodes : int):
+    def pre_train_with_fsc(self, num_iterations : int, fsc : FSC, num_fsc_episodes : int = 10):
         self.init_fsc_policy_driver(self.tf_environment, fsc)
         
         self.dataset = self.replay_buffer.as_dataset(
@@ -295,7 +295,7 @@ class FatherAgent(AbstractAgent):
         logger.info("Training agent")
         self.agent.train = common.function(self.agent.train)
         self.environment.set_random_starts_simulation(False)
-        for _ in range(50):
+        for _ in range(10):
             self.fsc_driver.run()
         for i in range(num_iterations):
             self.fsc_driver.run()
