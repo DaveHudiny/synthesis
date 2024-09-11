@@ -10,6 +10,8 @@ import tensorflow as tf
 from environment.environment_wrapper import Environment_Wrapper
 from tf_agents.environments import tf_py_environment
 
+from tf_agents.policies import TFPolicy
+
 
 class EvaluationResults:
     """Class for storing evaluation results."""
@@ -81,7 +83,7 @@ class EvaluationResults:
         self.losses.append(loss)
 
 
-def compute_average_return(policy, tf_environment : tf_py_environment.TFPyEnvironment, num_episodes=30, environment: Environment_Wrapper = None, updator: callable=None):
+def compute_average_return(policy : TFPolicy, tf_environment : tf_py_environment.TFPyEnvironment, num_episodes=30, environment: Environment_Wrapper = None, updator: callable=None):
     """Compute the average return of the policy over the given number of episodes.
 
     Args:

@@ -4,6 +4,8 @@
 # File: synthesizer_rl.py
 
 from enum import Enum
+
+import stormpy.simulator
 from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.rl_main import ArgsEmulator, Initializer, save_statistics_to_new_json
 from rl_src.interpreters.tracing_interpret import TracingInterpret
@@ -504,38 +506,31 @@ class Synthesizer_RL:
             self.initializer.tf_environment)
         self.agent.train_agent_off_policy(iterations, use_fsc=True)
 
+
+
     def sample_trajectories_with_fsc(self, episodes = 10, fsc = None, soft_decision = False, fsc_multiplier = None, switch_probability = False):
         from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter
-        parallel_policy = self.initializer.agent.wrapper
         fsc_policy = FSC_Policy(self.initializer.tf_environment, fsc,
                                      observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.initializer.environment.action_keywords,
-                                     info_spec=self.initializer.agent.collect_policy.info_spec,
-                                     parallel_policy=parallel_policy, soft_decision=soft_decision,
+                                     info_spec=(),
+                                     soft_decision=soft_decision,
                                      soft_decision_multiplier=fsc_multiplier,
                                      switch_probability=switch_probability)
-        class Step:
-            def __init__(self, state = None, observation = None, action = None):
-                self.state = state
-                self.observation = observation
-                self.action = action
 
         tf_environment = self.initializer.tf_environment
         environment = self.initializer.environment
+        environment.set_random_starts_simulation(False)
+        from paynt.synthesizer.saynt_rl_tools.trajectory_collector import collect_trajectories
+        episodes = collect_trajectories(num_of_episodes=10, policy=fsc_policy, environment=environment, tf_environment=tf_environment)
+        
+        # Print statistics
+        for episode in episodes:
+            print(len(episode))
+            print(episode[-1].success)
 
-        episodes = []
-        for _ in episodes:
-            episode = []
-            time_step = tf_environment.reset()
-            policy_step = FSC_Policy.get_initial_state()
-            state = environment.simulator._report_state()
-            observation = environment.simulator._report_state()
-            while not time_step.is_last():
-                policy_step = fsc_policy.action(time_step, policy_step.state)
-                action = int(policy_step.action.numpy()[0])
-                tf_environment.step(policy_step.action)
-
-
+        return episodes
+        
     def train_agent_combined_with_fsc_advanced(self, iterations : int = 1000, fsc: FSC = None, condition : float = None):
         """_summary_
 
@@ -548,6 +543,9 @@ class Synthesizer_RL:
             self.agent.load_agent()
         except:
             logger.info("Agent not loaded, training from scratch.")
+            
+        episodes = self.sample_trajectories_with_fsc(10, fsc)
+        exit(0)
         self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
 
     def save_to_json(self, experiment_name: str = "PAYNTc+RL"):

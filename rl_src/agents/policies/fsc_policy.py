@@ -265,7 +265,7 @@ class FSC_Policy(TFPolicy):
                 self._hidden_ppo_state = parallel_policy_step.state
                 policy_info = parallel_policy_step.info
                 print("Vygenerováno", policy_info)
-        if policy_info == (): # If parallel policy does not return logits, use one-hot encoding of action number
+        if policy_info == () and self._info_spec != (): # If parallel policy does not return logits, use one-hot encoding of action number
             policy_info = self._create_one_hot_fake_info(action_number)
         
         policy_step = PolicyStep(action=tf.convert_to_tensor(
