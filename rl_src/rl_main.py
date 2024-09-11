@@ -284,7 +284,7 @@ class Initializer:
             return self.tf_environment
 
 
-    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
+    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None, learning_method = None) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
 
@@ -292,7 +292,8 @@ class Initializer:
             FatherAgent: The initialized agent.
         """
         agent = self.select_agent_type(
-            qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
+            qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation,
+            learning_method=learning_method)
         if self.args.restart_weights > 0:
             tf_environment = self.get_tf_environment_eval()
             agent = WeightInitializationMethods.select_best_starting_weights(agent, tf_environment, self.args)

@@ -137,16 +137,18 @@ class FatherAgent(AbstractAgent):
         self.init_replay_buffer(tf_environment)
         self.init_collector_driver(tf_environment)
 
-    def init_replay_buffer(self, tf_environment):
+    def init_replay_buffer(self, tf_environment, buffer_size = None):
         """Initialize the uniform replay buffer for the agent.
 
         Args:
             tf_environment: The TensorFlow environment object, used for providing important specifications.
         """
+        if buffer_size is None:
+            buffer_size = self.args.buffer_size
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
             batch_size=tf_environment.batch_size,
-            max_length=self.args.buffer_size)
+            max_length=buffer_size)
 
     def init_collector_driver(self, tf_environment):
         """Initialize the collector driver for the agent.
@@ -248,7 +250,7 @@ class FatherAgent(AbstractAgent):
         if use_fsc:
             self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
+            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(4)
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.agent.train = common.function(self.agent.train)
@@ -283,6 +285,29 @@ class FatherAgent(AbstractAgent):
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(last=True)
         self.replay_buffer.clear()
+
+    def pre_train_with_fsc(self, num_iterations : int, fsc : FSC, num_fsc_episodes : int):
+        self.init_fsc_policy_driver(self.tf_environment, fsc)
+        
+        self.dataset = self.replay_buffer.as_dataset(
+            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(4)
+        self.iterator = iter(self.dataset)
+        logger.info("Training agent")
+        self.agent.train = common.function(self.agent.train)
+        self.environment.set_random_starts_simulation(False)
+        for _ in range(50):
+            self.fsc_driver.run()
+        for i in range(num_iterations):
+            self.fsc_driver.run()
+            experience, _ = next(self.iterator)
+            train_loss = self.agent.train(experience).loss
+            train_loss = train_loss.numpy()
+            self.agent.train_step_counter.assign_add(1)
+            if i % 10 == 0:
+                logger.info(f"Step: {i}, Training loss: {train_loss}")
+            if i % 100 == 0:
+                self.evaluate_agent()
+        self.evaluate_agent(last=True)
         
     def load_mixed_data(self):
         self.environment.set_random_starts_simulation(False)

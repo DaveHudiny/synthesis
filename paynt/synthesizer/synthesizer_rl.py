@@ -413,7 +413,8 @@ class Synthesizer_RL:
     def __init__(self, stormpy_model, args: ArgsEmulator,
                  initial_fsc_multiplier: float = 1.0,
                  qvalues: list = None, action_labels_at_observation: dict = None,
-                 random_init_starts_q_vals: bool = False):
+                 random_init_starts_q_vals: bool = False,
+                 pretrain_dqn = False):
         """Initialization of the interface.
         Args:
             stormpy_model: Model of the environment.
@@ -436,6 +437,10 @@ class Synthesizer_RL:
         logger.info("RL Environment initialized")
         self.agent = self.initializer.initialize_agent(
             qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
+        
+        if pretrain_dqn:
+            self.dqn_agent = self.initializer.initialize_agent(learning_method="DQN")
+
         self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment,
                                           self.initializer.args.encoding_method)
         self.fsc_multiplier = initial_fsc_multiplier
@@ -578,3 +583,8 @@ class Synthesizer_RL:
                                              tf_action_labels, encoding_method, self.initializer.args.discount_factor,
                                              fsc=fsc)
         self.saynt_driver.episodic_run(20)
+
+    def dqn_and_ppo_training(self, fsc : FSC = None):
+        assert fsc != None, "DQN pre-trained with FSC values to improve PPO learning have to know FSC."
+        self.dqn_agent.pre_train_with_fsc(1000, fsc)
+        print(self.dqn_agent.agent._q_network._network_output_spec)

@@ -1,3 +1,4 @@
+import numpy as np
 from time import sleep
 import os
 from rl_src.rl_main import ArgsEmulator
@@ -13,7 +14,7 @@ from .synthesizer_rl import Synthesizer_RL
 from .synthesizer_rl import SAYNT_Simulation_Controller
 
 from .saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
-from .saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes
+from .saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
 
 from paynt.synthesizer.saynt_rl_tools.regex_patterns import RegexPatterns
 from paynt.parser.prism_parser import PrismParser
@@ -33,8 +34,6 @@ import time
 
 import logging
 logger = logging.getLogger(__name__)
-
-import numpy as np
 
 
 class SynthesizerPomdp:
@@ -73,31 +72,38 @@ class SynthesizerPomdp:
             family = self.quotient.family
         synthesizer = self.synthesizer(self.quotient)
         family.constraint_indices = self.quotient.family.constraint_indices
-        assignment = synthesizer.synthesize(family, keep_optimum=True, print_stats=print_stats)
+        assignment = synthesizer.synthesize(
+            family, keep_optimum=True, print_stats=print_stats)
         iters_mdp = synthesizer.stat.iterations_mdp if synthesizer.stat.iterations_mdp is not None else 0
         self.total_iters += iters_mdp
         return assignment
-    
-    def get_qvalues_by_property(self, property : str = f"", prism = None, assignment = None):
+
+    def get_qvalues_by_property(self, property: str = f"", prism=None, assignment=None):
         parsed_property = stormpy.parse_properties(property, context=prism)[0]
-        opt_property = paynt.verification.property.OptimalityProperty(parsed_property)
+        opt_property = paynt.verification.property.OptimalityProperty(
+            parsed_property)
         qvalues = self.quotient.compute_qvalues(assignment, prop=opt_property)
         tensorable_qvalues = make_qvalues_table_tensorable(qvalues)
         return tensorable_qvalues
-    
+
     def fix_qvalues(self, assignment, original_qvalues, original_property_str):
         original_qvalues = make_qvalues_table_tensorable(original_qvalues)
         if "Pmax" in original_property_str:
-            qvalues = np.multiply(original_qvalues, self.rl_args.evaluation_goal)
+            qvalues = np.multiply(
+                original_qvalues, self.rl_args.evaluation_goal)
             # TODO: More possible names of reward model
             try:
-                reward_model_name = list(self.quotient.pomdp.reward_models.keys())[-1]
+                reward_model_name = list(
+                    self.quotient.pomdp.reward_models.keys())[-1]
             except:
                 reward_model_name = "steps"
-            prism = PrismParser.prism # Not a good way to access the prism object
-            trap_qvalues = self.get_qvalues_by_property(f"Pmin=? [ F (!\"notbad\" & !\"goal\")]", prism, assignment)
-            cum_reward_qvalues = self.get_qvalues_by_property(f"R{{\"{reward_model_name}\"}}min=? [ C<={self.rl_args.max_steps} ]", prism, assignment)
-            qvalues = qvalues + trap_qvalues * self.rl_args.evaluation_antigoal - cum_reward_qvalues
+            prism = PrismParser.prism  # Not a good way to access the prism object
+            trap_qvalues = self.get_qvalues_by_property(
+                f"Pmin=? [ F (!\"notbad\" & !\"goal\")]", prism, assignment)
+            cum_reward_qvalues = self.get_qvalues_by_property(
+                f"R{{\"{reward_model_name}\"}}min=? [ C<={self.rl_args.max_steps} ]", prism, assignment)
+            qvalues = qvalues + trap_qvalues * \
+                self.rl_args.evaluation_antigoal - cum_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction
             qvalues = self.rl_args.evaluation_antigoal * original_qvalues
@@ -106,7 +112,8 @@ class SynthesizerPomdp:
         elif RegexPatterns.check_min_property(original_property_str):
             qvalues = (-original_qvalues) + self.rl_args.evaluation_goal
         else:
-            logger.info(f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
+            logger.info(
+                f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
             qvalues = original_qvalues
         if self.rl_args.normalize_simulator_rewards:
             qvalues = qvalues / self.rl_args.evaluation_goal
@@ -114,9 +121,11 @@ class SynthesizerPomdp:
 
     def compute_qvalues_for_rl(self, assignment):
         original_property = self.quotient.get_property()
-        original_property_qvalues = self.quotient.compute_qvalues(assignment, prop=original_property)
+        original_property_qvalues = self.quotient.compute_qvalues(
+            assignment, prop=original_property)
         original_property_str = original_property.__str__()
-        qvalues = self.fix_qvalues(assignment, original_property_qvalues, original_property_str)
+        qvalues = self.fix_qvalues(
+            assignment, original_property_qvalues, original_property_str)
         return qvalues
 
     # iterative strategy using Storm analysis to enhance the synthesis
@@ -220,7 +229,8 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
                 self.storm_control.paynt_fsc_size = self.quotient.policy_size(
                     self.storm_control.latest_paynt_result)
-                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
+                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(
+                    self.storm_control.latest_paynt_result)
                 # self.storm_control.qvalues = self.compute_qvalues_for_rl(
                 #     assignment=assignment)
             else:
@@ -235,20 +245,22 @@ class SynthesizerPomdp:
 
             # break
 
-    def run_rl_synthesis(self, saynt : bool = True):
+    def run_rl_synthesis(self, saynt: bool = True):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
         fsc = self.storm_control.latest_paynt_result_fsc
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         if saynt:
             print("looking for trajectories")
-            rl_synthesiser.get_saynt_trajectories(self.storm_control, self.quotient, fsc)
+            rl_synthesiser.get_saynt_trajectories(
+                self.storm_control, self.quotient, fsc)
             exit(0)
         first_time = True
         repeated_fsc = False
         soft_decision = False
         logger.info("Training agent with combination of FSC and RL.")
-        rl_synthesiser.train_agent_combined_with_fsc_advanced(1000, fsc, self.storm_control.paynt_bounds)
+        rl_synthesiser.train_agent_combined_with_fsc_advanced(
+            1000, fsc, self.storm_control.paynt_bounds)
         return
         while True:
             logger.info("Training agent with FSC.")
@@ -267,7 +279,7 @@ class SynthesizerPomdp:
     def run_rl_synthesis_critic(self):
         qvalues = self.storm_control.qvalues
         rl_synthesiser = Synthesizer_RL(
-            self.quotient.pomdp, self.rl_args, qvalues=qvalues, 
+            self.quotient.pomdp, self.rl_args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation)
         rl_synthesiser.train_agent(2000)
         rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
@@ -281,41 +293,20 @@ class SynthesizerPomdp:
         )
         rl_synthesizer.train_agent_qval_randomization(2000, qvalues)
         rl_synthesizer.save_to_json("PAYNTq_randomization")
-    
-    def init_rl_args(self, mode : RL_SAYNT_Combo_Modes = RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE):
-        if mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
-            # "Periodic_FSC_Neural_PPO"
-            # "PPO_FSC_Critic"
-            args = ArgsEmulator(load_agent=False, learning_method="PPO_FSC_Critic", encoding_method="Valuations++",
-                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
-                                trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
-                                discount_factor=0.99, batch_size=32)
-        elif mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
-                                max_steps=400, restart_weights=0, agent_name="PAYNT_Traj", learning_rate=1e-4,
-                                trajectory_num_steps=64, evaluation_goal=100, evaluation_episodes=40, evaluation_antigoal=-100,
-                                discount_factor=0.99, batch_size=32)
-        elif mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
-                                max_steps=400, restart_weights=0, agent_name="Agent_with_random_starts", learning_rate=1e-4,
-                                trajectory_num_steps=25, evaluation_goal=150, evaluation_episodes=40, evaluation_antigoal=-150,
-                                discount_factor=0.99, random_start_simulator=True)
-        else:
-            logger.error("Mode:", mode, "not implemented yet.")
-            args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
-                                max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
-                                trajectory_num_steps=20, evaluation_goal=500, evaluation_episodes=40, evaluation_antigoal=-500,
-                                discount_factor=0.9)
-            
-        return args
+
+    def run_rl_synthesis_dqn_ppo(self):
+        fsc = self.storm_control.latest_paynt_result_fsc
+        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args, pretrain_dqn=True)
+        rl_synthesiser.dqn_and_ppo_training(fsc)
+        rl_synthesiser.save_to_json("FSC_DQN_TO_PPO")
 
     # main SAYNT loop
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
+        self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
         self.saynt = False
-        self.rl_args = self.init_rl_args(mode=self.combo_mode)
-        
+        self.rl_args = init_rl_args(mode=self.combo_mode)
+
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
         self.storm_control.interactive_storm_setup()
@@ -375,13 +366,15 @@ class SynthesizerPomdp:
         self.storm_control.interactive_storm_terminate()
 
         self.saynt_timer.stop()
-        
+
         if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             self.run_rl_synthesis(self.saynt)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
             self.run_rl_synthesis_critic()
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
             self.run_rl_synthesis_q_vals_rand()
+        elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.DQN_AS_QTABLE:
+            self.run_rl_synthesis_dqn_ppo()
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):
@@ -662,7 +655,7 @@ class SynthesizerPomdp:
                 self.quotient.set_imperfect_memory_size(mem_size)
             else:
                 self.quotient.set_global_memory_size(mem_size)
-            
+
             self.synthesize(self.quotient.family)
             assignment = self.synthesize(self.quotient.design_space)
             if assignment is not None:
@@ -675,8 +668,7 @@ class SynthesizerPomdp:
             #     break
             mem_size += 1
 
-            #break
-
+            # break
 
     def run(self, optimum_threshold=None, export_evaluation=None):
         # choose the synthesis strategy:
