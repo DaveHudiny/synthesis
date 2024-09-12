@@ -39,6 +39,7 @@ class PPO_with_DQN_Critic(FatherAgent):
         self.actor_net = create_recurrent_actor_net_demasked(
             tf_environment, tf_environment.action_spec())
         self.dqn_critic_net = dqn_agent._q_network
+        print(self.dqn_critic_net.trainable_variables)
         # self.dqn_critic_net.__call__ = get_alternative_call_of_qnet(self.critic_net) # TODO: Fix this
         
         # self.critic_net = create_recurrent_value_net_demasked(tf_environment)

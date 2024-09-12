@@ -30,7 +30,15 @@ class Recurrent_DQN_agent(FatherAgent):
         optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
         if single_value_qnet:
             q_net_units = 1
+            action_spec = tf_agents.specs.tensor_spec.BoundedTensorSpec(
+            shape=(),
+            dtype=tf.int32,
+            minimum=0,
+            maximum=0,
+            name="action"
+            )
         else:
+            action_spec = tf_environment.action_spec()
             q_net_units = len(environment.action_keywords)
         if agent_settings is None: # Default settings
             postprocessing_layers = [tf.keras.layers.Dense(
@@ -67,7 +75,8 @@ class Recurrent_DQN_agent(FatherAgent):
         logging.info("Creating agent")
         self.agent = dqn_agent.DqnAgent(
             tf_environment._time_step_spec,
-            tf_environment._action_spec,
+            # tf_environment._action_spec,
+            action_spec,
             q_network=self.q_net,
             optimizer=optimizer,
             # td_errors_loss_fn=common.element_wise_squared_loss,

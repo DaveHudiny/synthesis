@@ -221,7 +221,8 @@ class Initializer:
 
     
 
-    def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None) -> FatherAgent:
+    def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None,
+                          pre_training_dqn : bool = False) -> FatherAgent:
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
 
         Args:
@@ -234,7 +235,8 @@ class Initializer:
         agent_folder = f"./trained_agents/{self.args.agent_name}_{self.args.learning_method}_{self.args.encoding_method}"
         if learning_method == "DQN":
             agent = Recurrent_DQN_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
+                single_value_qnet=pre_training_dqn)
         elif learning_method == "DDQN":
             agent = Recurrent_DDQN_agent(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
@@ -284,7 +286,8 @@ class Initializer:
             return self.tf_environment
 
 
-    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None, learning_method = None) -> FatherAgent:
+    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None, learning_method = None,
+                         pre_training_dqn : bool = False) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
 
@@ -293,7 +296,7 @@ class Initializer:
         """
         agent = self.select_agent_type(
             qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation,
-            learning_method=learning_method)
+            learning_method=learning_method, pre_training_dqn = pre_training_dqn)
         if self.args.restart_weights > 0:
             tf_environment = self.get_tf_environment_eval()
             agent = WeightInitializationMethods.select_best_starting_weights(agent, tf_environment, self.args)

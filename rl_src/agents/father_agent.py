@@ -251,7 +251,7 @@ class FatherAgent(AbstractAgent):
             if i % 100 == 0:
                 self.evaluate_agent()
 
-    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False, random_init : bool = True, use_fsc : bool = False):
+    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False, random_init : bool = False, use_fsc : bool = False):
         """Train the agent off-policy. Main training function for the agents.
 
         Args:
@@ -284,6 +284,7 @@ class FatherAgent(AbstractAgent):
                 self.driver.run()
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss
+            print(self.dqn_critic_net.trainable_variables)
             train_loss = train_loss.numpy()
             self.agent.train_step_counter.assign_add(1)
             self.evaluation_result.add_loss(train_loss)

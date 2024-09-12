@@ -134,11 +134,10 @@ class Value_DQNet(network.Network):
         self.get_initial_state = q_net.get_initial_state
     
     def call(self, observation, step_type = None, network_state=(), training=False):
-        values, network_state = self.q_net(observation, step_type, network_state, training)
-        value = tf.math.reduce_max(values, axis=-1, keepdims=True)
-        print(value)
-        print(network_state)
-        return value, network_state
+        values, network_state = self.q_net(inputs=observation, step_type=step_type, 
+                                           network_state=network_state, training=training)
+        # value = tf.math.reduce_max(values, axis=-1, keepdims=True)
+        return tf.squeeze(values, -1), network_state
     
     
 

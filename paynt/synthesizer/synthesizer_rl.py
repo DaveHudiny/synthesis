@@ -440,7 +440,7 @@ class Synthesizer_RL:
             qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
         
         if pretrain_dqn:
-            self.dqn_agent = self.initializer.initialize_agent(learning_method="DQN")
+            self.dqn_agent = self.initializer.initialize_agent(learning_method="DQN", pre_training_dqn = True)
 
         self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment,
                                           self.initializer.args.encoding_method)
