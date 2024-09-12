@@ -22,16 +22,21 @@ import logging
 
 class Recurrent_DQN_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
-                 args, load=False, agent_folder=None, agent_settings: AgentSettings = None):
+                 args, load=False, agent_folder=None, agent_settings: AgentSettings = None,
+                 single_value_qnet : bool = False):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         tf_environment = self.tf_environment
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
+        if single_value_qnet:
+            q_net_units = 1
+        else:
+            q_net_units = len(environment.action_keywords)
         if agent_settings is None: # Default settings
             postprocessing_layers = [tf.keras.layers.Dense(
                 100, activation='relu') for _ in range(2)]
             q_values_layer = tf.keras.layers.Dense(
-                units=len(environment.action_keywords),
+                units=q_net_units,
                 activation=None,
                 kernel_initializer=tf.keras.initializers.RandomUniform(
                     minval=-0.03, maxval=0.03),
@@ -50,7 +55,7 @@ class Recurrent_DQN_agent(FatherAgent):
             postprocessing_layers = [tf.keras.layers.Dense(
                 num_units, activation='relu') for num_units in agent_settings.postprocessing_layers]
             q_values_layer = tf.keras.layers.Dense(
-                units=len(environment.action_keywords),
+                units=q_net_units,
                 activation=None,
                 kernel_initializer=tf.keras.initializers.RandomUniform(tf_environment = self.tf_environment,
                     minval=-0.03, maxval=0.03),
@@ -78,7 +83,13 @@ class Recurrent_DQN_agent(FatherAgent):
         logging.info("Agent initialized")
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_collector_driver(self.tf_environment_train)
+
+        if single_value_qnet:
+            alternative_observer = self.get_action_handicapped_observer()
+            self.init_collector_driver(self.tf_environment_train, alternative_observer)
+        else:
+            self.init_collector_driver(self.tf_environment_train)
+        
         logging.info("Collector driver initialized")
         self.init_random_collector_driver(self.tf_environment_train)
         if load:
@@ -99,3 +110,4 @@ class Recurrent_DQN_agent(FatherAgent):
                     if 'kernel' in weight.name or 'bias' in weight.name:
                         weight.assign(tf.keras.initializers.RandomUniform(
                             minval=-0.3, maxval=0.3)(weight.shape))
+                        

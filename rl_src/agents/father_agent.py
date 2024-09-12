@@ -135,7 +135,7 @@ class FatherAgent(AbstractAgent):
         )
         self.agent.initialize()
         self.init_replay_buffer(tf_environment)
-        self.init_collector_driver(tf_environment)
+        self.init_collector_drive(tf_environment)
 
     def init_replay_buffer(self, tf_environment, buffer_size = None):
         """Initialize the uniform replay buffer for the agent.
@@ -149,8 +149,15 @@ class FatherAgent(AbstractAgent):
             data_spec=self.agent.collect_data_spec,
             batch_size=tf_environment.batch_size,
             max_length=buffer_size)
+        
+    def get_observers(self, alternative_observer):
+        if alternative_observer is None:
+            observers = [self.replay_buffer.add_batch]
+        else:
+            observers = [alternative_observer]
+        return observers
 
-    def init_collector_driver(self, tf_environment):
+    def init_collector_driver(self, tf_environment, alternative_observer : callable = None):
         """Initialize the collector driver for the agent.
 
         Args:
@@ -158,13 +165,15 @@ class FatherAgent(AbstractAgent):
         """
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
+        observers = self.get_observers(alternative_observer)
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
-            observers=[self.replay_buffer.add_batch],
+            observers=observers,
             num_steps=self.traj_num_steps)
 
-    def init_random_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
+    def init_random_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment,
+                                     alternative_observer : callable = None):
         """Initialize the random policy collector driver for the agent. Used for random exploration.
 
         Args:
@@ -173,10 +182,11 @@ class FatherAgent(AbstractAgent):
         random_policy = tf_agents.policies.random_tf_policy.RandomTFPolicy(tf_environment.time_step_spec(),
                                                                            tf_environment.action_spec(),
                                                                            observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter)
+        observers = self.get_observers(alternative_observer)
         self.random_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             random_policy,
-            observers=[self.replay_buffer.add_batch],
+            observers=observers,
             num_steps=self.traj_num_steps
         )
 
@@ -186,7 +196,7 @@ class FatherAgent(AbstractAgent):
 
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None,
                                soft_decision=False, fsc_multiplier=2.0, need_logits: bool = True,
-                               switch_probability : float = None):
+                               switch_probability : float = None, alternative_observer : callable = None):
         """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
 
         Args:
@@ -203,11 +213,11 @@ class FatherAgent(AbstractAgent):
                                      switch_probability=switch_probability)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
-
+        observers = self.get_observers(alternative_observer)
         self.fsc_driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
             tf_environment,
             eager,
-            observers=[self.replay_buffer.add_batch],
+            observers=observers,
             num_episodes=1
         )
 
@@ -489,13 +499,27 @@ class FatherAgent(AbstractAgent):
         """Reset the weights of the agent. Implemented in the child classes."""
         raise NotImplementedError
 
-    def demasked_observer(self):
+    def get_demasked_observer(self):
         """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""
         def _add_batch(item: Trajectory):
             modified_item = Trajectory(
                 step_type=item.step_type,
                 observation=item.observation["observation"],
                 action=item.action,
+                policy_info=(item.policy_info),
+                next_step_type=item.next_step_type,
+                reward=item.reward,
+                discount=item.discount,
+            )
+            self.replay_buffer._add_batch(modified_item)
+        return _add_batch
+    
+    def get_action_handicapped_observer(self):
+        def _add_batch(item: Trajectory):
+            modified_item = Trajectory(
+                step_type=item.step_type,
+                observation=item.observation["observation"],
+                action=tf.constant(0, tf.int32),
                 policy_info=(item.policy_info),
                 next_step_type=item.next_step_type,
                 reward=item.reward,

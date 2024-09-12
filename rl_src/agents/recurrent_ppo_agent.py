@@ -90,7 +90,7 @@ class Recurrent_PPO_agent(FatherAgent):
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
-        observer = self.demasked_observer()
+        observer = self.get_demasked_observer()
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
@@ -110,7 +110,7 @@ class Recurrent_PPO_agent(FatherAgent):
                                      switch_probability=switch_probability)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
-        observer = self.demasked_observer()
+        observer = self.get_demasked_observer()
         self.fsc_driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
             tf_environment,
             eager,

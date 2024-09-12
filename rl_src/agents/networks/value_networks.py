@@ -139,9 +139,9 @@ class Value_DQNet(network.Network):
         print(value)
         print(network_state)
         return value, network_state
+    
+    
 
-    
-    
 def get_alternative_call_of_qnet(q_net : network.Network):
     func = q_net.__call__
     def call(observation, step_type = None, network_state=(), training=False):

@@ -499,21 +499,6 @@ class Synthesizer_RL:
             self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier)
         self.agent.train_agent_off_policy(iterations)
 
-    def train_agent_combined_with_fsc(self, iterations: int, fsc: FSC):
-        """Train the agent combined with FSC. Deprecated.
-        Args:
-            iterations (int): Number of iterations.
-            fsc (FSC): FSC data.
-        """
-        assert self.initializer.args.learning_method == "PPO", "FSC policy can be created only for PPO agent"
-        self.agent.wrapper._set_fsc_oracle(
-            fsc, self.initializer.environment.action_keywords)
-        self.agent.init_collector_driver(
-            self.initializer.tf_environment)
-        self.agent.train_agent_off_policy(iterations, use_fsc=True)
-
-
-
     def sample_trajectories_with_fsc(self, episodes = 10, fsc = None, soft_decision = False, fsc_multiplier = None, switch_probability = False):
         from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter
         fsc_policy = FSC_Policy(self.initializer.tf_environment, fsc,

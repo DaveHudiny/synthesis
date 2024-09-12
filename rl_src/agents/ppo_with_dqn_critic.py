@@ -72,22 +72,22 @@ class PPO_with_DQN_Critic(FatherAgent):
         self.args.prefer_stochastic = True
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_collector_driver(self.tf_environment_train)
+        self.init_collector_driver_ppo(self.tf_environment_train)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy
         if load:
             self.load_agent()
             
-    def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
+    def init_collector_driver_ppo(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
         # self.collect_policy_wrapper = self.agent.collect_policy
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
         # eager = self.collect_policy_wrapper
-        observer = self.demasked_observer()
-        # observer = self.replay_buffer.add_batch
+        observer = self.get_demasked_observer()
+        # observer = self.replay_buffer.add_batcyh
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
