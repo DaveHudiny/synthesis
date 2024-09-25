@@ -123,21 +123,23 @@ class Periodic_FSC_Neural_Critic(tf_agents.networks.value_rnn_network.ValueRnnNe
     
 
 class Value_DQNet(network.Network):
-    def __init__(self, q_net : network.Network):
+    def __init__(self, q_net : network.Network, trainable = False):
         self._network_output_spec = tf_agents.specs.ArraySpec((1,), dtype=np.float32)
         super(Value_DQNet, self).__init__(
             input_tensor_spec=q_net.input_tensor_spec,
             state_spec=q_net.state_spec
         )
         self.q_net = q_net
-
+        for layer in self.q_net.layers:
+            layer.trainable = trainable
         self.get_initial_state = q_net.get_initial_state
     
     def call(self, observation, step_type = None, network_state=(), training=False):
+        training = False
         values, network_state = self.q_net(inputs=observation, step_type=step_type, 
                                            network_state=network_state, training=training)
-        # value = tf.math.reduce_max(values, axis=-1, keepdims=True)
-        return tf.squeeze(values, -1), network_state
+        value = tf.math.reduce_max(values, axis=-1, keepdims=True)
+        return tf.squeeze(value, -1), network_state
     
     
 

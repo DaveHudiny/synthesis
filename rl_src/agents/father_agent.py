@@ -25,6 +25,8 @@ from tools.evaluators import *
 from agents.policies.fsc_policy import FSC_Policy, FSC
 from tools.args_emulator import ArgsEmulator
 
+from paynt.synthesizer.saynt_rl_tools.actor_and_value_pretraining import Actor_Value_Pretrainer
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -251,7 +253,8 @@ class FatherAgent(AbstractAgent):
             if i % 100 == 0:
                 self.evaluate_agent()
 
-    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False, random_init : bool = False, use_fsc : bool = False):
+    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False, random_init : bool = False, use_fsc : bool = False,
+                               probab_random_init_state = 0.3):
         """Train the agent off-policy. Main training function for the agents.
 
         Args:
@@ -279,12 +282,15 @@ class FatherAgent(AbstractAgent):
             if use_fsc and hasattr(self, "fsc_driver"):
                 self.fsc_driver.run()
             else:
-                if q_vals_rand or random_init:
+                import random
+                if q_vals_rand or random_init or random.random() < probab_random_init_state:
                     self.environment.set_random_starts_simulation(True)
+                else:
+                    self.environment.set_random_starts_simulation(False)
                 self.driver.run()
+            
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss
-            print(self.dqn_critic_net.trainable_variables)
             train_loss = train_loss.numpy()
             self.agent.train_step_counter.assign_add(1)
             self.evaluation_result.add_loss(train_loss)
@@ -407,7 +413,6 @@ class FatherAgent(AbstractAgent):
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(last=True)
         self.replay_buffer.clear()
-
 
     def evaluate_agent(self, last=False):
         """Evaluate the agent. Used for evaluation of the agent during training.

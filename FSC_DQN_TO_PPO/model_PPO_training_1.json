@@ -1,1 +1,0 @@
-{"best_episode_return": "-3.4028235e+38", "best_return": "-3.4028235e+38", "goal_value": "100.0", "returns_episodic": "[]", "returns": "[]", "reach_probs": "[]", "best_reach_prob": "0.0", "losses": "[]", "each_episode_returns": "[]", "each_episode_successes": "[]", "learning_algorithm": "PPO", "learning_rate": "nan", "nn_details": "Not implemented yet", "max_steps": "400"}

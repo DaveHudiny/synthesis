@@ -536,7 +536,7 @@ class Synthesizer_RL:
             logger.info("Agent not loaded, training from scratch.")
             
         episodes = self.sample_trajectories_with_fsc(10, fsc)
-        exit(0)
+        return
         self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
 
     def save_to_json(self, experiment_name: str = "PAYNTc+RL"):
@@ -571,14 +571,21 @@ class Synthesizer_RL:
         self.saynt_driver.episodic_run(20)
 
     def dqn_and_ppo_training(self, fsc : FSC = None):
-        assert fsc != None, "DQN pre-trained with FSC values to improve PPO learning have to know FSC."
-        self.dqn_agent.pre_train_with_fsc(10, fsc)
+        from .saynt_rl_tools.actor_and_value_pretraining import Actor_Value_Pretrainer
+        # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.initializer.args
+        pre_trainer = Actor_Value_Pretrainer(self.initializer.environment, self.initializer.tf_environment,
+                                            args, self.agent.agent.collect_data_spec)
+        if fsc == None:
+            logger.info("No suitable FSC found.")
+        
+        else:
+            logger.info("Suitable FSC found, but will be used in main training loop.")
+            # pre_trainer.train_both_networks(75, fsc=fsc)
+        actor = pre_trainer.actor_net
+        critic = pre_trainer.critic_net
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
-                                         args, args.load_agent, agent_folder, self.dqn_agent.agent)
-        self.agent.train_agent_off_policy(1000)
-        # fake_init_state = self.dqn_agent.agent._q_network.get_initial_state(1)
-        # time_step = self.initializer.tf_environment.reset()
-        # print(self.dqn_agent.agent._q_network(time_step.observation["observation"], network_state = fake_init_state))
-        # print(type(self.dqn_agent.agent._q_network))
+                                         args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
+        
+        self.agent.train_duplex(1000, fsc, pre_trainer)

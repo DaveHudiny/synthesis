@@ -24,17 +24,18 @@ class Recurrent_DQN_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
                  args, load=False, agent_folder=None, agent_settings: AgentSettings = None,
                  single_value_qnet : bool = False):
+        single_value_qnet = False
         self.common_init(environment, tf_environment, args, load, agent_folder)
         tf_environment = self.tf_environment
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
         if single_value_qnet:
-            q_net_units = 1
+            q_net_units = 2
             action_spec = tf_agents.specs.tensor_spec.BoundedTensorSpec(
             shape=(),
             dtype=tf.int32,
             minimum=0,
-            maximum=0,
+            maximum=1,
             name="action"
             )
         else:
@@ -82,8 +83,8 @@ class Recurrent_DQN_agent(FatherAgent):
             # td_errors_loss_fn=common.element_wise_squared_loss,
             train_step_counter=train_step_counter,
             observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
-            epsilon_greedy=0.14,
-            gradient_clipping=0.7,
+            epsilon_greedy=0.1,
+            # gradient_clipping=0.7,
             gamma=0.99
         )
         self.policy_state = self.agent.policy.get_initial_state(None)
