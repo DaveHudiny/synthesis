@@ -7,7 +7,7 @@ import paynt.synthesizer.synthesizer
 import paynt.quotient.quotient
 import paynt.verification.property_result
 from paynt.verification.property import Property
-import paynt.utils.profiler
+import paynt.utils.timer
 
 import paynt.family.smt
 import paynt.synthesizer.conflict_generator.dtmc
@@ -408,7 +408,7 @@ class PolicyTree:
     
     def postprocess(self, quotient, prop):
 
-        postprocessing_timer = paynt.utils.profiler.Timer()
+        postprocessing_timer = paynt.utils.timer.Timer()
         postprocessing_timer.start()
         logger.info("post-processing the policy tree...")
 
@@ -789,6 +789,11 @@ class SynthesizerPolicyTree(paynt.synthesizer.synthesizer.Synthesizer):
             evaluation = paynt.synthesizer.synthesizer.FamilyEvaluation(node.family,None,node.sat,policy=policy)
             evaluations.append(evaluation)
         return evaluations
+
+
+    def run(self, optimum_threshold=None):
+        return self.evaluate(export_filename_base=None)
+
 
     def export_evaluation_result(self, evaluations, export_filename_base):
         import json

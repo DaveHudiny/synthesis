@@ -117,7 +117,7 @@ class Property:
         return formula_alt
     
     def __str__(self):
-        return str(self.formula)
+        return str(self.property.raw_formula)
 
     @property
     def reward(self):
@@ -140,9 +140,7 @@ class Property:
         self.__init__(prop)
 
     def property_copy(self):
-        formula_copy = self.formula.clone()
-        property_copy = stormpy.core.Property(self.name, formula_copy)
-        return property_copy
+        return stormpy.core.Property(self.name, self.property.raw_formula.clone())
 
     def copy(self):
         return Property(self.property_copy())
@@ -161,7 +159,7 @@ class Property:
         return False
 
     def negate(self):
-        negated_formula = self.formula.clone()
+        negated_formula = self.property.raw_formula.clone()
         negated_formula.comparison_type = {
             stormpy.ComparisonType.LESS:    stormpy.ComparisonType.GEQ,
             stormpy.ComparisonType.LEQ:     stormpy.ComparisonType.GREATER,
@@ -283,7 +281,7 @@ class OptimalityProperty(Property):
         return not( not self.reward and self.minimizing and self.threshold == 0 )
 
     def negate(self):
-        negated_formula = self.formula.clone()
+        negated_formula = self.property.raw_formula.clone()
         negate_optimality_type = {
             stormpy.OptimizationDirection.Minimize:    stormpy.OptimizationDirection.Maximize,
             stormpy.OptimizationDirection.Maximize:    stormpy.OptimizationDirection.Minimize

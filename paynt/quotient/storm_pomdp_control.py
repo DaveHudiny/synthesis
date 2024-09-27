@@ -2,7 +2,7 @@ import stormpy
 import stormpy.pomdp
 import payntbind
 
-import paynt.utils.profiler
+import paynt.utils.timer
 
 from os import makedirs
 
@@ -131,7 +131,7 @@ class StormPOMDPControl:
         belmc = stormpy.pomdp.BeliefExplorationModelCheckerDouble(self.pomdp, options)
 
         logger.info("starting Storm POMDP analysis")
-        storm_timer = paynt.utils.profiler.Timer()
+        storm_timer = paynt.utils.timer.Timer()
         storm_timer.start()
         result = belmc.check(self.spec_formulas[0], self.paynt_export)   # calls Storm
         storm_timer.stop()
@@ -181,10 +181,15 @@ class StormPOMDPControl:
         control_thread.join()
         self.belief_explorer = belmc.get_interactive_belief_explorer()
 
+
     # resume interactive belief model checker, should be called only after belief model checker was previously started
     def interactive_storm_resume(self, storm_timeout):
         control_thread = Thread(target=self.interactive_control, args=(belmc, False, storm_timeout,))
 
+        if self.storm_terminated:
+            logger.info("Storm already terminated")
+            return
+        
         logger.info("Interactive Storm resumed")
         control_thread.start()
 
@@ -235,7 +240,7 @@ class StormPOMDPControl:
         # Update cut-off FSC values provided by PAYNT
         if not start:
             logger.info("Updating FSC values in Storm")
-            self.belief_explorer.set_fsc_values(self.paynt_export)
+            belmc.set_fsc_values(self.paynt_export)
             belmc.continue_unfolding()
 
         # wait for Storm to start exploring
@@ -246,6 +251,7 @@ class StormPOMDPControl:
 
         sleep(storm_timeout)
         if self.storm_terminated:
+            logger.info("Storm terminated")
             return
         logger.info("Pausing Storm")
         belmc.pause_unfolding()

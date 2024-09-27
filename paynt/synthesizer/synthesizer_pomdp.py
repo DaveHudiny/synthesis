@@ -21,7 +21,7 @@ from paynt.parser.prism_parser import PrismParser
 
 import paynt.quotient.quotient
 import paynt.quotient.pomdp
-from ..utils.profiler import Timer
+import paynt.utils.timer
 
 import paynt.verification.property
 
@@ -63,7 +63,7 @@ class SynthesizerPomdp:
             # SAYNT only works with abstraction refinement
             self.synthesizer = SynthesizerARStorm
             if self.storm_control.iteration_timeout is not None:
-                self.saynt_timer = Timer()
+                self.saynt_timer = paynt.utils.timer.Timer()
                 self.synthesizer.saynt_timer = self.saynt_timer
                 self.storm_control.saynt_timer = self.saynt_timer
 
@@ -670,7 +670,7 @@ class SynthesizerPomdp:
 
             # break
 
-    def run(self, optimum_threshold=None, export_evaluation=None):
+    def run(self, optimum_threshold=None):
         # choose the synthesis strategy:
         if self.use_storm:
             logger.info("Storm POMDP option enabled")

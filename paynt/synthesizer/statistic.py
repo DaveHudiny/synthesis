@@ -1,6 +1,6 @@
 import stormpy.storage
 
-import paynt.utils.profiler
+import paynt.utils.timer
 import paynt.synthesizer.synthesizer
 import paynt.models.models
 
@@ -28,7 +28,7 @@ class Statistic:
 
     # parameters
     status_period_seconds = 3
-    synthesis_timer_total = paynt.utils.profiler.Timer()
+    synthesis_timer_total = paynt.utils.timer.Timer()
     
     def __init__(self, synthesizer):
         
@@ -59,11 +59,12 @@ class Statistic:
         self.num_policies_merged = None
 
         self.family_size = None
-        self.synthesis_timer = paynt.utils.profiler.Timer()
+        self.synthesis_timer = paynt.utils.timer.Timer()
         self.status_horizon = Statistic.status_period_seconds
 
 
     def start(self, family):
+        logger.info("synthesis initiated, design space: {}".format(family.size_or_order))
         self.family_size = family.size
         self.synthesis_timer.start()
         if not self.synthesis_timer_total.running:
@@ -148,9 +149,12 @@ class Statistic:
         # ret_str += f", pres = {self.synthesizer.num_preserved}"
         
         spec = self.quotient.specification
-        if spec.has_optimality and spec.optimality.optimum is not None:
-            optimum = round(spec.optimality.optimum,4)
-            ret_str += f", opt = {optimum}"
+        if spec.has_optimality:
+            opt = self.synthesizer.best_assignment_value
+            if opt is None:
+                opt = spec.optimality.optimum
+            if opt is not None:
+                ret_str += f", opt = {round(opt,4)}"
         return ret_str
 
 

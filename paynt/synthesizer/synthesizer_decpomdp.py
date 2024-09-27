@@ -8,8 +8,6 @@ from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
 
 import paynt.quotient.quotient
 import paynt.quotient.decpomdp
-from ..utils.profiler import Timer
-
 import paynt.verification.property
 
 import logging 
@@ -56,7 +54,7 @@ class SynthesizerDecPomdp:
             mem_size += 1
 
             #break
-            
 
-    def run(self, optimum_threshold=None, export_evaluation=None):
+
+    def run(self, optimum_threshold=None):
         self.strategy_iterative(unfold_imperfect_only=True)
