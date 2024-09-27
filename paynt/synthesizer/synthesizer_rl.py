@@ -571,7 +571,7 @@ class Synthesizer_RL:
         self.saynt_driver.episodic_run(20)
 
     def dqn_and_ppo_training(self, fsc : FSC = None):
-        from .saynt_rl_tools.actor_and_value_pretraining import Actor_Value_Pretrainer
+        from .saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.initializer.args
         pre_trainer = Actor_Value_Pretrainer(self.initializer.environment, self.initializer.tf_environment,
@@ -581,11 +581,12 @@ class Synthesizer_RL:
         
         else:
             logger.info("Suitable FSC found, but will be used in main training loop.")
-            # pre_trainer.train_both_networks(75, fsc=fsc)
+            pre_trainer.train_both_networks(150, fsc=fsc, use_best_traj_only=False)
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
         
-        self.agent.train_duplex(1000, fsc, pre_trainer)
+        # self.agent.train_duplex(500, fsc, pre_trainer)
+        self.agent.train_agent_off_policy(10000, probab_random_init_state=0.06)

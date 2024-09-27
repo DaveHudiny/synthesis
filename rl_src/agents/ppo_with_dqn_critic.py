@@ -26,7 +26,7 @@ import tf_agents
 
 import logging
 
-from paynt.synthesizer.saynt_rl_tools.actor_and_value_pretraining import Actor_Value_Pretrainer
+from paynt.synthesizer.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
 from paynt.quotient.fsc import FSC
 
 logger = logging.getLogger(__name__)
@@ -92,9 +92,9 @@ class PPO_with_DQN_Critic(FatherAgent):
 
     def train_iteration_rl_fsc(self, pre_trainer : Actor_Value_Pretrainer, experience_rl, experience_fsc):
         train_loss = self.agent.train(experience_rl).loss
-        # actor_loss = pre_trainer.train_actor_iteration(actor_net=self.agent._actor_net, experience=experience_fsc)
+        actor_loss = pre_trainer.train_actor_iteration(actor_net=self.agent._actor_net, experience=experience_fsc)
         critic_loss = pre_trainer.train_value_iteration(critic_net=self.agent._value_net, experience=experience_fsc)
-        return train_loss, (), critic_loss
+        return train_loss, actor_loss, critic_loss
 
     def train_duplex(self, epochs : int, fsc : FSC, pre_trainer : Actor_Value_Pretrainer):
         duplex_driver = pre_trainer.get_duplex_driver(fsc=fsc, rl_agent=self.agent, 
