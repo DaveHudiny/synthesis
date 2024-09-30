@@ -539,14 +539,14 @@ class Synthesizer_RL:
         return
         self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
 
-    def save_to_json(self, experiment_name: str = "PAYNTc+RL"):
+    def save_to_json(self, experiment_name: str = "PAYNTc+RL", model="model", method="PPO"):
         """Save the agent to JSON.
         Args:
             experiment_name (str): Name of the experiment.
         """
         evaluation_result = self.agent.evaluation_result
         save_statistics_to_new_json(
-            experiment_name, "model", "PPO", evaluation_result, self.initializer.args)
+            experiment_name, model, method, evaluation_result, self.initializer.args)
 
     def get_encoding_method(self, method_str: str = "Valuations") -> EncodingMethods:
         if method_str == "Valuations":
@@ -570,7 +570,8 @@ class Synthesizer_RL:
                                              fsc=fsc)
         self.saynt_driver.episodic_run(20)
 
-    def dqn_and_ppo_training(self, fsc : FSC = None):
+    # "only_pretrained", "only_duplex", "only_duplex_critic", "complete"
+    def dqn_and_ppo_training(self, fsc : FSC = None, sub_method = "only_pretrained"):
         from .saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.initializer.args
@@ -580,13 +581,33 @@ class Synthesizer_RL:
             logger.info("No suitable FSC found.")
         
         else:
-            logger.info("Suitable FSC found, but will be used in main training loop.")
-            pre_trainer.train_both_networks(150, fsc=fsc, use_best_traj_only=False)
+            logger.info("Suitable FSC found.")
+            if sub_method == "only_pretrained" or sub_method == "complete":
+                pre_trainer.train_both_networks(150, fsc=fsc, use_best_traj_only=False)
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
-        
-        # self.agent.train_duplex(500, fsc, pre_trainer)
-        self.agent.train_agent_off_policy(10000, probab_random_init_state=0.06)
+        if sub_method == "four_phase" and fsc is not None:
+            self.agent.train_agent_off_policy(450, probab_random_init_state=0.70)
+            pre_trainer.train_both_networks(101, fsc=fsc, use_best_traj_only=False)
+        if fsc is not None:
+            if sub_method == "only_duplex":
+                self.agent.train_duplex(2000, fsc, pre_trainer, False)
+            elif sub_method == "only_duplex_critic":
+                self.agent.train_duplex(2000, fsc, pre_trainer, True)
+        else:
+            logger.info("No suitable FSC found. No duplexing will be performed.")
+            self.agent.train_agent_off_policy(8000, probab_random_init_state=0.2)
+            return 
+        if sub_method == "only_pretrained":
+            self.agent.train_agent_off_policy(10000, probab_random_init_state=0.1)
+
+        if sub_method == "complete":
+            self.agent.train_duplex(1000, fsc, pre_trainer, True)
+            self.agent.train_agent_off_policy(8000, probab_random_init_state=0.06)
+
+        if sub_method == "four_phase":
+            self.agent.train_duplex(500, fsc, pre_trainer, True)
+            self.agent.train_agent_off_policy(4000, probab_random_init_state=0.06)

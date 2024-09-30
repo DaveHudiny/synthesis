@@ -270,7 +270,7 @@ class FatherAgent(AbstractAgent):
         self.environment.set_random_starts_simulation(False)
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
-                self.get_evaluation_policy(), self.tf_environment, self.evaluation_episodes, self.environment)))
+                self.get_evaluation_policy(), self.tf_environment, self.evaluation_episodes, self.environment, self.evaluation_result.update)))
         # Because sometimes FSC driver does not sample enough trajectories to start learning.
         for _ in range(5):
             if q_vals_rand or random_init:

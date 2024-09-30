@@ -90,13 +90,16 @@ class PPO_with_DQN_Critic(FatherAgent):
         if load:
             self.load_agent()
 
-    def train_iteration_rl_fsc(self, pre_trainer : Actor_Value_Pretrainer, experience_rl, experience_fsc):
+    def train_iteration_rl_fsc(self, pre_trainer : Actor_Value_Pretrainer, experience_rl, experience_fsc, critic_only : bool = False):
         train_loss = self.agent.train(experience_rl).loss
-        actor_loss = pre_trainer.train_actor_iteration(actor_net=self.agent._actor_net, experience=experience_fsc)
+        if critic_only:
+            actor_loss = pre_trainer.train_actor_iteration(actor_net=self.agent._actor_net, experience=experience_fsc)
+        else:
+            actor_loss = ()
         critic_loss = pre_trainer.train_value_iteration(critic_net=self.agent._value_net, experience=experience_fsc)
         return train_loss, actor_loss, critic_loss
 
-    def train_duplex(self, epochs : int, fsc : FSC, pre_trainer : Actor_Value_Pretrainer):
+    def train_duplex(self, epochs : int, fsc : FSC, pre_trainer : Actor_Value_Pretrainer, critic_only : bool = False):
         duplex_driver = pre_trainer.get_duplex_driver(fsc=fsc, rl_agent=self.agent, 
                                                       replay_buffer_fsc=pre_trainer.replay_buffer, 
                                                       replay_buffer_rl=self.replay_buffer,
@@ -127,7 +130,8 @@ class PPO_with_DQN_Critic(FatherAgent):
             pre_trainer.fill_replay_buffer_with_fsc()
             experience_rl, _ = next(iterator)
             experience_fsc, _ = next(iterator_fsc)
-            train_loss, actor_loss, critic_loss = self.train_iteration_rl_fsc(pre_trainer, experience_rl=experience_rl, experience_fsc=experience_fsc)
+            train_loss, actor_loss, critic_loss = self.train_iteration_rl_fsc(pre_trainer, experience_rl=experience_rl, 
+                                                                              experience_fsc=experience_fsc, critic_only=critic_only)
             train_loss = train_loss.numpy()
             self.agent.train_step_counter.assign_add(1)
             self.evaluation_result.add_loss(train_loss)
