@@ -38,8 +38,8 @@ class Actor_Value_Pretrainer:
             tf_environment, tf_environment.action_spec())
         self.critic_net = create_recurrent_value_net_demasked(tf_environment)
 
-        self.actor_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.0001, weight_decay=0.001)
+        self.actor_optimizer = tf.keras.optimizers.AdamW()
+        #     learning_rate=0.0001, weight_decay=0.001)
         self.actor_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True)
         self.gamma = 0.99

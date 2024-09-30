@@ -372,23 +372,19 @@ class SynthesizerPomdp:
         self.rl_args = init_rl_args(mode=self.combo_mode)
         skip = False
         if hasattr(self, "input_rl_settings_dict"):
-            sub_method = self.input_rl_settings_dict["sub_method"]
             agent_task = self.input_rl_settings_dict["agent_task"]
             model_name = self.input_rl_settings_dict["model_name"]
-            learning_method = self.rl_args.learning_method
-            fsc_file_name =  f"{model_name}_{sub_method}_{learning_method}"
+            fsc_file_name =  f"{model_name}"
             if os.path.exists(f"{agent_task}/{fsc_file_name}"):
                 with open(f"{agent_task}/{fsc_file_name}", "rb") as f:
                     fsc = pickle.load(f)
                 self.storm_control.latest_paynt_result_fsc = fsc
                 skip = True
-
         if not skip:
             self.iterative_storm_loop_body(timeout, paynt_timeout, storm_timeout, iteration_limit)
             if hasattr(self, "input_rl_settings_dict"):
                 with open(f"{agent_task}/{fsc_file_name}", "wb") as f:
                     pickle.dump(self.storm_control.latest_paynt_result_fsc, f)
-
         if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             self.run_rl_synthesis(self.saynt)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
