@@ -23,7 +23,7 @@ class Policy_Mask_Wrapper(TFPolicy):
     """Wrapper for stochastic policies that allows to use observation and action constraint splitters"""
 
     def __init__(self, policy: TFPolicy, observation_and_action_constraint_splitter=observation_and_action_constraint_splitter, 
-                 time_step_spec=None, is_greedy=False):
+                 time_step_spec=None, is_greedy : bool = False, select_rand_action_probability : float = 0.0):
         """Initializes the policy mask wrapper, which is a wrapper for stochastic policies which enables to use observation and action constraint splitters.
 
         Args:
@@ -47,6 +47,7 @@ class Policy_Mask_Wrapper(TFPolicy):
         self._info_spec = policy.info_spec
         self._is_greedy = is_greedy
         self._real_distribution = self._distribution
+        self._select_random_action_probability = select_rand_action_probability
 
     def is_greedy(self):
         return self._is_greedy
@@ -173,7 +174,7 @@ class Policy_Mask_Wrapper(TFPolicy):
             self._action_spec, [distribution])
         return policy_step.PolicyStep(distribution, policy_state, distribution_result.info)
     
-    def _action(self, time_step, policy_state, seed):
+    def _action(self, time_step, policy_state, seed) -> PolicyStep:
         distribution = self._real_distribution(time_step, policy_state)
         if self._is_greedy:
             action = tf.argmax(distribution.action.logits, output_type=tf.int32, axis=-1)
@@ -181,4 +182,12 @@ class Policy_Mask_Wrapper(TFPolicy):
             action = distribution.action.sample()
 
         policy_step = PolicyStep(action=action, state=distribution.state, info=distribution.info)
+        return policy_step
+
+    def _randomized_action(self, time_step, policy_state, seed):
+        policy_step = self._action_original(time_step, policy_state, seed) 
+        rand_number = np.random.uniform(0.0, 1.0)
+        if rand_number < self._select_random_action_probability:
+            rand_action = np.random.choice(self._action_spec.maximum, size=1)
+            policy_step.action = tf.constant(rand_action)
         return policy_step

@@ -282,8 +282,8 @@ class FatherAgent(AbstractAgent):
             if use_fsc and hasattr(self, "fsc_driver"):
                 self.fsc_driver.run()
             else:
-                import random
-                if q_vals_rand or random_init or random.random() < probab_random_init_state:
+                random_number = np.random.uniform(0.0, 1.0)
+                if q_vals_rand or random_init or random_number <= probab_random_init_state:
                     self.environment.set_random_starts_simulation(True)
                 else:
                     self.environment.set_random_starts_simulation(False)

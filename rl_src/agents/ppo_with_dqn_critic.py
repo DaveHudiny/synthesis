@@ -67,15 +67,16 @@ class PPO_with_DQN_Critic(FatherAgent):
             optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
             normalize_observations=False,
             normalize_rewards=False,
+            entropy_regularization=0.0,
             use_gae=True,
             num_epochs=2,
             debug_summaries=False,
             summarize_grads_and_vars=False,
             train_step_counter=tf.Variable(0),
             lambda_value=0.95,
-            name='PPO_with_QValues_FSC',
+            name='PPO_with_Pretraining',
             greedy_eval=False,
-            discount_factor=0.99
+            discount_factor=0.95
         )
         self.agent.initialize()
         logging.info("Agent initialized")
@@ -146,7 +147,8 @@ class PPO_with_DQN_Critic(FatherAgent):
             
     def init_collector_driver_ppo(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
-            self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
+            self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
+            select_rand_action_probability=0.00)
         # self.collect_policy_wrapper = self.agent.collect_policy
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)

@@ -11,6 +11,7 @@ from rl_src.rl_main import ArgsEmulator, Initializer, save_statistics_to_new_jso
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
 from rl_src.tools.encoding_methods import *
+from rl_src.tools.evaluators import EvaluationResults
 from paynt.quotient.fsc import FSC
 from rl_src.agents.ppo_with_dqn_critic import PPO_with_DQN_Critic
 
@@ -570,8 +571,24 @@ class Synthesizer_RL:
                                              fsc=fsc)
         self.saynt_driver.episodic_run(20)
 
-    # "only_pretrained", "only_duplex", "only_duplex_critic", "complete"
-    def dqn_and_ppo_training(self, fsc : FSC = None, sub_method = "only_pretrained"):
+
+    def check_four_phase_condition(self, fsc_quality : float, maximizing_value : bool, probability_cond : bool, evaluation_result : EvaluationResults):
+        if probability_cond:
+            best_value = evaluation_result.best_reach_prob 
+        else:
+            best_value = evaluation_result.best_return
+            if not maximizing_value:
+                best_value = -best_value # Minimizing reward RL works with negative rewards.
+        if maximizing_value:
+            return fsc_quality > best_value
+        else:
+            return fsc_quality < best_value
+
+    # "only_pretrained", "only_duplex", "only_duplex_critic", "complete", "four_phase"
+    # fsc_quality is either minimized or maximized. Condition given quality of FSC is currently used only in the four_phase implementation.
+    # Condition can optimize probability (e.g. maximize probability of reaching the goal state) or reward (e.g. minimize number of steps to reach the goal state)
+    def dqn_and_ppo_training(self, fsc : FSC = None, sub_method = "only_pretrained",
+                             fsc_quality : float = 0.0, maximizing_value : bool = True, probability_cond : bool = True):
         from .saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.initializer.args
@@ -590,24 +607,35 @@ class Synthesizer_RL:
         self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
         if sub_method == "four_phase" and fsc is not None:
-            self.agent.train_agent_off_policy(450, probab_random_init_state=0.70)
-            pre_trainer.train_both_networks(101, fsc=fsc, use_best_traj_only=False)
+            self.agent.train_agent_off_policy(4500, probab_random_init_state=0.0, random_init=True)
+
+            if self.check_four_phase_condition(fsc_quality=fsc_quality, 
+                                               maximizing_value=maximizing_value, 
+                                               probability_cond=probability_cond,
+                                               evaluation_result=self.agent.evaluation_result):
+                pre_trainer.train_both_networks(101, fsc=fsc, use_best_traj_only=False)
         if fsc is not None:
             if sub_method == "only_duplex":
-                self.agent.train_duplex(2000, fsc, pre_trainer, False)
+                self.agent.train_duplex(2000, fsc, pre_trainer, critic_only=False)
             elif sub_method == "only_duplex_critic":
-                self.agent.train_duplex(2000, fsc, pre_trainer, True)
+                self.agent.train_duplex(2000, fsc, pre_trainer, critic_only=True)
         else:
             logger.info("No suitable FSC found. No duplexing will be performed.")
-            self.agent.train_agent_off_policy(8000, probab_random_init_state=0.2)
+            self.agent.train_agent_off_policy(4000, probab_random_init_state=0.2)
             return 
         if sub_method == "only_pretrained":
             self.agent.train_agent_off_policy(10000, probab_random_init_state=0.1)
 
         if sub_method == "complete":
-            self.agent.train_duplex(1000, fsc, pre_trainer, True)
-            self.agent.train_agent_off_policy(8000, probab_random_init_state=0.06)
+            self.agent.train_duplex(1000, fsc, pre_trainer, critic_only=True)
+            self.agent.train_agent_off_policy(4000, probab_random_init_state=0.06)
 
         if sub_method == "four_phase":
-            self.agent.train_duplex(500, fsc, pre_trainer, True)
+            if self.check_four_phase_condition(fsc_quality=fsc_quality, 
+                                               maximizing_value=maximizing_value, 
+                                               probability_cond=probability_cond, 
+                                               evaluation_result=self.agent.evaluation_result):
+                self.agent.train_duplex(500, fsc, pre_trainer, critic_only=True)
+            else:
+                self.agent.train_duplex(10, fsc, pre_trainer, critic_only=True)
             self.agent.train_agent_off_policy(4000, probab_random_init_state=0.06)

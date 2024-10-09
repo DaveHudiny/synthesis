@@ -1,3 +1,4 @@
+import json
 import numpy as np
 from time import sleep
 import os
@@ -294,13 +295,28 @@ class SynthesizerPomdp:
         rl_synthesizer.train_agent_qval_randomization(2000, qvalues)
         rl_synthesizer.save_to_json("PAYNTq_randomization")
 
-    def run_rl_synthesis_dqn_ppo(self):
+    def property_is_reachability(self, property: str):
+        return "Pmax" in property or "Pmin" in property
+
+    def property_is_maximizing(self, property: str):
+        return "max" in property
+
+    def run_rl_synthesis_dqn_ppo(self, fsc_json_dict={}):
         fsc = self.storm_control.latest_paynt_result_fsc
         sub_method = self.input_rl_settings_dict["sub_method"]
-        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args, pretrain_dqn=True)
-        rl_synthesiser.dqn_and_ppo_training(fsc, sub_method=sub_method)
-        rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"], 
-                                    model=self.input_rl_settings_dict["model_name"], 
+        # self.quotient.get_property().__str__()
+        original_property = fsc_json_dict["specification_property"]
+        is_probab_condition = self.property_is_reachability(original_property)
+        is_maximizing = self.property_is_maximizing(original_property)
+        rl_synthesiser = Synthesizer_RL(
+            self.quotient.pomdp, self.rl_args, pretrain_dqn=True)
+        paynt_value = fsc_json_dict["paynt_value"]
+        # = self.storm_control.paynt_bounds # TODO: SAYNT controller has the value defined in ...storm_bounds
+        rl_synthesiser.dqn_and_ppo_training(fsc, sub_method=sub_method, fsc_quality=paynt_value,
+                                            maximizing_value=is_maximizing,
+                                            probability_cond=is_probab_condition)
+        rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
+                                    model=self.input_rl_settings_dict["model_name"],
                                     method=f"{self.rl_args.learning_method}_{sub_method}")
 
     # main SAYNT loop
@@ -374,17 +390,27 @@ class SynthesizerPomdp:
         if hasattr(self, "input_rl_settings_dict"):
             agent_task = self.input_rl_settings_dict["agent_task"]
             model_name = self.input_rl_settings_dict["model_name"]
-            fsc_file_name =  f"{model_name}"
-            if os.path.exists(f"{agent_task}/{fsc_file_name}"):
+            fsc_file_name = f"{model_name}"
+            if os.path.exists(f"{agent_task}/{fsc_file_name}") and os.path.exists(f"{agent_task}/{fsc_file_name}_info.json"):
                 with open(f"{agent_task}/{fsc_file_name}", "rb") as f:
                     fsc = pickle.load(f)
+                with open(f"{agent_task}/{fsc_file_name}_info.json", "r") as f:
+                    fsc_json_dict = json.load(f)
                 self.storm_control.latest_paynt_result_fsc = fsc
                 skip = True
         if not skip:
-            self.iterative_storm_loop_body(timeout, paynt_timeout, storm_timeout, iteration_limit)
+            self.iterative_storm_loop_body(
+                timeout, paynt_timeout, storm_timeout, iteration_limit)
             if hasattr(self, "input_rl_settings_dict"):
+                specification_property = self.quotient.get_property().__str__()
+                paynt_value = self.storm_control.paynt_bounds
+                storm_value = self.storm_control.storm_bounds
+                fsc_json_dict = {"specification_property": specification_property,
+                                 "paynt_value": paynt_value, "storm_value": storm_value}
                 with open(f"{agent_task}/{fsc_file_name}", "wb") as f:
                     pickle.dump(self.storm_control.latest_paynt_result_fsc, f)
+                with open(f"{agent_task}/{fsc_file_name}_info.json", "w") as f:
+                    json.dump(fsc_json_dict, f)
         if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             self.run_rl_synthesis(self.saynt)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
@@ -392,7 +418,7 @@ class SynthesizerPomdp:
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
             self.run_rl_synthesis_q_vals_rand()
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.DQN_AS_QTABLE:
-            self.run_rl_synthesis_dqn_ppo()
+            self.run_rl_synthesis_dqn_ppo(fsc_json_dict)
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

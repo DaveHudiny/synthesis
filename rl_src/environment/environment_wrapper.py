@@ -176,7 +176,19 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(self._possible_observations),), dtype=tf.float32, name="observation"),
                 self.args = "One-Hot"
-
+        elif self.encoding_method == "Extended_Valuations":
+            try:
+                json_example = self.stormpy_model.observation_valuations.get_json(0)
+                parse_data = json.loads(str(json_example))
+                reward_size = 1
+                action_size = 1
+                observation_spec = tensor_spec.TensorSpec(shape=(
+                    len(parse_data) + OBSERVATION_SIZE + reward_size + action_size,), dtype=tf.float32, name="observation"),
+            except:
+                logging.error("Valuation encoding not possible, using one-hot encoding instead.")
+                observation_spec = tensor_spec.TensorSpec(shape=(
+                    len(self._possible_observations),), dtype=tf.float32, name="observation"),
+                self.args = "One-Hot"
         else:
             raise ValueError("Encoding method not recognized")
         return observation_spec[0]
@@ -260,6 +272,10 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         elif self.encoding_method == "Valuations++":
             observation_vector = create_valuations_encoding_plus(
                 observation, self.stormpy_model, self.simulator._report_state())
+            return tf.constant(observation_vector, dtype=tf.float32)
+        elif self.encoding_method == "Extended_Valuations":
+            observation_vector = create_valuations_encoding(observation, self.stormpy_model)
+            observation_vector = np.concatenate((observation_vector, [self.last_action, self.reward]))
             return tf.constant(observation_vector, dtype=tf.float32)
         
     def _set_init_state(self, index : int = 0):
@@ -456,7 +472,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         """Does the step in the Stormpy simulator.
         
             returns:
-                tuple of new TimeStep and penalty for performed action"""
+                tuple of new TimeStep and penalty for performed action."""
         penalty = 0.0
         self._num_steps += 1
         self.last_action = action

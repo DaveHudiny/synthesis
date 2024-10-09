@@ -38,14 +38,14 @@ class Actor_Value_Pretrainer:
             tf_environment, tf_environment.action_spec())
         self.critic_net = create_recurrent_value_net_demasked(tf_environment)
 
-        self.actor_optimizer = tf.keras.optimizers.AdamW()
-        #     learning_rate=0.0001, weight_decay=0.001)
+        self.actor_optimizer = tf.keras.optimizers.Adam(
+            learning_rate=0.0001, weight_decay=0.005)
         self.actor_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True)
         self.gamma = 0.99
 
         self.critic_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.0001, weight_decay=0.001)
+            learning_rate=0.0001, weight_decay=0.005)
         self.critic_loss_fn = tf.keras.losses.MeanSquaredError()
         self.init_replay_buffer(
             tf_environment, collect_data_spec=collect_data_spec)
@@ -109,16 +109,17 @@ class Actor_Value_Pretrainer:
     def train_actor_iteration(self, actor_net: ActorDistributionRnnNetwork, experience):
         observations, actions, step_types = experience.observation, experience.action, experience.step_type
         with tf.GradientTape() as tape:
-            predicted_actions, _ = actor_net(
+            predicted_actions, network_state = actor_net(
                 observations, step_type=step_types)
             logits = predicted_actions.logits_parameter()
             _, _, num_classes = logits.shape
             actions = tf.reshape(actions, (-1,))
             logits = tf.reshape(logits, (-1, num_classes))
-
             actor_loss = self.actor_loss_fn(actions, logits)
 
+        
         grads = tape.gradient(actor_loss, actor_net.trainable_variables)
+        grads = [tf.clip_by_norm(grad, clip_norm=1.0) for grad in grads]
         self.actor_optimizer.apply_gradients(
             zip(grads, actor_net.trainable_variables))
 
@@ -171,23 +172,23 @@ class Actor_Value_Pretrainer:
         if fsc is not None:
             self.reinit_fsc_policy_driver(fsc=fsc)
         dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=50, single_deterministic_pass=False).prefetch(4)
+            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=20, single_deterministic_pass=False).prefetch(4)
         self.iterator = iter(dataset)
 
         if use_best_traj_only:
             observer = self.get_demasked_observer()
             runner = self.get_separator_driver_runner(self.fsc, observers=[observer])
 
-        for _ in range(10):
+        for _ in range(num_epochs*2):
             if use_best_traj_only:
                 runner(True, 2)
             self.fsc_driver.run()
-        for epoch in range(num_epochs):
-            for _ in range(5):
-                if use_best_traj_only:
-                    runner(True, 5)
-                else:
-                    self.fsc_driver.run()
+        for epoch in range(num_epochs*2):
+            # for _ in range(5):
+            #     if use_best_traj_only:
+            #         runner(True, 5)
+            #     else:
+            #         self.fsc_driver.run()
 
             experience, _ = next(self.iterator)
 
@@ -197,9 +198,11 @@ class Actor_Value_Pretrainer:
                 critic_net, experience=experience)
 
             if epoch % 10 == 0:
+                if epoch % 100 == 0:
+                    self.evaluate_actor(actor_net, 40)
                 print(f"Epoch: {epoch}, Actor Loss: {actor_loss.numpy()}")
                 print(f"Epoch: {epoch}, Critic Loss: {critic_loss.numpy()}")
-                self.evaluate_actor(actor_net, 40)
+                
 
     def get_separator_driver_runner(self, fsc, observers):
         self.fsc_policy = FSC_Policy(tf_environment=self.tf_environment, fsc=fsc,
