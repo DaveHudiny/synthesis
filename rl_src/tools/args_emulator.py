@@ -7,9 +7,9 @@ class ArgsEmulator:
                  buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
-                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy : bool =False,
-                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards : bool =True,
-                 random_start_simulator = "False"):
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy: bool = False,
+                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
+                 random_start_simulator=False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 

@@ -16,7 +16,7 @@ import tensorflow_probability as tfp
 
 import tensorflow as tf
 
-from paynt.quotient.fsc import FSC
+from agents.policies.fsc_copy import FSC
 
 
 import logging

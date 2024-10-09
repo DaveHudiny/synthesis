@@ -607,7 +607,7 @@ class Synthesizer_RL:
         self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
         if sub_method == "four_phase" and fsc is not None:
-            self.agent.train_agent_off_policy(4500, probab_random_init_state=0.0, random_init=True)
+            self.agent.train_agent_off_policy(450, probab_random_init_state=0.0, random_init=True)
 
             if self.check_four_phase_condition(fsc_quality=fsc_quality, 
                                                maximizing_value=maximizing_value, 
