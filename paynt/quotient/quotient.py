@@ -116,12 +116,12 @@ class Quotient:
                     state_queue.append(dst)
         return state_to_choice_reachable
 
-    def scheduler_to_state_to_choice(self, mdp, scheduler, discard_unreachable_choices=True):
-        state_to_quotient_choice = payntbind.synthesis.schedulerToStateToGlobalChoice(scheduler, mdp.model, mdp.quotient_choice_map)
+    def scheduler_to_state_to_choice(self, submdp, scheduler, discard_unreachable_choices=True):
+        state_to_quotient_choice = payntbind.synthesis.schedulerToStateToGlobalChoice(scheduler, submdp.model, submdp.quotient_choice_map)
         state_to_choice = self.empty_scheduler()
-        for state in range(mdp.model.nr_states):
+        for state in range(submdp.model.nr_states):
             quotient_choice = state_to_quotient_choice[state]
-            quotient_state = mdp.quotient_state_map[state]
+            quotient_state = submdp.quotient_state_map[state]
             state_to_choice[quotient_state] = quotient_choice
         if discard_unreachable_choices:
             state_to_choice = self.discard_unreachable_choices(state_to_choice)
@@ -328,6 +328,12 @@ class Quotient:
                     break
         return state_is_absorbing
 
-    def identify_target_states(self, model, prop):
+    def identify_target_states(self, model=None, prop=None):
+        if model is None:
+            model = self.quotient_mdp
+        if prop is None:
+            prop = self.get_property()
+        if prop.is_discounted_reward:
+            return stormpy.BitVector(model.nr_states,False)
         target_label = prop.get_target_label()
         return model.labeling.get_states(target_label)

@@ -16,13 +16,13 @@ ColoringSmt<ValueType>::ColoringSmt(
     std::vector<std::string> const& variable_name,
     std::vector<std::vector<int64_t>> const& variable_domain,
     std::vector<std::tuple<uint64_t,uint64_t,uint64_t>> const& tree_list,
-    bool one_consistency_check
+    bool disable_counterexamples
 ) : initial_state(*model.getInitialStates().begin()),
     row_groups(model.getNondeterministicChoiceIndices()),
     choice_destinations(synthesis::computeChoiceDestinations(model)),
     choice_to_action(synthesis::extractActionLabels(model).second),
     variable_name(variable_name), variable_domain(variable_domain),
-    solver(ctx), harmonizing_variable(ctx), one_consistency_check(one_consistency_check) {
+    solver(ctx), harmonizing_variable(ctx), disable_counterexamples(disable_counterexamples) {
 
     timers[__FUNCTION__].start();
 
@@ -137,20 +137,20 @@ ColoringSmt<ValueType>::ColoringSmt(
 
     std::vector<z3::expr_vector> state_path_expression;
     for(uint64_t state = 0; state < numStates(); ++state) {
+        getRoot()->createPrefixSubstitutions(state_valuation[state]);
         state_path_expression.push_back(z3::expr_vector(ctx));
         for(uint64_t path = 0; path < numPaths(); ++path) {
-            z3::expr_vector substituted(ctx);
-            // getRoot()->substitutePrefixExpression(getRoot()->paths[path], state_substitution_expr[state], substituted);
-            getRoot()->substitutePrefixExpression(getRoot()->paths[path], state_valuation[state], substituted);
-            state_path_expression[state].push_back(z3::mk_or(substituted));
+            z3::expr_vector evaluated(ctx);
+            getRoot()->substitutePrefixExpression(getRoot()->paths[path], evaluated);
+            state_path_expression[state].push_back(z3::mk_or(evaluated));
         }
     }
     std::vector<z3::expr_vector> action_path_expression;
     for(uint64_t action = 0; action < num_actions; ++action) {
         action_path_expression.push_back(z3::expr_vector(ctx));
         for(uint64_t path = 0; path < numPaths(); ++path) {
-            z3::expr substituted = getRoot()->substituteActionExpression(getRoot()->paths[path], action);
-            action_path_expression[action].push_back(substituted);
+            z3::expr evaluated = getRoot()->substituteActionExpression(getRoot()->paths[path], action);
+            action_path_expression[action].push_back(evaluated);
         }
     }
 
@@ -165,7 +165,7 @@ ColoringSmt<ValueType>::ColoringSmt(
     }
     timers["ColoringSmt:: create choice colors"].stop();
 
-    if(one_consistency_check) {
+    if(disable_counterexamples) {
         timers[__FUNCTION__].stop();
         return;
     }
@@ -173,10 +173,11 @@ ColoringSmt<ValueType>::ColoringSmt(
     timers["ColoringSmt:: create harmonizing variants"].start();
     std::vector<z3::expr_vector> state_path_expression_harmonizing;
     for(uint64_t state = 0; state < numStates(); ++state) {
+        getRoot()->createPrefixSubstitutionsHarmonizing(state_substitution_expr[state]);
         state_path_expression_harmonizing.push_back(z3::expr_vector(ctx));
         for(uint64_t path = 0; path < numPaths(); ++path) {
             z3::expr_vector evaluated(ctx);
-            getRoot()->substitutePrefixExpressionHarmonizing(getRoot()->paths[path], state_substitution_expr[state], evaluated);
+            getRoot()->substitutePrefixExpressionHarmonizing(getRoot()->paths[path], evaluated);
             state_path_expression_harmonizing[state].push_back(z3::mk_or(evaluated));
         }
     }
@@ -438,7 +439,7 @@ std::pair<bool,std::vector<std::vector<uint64_t>>> ColoringSmt<ValueType>::areCh
         return std::make_pair(true,hole_options_vector);
     }
 
-    if(one_consistency_check) {
+    if(disable_counterexamples) {
         solver.pop();
         solver.pop();
         timers[__FUNCTION__].stop();
@@ -454,7 +455,6 @@ std::pair<bool,std::vector<std::vector<uint64_t>>> ColoringSmt<ValueType>::areCh
     BitVector state_reached(numStates(),false);
     state_reached.set(initial_state,true);
     consistent = true;
-    uint64_t num_choices_added = 0;
     while(consistent) {
         STORM_LOG_THROW(not unexplored_states.empty(), storm::exceptions::UnexpectedException, "all states explored but UNSAT core not found");
         uint64_t state = unexplored_states.front(); unexplored_states.pop();
@@ -466,7 +466,6 @@ std::pair<bool,std::vector<std::vector<uint64_t>>> ColoringSmt<ValueType>::areCh
                 const char *label = choice_path_label[choice][path].c_str();
                 solver.add(choice_path_expresssion[choice][path], label);
             }
-            // std::cout << "(2) adding choice " << (++num_choices_added) << std::endl;
             consistent = check();
             if(not consistent) {
                 break;
@@ -537,9 +536,6 @@ std::pair<bool,std::vector<std::vector<uint64_t>>> ColoringSmt<ValueType>::areCh
     timers[__FUNCTION__].stop();
     return std::make_pair(false,hole_options_vector);
 }
-
-
-
 
 
 template class ColoringSmt<>;

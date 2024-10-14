@@ -50,10 +50,10 @@ class Property:
         # se.set_linear_equation_solver_type(stormpy.EquationSolverType.eigen)
 
         # se.minmax_solver_environment.method = stormpy.MinMaxMethod.policy_iteration
-        se.minmax_solver_environment.method = stormpy.MinMaxMethod.value_iteration
+        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.value_iteration
         # se.minmax_solver_environment.method = stormpy.MinMaxMethod.sound_value_iteration
         # se.minmax_solver_environment.method = stormpy.MinMaxMethod.interval_iteration
-        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.optimistic_value_iteration
+        se.minmax_solver_environment.method = stormpy.MinMaxMethod.optimistic_value_iteration
         # se.minmax_solver_environment.method = stormpy.MinMaxMethod.topological
 
     @classmethod
@@ -122,6 +122,10 @@ class Property:
     @property
     def reward(self):
         return self.formula.is_reward_operator
+
+    @property
+    def is_discounted_reward(self):
+        return self.formula.is_reward_operator and self.formula.subformula.is_discounted_total_reward_formula
 
     @property
     def maximizing(self):
