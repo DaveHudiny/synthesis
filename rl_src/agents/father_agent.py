@@ -25,7 +25,7 @@ from tools.evaluators import *
 from agents.policies.fsc_policy import FSC_Policy, FSC
 from tools.args_emulator import ArgsEmulator
 
-from paynt.synthesizer.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
+from paynt.rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
 
 import logging
 

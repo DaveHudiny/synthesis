@@ -12,12 +12,11 @@ from .synthesizer_ar_storm import SynthesizerARStorm
 from .synthesizer_hybrid import SynthesizerHybrid
 from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
 from .synthesizer_rl import Synthesizer_RL
-from .synthesizer_rl import SAYNT_Simulation_Controller
 
-from .saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
-from .saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
+from paynt.rl_extension.saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
+from ..rl_extension.saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
 
-from paynt.synthesizer.saynt_rl_tools.regex_patterns import RegexPatterns
+from paynt.rl_extension.saynt_rl_tools.regex_patterns import RegexPatterns
 from paynt.parser.prism_parser import PrismParser
 
 import paynt.quotient.quotient

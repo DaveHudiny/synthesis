@@ -26,7 +26,7 @@ import tf_agents
 
 import logging
 
-from paynt.synthesizer.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
+from paynt.rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
 from paynt.quotient.fsc import FSC
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class PPO_with_DQN_Critic(FatherAgent):
             optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
             normalize_observations=True,
             normalize_rewards=True,
-            # entropy_regularization=0.7,
+            entropy_regularization=0.01,
             use_gae=True,
             num_epochs=3,
             debug_summaries=False,

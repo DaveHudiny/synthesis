@@ -28,7 +28,7 @@ from agents.policies.stochastic_ppo_collector_policy import Stochastic_PPO_Colle
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.fsc_policy import FSC_Policy
 
-from paynt.synthesizer.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
+from paynt.rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
 
 from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked

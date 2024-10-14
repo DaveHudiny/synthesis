@@ -25,14 +25,14 @@ run_saynt_bc(){
     echo "Running SAYNT with behavioral cloning"
     
     # sub_methods=("only_pretrained" "only_duplex" "only_duplex_critic" "complete")
-    sub_methods=("four_phase")
+    sub_methods=("four_phase_entropy")
     for entry in `ls $1`; do
         if [ -d $1/$entry ]; then
             echo "Running Paynt on $entry"
             
             for sub_method in "${sub_methods[@]}"; do
                 echo "Running Paynt with --sub_method=$sub_method on $entry"
-                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model_name $entry --agent_task behavioral_cloning --sub_method $sub_method $1/$entry > $1/$entry/offline_pretrain_$sub_method.2.txt
+                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model_name $entry --agent_task behavioral_cloning --sub_method $sub_method $1/$entry > $1/$entry/offline_pretrain_$sub_method.entropy.txt
             done
         fi
     done
@@ -107,7 +107,7 @@ if [ $1 == "--saynt" ]; then
         exit 1
     fi
     run_saynt $2
-elif [ $1 == "--saynt_bc" ]; then
+elif [ $1 == "--saynt-bc" ]; then
     if [ "$#" -ne 2 ]; then
         echo "Usage: $0 --saynt_bc <path-to-models>"
         exit 1
