@@ -251,10 +251,36 @@ class SynthesizerPomdp:
         fsc = self.storm_control.latest_paynt_result_fsc
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         if saynt:
-            print("looking for trajectories")
+            # print(dir(self.storm_control))
+            # print(dir(self.storm_control.belief_explorer))
+            # print(dir(self.storm_control.belief_explorer.get_explored_mdp()))
+            # print(self.storm_control.belief_explorer.get_belief_manager())
+            # print(dir(self.storm_control.belief_explorer.get_belief_manager()))
+            # with open("belief.txt", "w") as f:
+            #     print(self.storm_control.belief_explorer.get_belief_manager().get_belief_as_vector(500), file=f)
+            #     print(len(self.storm_control.belief_explorer.get_belief_manager().get_belief_as_vector(500)))
+            # print(self.storm_control.belief_explorer.get_explored_mdp().labeling)
+            # print(self.storm_control.belief_explorer.get_explored_mdp().labels_state(5000))
+            # print(self.storm_control.belief_explorer.get_explored_mdp().reward_models)
+            # print(self.storm_control.belief_explorer.get_explored_mdp().is_exact)
+            # with open("mdp.txt", "w") as f:
+            #     for i in range(self.storm_control.belief_explorer.get_explored_mdp().nr_states):
+            #         print(self.storm_control.belief_explorer.get_explored_mdp().labels_state(i), file=f)
+            # print(self.storm_control.belief_explorer.get_explored_mdp().states)
+            # print(dir(self.storm_control.belief_explorer.get_explored_mdp().states))
+            # with open("mdp.txt", "w") as f:
+            #     for i in self.storm_control.belief_explorer.get_explored_mdp().states:
+            #         print(i, dir(i), i.labels, i.actions)
+
+            # print(self.storm_control.belief_explorer.get_explored_mdp().supports_uncertainty)
+            # print(self.storm_control.latest_storm_result.induced_mc_from_scheduler.nr_states)
+            # print(self.quotient.pomdp.nr_states)
+            # print(self.quotient.pomdp.nr_observations)
+            # print(self.storm_control.belief_explorer.get_explored_mdp().nr_states)
+            # print(self.storm_control.belief_explorer.get_explored_mdp())
             rl_synthesiser.get_saynt_trajectories(
                 self.storm_control, self.quotient, fsc)
-            exit(0)
+            return
         first_time = True
         repeated_fsc = False
         soft_decision = False
@@ -310,7 +336,7 @@ class SynthesizerPomdp:
         rl_synthesiser = Synthesizer_RL(
             self.quotient.pomdp, self.rl_args, pretrain_dqn=True)
         paynt_value = fsc_json_dict["paynt_value"]
-        # = self.storm_control.paynt_bounds # TODO: SAYNT controller has the value defined in ...storm_bounds
+        # = self.storm_control.paynt_bounds # TODO: SAYNT controller has the value defined in self.storm_control.storm_bounds
         rl_synthesiser.dqn_and_ppo_training(fsc, sub_method=sub_method, fsc_quality=paynt_value,
                                             maximizing_value=is_maximizing,
                                             probability_cond=is_probab_condition)
@@ -382,11 +408,12 @@ class SynthesizerPomdp:
 
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
-        self.saynt = False
+        self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
+        self.saynt = True
+        self.try_faster = False
         self.rl_args = init_rl_args(mode=self.combo_mode)
         skip = False
-        if hasattr(self, "input_rl_settings_dict"):
+        if self.try_faster and hasattr(self, "input_rl_settings_dict"):
             agent_task = self.input_rl_settings_dict["agent_task"]
             model_name = self.input_rl_settings_dict["model_name"]
             fsc_file_name = f"{model_name}"
@@ -400,7 +427,7 @@ class SynthesizerPomdp:
         if not skip:
             self.iterative_storm_loop_body(
                 timeout, paynt_timeout, storm_timeout, iteration_limit)
-            if hasattr(self, "input_rl_settings_dict"):
+            if self.try_faster and hasattr(self, "input_rl_settings_dict"):
                 specification_property = self.quotient.get_property().__str__()
                 paynt_value = self.storm_control.paynt_bounds
                 storm_value = self.storm_control.storm_bounds

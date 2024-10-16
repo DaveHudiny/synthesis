@@ -55,6 +55,9 @@ class Quotient:
         :return (2) sub- to full state mapping
         :return (3) sub- to full action mapping
         '''
+        # pause for a while
+        import time
+        
         keep_unreachable_states = False # TODO investigate this
         all_states = stormpy.BitVector(mdp.nr_states, True)
         submodel_construction = stormpy.construct_submodel(
