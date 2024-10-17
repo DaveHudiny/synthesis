@@ -129,7 +129,6 @@ class StormPOMDPControl:
             exit()
 
         belmc = stormpy.pomdp.BeliefExplorationModelCheckerDouble(self.pomdp, options)
-
         logger.info("starting Storm POMDP analysis")
         storm_timer = paynt.utils.timer.Timer()
         storm_timer.start()
@@ -167,6 +166,7 @@ class StormPOMDPControl:
     def interactive_storm_setup(self):
         global belmc    # needs to be global for threading to work correctly
         options = self.get_interactive_options()
+        # options.set_build_all_reward_models()
         belmc = stormpy.pomdp.BeliefExplorationModelCheckerDouble(self.pomdp, options)
 
     # start interactive belief model checker, this function is called only once to start the storm thread. To resume Storm computation 'interactive_storm_resume' is used

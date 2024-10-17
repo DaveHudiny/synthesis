@@ -251,33 +251,6 @@ class SynthesizerPomdp:
         fsc = self.storm_control.latest_paynt_result_fsc
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         if saynt:
-            # print(dir(self.storm_control))
-            # print(dir(self.storm_control.belief_explorer))
-            # print(dir(self.storm_control.belief_explorer.get_explored_mdp()))
-            # print(self.storm_control.belief_explorer.get_belief_manager())
-            # print(dir(self.storm_control.belief_explorer.get_belief_manager()))
-            # with open("belief.txt", "w") as f:
-            #     print(self.storm_control.belief_explorer.get_belief_manager().get_belief_as_vector(500), file=f)
-            #     print(len(self.storm_control.belief_explorer.get_belief_manager().get_belief_as_vector(500)))
-            # print(self.storm_control.belief_explorer.get_explored_mdp().labeling)
-            # print(self.storm_control.belief_explorer.get_explored_mdp().labels_state(5000))
-            # print(self.storm_control.belief_explorer.get_explored_mdp().reward_models)
-            # print(self.storm_control.belief_explorer.get_explored_mdp().is_exact)
-            # with open("mdp.txt", "w") as f:
-            #     for i in range(self.storm_control.belief_explorer.get_explored_mdp().nr_states):
-            #         print(self.storm_control.belief_explorer.get_explored_mdp().labels_state(i), file=f)
-            # print(self.storm_control.belief_explorer.get_explored_mdp().states)
-            # print(dir(self.storm_control.belief_explorer.get_explored_mdp().states))
-            # with open("mdp.txt", "w") as f:
-            #     for i in self.storm_control.belief_explorer.get_explored_mdp().states:
-            #         print(i, dir(i), i.labels, i.actions)
-
-            # print(self.storm_control.belief_explorer.get_explored_mdp().supports_uncertainty)
-            # print(self.storm_control.latest_storm_result.induced_mc_from_scheduler.nr_states)
-            # print(self.quotient.pomdp.nr_states)
-            # print(self.quotient.pomdp.nr_observations)
-            # print(self.storm_control.belief_explorer.get_explored_mdp().nr_states)
-            # print(self.storm_control.belief_explorer.get_explored_mdp())
             rl_synthesiser.get_saynt_trajectories(
                 self.storm_control, self.quotient, fsc)
             return

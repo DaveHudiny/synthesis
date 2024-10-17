@@ -15,7 +15,11 @@ def init_simulator(pomdp_model, observation = None, state = None, belief = None)
     elif state != None:
         indices_bitvector = stormpy.BitVector(pomdp_model.nr_states, [state])
     elif belief != None:
-        raise "Belief simulator initialization not implemented yet."
+        # raise "Belief simulator initialization not implemented yet."
+        log_belief = tf.math.log(belief)
+        index = tf.random.categorical(logits=log_belief, num_samples=1)
+        index = tf.squeeze(index).numpy()
+        indices_bitvector = stormpy.BitVector(pomdp_model.nr_states, [index])
     else:
         index = pomdp_model.initial_states[0]
         indices_bitvector = stormpy.BitVector(pomdp_model.nr_states, [index])

@@ -67,7 +67,8 @@ class SAYNT_Driver:
 
     def episodic_run(self, episodes=5):
         for _ in range(episodes):
-            saynt_step = self.saynt_simulator.reset()
+            # saynt_step = self.saynt_simulator.reset()
+            saynt_step = self.saynt_simulator.reset_belief_mdp()
             tf_saynt_step = self.create_tf_time_step(saynt_step)
             cumulative_reward = 0
             while saynt_step.tf_step_type != StepType.LAST:
