@@ -39,13 +39,13 @@ class Actor_Value_Pretrainer:
         self.critic_net = create_recurrent_value_net_demasked(tf_environment)
 
         self.actor_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.0001, weight_decay=0.005)
+            learning_rate=0.00005, weight_decay=0.0005)
         self.actor_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True)
         self.gamma = 0.99
 
         self.critic_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.0001, weight_decay=0.005)
+            learning_rate=0.00005, weight_decay=0.0005)
         self.critic_loss_fn = tf.keras.losses.MeanSquaredError()
         self.init_replay_buffer(
             tf_environment, collect_data_spec=collect_data_spec)
@@ -158,7 +158,7 @@ class Actor_Value_Pretrainer:
             tf_environment=self.tf_environment, fsc=fsc)
 
     def train_both_networks(self, num_epochs: int, fsc: FSC, external_actor_net: ActorDistributionRnnNetwork = None, external_critic_net: ValueRnnNetwork = None,
-                            use_best_traj_only = False):
+                            use_best_traj_only = False, offline_data = False):
         if external_actor_net is not None:
             actor_net = external_actor_net
         else:
@@ -179,11 +179,12 @@ class Actor_Value_Pretrainer:
             observer = self.get_demasked_observer()
             runner = self.get_separator_driver_runner(self.fsc, observers=[observer])
 
-        for _ in range(num_epochs*2):
-            if use_best_traj_only:
-                runner(True, 2)
-            self.fsc_driver.run()
-        for epoch in range(num_epochs*2):
+        if not offline_data:
+            for _ in range(num_epochs*2):
+                if use_best_traj_only:
+                    runner(True, 2)
+                self.fsc_driver.run()
+        for epoch in range(num_epochs):
             # for _ in range(5):
             #     if use_best_traj_only:
             #         runner(True, 5)
@@ -198,7 +199,7 @@ class Actor_Value_Pretrainer:
                 critic_net, experience=experience)
 
             if epoch % 10 == 0:
-                if epoch % 100 == 0:
+                if epoch % 50 == 0:
                     self.evaluate_actor(actor_net, 40)
                 print(f"Epoch: {epoch}, Actor Loss: {actor_loss.numpy()}")
                 print(f"Epoch: {epoch}, Critic Loss: {critic_loss.numpy()}")

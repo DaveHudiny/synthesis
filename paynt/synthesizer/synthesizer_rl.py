@@ -18,6 +18,8 @@ from tf_agents.environments import tf_py_environment
 from paynt.quotient.fsc import FSC
 from paynt.rl_extension.saynt_controller.saynt_driver import SAYNT_Driver
 
+from ..rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
+
 
 import logging
 
@@ -175,17 +177,34 @@ class Synthesizer_RL:
         else:
             return EncodingMethods.INTEGER
 
-    def get_saynt_trajectories(self, storm_control, quotient, fsc: FSC = None):
-        observer = self.agent.replay_buffer.add_batch
+    def get_saynt_trajectories(self, storm_control, quotient, fsc: FSC = None, q_values=None, model_reward_multiplier=-1.0):
+        
+        args = self.initializer.args
+        pre_trainer = Actor_Value_Pretrainer(self.initializer.environment, self.initializer.tf_environment,
+                                             args, self.agent.agent.collect_data_spec)
+        agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
+        actor = pre_trainer.actor_net
+        critic = pre_trainer.critic_net
+        self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
+                                         args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
+        # observer = self.agent.replay_buffer.add_batch
+        observer = pre_trainer.replay_buffer._add_batch
         tf_action_labels = self.initializer.environment.action_keywords
         self.initializer.environment.set_selection_pressure(1.8)
         if not hasattr(self, "saynt_driver"):
+            print("Creating new SAYNT driver")
             encoding_method = self.get_encoding_method(
                 self.initializer.args.encoding_method)
             self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient,
                                              tf_action_labels, encoding_method, self.initializer.args.discount_factor,
-                                             fsc=fsc)
-        self.saynt_driver.episodic_run(20)
+                                             fsc=fsc, q_values=q_values, model_reward_multiplier=model_reward_multiplier)
+        self.agent.train_agent_off_policy(101, random_init=True)
+        self.saynt_driver.episodic_run(200)
+        for i in range(5):
+            self.saynt_driver.episodic_run(10)
+            pre_trainer.train_both_networks(101, fsc=fsc, use_best_traj_only=False, offline_data=True)
+        self.agent.train_agent_off_policy(4000, random_init=False, probab_random_init_state=0.1)
+            
 
 
     def check_four_phase_condition(self, fsc_quality : float, maximizing_value : bool, probability_cond : bool, evaluation_result : EvaluationResults):
@@ -205,7 +224,6 @@ class Synthesizer_RL:
     # Condition can optimize probability (e.g. maximize probability of reaching the goal state) or reward (e.g. minimize number of steps to reach the goal state)
     def dqn_and_ppo_training(self, fsc : FSC = None, sub_method = "only_pretrained",
                              fsc_quality : float = 0.0, maximizing_value : bool = True, probability_cond : bool = True):
-        from ..rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.initializer.args
         pre_trainer = Actor_Value_Pretrainer(self.initializer.environment, self.initializer.tf_environment,

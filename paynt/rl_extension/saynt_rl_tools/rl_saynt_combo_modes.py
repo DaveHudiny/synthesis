@@ -22,9 +22,9 @@ def init_rl_args(mode: RL_SAYNT_Combo_Modes = RL_SAYNT_Combo_Modes.QVALUES_RANDO
                             discount_factor=0.99, batch_size=32)
     elif mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
         args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
-                            max_steps=400, restart_weights=0, agent_name="PAYNT_Traj", learning_rate=1e-4,
-                            trajectory_num_steps=64, evaluation_goal=100, evaluation_episodes=40, evaluation_antigoal=-100,
-                            discount_factor=0.99, batch_size=32)
+                            max_steps=400, restart_weights=0, agent_name="PAYNT_Traj", learning_rate=1e-5,
+                            trajectory_num_steps=32, evaluation_goal=100, evaluation_episodes=40, evaluation_antigoal=-100,
+                            discount_factor=0.99, batch_size=64, buffer_size=50000)
     elif mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
         args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                             max_steps=400, restart_weights=0, agent_name="Agent_with_random_starts", learning_rate=1e-4,

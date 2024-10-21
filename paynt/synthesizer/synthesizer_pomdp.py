@@ -231,8 +231,8 @@ class SynthesizerPomdp:
                     self.storm_control.latest_paynt_result)
                 self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(
                     self.storm_control.latest_paynt_result)
-                # self.storm_control.qvalues = self.compute_qvalues_for_rl(
-                #     assignment=assignment)
+                self.storm_control.qvalues = self.compute_qvalues_for_rl(
+                    assignment=assignment)
             else:
                 logging.info("Assignment is None")
 
@@ -251,8 +251,23 @@ class SynthesizerPomdp:
         fsc = self.storm_control.latest_paynt_result_fsc
         rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
         if saynt:
+            original_property = self.quotient.get_property()
+            original_property_str = original_property.__str__()
+            if RegexPatterns.check_max_property(original_property_str):
+                model_reward_multiplier = 1
+            else:
+                model_reward_multiplier = -1
+            if hasattr(self.storm_control, "qvalues"):
+                q_values = self.storm_control.qvalues
+            else:
+                q_values = None
+            # q_values = None
             rl_synthesiser.get_saynt_trajectories(
-                self.storm_control, self.quotient, fsc)
+                self.storm_control, self.quotient, fsc, q_values, model_reward_multiplier)
+            sub_method = self.input_rl_settings_dict["sub_method"]
+            rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
+                                        model=self.input_rl_settings_dict["model_name"],
+                                        method=f"{self.rl_args.learning_method}_{sub_method}")
             return
         first_time = True
         repeated_fsc = False

@@ -16,7 +16,7 @@ class SAYNT_Step:
     def __init__(self, action=0, observation=0, state: Storage.SparseModelState = None,
                  new_mode: SAYNT_Modes = SAYNT_Modes.BELIEF, tf_step_type: StepType = StepType.FIRST,
                  reward: float = 1, fsc_memory=0, integer_observation: int = 0, belief: list = None,
-                 scheduler = None):
+                 scheduler = None, virtual_reward : float = 0.0):
         """Initialization of the step.
         Args:
             action: Action.
@@ -34,8 +34,9 @@ class SAYNT_Step:
         self.integer_observation = integer_observation
         self.belief = belief
         self.scheduler = scheduler
+        self.virtual_reward = virtual_reward
 
     def __str__(self):
         strc1 = f"Action: {self.action}, Observation: {self.observation}, state: {self.state}, new mode: {self.new_mode}, tf_step_type:, {self.tf_step_type}, "
-        strc2 = f"reward {self.reward}, fsc_memory: {self.fsc_memory}, belief available: {self.belief is not None}"
+        strc2 = f"reward {self.reward}, fsc_memory: {self.fsc_memory}, belief available: {self.belief is not None}, scheduler: {self.scheduler}, virtual reward: {self.virtual_reward}"
         return strc1 + strc2

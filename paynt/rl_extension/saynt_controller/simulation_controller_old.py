@@ -34,7 +34,7 @@ class SAYNT_Simulation_Controller:
     MODES = ["BELIEF", "Cutoff_FSC", "Scheduler"]
 
     def __init__(self, storm_control: Storm_POMDP_Control.StormPOMDPControl, quotient: POMDP.PomdpQuotient,
-                 tf_action_labels: list = None, max_step_limit: int = 400, goal_reward: float = 100,
+                 tf_action_labels: list = None, max_step_limit: int = 1600, goal_reward: float = 100,
                  fsc: FSC = None, model_reward_multiplier: float = -1, paynt_q_values = None):
         """Initialization of the controller.
         Args:
@@ -72,8 +72,7 @@ class SAYNT_Simulation_Controller:
             "(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))"]
 
     def is_goal_state(self, labels):
-        """Checks if the current state is a goal state.
-        """
+        """Checks if the current state is a goal state."""
         for label in labels:
             if label in self.special_labels:
                 return True
@@ -93,15 +92,13 @@ class SAYNT_Simulation_Controller:
         self.current_mode = prev_step.new_mode
         self.steps_performed += 1
         if self.current_mode == SAYNT_Modes.BELIEF:
-            new_step = self.get_next_step_belief_simulation(prev_step)
+            return self.get_next_step_belief_simulation(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_FSC:
-            new_step = self.get_next_step_cutoff_fsc(prev_step)
+            return self.get_next_step_cutoff_fsc(prev_step)
         elif self.current_mode == SAYNT_Modes.CUTOFF_SCHEDULER:
-            new_step = self.get_next_step_cutoff_scheduler(prev_step)
+            return self.get_next_step_cutoff_scheduler(prev_step)
         else:
             raise ValueError("Unknown mode")
-        self.last_step = new_step
-        return new_step
 
     def get_observations_and_action_from_labels(self, state_labels: list, state_id: int = None, simulation=False):
         observations = []
@@ -144,8 +141,8 @@ class SAYNT_Simulation_Controller:
         """Compute the reward from the POMDP model."""
         # get indices of non-zero elements in belief
         belief = np.array(belief) if isinstance(belief, list) else belief
-        possible_states = np.nonzero(belief[0])[0]
-        nonzero_belief_probabilities = belief[0][possible_states]
+        possible_states = np.nonzero(belief)[0]
+        nonzero_belief_probabilities = belief[possible_states]
         choice_indices = [self.quotient.pomdp.get_choice_index(state, choice) for state in possible_states]
         rewards = self.reward_model_state_action_rewards[choice_indices]
         reward = np.dot(nonzero_belief_probabilities, rewards)
@@ -156,21 +153,23 @@ class SAYNT_Simulation_Controller:
         if self.q_values is None:
             return 0
         else:
-            index = np.argmax(belief @ self.q_values)
+            index = np.argmax(belief @  self.q_values)
             return index
 
     def get_new_mode_belief(self, state_labels: list, choice_label: str, belief: list):
         new_mode = None
         fsc_memory_node = 0
-        if "truncated" not in state_labels or "target" in state_labels:
+        if "truncated" not in state_labels:
             new_mode = SAYNT_Modes.BELIEF, None, fsc_memory_node
         else:
             if "sched" in choice_label:
                 _, scheduler_index = choice_label.split('_')
                 scheduler = self.storm_control_result.cutoff_schedulers[int(
                     scheduler_index)]
+                print("Scheduler performed")
                 new_mode = SAYNT_Modes.CUTOFF_SCHEDULER, scheduler, fsc_memory_node
             else:
+                print("FSC performed")
                 fsc_memory_node = self.get_optimal_fsc_memory_node(belief)
                 new_mode = SAYNT_Modes.CUTOFF_FSC, None, fsc_memory_node
         return new_mode
@@ -178,6 +177,8 @@ class SAYNT_Simulation_Controller:
     def get_tf_step_type_belief_mdp(self) -> StepType:
         state_labels = self.belief_simulator._report_labels()
         if "truncated" not in state_labels and self.belief_simulator.is_done():
+            if "target" in state_labels:
+                print("Target achieved.")
             return StepType.LAST
         elif self.steps_performed > self.max_step_limit:
             return StepType.LAST
@@ -196,32 +197,28 @@ class SAYNT_Simulation_Controller:
         choice = self.belief_scheduler.get_choice(
             state).get_deterministic_choice()
         state_labels = self.belief_simulator._report_labels()
+        choice_labels = self.get_choice_labels(
+            self.explored_mdp, self.belief_simulator)
+        belief = np.array(self.belief_manager.get_belief_as_vector(state - 2))
         observation, action = self.get_observations_and_action_from_labels(
             state_labels, state_id=state, simulation=True)
         self.belief_simulator.step(choice)
-        new_state_labels = self.belief_simulator._report_labels()
-        new_state = self.belief_simulator._report_state()
-        new_choice = self.belief_scheduler.get_choice(
-            new_state).get_deterministic_choice()
-        new_choice_labels = self.get_choice_labels(
-            self.explored_mdp, self.belief_simulator)
-        
-        belief = np.array([self.belief_manager.get_belief_as_vector(new_state - 2)])
-        new_mode, cutoff_scheduler, fsc_mem_node = self.get_new_mode_belief(new_state_labels, new_choice_labels[new_choice], belief)
+        new_mode, cutoff_scheduler, fsc_mem_node = self.get_new_mode_belief(state_labels, choice_labels[choice], belief)
         tf_step_type = self.get_tf_step_type_belief_mdp()
         reward = self.belief_simulator._report_rewards()
         if reward != []:
-            reward = self.model_reward_multiplier * reward[-1]
+            reward = reward[-1]
         else:
-            reward = self.model_reward_multiplier * self.compute_missing_reward_from_pomdp(prev_step.belief, choice)
-        if "target" in new_state_labels:
+            reward = self.compute_missing_reward_from_pomdp(prev_step.belief, choice)
+        if "target" in state_labels:
             virtual_reward = self.goal_reward
-        elif self.belief_simulator.is_done() and "truncated" not in new_state_labels:
+        elif self.belief_simulator.is_done() and "truncated" not in state_labels:
             virtual_reward = -self.goal_reward
         else:
             virtual_reward = 0
+        print(reward)
         reward += virtual_reward
-        new_step = SAYNT_Step(action, observation, new_state, new_mode,
+        new_step = SAYNT_Step(action, observation, state, new_mode,
                               tf_step_type, reward, integer_observation=observation, belief=belief,
                               scheduler=cutoff_scheduler, fsc_memory=fsc_mem_node, virtual_reward=virtual_reward)
         return new_step
@@ -262,14 +259,14 @@ class SAYNT_Simulation_Controller:
         tf_step_type = self._get_simulation_step_type()
         new_step = SAYNT_Step(action=action, observation=observation, state=prev_step.state,
                               new_mode=SAYNT_Modes.CUTOFF_SCHEDULER, tf_step_type=tf_step_type,
-                              reward=reward, integer_observation=observation, virtual_reward=virtual_reward, 
-                              scheduler=prev_step.scheduler)
+                              reward=reward, integer_observation=observation, virtual_reward=virtual_reward)
         return new_step
 
     def get_simulator_reward(self, sim_step_rewards):
         labels = list(self.cutoff_simulator._report_labels())
         virtual_reward = 0
         if self.is_goal_state(labels):
+            print("target achieved cutoff")
             reward = self.goal_reward + (self.model_reward_multiplier * sim_step_rewards[-1])
             virtual_reward = self.goal_reward
         elif self.cutoff_simulator.is_done():
@@ -311,6 +308,7 @@ class SAYNT_Simulation_Controller:
 
     def _get_simulation_step_type(self):
         if self.cutoff_simulator.is_done() or self.steps_performed > self.max_step_limit:
+
             tf_step_type = StepType.LAST
         else:
             tf_step_type = StepType.MID
@@ -327,7 +325,7 @@ class SAYNT_Simulation_Controller:
         action = self.fsc.action_function[prev_step.fsc_memory][prev_step.observation]
         new_memory = self.fsc.update_function[prev_step.fsc_memory][prev_step.observation]
         tf_action, action_label = self.convert_fsc_action_to_tf_action(action)
-        action = self._convert_action(action_label, self.quotient.pomdp, self.cutoff_simulator)
+        action = self._convert_action(action_label)
         sim_step = self.cutoff_simulator.step(action)
         observation, rewards, _ = sim_step
 
@@ -372,7 +370,7 @@ class SAYNT_Simulation_Controller:
         state_labels = self.belief_simulator._report_labels()
         observation, action = self.get_observations_and_action_from_labels(
             state_labels, state_id=state, simulation=True)
-        belief = np.array([self.belief_manager.get_belief_as_vector(state - 2)])
+        belief = self.belief_manager.get_belief_as_vector(state - 2)
         mode = SAYNT_Modes.BELIEF
         saynt_step = SAYNT_Step(None, observation,
                                 state, mode, StepType.FIRST, belief=belief)
