@@ -11,7 +11,7 @@ from rl_src.agents.policies.fsc_policy import FSC_Policy
 from rl_src.tools.encoding_methods import *
 from rl_src.tools.evaluators import EvaluationResults
 from paynt.quotient.fsc import FSC
-from rl_src.agents.ppo_with_dqn_critic import PPO_with_DQN_Critic
+from rl_src.agents.ppo_with_external_networks import PPO_with_External_Networks
 
 from tf_agents.environments import tf_py_environment
 
@@ -185,12 +185,10 @@ class Synthesizer_RL:
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
-        self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
+        self.agent = PPO_with_External_Networks(self.initializer.environment, self.initializer.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
-        # observer = self.agent.replay_buffer.add_batch
         observer = pre_trainer.replay_buffer._add_batch
         tf_action_labels = self.initializer.environment.action_keywords
-        self.initializer.environment.set_selection_pressure(1.8)
         if not hasattr(self, "saynt_driver"):
             print("Creating new SAYNT driver")
             encoding_method = self.get_encoding_method(
@@ -198,12 +196,12 @@ class Synthesizer_RL:
             self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient,
                                              tf_action_labels, encoding_method, self.initializer.args.discount_factor,
                                              fsc=fsc, q_values=q_values, model_reward_multiplier=model_reward_multiplier)
-        self.agent.train_agent_off_policy(101, random_init=True)
-        self.saynt_driver.episodic_run(200)
-        for i in range(5):
-            self.saynt_driver.episodic_run(10)
-            pre_trainer.train_both_networks(101, fsc=fsc, use_best_traj_only=False, offline_data=True)
-        self.agent.train_agent_off_policy(4000, random_init=False, probab_random_init_state=0.1)
+        # self.agent.train_agent_off_policy(101, random_init=True)
+        self.saynt_driver.episodic_run(300)
+        for i in range(10):
+            self.saynt_driver.episodic_run(30)
+            pre_trainer.train_both_networks(200, fsc=fsc, use_best_traj_only=False, offline_data=True)
+        self.agent.train_agent_off_policy(2000, random_init=False, probab_random_init_state=0.1)
             
 
 
@@ -238,7 +236,7 @@ class Synthesizer_RL:
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
-        self.agent = PPO_with_DQN_Critic(self.initializer.environment, self.initializer.tf_environment, 
+        self.agent = PPO_with_External_Networks(self.initializer.environment, self.initializer.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
         if "four_phase" in sub_method and fsc is not None:
             self.agent.train_agent_off_policy(450, probab_random_init_state=1.0, random_init=True)

@@ -39,13 +39,13 @@ class Actor_Value_Pretrainer:
         self.critic_net = create_recurrent_value_net_demasked(tf_environment)
 
         self.actor_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.00005, weight_decay=0.0005)
+            learning_rate=0.0005, weight_decay=0.00001)
         self.actor_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True)
         self.gamma = 0.99
 
         self.critic_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.00005, weight_decay=0.0005)
+            learning_rate=0.0005, weight_decay=0.00001)
         self.critic_loss_fn = tf.keras.losses.MeanSquaredError()
         self.init_replay_buffer(
             tf_environment, collect_data_spec=collect_data_spec)
@@ -63,7 +63,7 @@ class Actor_Value_Pretrainer:
         self.replay_buffer = TFUniformReplayBuffer(
             data_spec=modified_collect_data_spec,
             batch_size=tf_environment.batch_size,
-            max_length=buffer_size)
+            max_length=500000)
 
     def init_fsc_policy_driver(self, tf_environment: TFPyEnvironment, fsc: FSC = None, info_spec=None):
         """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
@@ -172,7 +172,7 @@ class Actor_Value_Pretrainer:
         if fsc is not None:
             self.reinit_fsc_policy_driver(fsc=fsc)
         dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=20, single_deterministic_pass=False).prefetch(4)
+            num_parallel_calls=4, sample_batch_size=256, num_steps=20, single_deterministic_pass=False).prefetch(4)
         self.iterator = iter(dataset)
 
         if use_best_traj_only:
@@ -280,6 +280,7 @@ class Actor_Value_Pretrainer:
         return runner
 
     def evaluate_actor(self, actor_net: ActorDistributionRnnNetwork, num_episodes: int):
+        self.environment.set_random_starts_simulation(False)
         avg_return, avg_episodic_return, success_rate = compute_average_return(policy=None, tf_environment=self.tf_environment, num_episodes=num_episodes, environment=self.environment,
                                                                                custom_runner=self.create_actor_evaluator_runner(actor_net))
         print("Average Return =", avg_return)

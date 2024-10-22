@@ -32,7 +32,7 @@ run_saynt_bc(){
             
             for sub_method in "${sub_methods[@]}"; do
                 echo "Running Paynt with --sub_method=$sub_method on $entry"
-                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model_name $entry --agent_task behavioral_cloning --sub_method $sub_method $1/$entry > $1/$entry/offline_pretrain_$sub_method.batch64.txt
+                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model_name $entry --agent_task behavioral_cloning --sub_method $sub_method $1/$entry > $1/$entry/offline_pretrain_$sub_method.fixed.txt
             done
         fi
     done

@@ -39,7 +39,8 @@ class SAYNT_Driver:
         assert storm_control is not None, "SAYNT driver needs Storm control with results"
         assert quotient is not None, "SAYNT driver needs quotient structure for model information"
         assert tf_action_labels is not None, "SAYNT driver needs action label indexing for proper functionality"
-
+        self.quotient = quotient
+        self.initial_pomdp_state = quotient.pomdp.initial_states[0]
         self.fsc = fsc
         self.observers = observers
         self.saynt_simulator = SAYNT_Simulation_Controller(
@@ -105,6 +106,9 @@ class SAYNT_Driver:
             # print("Reward for episode:", cumulative_reward)
         print("Cumulative rewards mean:", np.mean(cumulative_rewards))
         print("Episodes finished well:", episodes_finished_well, "out of", episodes, "episodes")
+        self.restore_pomdp_original_state()
+
+    
 
     def step_run(self, steps=25):
         saynt_step = self.saynt_simulator.last_step # Recovery from previous simulation
@@ -123,5 +127,8 @@ class SAYNT_Driver:
                 observer(traj)
         print("Step runner performed for", steps, "steps")
             
-
+    def restore_pomdp_original_state(self):
+        nr_states = self.quotient.pomdp.nr_states
+        indices_bitvector = stormpy.BitVector(nr_states, [self.initial_pomdp_state])
+        self.quotient.pomdp.set_initial_states(indices_bitvector)
     # 251
