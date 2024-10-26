@@ -94,7 +94,8 @@ class FatherAgent(AbstractAgent):
         self.wrapper = wrapper
         self.evaluation_result = EvaluationResults(self.environment.goal_value)
 
-    def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
+    def __init__(self, environment: Environment_Wrapper_Vec, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None,
+                 environment_not_vectorized : Environment_Wrapper = None, tf_environment_not_vectorized : tf_py_environment.TFPyEnvironment = None):
         """Initialization of the father agent. Not recommended to use this class directly, use the child classes instead. Implemented as example.
 
         Args:
@@ -108,6 +109,8 @@ class FatherAgent(AbstractAgent):
                          args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = Adam(learning_rate=self.learning_rate, clipnorm=1.0)
+        self.environment_not_vectorized = environment_not_vectorized
+        self.tf_environment_not_vectorized = tf_environment_not_vectorized
 
         self.fc_layer_params = (10,)
         dense_layers = [tf.keras.layers.Dense(
@@ -137,9 +140,10 @@ class FatherAgent(AbstractAgent):
         )
         self.agent.initialize()
         self.init_replay_buffer(tf_environment)
-        self.init_collector_drive(tf_environment)
+        self.init_collector_driver(tf_environment)
+        self.init_vec_evaluation_driver(self.tf_environment, self.environment)
 
-    def init_replay_buffer(self, tf_environment, buffer_size = None):
+    def init_replay_buffer(self, tf_environment : tf_py_environment.TFPyEnvironment, buffer_size = None):
         """Initialize the uniform replay buffer for the agent.
 
         Args:
@@ -149,9 +153,27 @@ class FatherAgent(AbstractAgent):
             buffer_size = self.args.buffer_size
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
-            batch_size=tf_environment.batch_size,
+            batch_size=self.args.batch_size,
             max_length=buffer_size)
         
+    def init_vec_evaluation_driver(self, tf_environment : tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps = 400):
+        """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
+
+        Args:
+            environment: The vectorized environment object, used for simulation information.
+            num_steps: The number of steps for evaluation.
+        """
+        self.trajectory_buffer = TrajectoryBuffer(environment)
+        eager = py_tf_eager_policy.PyTFEagerPolicy(
+            self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
+        
+        self.vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+            tf_environment,
+            eager,
+            observers=[self.trajectory_buffer.add_batched_step],
+            num_steps=num_steps * self.args.batch_size
+        )
+
     def get_observers(self, alternative_observer):
         if alternative_observer is None:
             observers = [self.replay_buffer.add_batch]
@@ -239,19 +261,17 @@ class FatherAgent(AbstractAgent):
         self.agent.train = common.function(self.agent.train)
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
-        dataset = self.replay_buffer.as_dataset(
-            sample_batch_size=self.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=True)
-        iterator = iter(dataset)
-
         self.replay_buffer.clear()
         for i in range(iterations):
             self.driver.run()
-            experience, _ = next(iterator)
+            experience = self.replay_buffer.gather_all()
             train_loss = self.agent.train(experience)
             self.replay_buffer.clear()
             logger.info(f"Step: {i}, Training loss: {train_loss.loss}")
-            if i % 100 == 0:
-                self.evaluate_agent()
+            if i % 10 == 0:
+                pass
+                self.evaluate_agent(vectorized=True)
+        self.evaluate_agent(vectorized=True, last=True)
 
     def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False, random_init : bool = False, use_fsc : bool = False,
                                probab_random_init_state = 0.3):
@@ -270,7 +290,7 @@ class FatherAgent(AbstractAgent):
         self.environment.set_random_starts_simulation(False)
         if self.agent.train_step_counter.numpy() == 0:
             logger.info('Random Average Return = {0}'.format(compute_average_return(
-                self.get_evaluation_policy(), self.tf_environment, self.evaluation_episodes, self.environment, self.evaluation_result.update)))
+                self.get_evaluation_policy(), self.tf_environment_not_vectorized, self.evaluation_episodes, self.environment_not_vectorized, self.evaluation_result.update)))
         # Because sometimes FSC driver does not sample enough trajectories to start learning.
         for _ in range(5):
             if q_vals_rand or random_init:
@@ -296,7 +316,7 @@ class FatherAgent(AbstractAgent):
             self.evaluation_result.add_loss(train_loss)
             if i % 10 == 0:
                 logger.info(f"Step: {i}, Training loss: {train_loss}")
-            if i % 100 == 0:
+            if i % 50 == 0:
                 self.environment.set_random_starts_simulation(False)
                 self.evaluate_agent()
         self.environment.set_random_starts_simulation(False)
@@ -414,7 +434,7 @@ class FatherAgent(AbstractAgent):
         self.evaluate_agent(last=True)
         self.replay_buffer.clear()
 
-    def evaluate_agent(self, last=False):
+    def evaluate_agent(self, last=False, vectorized=False):
         """Evaluate the agent. Used for evaluation of the agent during training.
 
         Args:
@@ -424,12 +444,19 @@ class FatherAgent(AbstractAgent):
             self.set_agent_stochastic()
         else:
             self.set_agent_greedy()
-        if last:
-            evaluation_episodes = self.evaluation_episodes * 2
+        if not vectorized:
+            if last:
+                evaluation_episodes = self.evaluation_episodes * 2
+            else:
+                evaluation_episodes = self.evaluation_episodes
+            compute_average_return(
+                self.get_evaluation_policy(), self.tf_environment_not_vectorized, evaluation_episodes, self.environment_not_vectorized, self.evaluation_result.update)
         else:
-            evaluation_episodes = self.evaluation_episodes
-        compute_average_return(
-            self.get_evaluation_policy(), self.tf_environment, evaluation_episodes, self.environment, self.evaluation_result.update)
+            self.vec_driver.run()
+            self.trajectory_buffer.final_update_of_results(self.evaluation_result.update)
+            self.trajectory_buffer.clear()
+            # compute_vectorized_average_return(
+            #     self.get_evaluation_policy(), self.tf_environment, self.args.max_steps, self.args.batch_size, self.environment, self.evaluation_result.update)
 
         self.set_agent_stochastic()
         if self.evaluation_result.best_updated:
@@ -508,14 +535,15 @@ class FatherAgent(AbstractAgent):
     def get_demasked_observer(self):
         """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""
         def _add_batch(item: Trajectory):
+            item.policy_info["dist_params"]["logits"] = item.policy_info["dist_params"]["logits"][0]
             modified_item = Trajectory(
-                step_type=item.step_type,
-                observation=item.observation["observation"],
-                action=item.action,
+                step_type=item.step_type[0],
+                observation=item.observation["observation"][0],
+                action=item.action[0],
                 policy_info=(item.policy_info),
-                next_step_type=item.next_step_type,
-                reward=item.reward,
-                discount=item.discount,
+                next_step_type=item.next_step_type[0],
+                reward=item.reward[0],
+                discount=item.discount[0],
             )
             self.replay_buffer._add_batch(modified_item)
         return _add_batch

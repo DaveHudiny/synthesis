@@ -25,12 +25,13 @@ from environment.reward_shaping_models import *
 from tools.args_emulator import ArgsEmulator
 
 import json
-import argparse
-
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
+
 import logging
+
+import prerequisites.VecStorm.vec_storm as vec_storm
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ logging.basicConfig(level=logging.INFO)
 class Environment_Wrapper(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
+
     def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table : list[list] = None):
         """Initializes the environment wrapper.
         
@@ -61,7 +63,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.reward = tf.constant(0.0, dtype=tf.float32)
         if len(list(stormpy_model.reward_models.keys())) == 0:
             self.reward_multiplier = -1.0
-        elif list(stormpy_model.reward_models.keys())[0] in "rewards":
+        elif list(stormpy_model.reward_models.keys())[-1] in "rewards":
             self.reward_multiplier = 1.0 
         else: # If 1.0, rewards are positive, if -1.0, rewards are negative
             self.reward_multiplier = -1.0
@@ -371,7 +373,6 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             reward=self.reward_multiplier * reward, 
             discount=self.discount, 
             step_type=ts.StepType.FIRST)
-        
         return self._current_time_step
 
     def _convert_action(self, action) -> int:

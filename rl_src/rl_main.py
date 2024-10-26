@@ -24,6 +24,7 @@ from tf_agents.environments import parallel_py_environment
 from tf_agents.environments import tf_py_environment
 from tools.evaluators import *
 from environment.environment_wrapper import *
+from environment.environment_wrapper_vec import *
 from environment.pomdp_builder import *
 from tools.args_emulator import ArgsEmulator
 from tools.weight_initialization import WeightInitializationMethods 
@@ -151,7 +152,7 @@ class Initializer:
             self.args = self.parser.args
         else:
             self.args = args
-        self.pomdp_model = pomdp_model
+        self.pomdp_model = pomdp_model;
         self.agent = agent
 
     def asserts(self):
@@ -205,7 +206,8 @@ class Initializer:
             self.environment = {"eval_model": Environment_Wrapper(self.pomdp_model, self.args),
                                 "train_model": Environment_Wrapper(self.second_pomdp_model, rand_args, qvalues_table)}
         else:
-            self.environment = Environment_Wrapper(self.pomdp_model, self.args)
+            self.environment_orig = Environment_Wrapper(self.pomdp_model, self.args)
+            self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=self.args.batch_size)
         if parallelized:
             tf_environment = parallel_py_environment.ParallelPyEnvironment(
                 [self.environment.create_new_environment] * num_parallel_environments)
@@ -216,6 +218,7 @@ class Initializer:
             else:
                 tf_environment = tf_py_environment.TFPyEnvironment(
                         self.environment)
+                self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
         logger.info("Environment initialized")
         return tf_environment
 
@@ -242,11 +245,13 @@ class Initializer:
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "PPO":
             agent = Recurrent_PPO_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
+                environment_not_vectorized=self.environment_orig, tf_environment_not_vectorized=self.tf_environment_orig)
         elif learning_method == "Stochastic_PPO":
             self.args.prefer_stochastic = True
             agent = Recurrent_PPO_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
+                environment_not_vectorized=self.environment_orig, tf_environment_not_vectorized=self.tf_environment_orig)
         elif learning_method == "PPO_FSC_Critic":
             if qvalues_table is None:  # If Q-values table is not provided, compute it from the sketch and properties
                 sketch_path = self.args.prism_model
@@ -359,7 +364,7 @@ class Initializer:
             return self.evaluate_random_policy()
 
         self.agent = self.initialize_agent()
-        if self.args.learning_method == "PPO" and self.args.set_ppo_on_policy:
+        if self.args.set_ppo_on_policy:
             self.agent.train_agent_on_policy(self.args.nr_runs)
         else:
             self.agent.train_agent_off_policy(self.args.nr_runs)

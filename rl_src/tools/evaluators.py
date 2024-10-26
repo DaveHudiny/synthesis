@@ -6,11 +6,16 @@
 # File: evaluators.py
 
 import tensorflow as tf
+import numpy as np
 
 from environment.environment_wrapper import Environment_Wrapper
+from environment.environment_wrapper_vec import Environment_Wrapper_Vec
 from tf_agents.environments import tf_py_environment
 
 from tf_agents.policies import TFPolicy
+
+from tf_agents.trajectories import TimeStep
+from tf_agents.trajectories import Trajectory
 
 
 class EvaluationResults:
@@ -135,6 +140,109 @@ def compute_average_return2(policy: TFPolicy, tf_environment: tf_py_environment.
         ), reach_prob, returns, successes)
     return avg_return.numpy()[0], avg_episode_return.numpy(), reach_prob
 
+class TrajectoryBuffer:
+    class EpisodeOutcomes:
+        def __init__(self, virtual_rewards : list = [], cumulative_rewards : list = [], goals_achieved : list = [], traps : list = []):
+            assert type(virtual_rewards) == list and type(cumulative_rewards) == list and type(goals_achieved) == list and type(traps) == list, "All arguments must be lists."
+            self.virtual_rewards = virtual_rewards
+            self.cumulative_rewards = cumulative_rewards
+            self.goals_achieved = goals_achieved
+            self.traps_achieved = traps
+        
+        def add_episode_outcome(self, virtual_reward, cumulative_reward, goal_achieved, trap_achieved):
+            self.virtual_rewards.append(virtual_reward)
+            self.cumulative_rewards.append(cumulative_reward)
+            self.goals_achieved.append(goal_achieved)
+            self.traps_achieved.append(trap_achieved)
+
+    def __init__(self, environment: Environment_Wrapper_Vec = None):
+        self.virtual_rewards = []
+        self.real_rewards = []
+        self.finished = []
+        self.finished_successfully = []
+        self.finished_truncated = []
+        self.finished_traps = []
+        self.tf_step_types = []
+        self.environment = environment
+
+    def add_batched_step(self, traj : Trajectory):
+        environment = self.environment
+        self.virtual_rewards.append(environment.virtual_reward.numpy())
+        self.real_rewards.append(environment.default_rewards.numpy())
+        self.finished.append(environment.dones)
+        self.finished_successfully.append(environment.goal_state_mask)
+        self.finished_truncated.append(environment.truncated)
+        self.finished_traps.append(environment.anti_goal_state_mask)
+
+    def numpize_lists(self):
+        self.virtual_rewards = np.array(self.virtual_rewards)
+        self.real_rewards = np.array(self.real_rewards)
+        self.finished = np.array(self.finished)
+        self.finished_successfully = np.array(self.finished_successfully)
+        self.finished_truncated = np.array(self.finished_truncated)
+        self.finished_traps = np.array(self.finished_traps)
+
+    def compute_outcomes(self):
+        self.numpize_lists()
+        outcomes = self.EpisodeOutcomes()
+        finished_true_indices = np.argwhere(self.finished == True)
+        prev_index = np.array([0, -1])
+        for index in finished_true_indices[1:]:
+            if index[0] != prev_index[0]:
+                prev_index = np.array([index[0], ])
+            in_episode_reward = np.sum(self.real_rewards[prev_index[0], prev_index[1]+1:index[1]])
+            in_episode_virtual_reward = np.sum(self.virtual_rewards[prev_index[0], prev_index[1]+1:index[1]])
+            goal_achieved = np.any(self.finished_successfully[prev_index[0], prev_index[1]+1:index[1]])
+            trap_achieved = np.any(self.finished_traps[prev_index[0], prev_index[1]+1:index[1]])
+            outcomes.add_episode_outcome(in_episode_virtual_reward, in_episode_reward, goal_achieved, trap_achieved)
+            prev_index = index
+        return outcomes
+
+    def final_update_of_results(self, updator: callable = None):
+        outcomes = self.compute_outcomes()
+        avg_return = np.mean(outcomes.cumulative_rewards)
+        avg_episode_return = np.mean(outcomes.virtual_rewards)
+        reach_prob = np.mean(self.finished_successfully)
+        if updator:
+            # updator(avg_return, avg_episode_return, reach_prob, returns, successes)
+            updator(avg_return, avg_episode_return, reach_prob, outcomes.cumulative_rewards, outcomes.goals_achieved)
+        return avg_return, avg_episode_return, reach_prob
+    
+    def clear(self):
+        self.virtual_rewards = []
+        self.real_rewards = []
+        self.finished = []
+        self.finished_successfully = []
+        self.finished_truncated = []
+        self.finished_traps = []
+
+
+
+def compute_vectorized_average_return(policy: TFPolicy, tf_environment: tf_py_environment.TFPyEnvironment, num_steps = 150, num_envs = 256, 
+                                      environment: Environment_Wrapper_Vec = None, updator: callable = None):
+    """Compute the average return of the policy over the given number of steps."""
+    policy_function = tf.function(policy.action)
+    buffer = TrajectoryBuffer()
+    num_envs = num_envs
+    num_steps = num_steps
+    time_step = environment.reset()
+    policy_state = policy.get_initial_state(num_envs)
+    for _ in range(num_steps):
+        print("Time step: ", time_step)
+        # remove first dimension from time_step
+        action_step = policy_function(time_step, policy_state=policy_state)
+        policy_state = action_step.state
+        print("Actions", action_step.action)
+        action = tf.reshape(action_step.action, (num_envs, 1))
+        print("Actions reshaped", action)
+        time_step = tf_environment.step(action)
+        buffer.add_batched_step(time_step, environment)
+
+    return buffer.final_update_of_results(updator)
+    
+        
+        
+
 def compute_average_return(policy: TFPolicy, tf_environment: tf_py_environment.TFPyEnvironment, num_episodes=30,
                            environment: Environment_Wrapper = None, updator: callable = None, custom_runner : callable = None):
     """Compute the average return of the policy over the given number of episodes."""
@@ -159,7 +267,6 @@ def compute_average_return(policy: TFPolicy, tf_environment: tf_py_environment.T
         update_results(updator, avg_return, avg_episode_return, reach_prob, returns, successes)
 
     return avg_return, avg_episode_return, reach_prob
-
 
 def run_single_episode(policy, policy_function, tf_environment, environment):
     """Run a single episode and return the cumulative reward and success flag."""

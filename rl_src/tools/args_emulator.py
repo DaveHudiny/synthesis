@@ -9,7 +9,7 @@ class ArgsEmulator:
                  reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy: bool = False,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
-                 random_start_simulator=False):
+                 random_start_simulator=False, num_environments=32):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
 
@@ -55,6 +55,7 @@ class ArgsEmulator:
         prefer_stochastic (bool, optional): Prefer stochastic actions (in case of PPO) for evaluation. Defaults to False.
         normalize_simulator_rewards (bool, optional): Normalize rewards obtained from simulator (reward = reward / goal_reward)
         random_start_simulator (bool, optional): Sets initialized simulator to work with uniformly random initial states 
+        num_environments (int, optional): Number of environments for vectorization. Defaults to 32.
 
         """
         self.prism_model = prism_model
@@ -97,3 +98,4 @@ class ArgsEmulator:
         self.prefer_stochastic = prefer_stochastic
         self.normalize_simulator_rewards = normalize_simulator_rewards
         self.random_start_simulator = random_start_simulator
+        self.num_environments = num_environments

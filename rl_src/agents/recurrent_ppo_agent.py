@@ -18,6 +18,7 @@ from tf_agents.policies import py_tf_eager_policy
 
 
 from environment.environment_wrapper import Environment_Wrapper
+from environment.environment_wrapper_vec import Environment_Wrapper_Vec
 
 from tf_agents.trajectories import trajectory
 from tf_agents.trajectories import Trajectory
@@ -33,6 +34,8 @@ from paynt.rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pr
 from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
 
+from tools.evaluators import TrajectoryBuffer
+
 
 import sys
 sys.path.append("../")
@@ -47,8 +50,11 @@ logger = logging.getLogger(__name__)
 
 class Recurrent_PPO_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
-                 args, load=False, agent_folder=None):
+                 args, load=False, agent_folder=None, environment_not_vectorized : Environment_Wrapper = None, 
+                 tf_environment_not_vectorized : tf_py_environment.TFPyEnvironment = None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
+        self.environment_not_vectorized = environment_not_vectorized
+        self.tf_environment_not_vectorized = tf_environment_not_vectorized
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(
             learning_rate=args.learning_rate, clipnorm=1.0)
@@ -86,18 +92,39 @@ class Recurrent_PPO_agent(FatherAgent):
                                            is_greedy=False)
         if load:
             self.load_agent()
+        self.init_vec_evaluation_driver(self.tf_environment, self.environment)
+
+    # def init_vec_evaluation_driver(self, tf_environment : tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps = 400):
+    #     """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
+
+    #     Args:
+    #         environment: The vectorized environment object, used for simulation information.
+    #         num_steps: The number of steps for evaluation.
+    #     """
+    #     self.trajectory_buffer = TrajectoryBuffer(environment)
+    #     eager = py_tf_eager_policy.PyTFEagerPolicy(
+    #         self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
+        
+    #     self.vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+    #         environment,
+    #         eager,
+    #         observers=[self.trajectory_buffer.add_batched_step],
+    #         num_steps=num_steps * self.args.batch_size
+    #     )
+
 
     def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
+        # self.replay_buffer.
         observer = self.get_demasked_observer()
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
             observers=[observer],
-            num_steps=self.traj_num_steps)
+            num_steps=self.args.batch_size * self.args.num_steps)
         
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
                                fsc_multiplier: float = 2.0, switch_probability : float = None):
