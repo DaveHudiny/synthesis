@@ -92,7 +92,7 @@ class Recurrent_PPO_agent(FatherAgent):
                                            is_greedy=False)
         if load:
             self.load_agent()
-        self.init_vec_evaluation_driver(self.tf_environment, self.environment)
+        self.init_vec_evaluation_driver(self.tf_environment, self.environment, num_steps=self.args.max_steps)
 
     # def init_vec_evaluation_driver(self, tf_environment : tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps = 400):
     #     """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.

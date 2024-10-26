@@ -175,12 +175,12 @@ class TrajectoryBuffer:
         self.finished_traps.append(environment.anti_goal_state_mask)
 
     def numpize_lists(self):
-        self.virtual_rewards = np.array(self.virtual_rewards)
-        self.real_rewards = np.array(self.real_rewards)
-        self.finished = np.array(self.finished)
-        self.finished_successfully = np.array(self.finished_successfully)
-        self.finished_truncated = np.array(self.finished_truncated)
-        self.finished_traps = np.array(self.finished_traps)
+        self.virtual_rewards = np.array(self.virtual_rewards).T
+        self.real_rewards = np.array(self.real_rewards).T
+        self.finished = np.array(self.finished).T
+        self.finished_successfully = np.array(self.finished_successfully).T
+        self.finished_truncated = np.array(self.finished_truncated).T
+        self.finished_traps = np.array(self.finished_traps).T
 
     def compute_outcomes(self):
         self.numpize_lists()
@@ -189,11 +189,11 @@ class TrajectoryBuffer:
         prev_index = np.array([0, -1])
         for index in finished_true_indices[1:]:
             if index[0] != prev_index[0]:
-                prev_index = np.array([index[0], ])
-            in_episode_reward = np.sum(self.real_rewards[prev_index[0], prev_index[1]+1:index[1]])
-            in_episode_virtual_reward = np.sum(self.virtual_rewards[prev_index[0], prev_index[1]+1:index[1]])
-            goal_achieved = np.any(self.finished_successfully[prev_index[0], prev_index[1]+1:index[1]])
-            trap_achieved = np.any(self.finished_traps[prev_index[0], prev_index[1]+1:index[1]])
+                prev_index = np.array([index[0], -1])
+            in_episode_reward = np.sum(self.real_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
+            in_episode_virtual_reward = np.sum(self.virtual_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
+            goal_achieved = np.any(self.finished_successfully[prev_index[0], prev_index[1]+1:index[1]+1])
+            trap_achieved = np.any(self.finished_traps[prev_index[0], prev_index[1]+1:index[1]+1])
             outcomes.add_episode_outcome(in_episode_virtual_reward, in_episode_reward, goal_achieved, trap_achieved)
             prev_index = index
         return outcomes
@@ -202,7 +202,7 @@ class TrajectoryBuffer:
         outcomes = self.compute_outcomes()
         avg_return = np.mean(outcomes.cumulative_rewards)
         avg_episode_return = np.mean(outcomes.virtual_rewards)
-        reach_prob = np.mean(self.finished_successfully)
+        reach_prob = np.mean(outcomes.goals_achieved)
         if updator:
             # updator(avg_return, avg_episode_return, reach_prob, returns, successes)
             updator(avg_return, avg_episode_return, reach_prob, outcomes.cumulative_rewards, outcomes.goals_achieved)

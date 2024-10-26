@@ -171,7 +171,7 @@ class FatherAgent(AbstractAgent):
             tf_environment,
             eager,
             observers=[self.trajectory_buffer.add_batched_step],
-            num_steps=num_steps * self.args.batch_size
+            num_steps=(1 + num_steps) * self.args.batch_size
         )
 
     def get_observers(self, alternative_observer):

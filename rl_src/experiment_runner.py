@@ -50,29 +50,29 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
 
     if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
         os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
-    for quality in ["last", "best"]:
-        if refusing is None:
-            for typ in ["with_refusing", "without_refusing"]:
-                quality_typ = quality + "_" + typ
-                try:
-                    obs_action_dict = dicts[quality_typ][0]
-                    memory_dict = dicts[quality_typ][1]
-                    labels = dicts[quality_typ][2]
-                    save_dictionaries(name_of_experiment, model, learning_method,
-                                    quality_typ, obs_action_dict, memory_dict, labels)
-                except:
-                    logger.error("Storing dictionaries failed!")
+    # for quality in ["last", "best"]:
+    #     if refusing is None:
+    #         for typ in ["with_refusing", "without_refusing"]:
+    #             quality_typ = quality + "_" + typ
+    #             try:
+    #                 obs_action_dict = dicts[quality_typ][0]
+    #                 memory_dict = dicts[quality_typ][1]
+    #                 labels = dicts[quality_typ][2]
+    #                 save_dictionaries(name_of_experiment, model, learning_method,
+    #                                 quality_typ, obs_action_dict, memory_dict, labels)
+    #             except:
+    #                 logger.error("Storing dictionaries failed!")
                     
-        else:
-            try:
-                obs_action_dict = dicts[0]
-                memory_dict = dicts[1]
-                labels = dicts[2]
+    #     else:
+    #         try:
+    #             obs_action_dict = dicts[0]
+    #             memory_dict = dicts[1]
+    #             labels = dicts[2]
                 
-                save_dictionaries(name_of_experiment, model, learning_method,
-                                refusing, obs_action_dict, memory_dict, labels)
-            except:
-                logger.error("Saving stats failed!")
+    #             save_dictionaries(name_of_experiment, model, learning_method,
+    #                             refusing, obs_action_dict, memory_dict, labels)
+    #         except:
+    #             logger.error("Saving stats failed!")
 
     # Save evaluation results, if file exists, write to new file.
     save_statistics_to_new_json(name_of_experiment, model, learning_method, 
@@ -93,13 +93,13 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             # if any(not keyword in model for keyword in ["rocks"]):
             #     continue
-            if not "intercept" in model:
-                continue
+            # if not "network" in model:
+            #     continue
             for encoding_method in ["Valuations"]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties,
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
-                                    nr_runs=1001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=500, evaluation_goal=10, evaluation_antigoal=-10, trajectory_num_steps=30, discount_factor=0.99,
                                     normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, set_ppo_on_policy=True, batch_size=256)
 
@@ -108,4 +108,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_for_sure", "./models")
+    run_experiments("experiments_vectorized", "./models")
