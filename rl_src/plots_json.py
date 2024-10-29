@@ -38,16 +38,21 @@ def plot_single_curve(data, learning_algorithm):
     
 def plot_single_metric_for_model(jsons, metric, model, save_folder):
     plt.figure(figsize=(6, 4))
-    for key in jsons:
-        model_name, algorithm_name = get_experiment_setting_from_name(key)
-        if model_name == model:
-            data = jsons[key][metric]
-            plot_single_curve(data, algorithm_name)
+    try:
+        for key in jsons:
+            model_name, algorithm_name = get_experiment_setting_from_name(key)
+            if model_name == model:
+                data = jsons[key][metric]
+                plot_single_curve(data, algorithm_name)
+    except Exception as e:
+        print(f"Error in {model} with {metric}: {e}")
+
     plt.title(f"Graph for {model} with {metric}")
     plt.xlabel("i-th hundred iteration")
     plt.ylabel(metric)
     plt.legend()
     plt.savefig(f"{save_folder}/{model}_{metric}.pdf")
+    plt.close()
 
 def run_plots(folder, save_folder):
     jsons = load_jsons_from_folder(folder)
@@ -61,4 +66,4 @@ def run_plots(folder, save_folder):
         for metric in METRICS:
             plot_single_metric_for_model(jsons, metric, model, save_folder)
             
-run_plots("experiments_large_more_steps_Valuations", "plots")
+run_plots("experiment_json_adhoc", "./")

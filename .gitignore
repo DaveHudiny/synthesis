@@ -6,6 +6,8 @@ trained_agents/
 rl_src/encoding_methods/
 rl_src/experiments*
 rl_src/plots/
+rl_src/plots3/
+rl_src/plots2/
 stuff_for_processing/
 measurements/
 models_rl/

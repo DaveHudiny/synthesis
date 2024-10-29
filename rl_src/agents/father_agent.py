@@ -259,17 +259,22 @@ class FatherAgent(AbstractAgent):
             iterations (int): Number of iterations to train agent.
         """
         self.agent.train = common.function(self.agent.train)
+        self.dataset = self.replay_buffer.as_dataset(
+            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=True).prefetch(4)
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
         self.replay_buffer.clear()
         for i in range(iterations):
             self.driver.run()
-            experience = self.replay_buffer.gather_all()
-            train_loss = self.agent.train(experience)
+            iterator = iter(self.dataset)
+            for mini_batch, _ in iterator:
+                train_loss = self.agent.train(mini_batch)
+                train_loss = train_loss.loss.numpy()
             self.replay_buffer.clear()
-            logger.info(f"Step: {i}, Training loss: {train_loss.loss}")
             if i % 10 == 0:
-                pass
+                logger.info(f"Step: {i}, Training loss: {train_loss}")
+            if i % 50 == 0:
+                self.evaluation_result.add_loss(train_loss)
                 self.evaluate_agent(vectorized=True)
         self.evaluate_agent(vectorized=True, last=True)
 
@@ -467,6 +472,10 @@ class FatherAgent(AbstractAgent):
             self.evaluation_result.returns_episodic[-1]))
         logger.info('Goal Reach Probability = {0}'.format(
             self.evaluation_result.reach_probs[-1]))
+        logger.info('Trap Reach Probability = {0}'.format(self.evaluation_result.trap_reach_probs[-1]))
+        logger.info('Variance of Return = {0}'.format(self.evaluation_result.each_episode_variance[-1]))
+        logger.info('Current Best Return = {0}'.format(self.evaluation_result.best_return))
+        logger.info('Current Best Reach Probability = {0}'.format(self.evaluation_result.best_reach_prob))
 
     def set_agent_greedy(self):
         """Set the agent for to be greedy for evaluation. Used only with PPO agent, where we select greedy evaluation.

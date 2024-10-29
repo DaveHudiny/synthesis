@@ -28,11 +28,14 @@ class EvaluationResults:
         self.returns_episodic = []
         self.returns = []
         self.reach_probs = []
+        self.trap_reach_probs = []
         self.best_reach_prob = 0.0
         self.losses = []
         self.best_updated = False
-        self.each_episode_returns = []
-        self.each_episode_successes = []
+        # self.each_episode_returns = []
+        # self.each_episode_successes = []
+        self.each_episode_variance = []
+        self.num_episodes = []
 
     def set_experiment_settings(self, learning_algorithm: str = "", learning_rate: float = float("nan"),
                                 nn_details: dict = {}, max_steps: int = float("nan")):
@@ -59,7 +62,7 @@ class EvaluationResults:
     def __str__(self):
         return str(self.__dict__)
 
-    def update(self, avg_return, avg_episodic_return, reach_prob, each_episode_return=None, each_episode_success=None):
+    def update(self, avg_return, avg_episodic_return, reach_prob, episodes_variance = None, num_episodes = 1, trap_reach_prob = 0.0):
         """Update the evaluation results in the object of EvaluationResults.
 
         Args:
@@ -71,8 +74,9 @@ class EvaluationResults:
         self.returns_episodic.append(avg_episodic_return)
         self.returns.append(avg_return)
         self.reach_probs.append(reach_prob)
-        self.each_episode_returns.append(each_episode_return)
-        self.each_episode_successes.append(each_episode_success)
+        self.each_episode_variance.append(episodes_variance)
+        self.num_episodes.append(num_episodes)
+        self.trap_reach_probs.append(trap_reach_prob)
         if avg_return > self.best_return:
             self.best_return = avg_return
             if avg_episodic_return >= self.best_episode_return:
@@ -203,9 +207,12 @@ class TrajectoryBuffer:
         avg_return = np.mean(outcomes.cumulative_rewards)
         avg_episode_return = np.mean(outcomes.virtual_rewards)
         reach_prob = np.mean(outcomes.goals_achieved)
+        trap_prob = np.mean(outcomes.traps_achieved)
+        episode_variance = np.var(outcomes.cumulative_rewards)
+
         if updator:
             # updator(avg_return, avg_episode_return, reach_prob, returns, successes)
-            updator(avg_return, avg_episode_return, reach_prob, outcomes.cumulative_rewards, outcomes.goals_achieved)
+            updator(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes = len(outcomes.cumulative_rewards), trap_reach_prob = trap_prob)
         return avg_return, avg_episode_return, reach_prob
     
     def clear(self):

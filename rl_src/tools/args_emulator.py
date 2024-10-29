@@ -1,6 +1,6 @@
 class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
-                 encoding_method: str = "Valuations", learning_rate: float = 1.6e-3, max_steps: int = 300, evaluation_episodes: int = 20,
+                 encoding_method: str = "Valuations", learning_rate: float = 8.6e-4, max_steps: int = 300, evaluation_episodes: int = 20,
                  batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 5000, evaluation_goal: int = 300,
                  interpretation_method: str = "Tracing", learning_method: str = "DQN",
                  save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",

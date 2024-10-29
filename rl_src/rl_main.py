@@ -369,14 +369,14 @@ class Initializer:
         else:
             self.agent.train_agent_off_policy(self.args.nr_runs)
         self.agent.save_agent()
-        result = {}
-        logger.info("Training finished")
-        if self.args.interpretation_method == "Tracing":
-            result = self.tracing_interpretation(with_refusing)
-        else:
-            raise ValueError(
-                "Interpretation method not recognized or implemented yet.")
-        return result
+        # result = {}
+        # logger.info("Training finished")
+        # if self.args.interpretation_method == "Tracing":
+        #     result = self.tracing_interpretation(with_refusing)
+        # else:
+        #     raise ValueError(
+        #         "Interpretation method not recognized or implemented yet.")
+        return None
 
     def __del__(self):
         if hasattr(self, "tf_environment") and self.tf_environment is not None:

@@ -222,6 +222,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         observation_tensor = {"observation": tf.constant(self.last_observation, tf.float32), 
                               "mask": tf.constant(self.allowed_actions, tf.bool), 
                               "integer": tf.constant(tf.ones((len(self.last_observation),1), dtype=tf.int32), dtype=tf.int32)}
+        self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
+        self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
+        self.truncated = np.array(len(self.last_observation) * [False])
         self._current_time_step = ts.TimeStep(
             observation=observation_tensor, 
             reward=self.reward_multiplier * self.reward, 
@@ -254,9 +257,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         antigoal_values_vector = self.antigoal_values_vector + self.default_rewards
         goal_values_vector = self.goal_values_vector + self.default_rewards
         self.goal_state_mask = labels_mask & self.dones
-        # num_goals = tf.reduce_sum(tf.cast(self.goal_state_mask, tf.int32))
-        # print(num_goals)
-        # print(self.goal_state_mask)
         self.anti_goal_state_mask = ~labels_mask & self.dones & ~self.truncated
         still_running_mask = ~self.dones
         self.reward = tf.where(
