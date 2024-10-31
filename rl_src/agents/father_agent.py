@@ -252,7 +252,7 @@ class FatherAgent(AbstractAgent):
         else:
             return self.wrapper
 
-    def train_agent_on_policy(self, iterations: int):
+    def train_agent_vectorized(self, iterations: int):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
@@ -260,17 +260,29 @@ class FatherAgent(AbstractAgent):
         """
         self.agent.train = common.function(self.agent.train)
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=True).prefetch(4)
+            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=self.args.set_ppo_on_policy).prefetch(8)
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
-        self.replay_buffer.clear()
+        if self.args.set_ppo_on_policy:
+            self.replay_buffer.clear()
+        else:
+            iterator = iter(self.dataset)
+        if not self.args.set_ppo_on_policy:
+            for _ in range(self.args.num_steps):
+                logger.info('Fill replay buffer')
+                self.driver.run()
         for i in range(iterations):
             self.driver.run()
-            iterator = iter(self.dataset)
-            for mini_batch, _ in iterator:
-                train_loss = self.agent.train(mini_batch)
-                train_loss = train_loss.loss.numpy()
-            self.replay_buffer.clear()
+            if self.args.set_ppo_on_policy:
+                iterator = iter(self.dataset)
+                for mini_batch, _ in iterator:
+                    train_loss = self.agent.train(mini_batch)
+                    train_loss = train_loss.loss.numpy()
+                self.replay_buffer.clear()
+            else:
+                experience, _ = next(iterator)
+                train_loss = self.agent.train(experience).loss
+                train_loss = train_loss.numpy()
             if i % 10 == 0:
                 logger.info(f"Step: {i}, Training loss: {train_loss}")
             if i % 50 == 0:

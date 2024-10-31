@@ -11,7 +11,7 @@ import os
 
 import logging
 
-from tools.evaluators import EvaluationResults
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +44,7 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
         name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
         encoding_method (str, optional): The encoding method. Defaults to "Valuations".
     """
+    start_time = time.time()
     refusing = None
     initializer = Initializer(args)
     dicts = initializer.main(with_refusing=refusing)
@@ -75,8 +76,10 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
     #             logger.error("Saving stats failed!")
 
     # Save evaluation results, if file exists, write to new file.
+    end_time = time.time()
+    evaluation_time = end_time - start_time
     save_statistics_to_new_json(name_of_experiment, model, learning_method, 
-                                initializer.agent.evaluation_result)
+                                initializer.agent.evaluation_result, evaluation_time=evaluation_time, args=args)
     
     # Old way of saving statistics        
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
@@ -85,30 +88,32 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large"):
     """ Run multiple experiments for PAYNT oracle."""
     for model in os.listdir(f"{path_to_models}"):
+    # for model in ["network-5-10-8"]:
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
+        encoding_method = "Valuations"
         refusing = None
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic", "Periodic_FSC_Neural_PPO"]:
             if not (learning_method in ["Stochastic_PPO"]):
                 continue
-            if not "geo" in model or "drone" in model:
+            if "drone" in model:
                 continue
-            #     continue
-            # if any(not keyword in model for keyword in ["rocks"]):
-            #     continue
-            # if not "network" in model:
-            #     continue
-            for encoding_method in ["Valuations"]:
+            for set_ppo_on_policy in [True, False]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.0001,
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
-                                    nr_runs=500, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
-                                    max_steps=400, evaluation_goal=200, evaluation_antigoal=-30, trajectory_num_steps=30, discount_factor=0.99,
-                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, set_ppo_on_policy=True, batch_size=256)
+                                    nr_runs=51, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    max_steps=400, evaluation_goal=100, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99,
+                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, set_ppo_on_policy=set_ppo_on_policy, batch_size=256)
 
+                if set_ppo_on_policy:
+                    text = "on-policy"
+                else:
+                    text = "off-policy"
+                
                 run_single_experiment(
-                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + f"_{encoding_method}")
+                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + text)
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_vectorized_larger_goals", "./models_large")
+    run_experiments("experiments_", "./models_large")

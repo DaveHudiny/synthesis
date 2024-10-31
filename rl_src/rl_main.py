@@ -116,7 +116,7 @@ def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, 
         pickle.dump(labels, f)
 
 
-def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result: EvaluationResults, args: dict = None):
+def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result: EvaluationResults, args: dict = None, evaluation_time: float = float("nan")):
     """ Save statistics to a new JSON file.
     Args:
         name_of_experiment (str): Name of the experiment.
@@ -139,10 +139,10 @@ def save_statistics_to_new_json(name_of_experiment, model, learning_method, eval
         while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):
             i += 1
         evaluation_result.save_to_json(
-            f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json")
+            f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json", evaluation_time)
     else:
         evaluation_result.save_to_json(
-            f"{name_of_experiment}/{model}_{learning_method}_training.json")
+            f"{name_of_experiment}/{model}_{learning_method}_training.json", evaluation_time)
 
 
 class Initializer:
@@ -364,10 +364,7 @@ class Initializer:
             return self.evaluate_random_policy()
 
         self.agent = self.initialize_agent()
-        if self.args.set_ppo_on_policy:
-            self.agent.train_agent_on_policy(self.args.nr_runs)
-        else:
-            self.agent.train_agent_off_policy(self.args.nr_runs)
+        self.agent.train_agent_vectorized(self.args.nr_runs)
         self.agent.save_agent()
         # result = {}
         # logger.info("Training finished")

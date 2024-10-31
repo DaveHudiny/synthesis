@@ -67,5 +67,11 @@ cd ${PAYNT_ROOT}/payntbind
 python3 setup.py develop
 cd ${PAYNT_ROOT}
 
+# build vec_storm
+cd ${PREREQUISITES}
+git clone https://github.com/kurecka/VecStorm.git VecStorm
+cd ${PREREQUISITES}/VecStorm
+pip install -e .
+
 # done
 deactivate

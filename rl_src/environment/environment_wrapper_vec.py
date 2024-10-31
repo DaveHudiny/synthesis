@@ -32,8 +32,8 @@ import time
 
 import logging
 
-import prerequisites.VecStorm.vec_storm as vec_storm
-from prerequisites.VecStorm.vec_storm.storm_vec_env import ResetInfo, StepInfo
+import vec_storm
+from vec_storm.storm_vec_env import ResetInfo, StepInfo
 
 
 def pad_labels(label):
@@ -66,6 +66,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             stormpy_model: The Storm model to be used.
             args: The arguments from the command line or ArgsSimulator.
         """
+        self.args = args
         super(Environment_Wrapper_Vec, self).__init__()
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
@@ -77,6 +78,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         if not os.path.exists("simulator.pkl") or True:
             self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward=generate_reward_selection_function, 
                                                               num_envs=num_envs, max_steps=args.max_steps, metalabels={"goals": intersection_labels})
+            self.vectorized_simulator.reset()
+            hash_of_simulation = hash(self.vectorized_simulator)
+            with open("simulator_hash.txt", "a") as f:
+                f.write(self.args.prism_model + ":\n")
+                f.write(str(hash_of_simulation) + "\n")
             with open("simulator.pkl", "wb") as f:
                 import pickle as pkl
                 pkl.dump(self.vectorized_simulator, f)
@@ -85,7 +91,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 import pickle as pkl
                 self.vectorized_simulator = pkl.load(f)
         self.labels_mask = list([])
-        self.args = args
         self.nr_obs = self.stormpy_model.nr_observations
         self.encoding_method = args.encoding_method
         self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32)
@@ -129,20 +134,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
         self.default_step_types = tf.constant([ts.StepType.MID] * self.num_envs, dtype=tf.int32)
         self.terminated_step_types = tf.constant([ts.StepType.LAST] * self.num_envs, dtype=tf.int32)
-
-    def set_random_starts_simulation(self, flag : bool = True):
-        self.random_start_simulator = flag
-        if not flag:
-            nr_states = self.stormpy_model.nr_states
-            bitvector = stormpy.BitVector(nr_states, self.original_init_state)
-            self.stormpy_model.set_initial_states(bitvector)
-
-    def set_new_qvalues_table(self, qvalues_table):
-        self.q_values_table = qvalues_table
-        self.q_values_ranking = None # Because we want to re-compute the ranking later
-
-    def set_selection_pressure(self, sp : float = 1.5):
-        self.selection_pressure = sp
 
     def set_action_labeling(self):
         """Computes the keywords for the actions and stores them to self.act_to_keywords and other dictionaries."""
@@ -235,18 +226,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def _convert_action(self, action) -> int:
         """Converts the action from the RL agent to the action used by the Vectorized simulator."""
         return action
-    
-    def is_goal_state(self, labels) -> bool:
-        """Checks if the current state is a goal state."""
-        import re
-        
-        combined_pattern = '|'.join([re.escape(special_label) for special_label in self.special_labels])
-        goal_state_mask = self.dones & tf.math.reduce_any(
-            tf.strings.regex_full_match(labels, combined_pattern),
-            axis=-1
-        )
-
-        return goal_state_mask
 
     def evaluate_simulator(self) -> ts.TimeStep:
         """Evaluates the simulator and returns the current time step. Primarily used to determine, whether the state is the last one or not."""
@@ -370,6 +349,20 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     #####################################################################################
     # Random initialization of the environment, currently deprecated
     #####################################################################################
+    
+    def set_random_starts_simulation(self, flag : bool = True):
+        self.random_start_simulator = flag
+        if not flag:
+            nr_states = self.stormpy_model.nr_states
+            bitvector = stormpy.BitVector(nr_states, self.original_init_state)
+            self.stormpy_model.set_initial_states(bitvector)
+
+    def set_new_qvalues_table(self, qvalues_table):
+        self.q_values_table = qvalues_table
+        self.q_values_ranking = None # Because we want to re-compute the ranking later
+
+    def set_selection_pressure(self, sp : float = 1.5):
+        self.selection_pressure = sp
 
     def get_random_legal_action(self) -> np.int32:
         available_actions = self.simulator.available_actions()

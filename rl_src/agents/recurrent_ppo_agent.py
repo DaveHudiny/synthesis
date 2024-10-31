@@ -124,11 +124,15 @@ class Recurrent_PPO_agent(FatherAgent):
             self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
         # self.replay_buffer.
         observer = self.get_demasked_observer()
+        if self.args.set_ppo_on_policy:
+            num_steps = self.args.batch_size * self.args.num_steps
+        else:
+            num_steps = self.args.batch_size
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
             observers=[observer],
-            num_steps=self.args.batch_size * self.args.num_steps)
+            num_steps=num_steps)
         
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
                                fsc_multiplier: float = 2.0, switch_probability : float = None):

@@ -35,6 +35,8 @@ class EvaluationResults:
         # self.each_episode_returns = []
         # self.each_episode_successes = []
         self.each_episode_variance = []
+        self.each_episode_virtual_variance = []
+        self.combined_variance = []
         self.num_episodes = []
 
     def set_experiment_settings(self, learning_algorithm: str = "", learning_rate: float = float("nan"),
@@ -44,13 +46,14 @@ class EvaluationResults:
         self.nn_details = "Not implemented yet"
         self.max_steps = max_steps
 
-    def save_to_json(self, filename):
+    def save_to_json(self, filename, evaluation_time: float = float("nan")):
         import json
         with open(filename, "w") as file:
             _dict_ = self.__dict__.copy()
             del _dict_["best_updated"]
             for key in _dict_:
                 _dict_[key] = str(_dict_[key])
+            _dict_["evaluation_time"] = evaluation_time
             json.dump(_dict_, file)
 
     def load_from_json(self, filename):
@@ -62,7 +65,7 @@ class EvaluationResults:
     def __str__(self):
         return str(self.__dict__)
 
-    def update(self, avg_return, avg_episodic_return, reach_prob, episodes_variance = None, num_episodes = 1, trap_reach_prob = 0.0):
+    def update(self, avg_return, avg_episodic_return, reach_prob, episodes_variance = None, num_episodes = 1, trap_reach_prob = 0.0, virtual_variance = None, combined_variance = None):
         """Update the evaluation results in the object of EvaluationResults.
 
         Args:
@@ -86,6 +89,11 @@ class EvaluationResults:
             self.best_updated = True
         if reach_prob > self.best_reach_prob:
             self.best_reach_prob = reach_prob
+        if virtual_variance is not None:
+            self.each_episode_virtual_variance.append(virtual_variance)
+        if combined_variance is not None:
+            self.combined_variance.append(combined_variance)
+            
 
     def add_loss(self, loss):
         """Add loss to the list of losses."""
@@ -158,6 +166,12 @@ class TrajectoryBuffer:
             self.cumulative_rewards.append(cumulative_reward)
             self.goals_achieved.append(goal_achieved)
             self.traps_achieved.append(trap_achieved)
+        
+        def clear(self):
+            self.virtual_rewards = []
+            self.cumulative_rewards = []
+            self.goals_achieved = []
+            self.traps_achieved = []
 
     def __init__(self, environment: Environment_Wrapper_Vec = None):
         self.virtual_rewards = []
@@ -168,6 +182,7 @@ class TrajectoryBuffer:
         self.finished_traps = []
         self.tf_step_types = []
         self.environment = environment
+        self.episode_outcomes = self.EpisodeOutcomes([], [], [], [])
 
     def add_batched_step(self, traj : Trajectory):
         environment = self.environment
@@ -186,9 +201,9 @@ class TrajectoryBuffer:
         self.finished_truncated = np.array(self.finished_truncated).T
         self.finished_traps = np.array(self.finished_traps).T
 
-    def compute_outcomes(self):
+    def update_outcomes(self):
         self.numpize_lists()
-        outcomes = self.EpisodeOutcomes()
+        outcomes = self.episode_outcomes
         finished_true_indices = np.argwhere(self.finished == True)
         prev_index = np.array([0, -1])
         for index in finished_true_indices[1:]:
@@ -196,23 +211,24 @@ class TrajectoryBuffer:
                 prev_index = np.array([index[0], -1])
             in_episode_reward = np.sum(self.real_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
             in_episode_virtual_reward = np.sum(self.virtual_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
-            goal_achieved = np.any(self.finished_successfully[prev_index[0], prev_index[1]+1:index[1]+1])
-            trap_achieved = np.any(self.finished_traps[prev_index[0], prev_index[1]+1:index[1]+1])
+            goal_achieved = self.finished_successfully[index[0], index[1]]
+            trap_achieved = self.finished_traps[index[0], index[1]]
             outcomes.add_episode_outcome(in_episode_virtual_reward, in_episode_reward, goal_achieved, trap_achieved)
             prev_index = index
-        return outcomes
 
     def final_update_of_results(self, updator: callable = None):
-        outcomes = self.compute_outcomes()
-        avg_return = np.mean(outcomes.cumulative_rewards)
-        avg_episode_return = np.mean(outcomes.virtual_rewards)
-        reach_prob = np.mean(outcomes.goals_achieved)
-        trap_prob = np.mean(outcomes.traps_achieved)
-        episode_variance = np.var(outcomes.cumulative_rewards)
-
+        self.update_outcomes()
+        avg_return = np.mean(self.episode_outcomes.cumulative_rewards)
+        avg_episode_return = np.mean(self.episode_outcomes.virtual_rewards)
+        reach_prob = np.mean(self.episode_outcomes.goals_achieved)
+        trap_prob = np.mean(self.episode_outcomes.traps_achieved)
+        episode_variance = np.var(self.episode_outcomes.cumulative_rewards)
+        virtual_variance = np.var(self.episode_outcomes.virtual_rewards)
+        combined_variance = np.var(self.episode_outcomes.cumulative_rewards + self.episode_outcomes.virtual_rewards)
         if updator:
             # updator(avg_return, avg_episode_return, reach_prob, returns, successes)
-            updator(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes = len(outcomes.cumulative_rewards), trap_reach_prob = trap_prob)
+            updator(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes = len(self.episode_outcomes.cumulative_rewards), 
+                    trap_reach_prob = trap_prob, virtual_variance = virtual_variance, combined_variance = combined_variance)
         return avg_return, avg_episode_return, reach_prob
     
     def clear(self):
@@ -222,6 +238,7 @@ class TrajectoryBuffer:
         self.finished_successfully = []
         self.finished_truncated = []
         self.finished_traps = []
+        self.episode_outcomes.clear()
 
 
 

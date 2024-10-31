@@ -56,6 +56,7 @@ class ArgsEmulator:
         normalize_simulator_rewards (bool, optional): Normalize rewards obtained from simulator (reward = reward / goal_reward)
         random_start_simulator (bool, optional): Sets initialized simulator to work with uniformly random initial states 
         num_environments (int, optional): Number of environments for vectorization. Defaults to 32.
+        off_policy (bool, optional): Use off-policy learning. Defaults to False.
 
         """
         self.prism_model = prism_model

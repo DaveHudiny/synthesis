@@ -30,19 +30,27 @@ def get_experiment_setting_from_name(string):
         algorithm_name = "Stochastic_PPO"
     return model_name, algorithm_name
 
-def plot_single_curve(data, learning_algorithm):
+def plot_single_curve(data, learning_algorithm, is_trap=False):
     data = ast.literal_eval(data)
     numpy_data = np.array(data).astype(np.float32)
     print(learning_algorithm)
-    plt.plot(numpy_data, label=learning_algorithm)
+    plt.plot(numpy_data, label=learning_algorithm, linestyle='dashed' if is_trap else 'solid')
     
 def plot_single_metric_for_model(jsons, metric, model, save_folder):
     plt.figure(figsize=(6, 4))
     try:
         for key in jsons:
             model_name, algorithm_name = get_experiment_setting_from_name(key)
-            if model_name == model:
+            if model_name == model and not metric == "reach_probs":
                 data = jsons[key][metric]
+                plot_single_curve(data, algorithm_name)
+            elif model_name == model and metric == "reach_probs":
+                data = jsons[key][metric]
+                try:
+                    trap_data = jsons[key]["trap_reach_probs"]
+                    plot_single_curve(trap_data, f"{algorithm_name}_trap", is_trap=True)
+                except:
+                    pass
                 plot_single_curve(data, algorithm_name)
     except Exception as e:
         print(f"Error in {model} with {metric}: {e}")
@@ -66,4 +74,4 @@ def run_plots(folder, save_folder):
         for metric in METRICS:
             plot_single_metric_for_model(jsons, metric, model, save_folder)
             
-run_plots("experiment_json_adhoc", "./")
+run_plots("experiments_vectorized_larger_goals_Valuations", "./")
