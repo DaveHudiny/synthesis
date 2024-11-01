@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import os
 import ast
 
-METRICS = ["returns", "returns_episodic", "reach_probs", "losses"]
+METRICS = ["returns", "returns_episodic", "reach_probs", "losses", "combined_variance"]
 
 def load_from_json(path):
     with open(path, "r") as file:
@@ -59,7 +59,7 @@ def plot_single_metric_for_model(jsons, metric, model, save_folder):
     plt.xlabel("i-th hundred iteration")
     plt.ylabel(metric)
     plt.legend()
-    plt.savefig(f"{save_folder}/{model}_{metric}.pdf")
+    plt.savefig(f"{save_folder}/{model}_{metric}.png")
     plt.close()
 
 def run_plots(folder, save_folder):
@@ -74,4 +74,4 @@ def run_plots(folder, save_folder):
         for metric in METRICS:
             plot_single_metric_for_model(jsons, metric, model, save_folder)
             
-run_plots("experiments_vectorized_larger_goals_Valuations", "./")
+run_plots("experiments_off-policy", "./plots_off-policy")

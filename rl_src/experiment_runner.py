@@ -96,13 +96,13 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic", "Periodic_FSC_Neural_PPO"]:
             if not (learning_method in ["Stochastic_PPO"]):
                 continue
-            if "drone" in model:
+            if "drone" in model: # Currently not supported model
                 continue
             for set_ppo_on_policy in [True, False]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.0001,
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
-                                    nr_runs=51, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=100, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99,
                                     normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, set_ppo_on_policy=set_ppo_on_policy, batch_size=256)
 
@@ -116,4 +116,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_", "./models_large")
+    run_experiments("experiments_", "./models")

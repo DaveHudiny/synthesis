@@ -75,21 +75,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.special_labels = np.array(["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
                                "((x = (10 - 1)) & (y = (10 - 1)))"])
         intersection_labels = [label for label in labeling if label in self.special_labels]
-        if not os.path.exists("simulator.pkl") or True:
-            self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward=generate_reward_selection_function, 
-                                                              num_envs=num_envs, max_steps=args.max_steps, metalabels={"goals": intersection_labels})
-            self.vectorized_simulator.reset()
-            hash_of_simulation = hash(self.vectorized_simulator)
-            with open("simulator_hash.txt", "a") as f:
-                f.write(self.args.prism_model + ":\n")
-                f.write(str(hash_of_simulation) + "\n")
-            with open("simulator.pkl", "wb") as f:
-                import pickle as pkl
-                pkl.dump(self.vectorized_simulator, f)
-        else:
-            with open("simulator.pkl", "rb") as f:
-                import pickle as pkl
-                self.vectorized_simulator = pkl.load(f)
+        self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward=generate_reward_selection_function, 
+                                                            num_envs=num_envs, max_steps=args.max_steps, metalabels={"goals": intersection_labels})
+        self.vectorized_simulator.reset()
         self.labels_mask = list([])
         self.nr_obs = self.stormpy_model.nr_observations
         self.encoding_method = args.encoding_method
