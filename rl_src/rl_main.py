@@ -26,7 +26,7 @@ from tools.evaluators import *
 from environment.environment_wrapper import *
 from environment.environment_wrapper_vec import *
 from environment.pomdp_builder import *
-from tools.args_emulator import ArgsEmulator
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 from tools.weight_initialization import WeightInitializationMethods 
 
 import tensorflow as tf
@@ -192,33 +192,13 @@ class Initializer:
     def initialize_environment(self, parallelized: bool = False, num_parallel_environments: int = 4, random_init_simulator : bool = False):
         self.pomdp_model = self.initialize_prism_model()
         logger.info("Model initialized")
-        if random_init_simulator:
-            sketch_path = self.args.prism_model
-            props_path = self.args.prism_properties
-            # qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
-            # qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
-            #     sketch_path, props_path)
-            qvalues_table = None
-            self.second_pomdp_model = self.initialize_prism_model() # Second instance of StormPy model
-            self.args.random_start_simulator = False
-            rand_args = copy.deepcopy(self.args)
-            rand_args.random_start_simulator = True
-            self.environment = {"eval_model": Environment_Wrapper(self.pomdp_model, self.args),
-                                "train_model": Environment_Wrapper(self.second_pomdp_model, rand_args, qvalues_table)}
+        if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+            num_envs = 1
         else:
-            self.environment_orig = Environment_Wrapper(self.pomdp_model, self.args)
-            self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=self.args.batch_size)
-        if parallelized:
-            tf_environment = parallel_py_environment.ParallelPyEnvironment(
-                [self.environment.create_new_environment] * num_parallel_environments)
-        else:
-            if random_init_simulator:
-                tf_environment = {"eval_sim": tf_py_environment.TFPyEnvironment(self.environment["eval_model"]),
-                                  "train_sim": tf_py_environment.TFPyEnvironment(self.environment["train_model"])}
-            else:
-                tf_environment = tf_py_environment.TFPyEnvironment(
-                        self.environment)
-                self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
+            num_envs = self.args.batch_size
+        self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
+        tf_environment = tf_py_environment.TFPyEnvironment(self.environment)
+        # self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
         logger.info("Environment initialized")
         return tf_environment
 
@@ -245,13 +225,11 @@ class Initializer:
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "PPO":
             agent = Recurrent_PPO_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
-                environment_not_vectorized=self.environment_orig, tf_environment_not_vectorized=self.tf_environment_orig)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "Stochastic_PPO":
             self.args.prefer_stochastic = True
             agent = Recurrent_PPO_agent(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
-                environment_not_vectorized=self.environment_orig, tf_environment_not_vectorized=self.tf_environment_orig)
+                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
         elif learning_method == "PPO_FSC_Critic":
             if qvalues_table is None:  # If Q-values table is not provided, compute it from the sketch and properties
                 sketch_path = self.args.prism_model

@@ -4,7 +4,7 @@
 # File: interface.py
 
 from rl_main import Initializer, save_dictionaries, save_statistics_to_new_json
-from tools.args_emulator import ArgsEmulator
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
 
 import os
@@ -98,22 +98,28 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             if "drone" in model: # Currently not supported model
                 continue
-            for set_ppo_on_policy in [True, False]:
+            if model not in ["intercept", "mba", "mba-small", "obstacle"]:
+                continue
+            for replay_buffer_option in [ReplayBufferOptions.ORIGINAL_OFF_POLICY]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
-                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.0001,
+                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.001,
                                     restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
                                     nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=100, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99,
-                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, set_ppo_on_policy=set_ppo_on_policy, batch_size=256)
+                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=256)
 
-                if set_ppo_on_policy:
+                if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
                     text = "on-policy"
-                else:
+                elif replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
                     text = "off-policy"
+                elif replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+                    text = "original-off-policy"
+                else:
+                    text = "unknown"
                 
                 run_single_experiment(
-                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment + text)
+                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_", "./models")
+    run_experiments("experiments_original_with_vectorized", "./models")

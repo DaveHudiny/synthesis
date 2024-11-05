@@ -1,3 +1,12 @@
+import enum
+
+class ReplayBufferOptions(enum.Enum):
+    """Enum for replay buffer options. Used for setting replay buffer options."""
+    ON_POLICY = 1 # Performs a num_steps steps in the environment and trains the agent on the collected data. Then clears the replay buffer.
+    OFF_POLICY = 2 # Performs a single step in environment and adds it to the replay buffer
+    ORIGINAL_OFF_POLICY = 3 # Performs multiple steps in single environment and adds it to the replay buffer
+
+
 class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 8.6e-4, max_steps: int = 300, evaluation_episodes: int = 20,
@@ -7,7 +16,7 @@ class ArgsEmulator:
                  buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
                  illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
                  reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
-                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, set_ppo_on_policy: bool = False,
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, replay_buffer_option: bool = ReplayBufferOptions.ON_POLICY,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
                  random_start_simulator=False, num_environments=32):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
@@ -94,7 +103,7 @@ class ArgsEmulator:
         self.interpretation_folder = interpretation_folder
         self.experiment_name = experiment_name
         self.with_refusing = with_refusing
-        self.set_ppo_on_policy = set_ppo_on_policy
+        self.replay_buffer_option = replay_buffer_option
         self.evaluate_random_policy = evaluate_random_policy
         self.prefer_stochastic = prefer_stochastic
         self.normalize_simulator_rewards = normalize_simulator_rewards

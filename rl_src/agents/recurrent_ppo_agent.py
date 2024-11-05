@@ -35,6 +35,7 @@ from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
 
 from tools.evaluators import TrajectoryBuffer
+from tools.args_emulator import ReplayBufferOptions
 
 
 import sys
@@ -50,11 +51,8 @@ logger = logging.getLogger(__name__)
 
 class Recurrent_PPO_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
-                 args, load=False, agent_folder=None, environment_not_vectorized : Environment_Wrapper = None, 
-                 tf_environment_not_vectorized : tf_py_environment.TFPyEnvironment = None):
+                 args, load=False, agent_folder=None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
-        self.environment_not_vectorized = environment_not_vectorized
-        self.tf_environment_not_vectorized = tf_environment_not_vectorized
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(
             learning_rate=args.learning_rate, clipnorm=1.0)
@@ -91,7 +89,7 @@ class Recurrent_PPO_agent(FatherAgent):
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
 
-        self.init_collector_driver(self.tf_environment_train)
+        self.init_collector_driver(self.tf_environment)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         if load:
@@ -124,10 +122,12 @@ class Recurrent_PPO_agent(FatherAgent):
             self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
         # self.replay_buffer.
         observer = self.get_demasked_observer()
-        if self.args.set_ppo_on_policy:
+        if self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
             num_steps = self.args.batch_size * self.args.num_steps
-        else:
+        elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
             num_steps = self.args.batch_size
+        elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+            num_steps = self.args.num_steps
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,

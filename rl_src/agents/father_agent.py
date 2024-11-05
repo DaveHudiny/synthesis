@@ -23,7 +23,7 @@ from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from tools.evaluators import *
 from agents.policies.fsc_policy import FSC_Policy, FSC
-from tools.args_emulator import ArgsEmulator
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
 from paynt.rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
 
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-def parse_environment(environment, potential_dict_key = "train_model"):
+def parse_environment(environment, potential_dict_key="train_model"):
     if isinstance(environment, dict):
         return environment[potential_dict_key]
     else:
@@ -65,7 +65,7 @@ class FatherAgent(AbstractAgent):
         fsc = FSC.from_json(fsc_json)
         return fsc
 
-    def common_init(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
+    def common_init(self, environment: Environment_Wrapper_Vec, tf_environment: tf_py_environment.TFPyEnvironment,
                     args: ArgsEmulator, load=False, agent_folder=None, wrapper: tf_agents.policies.tf_policy.TFPolicy = None):
         """Common initialization of the agents.
 
@@ -76,10 +76,8 @@ class FatherAgent(AbstractAgent):
             load: Whether to load the agent. Unused.
             agent_folder: The folder where the agent is stored.
         """
-        self.environment = parse_environment(environment, potential_dict_key="eval_model")
-        self.environment_train = parse_environment(environment, potential_dict_key="train_model")
-        self.tf_environment = parse_environment(tf_environment, potential_dict_key="eval_sim")
-        self.tf_environment_train = parse_environment(tf_environment, potential_dict_key="train_sim")
+        self.environment = environment
+        self.tf_environment = tf_environment
         self.args = args
         self.evaluation_episodes = args.evaluation_episodes
         self.agent_folder = agent_folder
@@ -94,8 +92,7 @@ class FatherAgent(AbstractAgent):
         self.wrapper = wrapper
         self.evaluation_result = EvaluationResults(self.environment.goal_value)
 
-    def __init__(self, environment: Environment_Wrapper_Vec, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None,
-                 environment_not_vectorized : Environment_Wrapper = None, tf_environment_not_vectorized : tf_py_environment.TFPyEnvironment = None):
+    def __init__(self, environment: Environment_Wrapper_Vec, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
         """Initialization of the father agent. Not recommended to use this class directly, use the child classes instead. Implemented as example.
 
         Args:
@@ -109,8 +106,6 @@ class FatherAgent(AbstractAgent):
                          args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = Adam(learning_rate=self.learning_rate, clipnorm=1.0)
-        self.environment_not_vectorized = environment_not_vectorized
-        self.tf_environment_not_vectorized = tf_environment_not_vectorized
 
         self.fc_layer_params = (10,)
         dense_layers = [tf.keras.layers.Dense(
@@ -143,7 +138,7 @@ class FatherAgent(AbstractAgent):
         self.init_collector_driver(tf_environment)
         self.init_vec_evaluation_driver(self.tf_environment, self.environment)
 
-    def init_replay_buffer(self, tf_environment : tf_py_environment.TFPyEnvironment, buffer_size = None):
+    def init_replay_buffer(self, tf_environment: tf_py_environment.TFPyEnvironment, buffer_size=None):
         """Initialize the uniform replay buffer for the agent.
 
         Args:
@@ -151,12 +146,16 @@ class FatherAgent(AbstractAgent):
         """
         if buffer_size is None:
             buffer_size = self.args.buffer_size
+        if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+            batch_size = 1
+        else:
+            batch_size = self.args.batch_size
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
-            batch_size=self.args.batch_size,
+            batch_size=batch_size,
             max_length=buffer_size)
-        
-    def init_vec_evaluation_driver(self, tf_environment : tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps = 400):
+
+    def init_vec_evaluation_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps=400):
         """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
 
         Args:
@@ -166,7 +165,6 @@ class FatherAgent(AbstractAgent):
         self.trajectory_buffer = TrajectoryBuffer(environment)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
-        
         self.vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
@@ -181,7 +179,7 @@ class FatherAgent(AbstractAgent):
             observers = [alternative_observer]
         return observers
 
-    def init_collector_driver(self, tf_environment, alternative_observer : callable = None):
+    def init_collector_driver(self, tf_environment, alternative_observer: callable = None):
         """Initialize the collector driver for the agent.
 
         Args:
@@ -197,7 +195,7 @@ class FatherAgent(AbstractAgent):
             num_steps=self.traj_num_steps)
 
     def init_random_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment,
-                                     alternative_observer : callable = None):
+                                     alternative_observer: callable = None):
         """Initialize the random policy collector driver for the agent. Used for random exploration.
 
         Args:
@@ -220,7 +218,7 @@ class FatherAgent(AbstractAgent):
 
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None,
                                soft_decision=False, fsc_multiplier=2.0, need_logits: bool = True,
-                               switch_probability : float = None, alternative_observer : callable = None):
+                               switch_probability: float = None, alternative_observer: callable = None):
         """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
 
         Args:
@@ -252,34 +250,42 @@ class FatherAgent(AbstractAgent):
         else:
             return self.wrapper
 
+    def train_body_original_off_policy(self, num_iterations):
+        pass
+
     def train_agent_vectorized(self, iterations: int):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
             iterations (int): Number of iterations to train agent.
         """
+        from tools.args_emulator import ReplayBufferOptions
         self.agent.train = common.function(self.agent.train)
+        if self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
+            single_deterministic_pass = True
+        else:
+            single_deterministic_pass = False
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=self.args.set_ppo_on_policy).prefetch(8)
+            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass).prefetch(8)
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
-        if self.args.set_ppo_on_policy:
+        if self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
             self.replay_buffer.clear()
         else:
             iterator = iter(self.dataset)
-        if not self.args.set_ppo_on_policy:
+        if self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
+            logger.info('Fill replay buffer')
             for _ in range(self.args.num_steps):
-                logger.info('Fill replay buffer')
                 self.driver.run()
         for i in range(iterations):
             self.driver.run()
-            if self.args.set_ppo_on_policy:
+            if self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
                 iterator = iter(self.dataset)
                 for mini_batch, _ in iterator:
                     train_loss = self.agent.train(mini_batch)
                     train_loss = train_loss.loss.numpy()
                 self.replay_buffer.clear()
-            else:
+            elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY or self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 experience, _ = next(iterator)
                 train_loss = self.agent.train(experience).loss
                 train_loss = train_loss.numpy()
@@ -290,8 +296,8 @@ class FatherAgent(AbstractAgent):
                 self.evaluate_agent(vectorized=True)
         self.evaluate_agent(vectorized=True, last=True)
 
-    def train_agent_off_policy(self, num_iterations, q_vals_rand : bool = False, random_init : bool = False, use_fsc : bool = False,
-                               probab_random_init_state = 0.3):
+    def train_agent_off_policy(self, num_iterations, q_vals_rand: bool = False, random_init: bool = False, use_fsc: bool = False,
+                               probab_random_init_state=0.3):
         """Train the agent off-policy. Main training function for the agents.
 
         Args:
@@ -325,7 +331,7 @@ class FatherAgent(AbstractAgent):
                 else:
                     self.environment.set_random_starts_simulation(False)
                 self.driver.run()
-            
+
             experience, _ = next(self.iterator)
             train_loss = self.agent.train(experience).loss
             train_loss = train_loss.numpy()
@@ -340,9 +346,9 @@ class FatherAgent(AbstractAgent):
         self.evaluate_agent(last=True)
         self.replay_buffer.clear()
 
-    def pre_train_with_fsc(self, num_iterations : int, fsc : FSC, num_fsc_episodes : int = 10):
+    def pre_train_with_fsc(self, num_iterations: int, fsc: FSC, num_fsc_episodes: int = 10):
         self.init_fsc_policy_driver(self.tf_environment, fsc)
-        
+
         self.dataset = self.replay_buffer.as_dataset(
             num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(4)
         self.iterator = iter(self.dataset)
@@ -362,7 +368,7 @@ class FatherAgent(AbstractAgent):
             if i % 100 == 0:
                 self.evaluate_agent()
         self.evaluate_agent(last=True)
-        
+
     def load_mixed_data(self):
         self.environment.set_random_starts_simulation(False)
         self.fsc_driver.run()
@@ -371,35 +377,36 @@ class FatherAgent(AbstractAgent):
             self.environment.set_random_starts_simulation(True)
             self.driver.run()
 
-    def _check_condition(self, evaluation_result : EvaluationResults, performance_condition : float):
+    def _check_condition(self, evaluation_result: EvaluationResults, performance_condition: float):
         import math
         if performance_condition is None or math.isnan(performance_condition):
             return False
-        if performance_condition > 1.001: # TODO: Find better way, how to check conditions.
-            if evaluation_result.best_return <= performance_condition * 1.25: 
+        # TODO: Find better way, how to check conditions.
+        if performance_condition > 1.001:
+            if evaluation_result.best_return <= performance_condition * 1.25:
                 return True
             return False
-        else: # Reachability condition
+        else:  # Reachability condition
             if evaluation_result.best_reach_prob >= performance_condition * 0.75:
                 return True
             return False
 
-    def is_rl_better(self, evaluation_result : EvaluationResults, performance_condition : float):
+    def is_rl_better(self, evaluation_result: EvaluationResults, performance_condition: float):
         import math
         if performance_condition is None or math.isnan(performance_condition):
             return True
-        if performance_condition > 1.001: # TODO: Find better way, how to check conditions.
-            if evaluation_result.best_return <= performance_condition * 1.25: 
+        # TODO: Find better way, how to check conditions.
+        if performance_condition > 1.001:
+            if evaluation_result.best_return <= performance_condition * 1.25:
                 return True
             return False
-        else: # Reachability condition
+        else:  # Reachability condition
             if evaluation_result.best_reach_prob >= performance_condition * 0.75:
                 return True
             return False
 
-
-    def mixed_fsc_train(self, iterations : int, on_policy: bool = True, performance_condition : float = None, fsc : FSC = None, soft_fsc : bool = False,
-                        switch_probability : float = None):
+    def mixed_fsc_train(self, iterations: int, on_policy: bool = True, performance_condition: float = None, fsc: FSC = None, soft_fsc: bool = False,
+                        switch_probability: float = None):
         """Mixed training with FSC and PPO agent policy. 
 
         Args:
@@ -407,7 +414,8 @@ class FatherAgent(AbstractAgent):
             on_policy (bool, optional): If set, the replay buffer is cleared after each training iteration. Defaults to True.
             performance_condition (float, optional) : If this value is set, the FSC data generation will be stopped. 
         """
-        self.init_fsc_policy_driver(self.tf_environment, fsc=fsc, soft_decision=soft_fsc, switch_probability=switch_probability)
+        self.init_fsc_policy_driver(
+            self.tf_environment, fsc=fsc, soft_decision=soft_fsc, switch_probability=switch_probability)
         self.dataset = self.replay_buffer.as_dataset(
             num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
         self.iterator = iter(self.dataset)
@@ -418,7 +426,8 @@ class FatherAgent(AbstractAgent):
                 if performance_condition is not None:
                     if self.evaluation_result.best_reach_prob > performance_condition:
                         for _ in range(2):
-                            self.environment.set_random_starts_simulation(False)
+                            self.environment.set_random_starts_simulation(
+                                False)
                             self.driver.run()
                         for _ in range(1):
                             self.environment.set_random_starts_simulation(True)
@@ -469,8 +478,15 @@ class FatherAgent(AbstractAgent):
             compute_average_return(
                 self.get_evaluation_policy(), self.tf_environment_not_vectorized, evaluation_episodes, self.environment_not_vectorized, self.evaluation_result.update)
         else:
+            if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+                self.environment.vectorized_simulator.set_num_envs(
+                    self.args.batch_size)
+            self.tf_environment.reset()
             self.vec_driver.run()
-            self.trajectory_buffer.final_update_of_results(self.evaluation_result.update)
+            if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+                self.environment.vectorized_simulator.set_num_envs(1)
+            self.trajectory_buffer.final_update_of_results(
+                self.evaluation_result.update)
             self.trajectory_buffer.clear()
             # compute_vectorized_average_return(
             #     self.get_evaluation_policy(), self.tf_environment, self.args.max_steps, self.args.batch_size, self.environment, self.evaluation_result.update)
@@ -484,10 +500,14 @@ class FatherAgent(AbstractAgent):
             self.evaluation_result.returns_episodic[-1]))
         logger.info('Goal Reach Probability = {0}'.format(
             self.evaluation_result.reach_probs[-1]))
-        logger.info('Trap Reach Probability = {0}'.format(self.evaluation_result.trap_reach_probs[-1]))
-        logger.info('Variance of Return = {0}'.format(self.evaluation_result.each_episode_variance[-1]))
-        logger.info('Current Best Return = {0}'.format(self.evaluation_result.best_return))
-        logger.info('Current Best Reach Probability = {0}'.format(self.evaluation_result.best_reach_prob))
+        logger.info('Trap Reach Probability = {0}'.format(
+            self.evaluation_result.trap_reach_probs[-1]))
+        logger.info('Variance of Return = {0}'.format(
+            self.evaluation_result.each_episode_variance[-1]))
+        logger.info('Current Best Return = {0}'.format(
+            self.evaluation_result.best_return))
+        logger.info('Current Best Reach Probability = {0}'.format(
+            self.evaluation_result.best_reach_prob))
 
     def set_agent_greedy(self):
         """Set the agent for to be greedy for evaluation. Used only with PPO agent, where we select greedy evaluation.
@@ -568,7 +588,7 @@ class FatherAgent(AbstractAgent):
             )
             self.replay_buffer._add_batch(modified_item)
         return _add_batch
-    
+
     def get_action_handicapped_observer(self):
         def _add_batch(item: Trajectory):
             modified_item = Trajectory(
@@ -582,15 +602,3 @@ class FatherAgent(AbstractAgent):
             )
             self.replay_buffer._add_batch(modified_item)
         return _add_batch
-
-    def get_tf_environment_eval(self):
-        if isinstance(self.tf_environment, dict):
-            return self.tf_environment["eval_sim"]
-        else:
-            return self.tf_environment
-
-    def get_tf_environment_train(self):
-        if isinstance(self.tf_environment, dict):
-            return self.tf_environment["train_sim"]
-        else:
-            return self.tf_environment
