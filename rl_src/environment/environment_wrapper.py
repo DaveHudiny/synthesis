@@ -31,8 +31,6 @@ MAXIMUM_SIZE = 6  # Constant for reward shaping
 
 import logging
 
-import prerequisites.VecStorm.vec_storm as vec_storm
-
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO)

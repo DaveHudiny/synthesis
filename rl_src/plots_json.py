@@ -74,4 +74,4 @@ def run_plots(folder, save_folder):
         for metric in METRICS:
             plot_single_metric_for_model(jsons, metric, model, save_folder)
             
-run_plots("experiments_off-policy", "./plots_off-policy")
+run_plots("experiments_original_boosted", "./plots_original")

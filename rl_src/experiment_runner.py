@@ -15,6 +15,9 @@ import time
 
 logger = logging.getLogger(__name__)
 
+import sys
+sys.path.append("../")
+
 logging.basicConfig(level=logging.INFO)
 
 def get_dictionaries(args, with_refusing=False):
@@ -122,4 +125,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_original_boosted", "./models")
+    run_experiments("experiments_original_boosted", "./models_large")

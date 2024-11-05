@@ -282,7 +282,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self._num_steps += 1
         self.last_action = actions
         
-        observations, rewards, done, allowed_actions, metalabels, truncated = self.vectorized_simulator.step(actions=actions)
+        observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(actions=actions)
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
