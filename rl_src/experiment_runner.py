@@ -3,6 +3,9 @@
 # Login: xhudak03
 # File: interface.py
 
+import sys
+sys.path.append("../")
+
 from rl_main import Initializer, save_dictionaries, save_statistics_to_new_json
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
@@ -15,8 +18,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-import sys
-sys.path.append("../")
+
 
 logging.basicConfig(level=logging.INFO)
 
