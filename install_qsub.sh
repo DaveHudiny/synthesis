@@ -11,7 +11,8 @@ PREREQUISITES=${PAYNT_ROOT}/prerequisites # modify this to install prerequisites
 module add cmake
 module add boost
 module add git
-module add python/3.10  # Přidání Pythonu
+module add python/3.10.4-gcc-8.3.0-ovkjwzd  # Přidání Pythonu
+python3.10 -m ensurepip --upgrade --user
 module add maven
 module add eigen
 
@@ -38,7 +39,7 @@ make storm storm-pomdp storm-counterexamples --jobs ${COMPILE_JOBS}
 # setup and activate python environment
 python3.10 -m venv ${PREREQUISITES}/venv
 source ${PREREQUISITES}/venv/bin/activate
-pip3 install wheel
+python3.10 -m pip3 install wheel
 
 # build pycarl
 cd ${PREREQUISITES}
@@ -59,12 +60,14 @@ python3 setup.py develop
 
 # paynt dependencies
 module add graphviz
-pip3 install click z3-solver psutil graphviz
+python3.10 -m pip install click z3-solver psutil graphviz
 
 # build payntbind
 cd ${PAYNT_ROOT}/payntbind
 python3 setup.py develop
 cd ${PAYNT_ROOT}
+
+python3.10 -m pip tensorflow==2.15 tf_agents tqdm dill matplotlib pandas seaborn
 
 # done
 deactivate
