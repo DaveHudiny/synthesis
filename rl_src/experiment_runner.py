@@ -98,8 +98,8 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             if "drone" in model: # Currently not supported model
                 continue
-            if model not in ["intercept", "mba", "mba-small", "obstacle"]:
-                continue
+            # if model not in ["mba", "mba-small", "obstacle"]:
+            #     continue
             for replay_buffer_option in [ReplayBufferOptions.ORIGINAL_OFF_POLICY]:
                 logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.001,
@@ -122,4 +122,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_original_with_vectorized", "./models")
+    run_experiments("experiments_original_boosted", "./models")

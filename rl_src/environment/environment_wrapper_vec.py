@@ -187,6 +187,13 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def _restart_simulator(self) -> tuple[list, list, list]:
         observations, allowed_actions, metalabels = self.vectorized_simulator.reset()
         return observations.tolist(), allowed_actions.tolist(), metalabels.tolist()
+    
+    def set_num_envs(self, num_envs : int):
+        self.num_envs = num_envs
+        self.vectorized_simulator.set_num_envs(num_envs)
+        self.vectorized_simulator.reset()
+        self._current_time_step = self._reset()
+        
 
     def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
@@ -290,6 +297,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self._do_step_in_simulator(action)
         self.reward = tf.constant(self.reward_multiplier * self.reward, dtype=tf.float32)
         evaluated_step = self.evaluate_simulator()
+        # print(evaluated_step)
         return evaluated_step
     
     def normalize_reward_in_time_step(self, time_step : ts.TimeStep):

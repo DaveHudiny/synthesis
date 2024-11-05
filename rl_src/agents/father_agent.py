@@ -479,12 +479,13 @@ class FatherAgent(AbstractAgent):
                 self.get_evaluation_policy(), self.tf_environment_not_vectorized, evaluation_episodes, self.environment_not_vectorized, self.evaluation_result.update)
         else:
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
-                self.environment.vectorized_simulator.set_num_envs(
+                self.environment.set_num_envs(
                     self.args.batch_size)
             self.tf_environment.reset()
             self.vec_driver.run()
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
-                self.environment.vectorized_simulator.set_num_envs(1)
+                self.environment.set_num_envs(1)
+                self.tf_environment.reset()
             self.trajectory_buffer.final_update_of_results(
                 self.evaluation_result.update)
             self.trajectory_buffer.clear()
