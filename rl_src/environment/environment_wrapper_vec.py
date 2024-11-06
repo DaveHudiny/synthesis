@@ -130,6 +130,13 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.nr_actions = len(self.action_keywords)
         self.act_to_keywords = dict([[self.action_indices[i], i]
                                      for i in self.action_indices])
+        
+    def set_random_starts_simulation(self, randomized_bool : bool = True):
+        self.random_start_simulator = randomized_bool
+        if randomized_bool:
+            self.vectorized_simulator.enable_random_init()
+        else:
+            self.vectorized_simulator.disable_random_init()
 
     def create_observation_spec(self) -> tensor_spec:
         """Creates the observation spec based on the encoding method."""

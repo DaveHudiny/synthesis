@@ -274,8 +274,13 @@ class FatherAgent(AbstractAgent):
             logger.info('Fill replay buffer')
             for _ in range(self.args.num_steps):
                 self.driver.run()
+        if self.args.random_start_simulator
+            self.environment.vectorized_simulator.enable_random_init()
+            self.tf_environment.reset()
         for i in range(iterations):
+            
             self.driver.run()
+            
             if self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
                 iterator = iter(self.dataset)
                 for mini_batch, _ in iterator:
@@ -290,7 +295,12 @@ class FatherAgent(AbstractAgent):
                 logger.info(f"Step: {i}, Training loss: {train_loss}")
             if i % 50 == 0:
                 self.evaluation_result.add_loss(train_loss)
-                self.evaluate_agent(vectorized=True)
+                if self.args.random_start_simulator:
+                    self.environment.set_random_starts_simulation(False)
+                    self.evaluate_agent(vectorized=True)
+                    self.environment.set_random_starts_simulation(True)
+                else:
+                    self.evaluate_agent(vectorized=True)
         self.evaluate_agent(vectorized=True, last=True)
 
     def train_agent_off_policy(self, num_iterations, q_vals_rand: bool = False, random_init: bool = False, use_fsc: bool = False,

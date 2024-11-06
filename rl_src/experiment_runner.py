@@ -102,14 +102,14 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             # if model not in ["mba", "mba-small", "obstacle"]:
             #     continue
-            for replay_buffer_option in [ReplayBufferOptions.ORIGINAL_OFF_POLICY]:
+            for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
                 logger.info(
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.001,
                                     restart_weights=0, learning_method=learning_method,
-                                    nr_runs=101, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=100, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99,
-                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=256)
+                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=True, replay_buffer_option=replay_buffer_option, batch_size=256)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
@@ -117,4 +117,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_debugging", "./models")
+    run_experiments("experiments_random_starts", "./models")
