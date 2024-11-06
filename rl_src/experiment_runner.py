@@ -3,24 +3,21 @@
 # Login: xhudak03
 # File: interface.py
 
+import time
+import logging
+import os
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
+from rl_src.experimental_interface import ExperimentInterface
 import sys
+
+from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
 sys.path.append("../")
 
-from rl_main import Initializer, save_dictionaries, save_statistics_to_new_json
-from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
-
-
-import os
-
-import logging
-
-import time
 
 logger = logging.getLogger(__name__)
 
-
-
 logging.basicConfig(level=logging.INFO)
+
 
 def get_dictionaries(args, with_refusing=False):
     """ Get dictionaries for Paynt oracle.
@@ -31,14 +28,38 @@ def get_dictionaries(args, with_refusing=False):
     Returns:
         tuple: Tuple of dictionaries (obs_act_dict, memory_dict, labels).
     """
-    initializer = Initializer(args)
-    dictionaries = initializer.main(with_refusing=with_refusing)
+    initializer = ExperimentInterface(args)
+    dictionaries = initializer.perform_experiment(with_refusing=with_refusing)
     return dictionaries
 
 
+def save_dictionaries(dicts, name_of_experiment, model, learning_method, refusing):
+    for quality in ["last", "best"]:
+        if refusing is None:
+            for typ in ["with_refusing", "without_refusing"]:
+                quality_typ = quality + "_" + typ
+                try:
+                    obs_action_dict = dicts[quality_typ][0]
+                    memory_dict = dicts[quality_typ][1]
+                    labels = dicts[quality_typ][2]
+                    save_dictionaries(name_of_experiment, model, learning_method,
+                                      quality_typ, obs_action_dict, memory_dict, labels)
+                except:
+                    logger.error("Storing dictionaries failed!")
+
+        else:
+            try:
+                obs_action_dict = dicts[0]
+                memory_dict = dicts[1]
+                labels = dicts[2]
+
+                save_dictionaries(name_of_experiment, model, learning_method,
+                                  refusing, obs_action_dict, memory_dict, labels)
+            except:
+                logger.error("Saving stats failed!")
 
 
-def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", refusing=None, 
+def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_method="PPO", refusing=None,
                           name_of_experiment="results_of_interpretation", encoding_method="Valuations"):
     """ Run a single experiment for Paynt oracle.
     Args:
@@ -51,80 +72,49 @@ def run_single_experiment(args, model="network-3-8-20", learning_method="PPO", r
     """
     start_time = time.time()
     refusing = None
-    initializer = Initializer(args)
-    dicts = initializer.main(with_refusing=refusing)
-
-    if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
-        os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
-    # for quality in ["last", "best"]:
-    #     if refusing is None:
-    #         for typ in ["with_refusing", "without_refusing"]:
-    #             quality_typ = quality + "_" + typ
-    #             try:
-    #                 obs_action_dict = dicts[quality_typ][0]
-    #                 memory_dict = dicts[quality_typ][1]
-    #                 labels = dicts[quality_typ][2]
-    #                 save_dictionaries(name_of_experiment, model, learning_method,
-    #                                 quality_typ, obs_action_dict, memory_dict, labels)
-    #             except:
-    #                 logger.error("Storing dictionaries failed!")
-                    
-    #     else:
-    #         try:
-    #             obs_action_dict = dicts[0]
-    #             memory_dict = dicts[1]
-    #             labels = dicts[2]
-                
-    #             save_dictionaries(name_of_experiment, model, learning_method,
-    #                             refusing, obs_action_dict, memory_dict, labels)
-    #         except:
-    #             logger.error("Saving stats failed!")
-
-    # Save evaluation results, if file exists, write to new file.
+    initializer = ExperimentInterface(args)
+    dicts = initializer.perform_experiment(with_refusing=refusing)
+    if args.perform_interpretation:
+        if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
+            os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
+        save_dictionaries(dicts, name_of_experiment, model, learning_method, refusing)
     end_time = time.time()
     evaluation_time = end_time - start_time
-    save_statistics_to_new_json(name_of_experiment, model, learning_method, 
+    save_statistics_to_new_json(name_of_experiment, model, learning_method,
                                 initializer.agent.evaluation_result, evaluation_time=evaluation_time, args=args)
-    
-    # Old way of saving statistics        
+
+    # Old way of saving statistics
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large"):
     """ Run multiple experiments for PAYNT oracle."""
     for model in os.listdir(f"{path_to_models}"):
-    # for model in ["network-5-10-8"]:
+        # for model in ["network-5-10-8"]:
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         encoding_method = "Valuations"
         refusing = None
-        for learning_method in ["Stochastic_PPO", "PPO", "DQN", "DDQN", "PPO_FSC_Critic", "Periodic_FSC_Neural_PPO"]:
+        for learning_method in ["Stochastic_PPO"]:
             if not (learning_method in ["Stochastic_PPO"]):
                 continue
-            if "drone" in model: # Currently not supported model
+            if "drone" in model:  # Currently not supported model
                 continue
             # if model not in ["mba", "mba-small", "obstacle"]:
             #     continue
             for replay_buffer_option in [ReplayBufferOptions.ORIGINAL_OFF_POLICY]:
-                logger.info(f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
+                logger.info(
+                    f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.001,
-                                    restart_weights=0, learning_method=learning_method, action_filtering=False, reward_shaping=False,
-                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    restart_weights=0, learning_method=learning_method,
+                                    nr_runs=101, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=100, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99,
                                     normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=256)
 
-                if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-                    text = "on-policy"
-                elif replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
-                    text = "off-policy"
-                elif replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
-                    text = "original-off-policy"
-                else:
-                    text = "unknown"
-                
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
+        break  # debugging purposes
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_original_boosted", "./models_large")
+    run_experiments("experiments_debugging", "./models")

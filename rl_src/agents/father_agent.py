@@ -83,10 +83,7 @@ class FatherAgent(AbstractAgent):
         self.agent_folder = agent_folder
         self.traj_num_steps = args.num_steps
         self.agent = None
-        if args.action_filtering:
-            self.observation_and_action_constraint_splitter = None
-        else:
-            self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
+        self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         if args.paynt_fsc_imitation:
             self.fsc = self.load_fsc(args.paynt_fsc_json)
         self.wrapper = wrapper

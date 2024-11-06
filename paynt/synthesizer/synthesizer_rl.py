@@ -5,9 +5,10 @@
 
 
 from rl_src.environment.environment_wrapper import Environment_Wrapper
-from rl_src.rl_main import ArgsEmulator, Initializer, save_statistics_to_new_json
+from rl_src.experimental_interface import ArgsEmulator, ExperimentInterface
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.fsc_policy import FSC_Policy
+from rl_src.tools.saving_tools import save_statistics_to_new_json
 from rl_src.tools.encoding_methods import *
 from rl_src.tools.evaluators import EvaluationResults
 from paynt.quotient.fsc import FSC
@@ -42,7 +43,7 @@ class Synthesizer_RL:
             initial_fsc_multiplier (float, optional): Initial soft FSC multiplier. Defaults to 1.0.
         """
 
-        self.initializer = Initializer(args, stormpy_model)
+        self.initializer = ExperimentInterface(args, stormpy_model)
         self.random_initi_starts_q_vals = random_init_starts_q_vals
         if random_init_starts_q_vals:
             qvalues_env = qvalues

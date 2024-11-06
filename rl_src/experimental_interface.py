@@ -4,7 +4,6 @@
 # Author: David Hudak
 # Login: xhudak03
 
-import pickle
 from agents.father_agent import FatherAgent
 from agents.random_agent import RandomTFPAgent
 from agents.policies.fsc_policy import FSC_Policy, FSC
@@ -17,11 +16,8 @@ from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from agents.ppo_with_qvalues_fsc import PPO_with_QValues_FSC
 from agents.periodic_fsc_neural_ppo import Periodic_FSC_Neural_PPO
 
-import paynt.parser.sketch
-import paynt.synthesizer.synthesizer_pomdp
-
-from tf_agents.environments import parallel_py_environment
 from tf_agents.environments import tf_py_environment
+from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
 from tools.evaluators import *
 from environment.environment_wrapper import *
 from environment.environment_wrapper_vec import *
@@ -35,7 +31,6 @@ import os
 import rl_parser
 
 import logging
-import copy
 
 logger = logging.getLogger(__name__)
 
@@ -49,103 +44,7 @@ sys.path.append("../")
 tf.autograph.set_verbosity(0)
 
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
-class PAYNT_Playground:
-    @staticmethod
-    def fill_nones_in_qvalues(qvalues):
-        for state in range(len(qvalues)):
-            for memory in range(len(qvalues[state])):
-                if qvalues[state][memory] is None:
-                    qvalues[state][memory] = np.mean([qvalues[state][i] for i in range(
-                        len(qvalues[state])) if qvalues[state][i] is not None])
-        return qvalues
-
-    @classmethod # Not a good implementation, if we work in a loop with multiple different models.
-    def singleton_init_models(cls, sketch_path, properties_path):
-        if not os.path.exists(sketch_path):
-            raise ValueError(f"Sketch file {sketch_path} does not exist.")
-        if not hasattr(cls, "quotient") and not hasattr(cls, "synthesizer"):
-            cls.quotient = paynt.parser.sketch.Sketch.load_sketch(
-                sketch_path, properties_path)
-            cls.k = 3  # May be unknown?
-            cls.quotient.set_imperfect_memory_size(cls.k)
-            cls.synthesizer = paynt.synthesizer.synthesizer_pomdp.SynthesizerPomdp(
-                cls.quotient, method="ar", storm_control=None)
-
-    @classmethod
-    def compute_qvalues_function(cls):
-        assignment = cls.synthesizer.synthesize()
-        # before the quotient is modified we can use this assignment to compute Q-values
-        assert assignment is not None, "Provided assignment cannot be None."
-        qvalues = cls.quotient.compute_qvalues(assignment)
-        # note Q(s,n) may be None if (s,n) exists in the unfolded POMDP but is not reachable in the induced DTMC
-        memory_size = len(qvalues[0])
-        assert cls.k == memory_size
-        qvalues = PAYNT_Playground.fill_nones_in_qvalues(qvalues)
-        return qvalues
-
-    @classmethod
-    def get_fsc_critic_components(cls, sketch_path, properties_path):
-        cls.singleton_init_models(
-            sketch_path=sketch_path, properties_path=properties_path)
-        qvalues = cls.compute_qvalues_function()
-        action_labels_at_observation = cls.quotient.action_labels_at_observation
-        return qvalues, action_labels_at_observation
-
-
-def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
-    """ Save dictionaries for Paynt oracle.
-    Args:
-        name_of_experiment (str): Name of the experiment.
-        model (str): The name of the model.
-        learning_method (str): The learning method.
-        refusing_typ (str): Whether to use refusing when interpreting.
-        obs_action_dict (dict): The observation-action dictionary.
-        memory_dict (dict): The memory dictionary.
-        labels (dict): The labels dictionary.
-    """
-    if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}"):
-        os.makedirs(
-            f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}")
-    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/obs_action_dict.pickle", "wb") as f:
-        pickle.dump(obs_action_dict, f)
-    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/memory_dict.pickle", "wb") as f:
-        pickle.dump(memory_dict, f)
-    with open(f"{name_of_experiment}/{model}_{learning_method}/{refusing_typ}/labels.pickle", "wb") as f:
-        pickle.dump(labels, f)
-
-
-def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result: EvaluationResults, args: dict = None, evaluation_time: float = float("nan")):
-    """ Save statistics to a new JSON file.
-    Args:
-        name_of_experiment (str): Name of the experiment.
-        model (str): The name of the model.
-        learning_method (str): The learning method.
-        evaluation_result (EvaluationResults): The evaluation results.
-        args (dict, optional): The arguments. Defaults to None.
-    """
-    if args is None:
-        max_steps = 300
-    else:
-        max_steps = args.max_steps
-
-    evaluation_result.set_experiment_settings(
-        learning_algorithm=learning_method, max_steps=max_steps)
-    if not os.path.exists(f"{name_of_experiment}"):
-        os.mkdir(f"{name_of_experiment}")
-    if os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training.json"):
-        i = 1
-        while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):
-            i += 1
-        evaluation_result.save_to_json(
-            f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json", evaluation_time)
-    else:
-        evaluation_result.save_to_json(
-            f"{name_of_experiment}/{model}_{learning_method}_training.json", evaluation_time)
-
-
-class Initializer:
+class ExperimentInterface:
     def __init__(self, args: ArgsEmulator = None, pomdp_model=None, agent=None):
         if args is None:
             self.parser = rl_parser.Parser()
@@ -230,27 +129,6 @@ class Initializer:
             self.args.prefer_stochastic = True
             agent = Recurrent_PPO_agent(
                 self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder)
-        elif learning_method == "PPO_FSC_Critic":
-            if qvalues_table is None:  # If Q-values table is not provided, compute it from the sketch and properties
-                sketch_path = self.args.prism_model
-                props_path = self.args.prism_properties
-                # qvalues_table = PAYNT_Playground.compute_qvalues_function(sketch_path, props_path)
-                qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
-                    sketch_path, props_path)
-            assert action_labels_at_observation is not None  # Action labels must be provided
-            agent = PPO_with_QValues_FSC(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
-                qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
-        elif learning_method == "Periodic_FSC_Neural_PPO":
-            if qvalues_table is None:  # If Q-values table is not provided, compute it from the sketch and properties
-                sketch_path = self.args.prism_model
-                props_path = self.args.prism_properties
-                qvalues_table, action_labels_at_observation = PAYNT_Playground.get_fsc_critic_components(
-                    sketch_path, props_path)
-                assert action_labels_at_observation is not None  # Action labels must be provided
-            agent = Periodic_FSC_Neural_PPO(
-                self.environment, self.tf_environment, self.args, load=self.args.load_agent, agent_folder=agent_folder,
-                qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation)
         else:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
@@ -330,7 +208,13 @@ class Initializer:
                 result = interpret.get_dictionary(self.agent, with_refusing)
         return result
 
-    def main(self, with_refusing=False):
+    def perform_experiment(self, with_refusing=False):
+        """Performs the experiment. The experiment is performed based on the arguments in self.args. The result is saved to the self.agent variable.
+        Additional experimental data can be found in the self.agent.evaluation_result variable.
+
+        Returns:
+            dict: The result of the experiment.
+        """
         try:
             self.asserts()
         except ValueError as e:
@@ -344,14 +228,15 @@ class Initializer:
         self.agent = self.initialize_agent()
         self.agent.train_agent_vectorized(self.args.nr_runs)
         self.agent.save_agent()
-        # result = {}
-        # logger.info("Training finished")
-        # if self.args.interpretation_method == "Tracing":
-        #     result = self.tracing_interpretation(with_refusing)
-        # else:
-        #     raise ValueError(
-        #         "Interpretation method not recognized or implemented yet.")
-        return None
+        result = {}
+        if self.args.perform_interpretation:
+            logger.info("Training finished")
+            if self.args.interpretation_method == "Tracing":
+                result = self.tracing_interpretation(with_refusing)
+            else:
+                raise ValueError(
+                    "Interpretation method not recognized or implemented yet.")
+        return result
 
     def __del__(self):
         if hasattr(self, "tf_environment") and self.tf_environment is not None:
@@ -365,9 +250,9 @@ class Initializer:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    initializer = Initializer()
+    initializer = ExperimentInterface()
     args = initializer.parser.args
-    result = initializer.main(args.with_refusing)
+    result = initializer.perform_experiment(args.with_refusing)
     if args.with_refusing is None:
         save_dictionaries(args.experiment_directory, args.agent_name,
                           args.learning_method, "best_with_refusing", result["best_with_refusing"][0], result["best_with_refusing"][1], result["best_with_refusing"][2])

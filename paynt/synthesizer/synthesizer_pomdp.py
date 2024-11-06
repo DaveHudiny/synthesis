@@ -2,7 +2,7 @@ import json
 import numpy as np
 from time import sleep
 import os
-from rl_src.rl_main import ArgsEmulator
+from rl_src.experimental_interface import ArgsEmulator
 import pickle
 import stormpy
 

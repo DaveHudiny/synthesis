@@ -8,64 +8,66 @@ class ReplayBufferOptions(enum.Enum):
 
 
 class ArgsEmulator:
+    class InterpretationArgs:
+        def __init__(self, interpretation_method: str = "Tracing", interpretation_granularity: int = 100, with_refusing: bool = None):
+            self.interpretation_method = interpretation_method
+            self.interpretation_granularity = interpretation_granularity
+            self.with_refusing = with_refusing
+            self.perform_interpretation = True
+
+        def set_perform_interpretation(self, perform_interpretation: bool):
+            self.perform_interpretation = perform_interpretation
+
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 8.6e-4, max_steps: int = 300, evaluation_episodes: int = 20,
                  batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 5000, evaluation_goal: int = 300,
                  interpretation_method: str = "Tracing", learning_method: str = "DQN",
                  save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
-                 buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, action_filtering: bool = False,
-                 illegal_action_penalty: float = -3, randomizing_illegal_actions: bool = True, randomizing_penalty: float = -1, reward_shaping: bool = False,
-                 reward_shaping_model: str = "evade", agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
-                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, replay_buffer_option: bool = ReplayBufferOptions.ON_POLICY,
+                 buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, 
+                 agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, 
+                 replay_buffer_option: bool = ReplayBufferOptions.ON_POLICY,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
-                 random_start_simulator=False, num_environments=32):
+                 random_start_simulator=False, num_environments : int =32, perform_interpretation: bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
-
-        prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
-        prism_properties (str): The path to the prism properties file. Defaults to None -- must be set, if not used inside of Paynt.
-        constants (str, optional): The constants for the model. Syntax looks like: "C1=10,C2=60". See Prism template for definable constants. Defaults to "".
-        discount_factor (float, optional): The discount factor for the environment. Defaults to 1.0.
-        encoding_method (str, optional): The encoding method for the observations. Defaults to "Valuations". Other possible selections are "One-Hot" and "Integer".
-        learning_rate (float, optional): The learning rate. Defaults to 1e-7.
-        max_steps (int, optional): The maximum steps per episode. Defaults to 100.
-        evaluation_episodes (int, optional): The number of evaluation episodes. Defaults to 10.
-        batch_size (int, optional): The batch size. Defaults to 32.
-        trajectory_num_steps (int, optional): The number of steps for each sample trajectory. Used for training the agent. Defaults to 25.
-        nr_runs (int, optional): The number of runs. Defaults to 500.
-        evaluation_goal (int, optional): The evaluation goal. Defaults to 10.
-        interpretation_method (str, optional): The interpretation method. Defaults to "Tracing". Other possible selection is "Model-Free", 
-                                               but it is not fully functional yet.
-        learning_method (str, optional): The learning method. Choices are ["DQN", "DDQN", "PPO"]. Defaults to "DQN".
-        save_agent (bool, optional): Save agent model during training. Defaults to False.
-        load_agent (bool, optional): Load agent model during training. Defaults to False.
-        seed (int, optional): Seed for reproducibility. Defaults to 123456.
-        evaluation_antigoal (int, optional): The evaluation antigoal. Defaults to -10.
-        experiment_directory (str, optional): Directory for files from experiments. Defaults to "experiments".
-        buffer_size (int, optional): Buffer size for the replay buffer. Defaults to 1000.
-        interpretation_granularity (int, optional): The number of episodes for interpretation. Defaults to 50.
-        restart_weights (int, optional): The number of restarts of weights before starting learning. Defaults to 0.
-        action_filtering (bool, optional): Filtering of actions performed by the environment. 
-                                           If set, the environment will filter the actions based on the current state and return negative reward. 
-                                           Defaults to False.
-        illegal_action_penalty (float, optional): Penalty for illegal actions. Defaults to -3.
-        randomizing_illegal_actions (bool, optional): Randomize illegal actions. Defaults to True.
-        randomizing_penalty (float, optional): Penalty for randomizing illegal actions. Defaults to -0.1.
-        reward_shaping (bool, optional): Reward shaping. Defaults to False.
-        reward_shaping_model (str, optional): Reward shaping model. Defaults to "evade". Other possible selection is "refuel".
-        agent_name (str, optional): The name of the agent. Defaults to "test".
-        paynt_fsc_imitation (bool, optional): Use extracted FSC from Paynt for improving data collection and imitation learning. Defaults to False.
-        paynt_fsc_json (str, optional): JSON file with extracted FSC from Paynt. Defaults to None.
-        fsc_policy_max_iteration (int, optional): If --paynt-fsc-imitation is selected, this parameter defines the maximum number of iterations for FSC policy training. Defaults to 100.
-        interpretation_folder (str, optional): The folder for interpretation. Defaults to "interpretation".
-        experiment_name (str, optional): The name of the experiment. Defaults to "experiment".
-        with_refusing (bool, optional): Whether to use refusing when interpreting. Defaults to None.
-        set_ppo_on_policy (bool, optional): Set PPO to on-policy. With other methods, this parameter has no effect. Defaults to False.
-        prefer_stochastic (bool, optional): Prefer stochastic actions (in case of PPO) for evaluation. Defaults to False.
-        normalize_simulator_rewards (bool, optional): Normalize rewards obtained from simulator (reward = reward / goal_reward)
-        random_start_simulator (bool, optional): Sets initialized simulator to work with uniformly random initial states 
-        num_environments (int, optional): Number of environments for vectorization. Defaults to 32.
-        off_policy (bool, optional): Use off-policy learning. Defaults to False.
+            prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
+            prism_properties (str): The path to the prism properties file. Defaults to None -- must be set, if not used inside of Paynt.
+            constants (str, optional): The constants for the model. Syntax looks like: "C1=10,C2=60". See Prism template for definable constants. Defaults to "".
+            discount_factor (float, optional): The discount factor for the environment. Defaults to 1.0.
+            encoding_method (str, optional): The encoding method for the observations. Defaults to "Valuations". Other possible selections are "One-Hot" and "Integer".
+            learning_rate (float, optional): The learning rate. Defaults to 1e-7.
+            max_steps (int, optional): The maximum steps per episode. Defaults to 100.
+            evaluation_episodes (int, optional): The number of evaluation episodes. Defaults to 10.
+            batch_size (int, optional): The batch size. Defaults to 32.
+            trajectory_num_steps (int, optional): The number of steps for each sample trajectory. Used for training the agent. Defaults to 25.
+            nr_runs (int, optional): The number of runs. Defaults to 500.
+            evaluation_goal (int, optional): The evaluation goal. Defaults to 10.
+            interpretation_method (str, optional): The interpretation method. Defaults to "Tracing". Other possible selection is "Model-Free",
+                                                    but it is not fully functional yet.
+            learning_method (str, optional): The learning method. Choices are ["DQN", "DDQN", "PPO"]. Defaults to "DQN".
+            save_agent (bool, optional): Save agent model during training. Defaults to False.
+            load_agent (bool, optional): Load agent model during training. Defaults to False.
+            seed (int, optional): Seed for reproducibility. Defaults to 123456.
+            evaluation_antigoal (int, optional): The evaluation antigoal. Defaults to -10.
+            experiment_directory (str, optional): Directory for files from experiments. Defaults to "experiments".
+            buffer_size (int, optional): Buffer size for the replay buffer. Defaults to 1000.
+            interpretation_granularity (int, optional): The number of episodes for interpretation. Defaults to 50.
+            restart_weights (int, optional): The number of restarts of weights before starting learning. Defaults to 0.
+            agent_name (str, optional): The name of the agent. Defaults to "test".
+            paynt_fsc_imitation (bool, optional): Use extracted FSC from Paynt for improving data collection and imitation learning. Defaults to False.
+            paynt_fsc_json (str, optional): JSON file with extracted FSC from Paynt. Defaults to None.
+            fsc_policy_max_iteration (int, optional): If --paynt-fsc-imitation is selected, this parameter defines the maximum number of iterations for FSC policy training. Defaults to 100.
+            interpretation_folder (str, optional): The folder for interpretation. Defaults to "interpretation".
+            experiment_name (str, optional): The name of the experiment. Defaults to "experiment".
+            with_refusing (bool, optional): Whether to use refusing when interpreting. Defaults to None.
+            replay_buffer_option (bool, optional): Replay buffer option. Defaults to ReplayBufferOptions.ON_POLICY (other are OFF_POLICY and ORIGINAL_OFF_POLICY).
+            evaluate_random_policy (bool, optional): Evaluate random policy. Defaults to False.
+            prefer_stochastic (bool, optional): Prefer stochastic actions (in case of PPO) for evaluation. Defaults to False.
+            normalize_simulator_rewards (bool, optional): Normalize rewards obtained from simulator (reward = reward / goal_reward)
+            random_start_simulator (bool, optional): Sets initialized simulator to work with uniformly random initial states
+            num_environments (int, optional): Number of environments for vectorization. Defaults to 32.
+            perform_interpretation (bool, optional): Whether to perform interpretation, or provide results for training only. Defaults to False.
 
         """
         self.prism_model = prism_model
@@ -90,12 +92,6 @@ class ArgsEmulator:
         self.experiment_directory = experiment_directory
         self.buffer_size = buffer_size
         self.restart_weights = restart_weights
-        self.action_filtering = action_filtering
-        self.illegal_action_penalty = illegal_action_penalty
-        self.randomizing_illegal_actions = randomizing_illegal_actions
-        self.randomizing_penalty = randomizing_penalty
-        self.reward_shaping = reward_shaping
-        self.reward_shaping_model = reward_shaping_model
         self.agent_name = agent_name
         self.paynt_fsc_imitation = paynt_fsc_imitation
         self.paynt_fsc_json = paynt_fsc_json
@@ -109,3 +105,4 @@ class ArgsEmulator:
         self.normalize_simulator_rewards = normalize_simulator_rewards
         self.random_start_simulator = random_start_simulator
         self.num_environments = num_environments
+        self.perform_interpretation = perform_interpretation
