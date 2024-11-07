@@ -5,11 +5,9 @@
 
 import numpy as np
 import tensorflow as tf
-import tensorflow_probability as tfp
 
 from stormpy import simulator
 from stormpy.storage import storage
-import stormpy
 
 from tf_agents.environments import py_environment
 
@@ -20,15 +18,12 @@ from tf_agents.specs import tensor_spec
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step_spec
 from tools.encoding_methods import *
-from environment.reward_shaping_models import *
 
 from tools.args_emulator import ArgsEmulator
 
 import json
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
-
-import time
 
 import logging
 
@@ -78,6 +73,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward=generate_reward_selection_function, 
                                                             num_envs=num_envs, max_steps=args.max_steps, metalabels={"goals": intersection_labels})
         self.vectorized_simulator.reset()
+        # for i in range(10000):
+        #     self.vectorized_simulator.enable_random_init()
+        #     self.vectorized_simulator.reset()
+        #     self.vectorized_simulator.disable_random_init()
+        # exit(0)
         self.labels_mask = list([])
         self.nr_obs = self.stormpy_model.nr_observations
         self.encoding_method = args.encoding_method
@@ -100,7 +100,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self._max_steps = args.max_steps
         self.set_action_labeling()
         self.create_specifications()
-        self.action_convertor = self._convert_action
 
         self.last_action = 0
         self.visited_states = []
@@ -225,10 +224,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32))
         return self._current_time_step
 
-    def _convert_action(self, action) -> int:
-        """Converts the action from the RL agent to the action used by the Vectorized simulator."""
-        return action
-
     def evaluate_simulator(self) -> ts.TimeStep:
         """Evaluates the simulator and returns the current time step. Primarily used to determine, whether the state is the last one or not."""
         self.flag_goal = tf.zeros((self.num_envs,), dtype=tf.bool) 
@@ -263,24 +258,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.virtual_reward = self.reward - self.default_rewards
         return self._current_time_step
 
-    def is_legal_action(self, action) -> bool:
-        """Checks if the action is legal."""
-        act_keyword = self.act_to_keywords[int(action)]
-        choice_list = self.get_choice_labels()
-        if act_keyword in choice_list:
-            return True
-        else:
-            return False
-
-    def get_max_step_finish_timestep(self):
-        """Returns the time step when the maximum number of steps is reached. Uses reward shaping, if enabled."""
-        if self.reward_shaping:
-            distance = self.compute_square_root_distance_from_goal()
-            return ts.termination(observation=self.get_observation(),
-                                  reward=tf.constant((self.goal_value / distance) / MAXIMUM_SIZE, dtype=tf.float32))
-        else:
-            return ts.termination(observation=self.get_observation(), reward=tf.constant(self.reward, dtype=tf.float32))
-
     def _do_step_in_simulator(self, actions) -> StepInfo:
         """Does the step in the Stormpy simulator.
             returns:
@@ -306,16 +283,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         evaluated_step = self.evaluate_simulator()
         # print(evaluated_step)
         return evaluated_step
-    
-    def normalize_reward_in_time_step(self, time_step : ts.TimeStep):
-        new_reward = time_step.reward * self.normalizer
-        new_time_step = ts.TimeStep(
-            step_type=time_step.step_type,
-            reward=new_reward,
-            discount=time_step.discount,
-            observation=time_step.observation
-        )
-        return new_time_step
 
     def current_time_step(self) -> ts.TimeStep:
         return self._current_time_step

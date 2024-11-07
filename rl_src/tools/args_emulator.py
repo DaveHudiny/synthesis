@@ -1,34 +1,27 @@
 import enum
 
+
 class ReplayBufferOptions(enum.Enum):
     """Enum for replay buffer options. Used for setting replay buffer options."""
-    ON_POLICY = 1 # Performs a num_steps steps in the environment and trains the agent on the collected data. Then clears the replay buffer.
-    OFF_POLICY = 2 # Performs a single step in environment and adds it to the replay buffer
-    ORIGINAL_OFF_POLICY = 3 # Performs multiple steps in single environment and adds it to the replay buffer
+    ON_POLICY = 1  # Performs a num_steps steps in the environment and trains the agent on the collected data. Then clears the replay buffer.
+    OFF_POLICY = 2  # Performs a single step in environment and adds it to the replay buffer
+    # Performs multiple steps in single environment and adds it to the replay buffer
+    ORIGINAL_OFF_POLICY = 3
 
 
 class ArgsEmulator:
-    class InterpretationArgs:
-        def __init__(self, interpretation_method: str = "Tracing", interpretation_granularity: int = 100, with_refusing: bool = None):
-            self.interpretation_method = interpretation_method
-            self.interpretation_granularity = interpretation_granularity
-            self.with_refusing = with_refusing
-            self.perform_interpretation = True
-
-        def set_perform_interpretation(self, perform_interpretation: bool):
-            self.perform_interpretation = perform_interpretation
 
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 8.6e-4, max_steps: int = 300, evaluation_episodes: int = 20,
                  batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 5000, evaluation_goal: int = 300,
                  interpretation_method: str = "Tracing", learning_method: str = "DQN",
                  save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
-                 buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0, 
+                 buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0,
                  agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
-                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None, 
+                 interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None,
                  replay_buffer_option: bool = ReplayBufferOptions.ON_POLICY,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
-                 random_start_simulator=False, num_environments : int =32, perform_interpretation: bool = False):
+                 random_start_simulator=False, num_environments: int = 32, perform_interpretation: bool = False, vectorized_envs: bool = True):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -68,6 +61,7 @@ class ArgsEmulator:
             random_start_simulator (bool, optional): Sets initialized simulator to work with uniformly random initial states
             num_environments (int, optional): Number of environments for vectorization. Defaults to 32.
             perform_interpretation (bool, optional): Whether to perform interpretation, or provide results for training only. Defaults to False.
+            vectorized_envs (bool, optional): Whether to use vectorized environments. Defaults to True.
 
         """
         self.prism_model = prism_model
@@ -106,3 +100,4 @@ class ArgsEmulator:
         self.random_start_simulator = random_start_simulator
         self.num_environments = num_environments
         self.perform_interpretation = perform_interpretation
+        self.vectorized_envs = vectorized_envs

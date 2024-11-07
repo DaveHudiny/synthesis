@@ -88,14 +88,18 @@ class ExperimentInterface:
                 time_step = next_time_step
                 is_last = time_step.is_last()
 
-    def initialize_environment(self, parallelized: bool = False, num_parallel_environments: int = 4, random_init_simulator : bool = False):
+    def initialize_environment(self, args : ArgsEmulator=None):
         self.pomdp_model = self.initialize_prism_model()
         logger.info("Model initialized")
         if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
             num_envs = 1
         else:
             num_envs = self.args.batch_size
-        self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
+        if self.args.vectorized_envs:
+            self.environment = Environment_Wrapper_Vec(self.pomdp_model, args, num_envs=num_envs)
+        else:
+            self.environment = Environment_Wrapper(self.pomdp_model, args)
+        # self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
         tf_environment = tf_py_environment.TFPyEnvironment(self.environment)
         # self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
         logger.info("Environment initialized")
@@ -133,19 +137,6 @@ class ExperimentInterface:
             raise ValueError(
                 "Learning method not recognized or implemented yet.")
         return agent
-    
-    def get_tf_environment_eval(self):
-        if isinstance(self.tf_environment, dict):
-            return self.tf_environment["eval_sim"]
-        else:
-            return self.tf_environment
-        
-    def get_tf_environment_train(self):
-        if isinstance(self.tf_environment, dict):
-            return self.tf_environment["train_sim"]
-        else:
-            return self.tf_environment
-
 
     def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None, learning_method = None,
                          pre_training_dqn : bool = False) -> FatherAgent:
@@ -218,15 +209,15 @@ class ExperimentInterface:
         try:
             self.asserts()
         except ValueError as e:
-
             logger.error(e)
             return
-        self.tf_environment = self.initialize_environment(random_init_simulator=self.args.random_start_simulator)
+        self.tf_environment = self.initialize_environment(self.args)
         if self.args.evaluate_random_policy:  # Evaluate random policy
             return self.evaluate_random_policy()
 
         self.agent = self.initialize_agent()
-        self.agent.train_agent_vectorized(self.args.nr_runs)
+        self.agent.train_agent(self.args.nr_runs, vectorized=self.args.vectorized_envs,
+                               replay_buffer_option=self.args.replay_buffer_option)
         self.agent.save_agent()
         result = {}
         if self.args.perform_interpretation:

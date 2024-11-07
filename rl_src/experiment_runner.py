@@ -33,7 +33,7 @@ def get_dictionaries(args, with_refusing=False):
     return dictionaries
 
 
-def save_dictionaries(dicts, name_of_experiment, model, learning_method, refusing):
+def save_dictionaries_caller(dicts, name_of_experiment, model, learning_method, refusing):
     for quality in ["last", "best"]:
         if refusing is None:
             for typ in ["with_refusing", "without_refusing"]:
@@ -46,7 +46,6 @@ def save_dictionaries(dicts, name_of_experiment, model, learning_method, refusin
                                       quality_typ, obs_action_dict, memory_dict, labels)
                 except:
                     logger.error("Storing dictionaries failed!")
-
         else:
             try:
                 obs_action_dict = dicts[0]
@@ -77,7 +76,7 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     if args.perform_interpretation:
         if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
             os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
-        save_dictionaries(dicts, name_of_experiment, model, learning_method, refusing)
+        save_dictionaries_caller(dicts, name_of_experiment, model, learning_method, refusing)
     end_time = time.time()
     evaluation_time = end_time - start_time
     save_statistics_to_new_json(name_of_experiment, model, learning_method,
@@ -90,14 +89,14 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large"):
     """ Run multiple experiments for PAYNT oracle."""
     for model in os.listdir(f"{path_to_models}"):
+        if "evade-n6-r2" in model:
+            continue
         # for model in ["network-5-10-8"]:
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         encoding_method = "Valuations"
         refusing = None
         for learning_method in ["Stochastic_PPO"]:
-            if not (learning_method in ["Stochastic_PPO"]):
-                continue
             if "drone" in model:  # Currently not supported model
                 continue
             # if model not in ["mba", "mba-small", "obstacle"]:
@@ -107,14 +106,14 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.001,
                                     restart_weights=0, learning_method=learning_method,
-                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    nr_runs=101, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=100, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99,
-                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=True, replay_buffer_option=replay_buffer_option, batch_size=256)
+                                    normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=256,
+                                    vectorized_envs=False)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
-        break  # debugging purposes
 
 
 if __name__ == "__main__":
-    run_experiments("experiments_random_starts", "./models")
+    run_experiments("experiments_debugging", "./models_large")

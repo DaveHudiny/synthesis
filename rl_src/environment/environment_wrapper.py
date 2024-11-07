@@ -20,7 +20,6 @@ from tf_agents.specs import tensor_spec
 from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step_spec
 from tools.encoding_methods import *
-from environment.reward_shaping_models import *
 
 from tools.args_emulator import ArgsEmulator
 
@@ -69,15 +68,6 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self._num_steps = 0
         self._current_time_step = None
         self._max_steps = args.max_steps
-        self.action_filtering = args.action_filtering
-        self.illegal_action_penalty = args.illegal_action_penalty
-        self.randomizing_illegal_actions = args.randomizing_illegal_actions
-        self.randomizing_penalty = args.randomizing_penalty
-        self.reward_shaping = args.reward_shaping
-        if self.reward_shaping:
-            self.select_reward_shaping_function()
-        else:
-            self.reward_shaping_function = lambda _: self.antigoal_value / 2
         self.compute_keywords()
         self.create_specifications()
         self.action_convertor = self._convert_action
@@ -115,21 +105,6 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
     def create_new_environment(self):
         return Environment_Wrapper(self.stormpy_model, self.args)
-
-    def select_reward_shaping_function(self):
-        """Selects the reward shaping function based on the arguments. Experimental feature."""
-        if self.args.reward_shaping_model is None:
-            self.reward_shaping_function = lambda _: self.antigoal_value / 2
-        elif self.args.reward_shaping_model in ["evade", "refuel"]:
-            if self.args.reward_shaping_model == "evade":
-                model = EvadeRewardModel
-            elif self.args.reward_shaping_model == "refuel":
-                model = RefuelRewardModel
-            self.reward_shaping_model = model(
-                self.stormpy_model, self.simulator)
-            self.reward_shaping_function = self.reward_shaping_model.reward_shaping
-        else:
-            raise ValueError("Reward shaping model not recognized")
 
     def compute_keywords(self):
         """Computes the keywords for the actions and stores them to self.act_to_keywords and other dictionaries."""
@@ -200,13 +175,10 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         observation_spec = self.create_observation_spec()
         integer_information = tensor_spec.TensorSpec(
             shape=(1,), dtype=tf.int32, name="integer_information")
-        if not self.action_filtering:
-            mask_spec = tensor_spec.TensorSpec(
-                shape=(self.nr_actions,), dtype=tf.bool, name="mask")
-            self._observation_spec = {
-                "observation": observation_spec, "mask": mask_spec, "integer": integer_information}
-        else:
-            self._observation_spec = observation_spec
+        mask_spec = tensor_spec.TensorSpec(
+            shape=(self.nr_actions,), dtype=tf.bool, name="mask")
+        self._observation_spec = {
+            "observation": observation_spec, "mask": mask_spec, "integer": integer_information}
 
         self._time_step_spec = time_step_spec(
             observation_spec=self._observation_spec,
@@ -359,13 +331,10 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             reward = tf.constant(0, dtype=tf.float32)
         else:
             reward = tf.constant(self.reward_multiplier * stepino[1][0] * self.normalizer, dtype=tf.float32)
-        if not self.action_filtering:
-            mask = self.compute_mask()
-            observation_vector = self.create_encoding(observation)
-            observation_tensor = {
-                "observation": observation_vector, "mask": tf.constant(mask[0], dtype=tf.bool), "integer": tf.constant([observation], dtype=tf.int32)}
-        else:
-            observation_tensor = self.create_encoding(observation)
+        mask = self.compute_mask()
+        observation_vector = self.create_encoding(observation)
+        observation_tensor = {
+            "observation": observation_vector, "mask": tf.constant(mask[0], dtype=tf.bool), "integer": tf.constant([observation], dtype=tf.int32)}
         self._current_time_step = ts.TimeStep(
             observation=observation_tensor, 
             reward=self.reward_multiplier * reward, 
@@ -417,6 +386,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         """Evaluates the simulator and returns the current time step. Primarily used to determine, whether the state is the last one or not."""
         self.labels = list(self.simulator._report_labels())
         self.flag_goal = False
+        self.flag_trap = False
         if self._num_steps >= self._max_steps:
             self._finished = True
             self._current_time_step = self.get_max_step_finish_timestep()
@@ -434,25 +404,18 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         elif self.simulator.is_done() and "traps" in self.labels:
             logging.info("Trapped!")
             self._finished = True
+            self.flag_trap = True
             self.virtual_value = self.antigoal_value
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.antigoal_value + self.reward)
         else:  # Ended, but not in goal state :/
             # logging.info(f"Ended, but not in a goal state: {self.labels}")
             self._finished = True
+            self.flag_trap = True
             self.virtual_value = self.antigoal_value
             self._current_time_step = ts.termination(
                 observation=self.get_observation(), reward=self.antigoal_value + self.reward)
         return self._current_time_step
-
-    def is_legal_action(self, action) -> bool:
-        """Checks if the action is legal."""
-        act_keyword = self.act_to_keywords[int(action)]
-        choice_list = self.get_choice_labels()
-        if act_keyword in choice_list:
-            return True
-        else:
-            return False
 
     def get_random_legal_action(self) -> np.int32:
         available_actions = self.simulator.available_actions()
@@ -460,12 +423,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
     def get_max_step_finish_timestep(self):
         """Returns the time step when the maximum number of steps is reached. Uses reward shaping, if enabled."""
-        if self.reward_shaping:
-            distance = self.compute_square_root_distance_from_goal()
-            return ts.termination(observation=self.get_observation(),
-                                  reward=tf.constant((self.goal_value / distance) / MAXIMUM_SIZE, dtype=tf.float32))
-        else:
-            return ts.termination(observation=self.get_observation(), reward=tf.constant(self.reward, dtype=tf.float32))
+        return ts.termination(observation=self.get_observation(), reward=tf.constant(self.reward, dtype=tf.float32))
 
     def _do_step_in_simulator(self, action) -> tuple[ts.TimeStep, float]:
         """Does the step in the Stormpy simulator.
@@ -475,21 +433,8 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         penalty = 0.0
         self._num_steps += 1
         self.last_action = action
-        if not self.action_filtering:
-            action = self.action_convertor(action)
-            stepino = self.simulator.step(int(action))
-        else:
-            if not self.is_legal_action(action):
-                if self.randomizing_illegal_actions:
-                    action = self.get_random_legal_action()
-                    penalty = self.randomizing_penalty
-                else:
-                    self._current_time_step = ts.transition(
-                        observation=self.get_observation(), reward=tf.constant(self.illegal_action_penalty, dtype=tf.float32), discount=self.discount)
-                    return self._current_time_step
-            else:
-                action = self._convert_action(action)
-            stepino = self.simulator.step(int(action))
+        action = self.action_convertor(action)
+        stepino = self.simulator.step(int(action))
         return stepino, penalty
 
     def _step(self, action) -> ts.TimeStep:
@@ -531,12 +476,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
     def get_observation(self) -> dict[str: tf.Tensor]:
         observation = self.simulator._report_observation()
-        if not self.action_filtering:
-            mask = self.compute_mask()
-            return {"observation": self.create_encoding(observation), "mask": tf.constant(mask[0], dtype=tf.bool), 
-                    "integer": tf.constant([observation], dtype=tf.int32)}
-        else:
-            return self.create_encoding(observation)
+        mask = self.compute_mask()
+        return {"observation": self.create_encoding(observation), "mask": tf.constant(mask[0], dtype=tf.bool), 
+                "integer": tf.constant([observation], dtype=tf.int32)}
 
     def get_choice_labels(self) -> list[str]:
         """Converts the current legal actions to the keywords used by the Storm model."""

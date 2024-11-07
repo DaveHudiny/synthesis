@@ -86,10 +86,10 @@ class Recurrent_PPO_agent(FatherAgent):
         )
         self.agent.initialize()
         logging.info("Agent initialized")
-        self.init_replay_buffer(tf_environment)
+        self.init_replay_buffer()
         logging.info("Replay buffer initialized")
 
-        self.init_collector_driver(self.tf_environment)
+        self.init_collector_driver(self.tf_environment, demasked=True)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         if load:
@@ -113,26 +113,6 @@ class Recurrent_PPO_agent(FatherAgent):
     #         observers=[self.trajectory_buffer.add_batched_step],
     #         num_steps=num_steps * self.args.batch_size
     #     )
-
-
-    def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment):
-        self.collect_policy_wrapper = Policy_Mask_Wrapper(
-            self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
-        eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
-        # self.replay_buffer.
-        observer = self.get_demasked_observer()
-        if self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            num_steps = self.args.batch_size * self.args.num_steps
-        elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
-            num_steps = self.args.batch_size
-        elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
-            num_steps = self.args.num_steps
-        self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-            tf_environment,
-            eager,
-            observers=[observer],
-            num_steps=num_steps)
         
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
                                fsc_multiplier: float = 2.0, switch_probability : float = None):
