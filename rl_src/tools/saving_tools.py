@@ -7,6 +7,8 @@ import pickle
 
 from rl_src.tools.evaluators import EvaluationResults
 
+import logging
+logger = logging.getLogger(__name__)
 
 def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
     """ Save dictionaries for Paynt oracle.
@@ -52,8 +54,12 @@ def save_statistics_to_new_json(name_of_experiment, model, learning_method, eval
         i = 1
         while os.path.exists(f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json"):
             i += 1
+        logger.info(
+            f"Saving evaluation results to {name_of_experiment}/{model}_{learning_method}_training_{i}.json")
         evaluation_result.save_to_json(
             f"{name_of_experiment}/{model}_{learning_method}_training_{i}.json", evaluation_time)
     else:
+        logger.info(
+            f"Saving evaluation results to {name_of_experiment}/{model}_{learning_method}_training.json")
         evaluation_result.save_to_json(
             f"{name_of_experiment}/{model}_{learning_method}_training.json", evaluation_time)

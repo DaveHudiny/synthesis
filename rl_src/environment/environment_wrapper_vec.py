@@ -76,9 +76,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         intersection_labels = [
             label for label in labeling if label in self.special_labels]
         metalabels = {"goals" : intersection_labels}
+        print(metalabels)
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
-            stormpy_model, generate_reward_selection_function, num_envs, args.max_steps, metalabels, args.prism_model)
-        
+            stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs, max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
+        # self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, generate_reward_selection_function, num_envs=num_envs, max_steps=args.max_steps, metalabels=metalabels)
+
         self.vectorized_simulator.reset()
 
         # Default labels mask for the environment given that the number of metalabels is 1 ("goals").
@@ -174,7 +176,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             shape=(self.nr_actions,), dtype=tf.bool, name="mask")
         self._observation_spec = {
             "observation": observation_spec, "mask": mask_spec, "integer": integer_information}
-
         self._time_step_spec = time_step_spec(
             observation_spec=self._observation_spec,
             reward_spec=tensor_spec.TensorSpec(
@@ -213,6 +214,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
     def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
+        logger.info("Resetting the environment.")
         self.last_observation, self.allowed_actions, self.labels_mask = self._restart_simulator()
         # self.integer_observations = self.vectorized_simulator.observations # TODO: implement it with proposed vectorized simulator
         self.virtual_reward = tf.zeros((self.num_envs,), dtype=tf.float32)
@@ -244,6 +246,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.goal_state_mask = labels_mask & self.dones
         self.anti_goal_state_mask = ~labels_mask & self.dones & ~self.truncated
         still_running_mask = ~self.dones
+        
         self.reward = tf.where(
             self.goal_state_mask,
             goal_values_vector,
@@ -265,6 +268,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             observation=self.get_observation()
         )
         self.virtual_reward = self.reward - self.default_rewards
+        if self.goal:
+            print(self.reward)
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -279,8 +284,14 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.allowed_actions = allowed_actions
         # List of bools for each environment goal
         self.labels_mask = metalabels
+        if True in self.labels_mask:
+            print(self.labels_mask)
+            self.goal = True
+        else:
+            self.goal = False
         # Fix reward from the Storm values to the RL values by multiplier given purposed specification.
         self.reward = tf.constant(rewards, dtype=tf.float32) * self.reward_multiplier
+        # print("Reward: ", self.reward)
         self.dones = done
         self.truncated = truncated
 
@@ -289,6 +300,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.cumulative_num_steps += self.num_envs
         self._do_step_in_simulator(action)
         evaluated_step = self.evaluate_simulator()
+        # print("Evaluated step: ", evaluated_step.reward)
+        if self.cumulative_num_steps > 1000000:
+            exit(0)
         return evaluated_step
 
     def current_time_step(self) -> ts.TimeStep:

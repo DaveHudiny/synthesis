@@ -5,6 +5,7 @@
 # File: abstract_agent.py
 
 from abc import ABC, abstractmethod
+from tools.args_emulator import ReplayBufferOptions
 
 class AbstractAgent(ABC):
     def __init__(self):
@@ -16,6 +17,10 @@ class AbstractAgent(ABC):
     
     @abstractmethod
     def train_agent_off_policy(self, num_iterations):
+        raise NotImplementedError
+    
+    @abstractmethod
+    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY):
         raise NotImplementedError
     
     @abstractmethod

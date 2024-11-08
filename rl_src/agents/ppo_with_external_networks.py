@@ -60,36 +60,55 @@ class PPO_with_External_Networks(FatherAgent):
         time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
         
         self.agent = ppo_agent.PPOAgent(
-            time_step_spec,
-            tf_environment.action_spec(),
-            actor_net=self.actor_net,
-            value_net=self.critic_net,
-            optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
-            normalize_observations=True,
-            normalize_rewards=True,
-            entropy_regularization=0.01,
-            use_gae=True,
-            num_epochs=3,
-            debug_summaries=False,
-            summarize_grads_and_vars=False,
-            train_step_counter=tf.Variable(0),
-            lambda_value=0.85,
-            name='PPO_with_Pretraining',
-            greedy_eval=False,
-            discount_factor=0.95
-        )
+                    time_step_spec,
+                    tf_environment.action_spec(),
+                    optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
+                    actor_net=self.actor_net,
+                    value_net=self.value_net,
+                    num_epochs=4,
+                    train_step_counter=tf.Variable(0),
+                    greedy_eval=False,
+                    discount_factor=0.99,
+                    use_gae=True,
+                    # lambda_value=0.82,
+                    # gradient_clipping=0.9,
+                    # policy_l2_reg=0.00001,
+                    # value_function_l2_reg=0.00001,
+                    # value_pred_loss_coef=0.4,
+                )
+
+        # self.agent = ppo_agent.PPOAgent(
+        #     time_step_spec,
+        #     tf_environment.action_spec(),
+        #     actor_net=self.actor_net,
+        #     value_net=self.critic_net,
+        #     optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
+        #     normalize_observations=True,
+        #     normalize_rewards=True,
+        #     entropy_regularization=0.01,
+        #     use_gae=True,
+        #     num_epochs=3,
+        #     debug_summaries=False,
+        #     summarize_grads_and_vars=False,
+        #     train_step_counter=tf.Variable(0),
+        #     lambda_value=0.85,
+        #     name='PPO_with_Pretraining',
+        #     greedy_eval=False,
+        #     discount_factor=0.95
+        # )
         self.agent.initialize()
         logging.info("Agent initialized")
         
         self.args.prefer_stochastic = True
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_collector_driver_ppo(self.tf_environment_train)
+        self.init_collector_driver(self.tf_environment, demasked=True, alternative_observer=None)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy
         if load:
             self.load_agent()
+
 
     def train_iteration_rl_fsc(self, pre_trainer : Actor_Value_Pretrainer, experience_rl, experience_fsc, critic_only : bool = False):
         train_loss = self.agent.train(experience_rl).loss

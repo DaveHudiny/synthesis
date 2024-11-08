@@ -486,6 +486,8 @@ class FatherAgent(AbstractAgent):
             compute_average_return(
                 self.get_evaluation_policy(), self.tf_environment, evaluation_episodes, self.environment, self.evaluation_result.update)
         else:
+            if not hasattr(self, "vec_driver"):
+                self.init_vec_evaluation_driver(self.tf_environment, self.environment, num_steps=self.args.max_steps)
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(
                     self.args.batch_size)
