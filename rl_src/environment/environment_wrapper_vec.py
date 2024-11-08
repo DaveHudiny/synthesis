@@ -65,10 +65,14 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         super(Environment_Wrapper_Vec, self).__init__()
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
-        self.simulator = simulator.create_simulator(self.stormpy_model)
-        labeling = stormpy_model.labeling.get_labels()
+
+        # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
+        # TODO: What if we want to minimize the probability of reaching some state or we want to maximize the probability of reaching some other state?
         self.special_labels = np.array(["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
                                         "((x = (10 - 1)) & (y = (10 - 1)))"])
+        
+        # Initialization of the vectorized simulator.
+        labeling = stormpy_model.labeling.get_labels()
         intersection_labels = [
             label for label in labeling if label in self.special_labels]
         metalabels = {"goals" : intersection_labels}
@@ -76,51 +80,50 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             stormpy_model, generate_reward_selection_function, num_envs, args.max_steps, metalabels, args.prism_model)
         
         self.vectorized_simulator.reset()
-        self.labels_mask = list([])
-        self.nr_obs = self.stormpy_model.nr_observations
+
+        # Default labels mask for the environment given that the number of metalabels is 1 ("goals").
+        self.labels_mask = list([False] * self.num_envs)
         self.encoding_method = args.encoding_method
-        self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32)
-        self.antigoal_value = tf.constant(args.evaluation_antigoal,
-                                          dtype=tf.float32)
+
+        # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
         self.goal_values_vector = tf.constant(
             [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
         self.antigoal_values_vector = tf.constant(
             [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
         self.discount = tf.convert_to_tensor(
             [args.discount_factor] * self.num_envs, dtype=tf.float32)
+        
+        # Initialization of the rewards before simulation.
         self.reward = tf.constant(0.0, dtype=tf.float32)
+
+        # Initialization of the reward multiplier for different tasks.
         if len(list(stormpy_model.reward_models.keys())) == 0:
             self.reward_multiplier = -1.0
         elif list(stormpy_model.reward_models.keys())[-1] in "rewards":
             self.reward_multiplier = 1.0
-        else:  # If 1.0, rewards are positive, if -1.0, rewards are negative
+        else:  # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
             self.reward_multiplier = -1.0
-        self._finished = False
-        self._num_steps = 0
+        
         self._current_time_step = None
-        self._max_steps = args.max_steps
+
+        # Initialization of the TF Agents specifications
         self.set_action_labeling()
         self.create_specifications()
 
-        self.last_action = 0
-        self.visited_states = []
-        self.empty_reward = False
-
-        self.special_labels_tf = tf.constant(
-            self.special_labels, dtype=tf.string)
-        # Sometimes the goal is not labeled as "goal" but as "done" or as a special label.
-        self.virtual_value = tf.constant(0.0, dtype=tf.float32)
+        # Normalization of the rewards. Useless for PPO with its own normalization.
         self.normalize_simulator_rewards = self.args.normalize_simulator_rewards
         if self.normalize_simulator_rewards:
             self.normalizer = 1.0/tf.abs(self.goal_value)
         else:
             self.normalizer = tf.constant(1.0)
 
+        # Information about the environment.
         self.random_start_simulator = self.args.random_start_simulator
-        self.original_init_state = self.stormpy_model.initial_states
-        self.q_values_table = q_values_table
+
+        # Statistic for debugging purposes.
         self.cumulative_num_steps = 0
 
+        # Step types used in the environment evaluation.
         self.default_step_types = tf.constant(
             [ts.StepType.MID] * self.num_envs, dtype=tf.int32)
         self.terminated_step_types = tf.constant(
@@ -209,8 +212,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
     def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
-        self._finished = False
-        self._num_steps = 0
         self.last_observation, self.allowed_actions, self.labels_mask = self._restart_simulator()
         # self.integer_observations = self.vectorized_simulator.observations # TODO: implement it with proposed vectorized simulator
         self.virtual_reward = tf.zeros((self.num_envs,), dtype=tf.float32)
@@ -258,7 +259,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         )
         self._current_time_step = ts.TimeStep(
             step_type=self.step_types,
-            reward=self.reward,
+            reward=self.reward * self.normalizer,
             discount=self.discount,
             observation=self.get_observation()
         )
@@ -270,16 +271,15 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             returns:
                 tuple of new TimeStep and penalty for performed action.
         """
-        self._num_steps += 1
-        self.last_action = actions
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
         # List of bools for each environment goal
-        self.labels_mask = metalabels.tolist()
-        self.reward = rewards
+        self.labels_mask = metalabels
+        # Fix reward from the Storm values to the RL values by multiplier given purposed specification.
+        self.reward = tf.constant(rewards, dtype=tf.float32) * self.reward_multiplier
         self.dones = done
         self.truncated = truncated
 
@@ -287,10 +287,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
         self.cumulative_num_steps += self.num_envs
         self._do_step_in_simulator(action)
-        self.reward = tf.constant(
-            self.reward_multiplier * self.reward, dtype=tf.float32)
         evaluated_step = self.evaluate_simulator()
-        # print(evaluated_step)
         return evaluated_step
 
     def current_time_step(self) -> ts.TimeStep:
