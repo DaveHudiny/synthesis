@@ -19,11 +19,11 @@ from tf_agents.environments import py_environment
 from tf_agents.trajectories import time_step as ts
 import tensorflow as tf
 from tf_agents.specs import tensor_spec
-from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step_spec
 from tools.encoding_methods import *
 
 from tools.args_emulator import ArgsEmulator
+from environment.vectorized_sim_initializer import SimulatorInitializer
 
 import json
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
@@ -71,14 +71,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                                         "((x = (10 - 1)) & (y = (10 - 1)))"])
         intersection_labels = [
             label for label in labeling if label in self.special_labels]
-        self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward=generate_reward_selection_function,
-                                                          num_envs=num_envs, max_steps=args.max_steps, metalabels={"goals": intersection_labels})
+        metalabels = {"goals" : intersection_labels}
+        self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
+            stormpy_model, generate_reward_selection_function, num_envs, args.max_steps, metalabels, args.prism_model)
+        
         self.vectorized_simulator.reset()
-        # for i in range(10000):
-        #     self.vectorized_simulator.enable_random_init()
-        #     self.vectorized_simulator.reset()
-        #     self.vectorized_simulator.disable_random_init()
-        # exit(0)
         self.labels_mask = list([])
         self.nr_obs = self.stormpy_model.nr_observations
         self.encoding_method = args.encoding_method
