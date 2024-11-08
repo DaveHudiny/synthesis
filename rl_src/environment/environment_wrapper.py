@@ -3,6 +3,7 @@
 # Login: xhudak03
 # File: environment_wrapper.py
 
+import logging
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -28,8 +29,6 @@ OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
 
-import logging
-
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO)
@@ -39,9 +38,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
 
-    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table : list[list] = None):
+    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table: list[list] = None):
         """Initializes the environment wrapper.
-        
+
         Args:
             stormpy_model: The Storm model to be used.
             args: The arguments from the command line or ArgsSimulator.
@@ -61,8 +60,8 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         if len(list(stormpy_model.reward_models.keys())) == 0:
             self.reward_multiplier = -1.0
         elif list(stormpy_model.reward_models.keys())[-1] in "rewards":
-            self.reward_multiplier = 1.0 
-        else: # If 1.0, rewards are positive, if -1.0, rewards are negative
+            self.reward_multiplier = 1.0
+        else:  # If 1.0, rewards are positive, if -1.0, rewards are negative
             self.reward_multiplier = -1.0
         self._finished = False
         self._num_steps = 0
@@ -89,7 +88,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.original_init_state = self.stormpy_model.initial_states
         self.q_values_table = q_values_table
 
-    def set_random_starts_simulation(self, flag : bool = True):
+    def set_random_starts_simulation(self, flag: bool = True):
         self.random_start_simulator = flag
         if not flag:
             nr_states = self.stormpy_model.nr_states
@@ -98,9 +97,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
     def set_new_qvalues_table(self, qvalues_table):
         self.q_values_table = qvalues_table
-        self.q_values_ranking = None # Because we want to re-compute the ranking later
+        self.q_values_ranking = None  # Because we want to re-compute the ranking later
 
-    def set_selection_pressure(self, sp : float = 1.5):
+    def set_selection_pressure(self, sp: float = 1.5):
         self.selection_pressure = sp
 
     def create_new_environment(self):
@@ -131,36 +130,42 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 shape=tf.TensorShape((1,)), dtype=tf.float32, name="observation"),
         elif self.encoding_method == "Valuations":
             try:
-                json_example = self.stormpy_model.observation_valuations.get_json(0)
+                json_example = self.stormpy_model.observation_valuations.get_json(
+                    0)
                 parse_data = json.loads(str(json_example))
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(parse_data) + OBSERVATION_SIZE,), dtype=tf.float32, name="observation"),
             except:
-                logging.error("Valuation encoding not possible, using one-hot encoding instead.")
+                logging.error(
+                    "Valuation encoding not possible, using one-hot encoding instead.")
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(self._possible_observations),), dtype=tf.float32, name="observation"),
                 self.args = "One-Hot"
         elif self.encoding_method == "Valuations++":
             try:
-                json_example = self.stormpy_model.observation_valuations.get_json(0)
+                json_example = self.stormpy_model.observation_valuations.get_json(
+                    0)
                 parse_data = json.loads(str(json_example))
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(parse_data) + OBSERVATION_SIZE + 1,), dtype=tf.float32, name="observation"),
             except:
-                logging.error("Valuation encoding not possible, using one-hot encoding instead.")
+                logging.error(
+                    "Valuation encoding not possible, using one-hot encoding instead.")
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(self._possible_observations),), dtype=tf.float32, name="observation"),
                 self.args = "One-Hot"
         elif self.encoding_method == "Extended_Valuations":
             try:
-                json_example = self.stormpy_model.observation_valuations.get_json(0)
+                json_example = self.stormpy_model.observation_valuations.get_json(
+                    0)
                 parse_data = json.loads(str(json_example))
                 reward_size = 1
                 action_size = 1
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(parse_data) + OBSERVATION_SIZE + reward_size + action_size,), dtype=tf.float32, name="observation"),
             except:
-                logging.error("Valuation encoding not possible, using one-hot encoding instead.")
+                logging.error(
+                    "Valuation encoding not possible, using one-hot encoding instead.")
                 observation_spec = tensor_spec.TensorSpec(shape=(
                     len(self._possible_observations),), dtype=tf.float32, name="observation"),
                 self.args = "One-Hot"
@@ -246,15 +251,17 @@ class Environment_Wrapper(py_environment.PyEnvironment):
                 observation, self.stormpy_model, self.simulator._report_state())
             return tf.constant(observation_vector, dtype=tf.float32)
         elif self.encoding_method == "Extended_Valuations":
-            observation_vector = create_valuations_encoding(observation, self.stormpy_model)
-            observation_vector = np.concatenate((observation_vector, [self.last_action, self.reward]))
+            observation_vector = create_valuations_encoding(
+                observation, self.stormpy_model)
+            observation_vector = np.concatenate(
+                (observation_vector, [self.last_action, self.reward]))
             return tf.constant(observation_vector, dtype=tf.float32)
-        
-    def _set_init_state(self, index : int = 0):
+
+    def _set_init_state(self, index: int = 0):
         nr_states = self.stormpy_model.nr_states
         indices_bitvector = stormpy.BitVector(nr_states, [index])
         self.stormpy_model.set_initial_states(indices_bitvector)
-        
+
     def _uniformly_change_init_state(self):
         nr_states = self.stormpy_model.nr_states
         index = np.random.randint(0, nr_states)
@@ -265,12 +272,12 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         maximums = tf.reduce_max(q_values_table, axis=-1)
         arg_sorted_qvalues = tf.argsort(maximums, direction="DESCENDING")
         rank_tensor = tf.zeros_like(maximums, dtype=tf.int32)
-        rank_tensor = tf.tensor_scatter_nd_update(rank_tensor, 
-                                                tf.expand_dims(arg_sorted_qvalues, axis=1), 
-                                                tf.range(tf.size(maximums)))
+        rank_tensor = tf.tensor_scatter_nd_update(rank_tensor,
+                                                  tf.expand_dims(
+                                                      arg_sorted_qvalues, axis=1),
+                                                  tf.range(tf.size(maximums)))
         # logger.info("Computed q-values ranking.")
         return rank_tensor + 1
-
 
     @tf.function
     def compute_rank_based_probabilities(self, selection_pressure, arg_sorted_q_values, n) -> tf.Tensor:
@@ -278,8 +285,8 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         probabilities = (2 * selection_pressure - 2) * probabilities
         probabilities = (selection_pressure - probabilities) / n
         return probabilities
-    
-    def _rank_selection(self, selection_pressure : float = 1.4) -> int:
+
+    def _rank_selection(self, selection_pressure: float = 1.4) -> int:
         """Selection based on rank selection in genetic algorithms. See https://en.wikipedia.org/wiki/Selection_(genetic_algorithm).
 
         Args:
@@ -291,18 +298,19 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             self.q_values_ranking = self.sort_q_values(self.q_values_table)
             updated = True
         if updated or (not hasattr(self, "dist")) or self.dist is None:
-            probabilities = self.compute_rank_based_probabilities(selection_pressure, self.q_values_ranking, n)
+            probabilities = self.compute_rank_based_probabilities(
+                selection_pressure, self.q_values_ranking, n)
             self.dist = tfp.distributions.Categorical(probs=probabilities)
         index = self.dist.sample().numpy()
         return index
-    
+
     def _change_init_state_by_q_values_ranked(self):
         if hasattr(self, "selection_pressure"):
             index = self._rank_selection(self.selection_pressure)
         else:
             index = self._rank_selection()
         self._set_init_state(index)
-        
+
     def _restart_simulator(self):
         if self.random_start_simulator:
             if self.q_values_table is None:
@@ -330,15 +338,16 @@ class Environment_Wrapper(py_environment.PyEnvironment):
             self.empty_reward = True
             reward = tf.constant(0, dtype=tf.float32)
         else:
-            reward = tf.constant(self.reward_multiplier * stepino[1][0] * self.normalizer, dtype=tf.float32)
+            reward = tf.constant(
+                self.reward_multiplier * stepino[1][0] * self.normalizer, dtype=tf.float32)
         mask = self.compute_mask()
         observation_vector = self.create_encoding(observation)
         observation_tensor = {
             "observation": observation_vector, "mask": tf.constant(mask[0], dtype=tf.bool), "integer": tf.constant([observation], dtype=tf.int32)}
         self._current_time_step = ts.TimeStep(
-            observation=observation_tensor, 
-            reward=self.reward_multiplier * reward, 
-            discount=self.discount, 
+            observation=observation_tensor,
+            reward=self.reward_multiplier * reward,
+            discount=self.discount,
             step_type=ts.StepType.FIRST)
         return self._current_time_step
 
@@ -348,7 +357,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         choice_list = self.get_choice_labels()
         try:
             action = choice_list.index(act_keyword)
-        except: # Should not happen much, probably broken agent!
+        except:  # Should not happen much, probably broken agent!
             action = 0
         return action
 
@@ -363,7 +372,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.simulator.set_observation_mode(
             stormpy.simulator.SimulatorObservationMode.STATE_LEVEL)
         return distance
-    
+
     def get_coordinates(self) -> tuple:
         """Gets the coordinates of the agent. Experimental feature used for exact reward shaping."""
         self.simulator.set_observation_mode(
@@ -374,7 +383,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.simulator.set_observation_mode(
             stormpy.simulator.SimulatorObservationMode.STATE_LEVEL)
         return ax, ay
-    
+
     def is_goal_state(self, labels) -> bool:
         """Checks if the current state is a goal state."""
         for label in labels:
@@ -427,7 +436,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
     def _do_step_in_simulator(self, action) -> tuple[ts.TimeStep, float]:
         """Does the step in the Stormpy simulator.
-        
+
             returns:
                 tuple of new TimeStep and penalty for performed action."""
         penalty = 0.0
@@ -454,8 +463,8 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         normalized_step = self.normalize_reward_in_time_step(evaluated_step)
         # print(normalized_step)
         return normalized_step
-    
-    def normalize_reward_in_time_step(self, time_step : ts.TimeStep):
+
+    def normalize_reward_in_time_step(self, time_step: ts.TimeStep):
         new_reward = time_step.reward * self.normalizer
         new_time_step = ts.TimeStep(
             step_type=time_step.step_type,
@@ -477,7 +486,7 @@ class Environment_Wrapper(py_environment.PyEnvironment):
     def get_observation(self) -> dict[str: tf.Tensor]:
         observation = self.simulator._report_observation()
         mask = self.compute_mask()
-        return {"observation": self.create_encoding(observation), "mask": tf.constant(mask[0], dtype=tf.bool), 
+        return {"observation": self.create_encoding(observation), "mask": tf.constant(mask[0], dtype=tf.bool),
                 "integer": tf.constant([observation], dtype=tf.int32)}
 
     def get_choice_labels(self) -> list[str]:

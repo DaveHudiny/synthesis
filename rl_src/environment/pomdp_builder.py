@@ -68,6 +68,7 @@ class POMDP_builder:
         logger.debug("Start building the POMDP")
         return sp.build_sparse_model_with_options(program, options)
 
+
 if __name__ == "__main__":
     parser = Parser()
     args = parser.parse_args()
