@@ -111,6 +111,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.create_specifications()
 
         # Normalization of the rewards. Useless for PPO with its own normalization.
+        self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32)
         self.normalize_simulator_rewards = self.args.normalize_simulator_rewards
         if self.normalize_simulator_rewards:
             self.normalizer = 1.0/tf.abs(self.goal_value)

@@ -104,7 +104,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.0006,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=500,
-                                    nr_runs=5001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=True,
+                                    nr_runs=5001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=100, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
                                     normalize_simulator_rewards=True, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=256,
                                     vectorized_envs=True)
@@ -113,4 +113,4 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
 
 if __name__ == "__main__":
-    run_experiments("experiments_vectorized_fixed_variances", "./models")
+    run_experiments("experiments_v_larger_networks", "./models")

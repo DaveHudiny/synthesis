@@ -38,8 +38,8 @@ def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEn
         tf_environment.observation_spec()["observation"],
         preprocessing_layers=preprocessing_layer,
         input_fc_layer_params=layer_params,
-        output_fc_layer_params=None,
         lstm_size=(64,),
+        output_fc_layer_params=(64,),
         conv_layer_params=None
     )
     return value_net
