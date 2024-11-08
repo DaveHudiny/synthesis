@@ -21,6 +21,7 @@ import tf_agents
 from environment.environment_wrapper import Environment_Wrapper
 from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
+from agents.random_agent import RandomAgent
 from tools.evaluators import *
 from agents.policies.fsc_policy import FSC_Policy, FSC
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
@@ -99,38 +100,11 @@ class FatherAgent(AbstractAgent):
             load: Whether to load the agent. Unused.
             agent_folder: The folder where the agent is stored."""
 
-        self.common_init(self, environment, tf_environment,
+        self.common_init(environment, tf_environment,
                          args, load, agent_folder)
-        train_step_counter = tf.Variable(0)
-        optimizer = Adam(learning_rate=self.learning_rate, clipnorm=1.0)
-
-        self.fc_layer_params = (10,)
-        dense_layers = [tf.keras.layers.Dense(
-            num_units, activation='relu') for num_units in self.fc_layer_params]
-
-        q_values_layer = tf.keras.layers.Dense(
-            units=len(environment.action_keywords),
-            activation=None,
-            kernel_initializer=tf.keras.initializers.RandomUniform(
-                minval=-0.03, maxval=0.03),
-            bias_initializer=tf.keras.initializers.Constant(-0.2)
-        )
-
-        q_net = sequential.Sequential(dense_layers + [q_values_layer])
-        lstm = tf.keras.layers.LSTM(
-            10, return_sequences=True, return_state=True, activation='tanh', dtype=tf.float32)
-        q_net = sequential.Sequential([lstm, q_net])
-
-        self.agent = dqn_agent.DqnAgent(
-            tf_environment._time_step_spec,
-            tf_environment._action_spec,
-            q_network=q_net,
-            optimizer=optimizer,
-            td_errors_loss_fn=common.element_wise_squared_loss,
-            train_step_counter=train_step_counter,
-            observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter
-        )
-        self.agent.initialize()
+        # Initialize random policy agent
+        self.agent = RandomAgent(tf_environment.time_step_spec(),
+                                 tf_environment.action_spec())
         self.init_replay_buffer()
         self.init_collector_driver(tf_environment)
         self.init_vec_evaluation_driver(self.tf_environment, self.environment)
@@ -529,6 +503,9 @@ class FatherAgent(AbstractAgent):
         self.set_agent_stochastic()
         if self.evaluation_result.best_updated:
             self.save_agent(best=True)
+        self.log_evaluation_info()
+    
+    def log_evaluation_info(self):
         logger.info('Average Return = {0}'.format(
             self.evaluation_result.returns[-1]))
         logger.info('Average Virtual Goal Value = {0}'.format(

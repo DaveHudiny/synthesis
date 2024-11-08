@@ -211,8 +211,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.dones = np.array(len(self.last_observation) * [False])
 
         self.reward = tf.constant(np.array(len(self.last_observation) * [0.0]), dtype=tf.float32)
-        observation_tensor = {"observation": tf.constant(self.last_observation, tf.float32), 
-                              "mask": tf.constant(self.allowed_actions, tf.bool), 
+        observation_tensor = {"observation": tf.constant(self.last_observation, tf.float32),
+                              "mask": tf.constant(self.allowed_actions, tf.bool),
                               "integer": tf.constant(tf.ones((len(self.last_observation),1), dtype=tf.int32), dtype=tf.int32)}
         self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
@@ -265,7 +265,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         """
         self._num_steps += 1
         self.last_action = actions
-        
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(actions=actions)
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states

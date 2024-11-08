@@ -5,7 +5,6 @@
 # Login: xhudak03
 
 from agents.father_agent import FatherAgent
-from agents.random_agent import RandomTFPAgent
 from agents.policies.fsc_policy import FSC_Policy, FSC
 from interpreters.tracing_interpret import TracingInterpret
 from interpreters.model_free_interpret import ModelFreeInterpret, ModelInfo
@@ -23,7 +22,7 @@ from environment.environment_wrapper import *
 from environment.environment_wrapper_vec import *
 from environment.pomdp_builder import *
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
-from tools.weight_initialization import WeightInitializationMethods 
+from tools.weight_initialization import WeightInitializationMethods
 
 import tensorflow as tf
 import sys
@@ -51,7 +50,7 @@ class ExperimentInterface:
             self.args = self.parser.args
         else:
             self.args = args
-        self.pomdp_model = pomdp_model;
+        self.pomdp_model = pomdp_model
         self.agent = agent
 
     def asserts(self):
@@ -88,15 +87,16 @@ class ExperimentInterface:
                 time_step = next_time_step
                 is_last = time_step.is_last()
 
-    def initialize_environment(self, args : ArgsEmulator=None):
+    def initialize_environment(self, args: ArgsEmulator = None):
         self.pomdp_model = self.initialize_prism_model()
         logger.info("Model initialized")
         if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
             num_envs = 1
         else:
-            num_envs = self.args.batch_size
+            num_envs = self.args.num_environments
         if self.args.vectorized_envs:
-            self.environment = Environment_Wrapper_Vec(self.pomdp_model, args, num_envs=num_envs)
+            self.environment = Environment_Wrapper_Vec(
+                self.pomdp_model, args, num_envs=num_envs)
         else:
             self.environment = Environment_Wrapper(self.pomdp_model, args)
         # self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
@@ -105,10 +105,8 @@ class ExperimentInterface:
         logger.info("Environment initialized")
         return tf_environment
 
-    
-
     def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None,
-                          pre_training_dqn : bool = False) -> FatherAgent:
+                          pre_training_dqn: bool = False) -> FatherAgent:
         """Selects the agent type based on the learning method and encoding method in self.args. The agent is saved to the self.agent variable.
 
         Args:
@@ -138,8 +136,8 @@ class ExperimentInterface:
                 "Learning method not recognized or implemented yet.")
         return agent
 
-    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None, learning_method = None,
-                         pre_training_dqn : bool = False) -> FatherAgent:
+    def initialize_agent(self, qvalues_table=None, action_labels_at_observation=None, learning_method=None,
+                         pre_training_dqn: bool = False) -> FatherAgent:
         """Initializes the agent. The agent is initialized based on the learning method and encoding method. The agent is saved to the self.agent variable.
         It is important to have previously initialized self.environment, self.tf_environment and self.args.
 
@@ -148,10 +146,11 @@ class ExperimentInterface:
         """
         agent = self.select_agent_type(
             qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation,
-            learning_method=learning_method, pre_training_dqn = pre_training_dqn)
+            learning_method=learning_method, pre_training_dqn=pre_training_dqn)
         if self.args.restart_weights > 0:
             tf_environment = self.get_tf_environment_eval()
-            agent = WeightInitializationMethods.select_best_starting_weights(agent, tf_environment, self.args)
+            agent = WeightInitializationMethods.select_best_starting_weights(
+                agent, tf_environment, self.args)
         return agent
 
     def initialize_fsc_agent(self):
@@ -164,19 +163,23 @@ class ExperimentInterface:
         return policy
 
     def evaluate_random_policy(self):
-        agent = RandomTFPAgent(
-            self.environment, self.tf_environment, self.args, load=False)
-        interpret = TracingInterpret(self.environment, self.tf_environment,
-                                     self.args.encoding_method, self.environment._possible_observations)
+        agent_folder = f"./trained_agents/{self.args.agent_name}_{self.args.learning_method}_{self.args.encoding_method}"
+        self.agent = FatherAgent(self.environment, self.tf_environment, self.args, agent_folder=agent_folder)
+        
+        self.agent.evaluate_agent(False, vectorized=self.args.vectorized_envs)
+        
         results = {}
-        for refusing in [True, False]:
-            result = interpret.get_dictionary(agent, refusing)
-            if refusing:
-                results["best_with_refusing"] = result
-                results["last_with_refusing"] = result
-            else:
-                results["best_without_refusing"] = result
-                results["last_without_refusing"] = result
+        if self.args.perform_interpretation:
+            interpret = TracingInterpret(self.environment, self.tf_environment,
+                                         self.args.encoding_method, self.environment._possible_observations)
+            for refusing in [True, False]:
+                result = interpret.get_dictionary(self.agent, refusing)
+                if refusing:
+                    results["best_with_refusing"] = result
+                    results["last_with_refusing"] = result
+                else:
+                    results["best_without_refusing"] = result
+                    results["last_without_refusing"] = result
         return results
 
     def tracing_interpretation(self, with_refusing=None):

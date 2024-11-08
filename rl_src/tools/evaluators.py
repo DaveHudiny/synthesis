@@ -176,7 +176,7 @@ class TrajectoryBuffer:
         episode_variance = np.var(self.episode_outcomes.cumulative_rewards)
         virtual_variance = np.var(self.episode_outcomes.virtual_rewards)
         combined_variance = np.var(
-            self.episode_outcomes.cumulative_rewards + self.episode_outcomes.virtual_rewards)
+            np.array(self.episode_outcomes.cumulative_rewards) + np.array(self.episode_outcomes.virtual_rewards))
         if updator:
             # updator(avg_return, avg_episode_return, reach_prob, returns, successes)
             updator(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes=len(self.episode_outcomes.cumulative_rewards),
@@ -224,9 +224,9 @@ def compute_average_return(policy: TFPolicy, tf_environment: tf_py_environment.T
     return avg_return, avg_episode_return, reach_prob
 
 
-def run_single_episode(policy, policy_function, tf_environment, environment):
+def run_single_episode(policy, policy_function, tf_environment : tf_py_environment.TFPyEnvironment, environment):
     """Run a single episode and return the cumulative reward and success flag."""
-    time_step = tf_environment._reset()
+    time_step = tf_environment.reset()
     policy_state = policy.get_initial_state(None)
     cumulative_return = 0.0
     goal_visited, trap_visited = False, False
@@ -275,6 +275,6 @@ def calculate_statistics(total_return, episode_return, goal_visited, traps_visit
     reach_prob = goal_visited / num_episodes
     episode_variance = np.var(returns)
     virtual_variance = np.var(episode_returns)
-    combined_variance = np.var(returns + episode_returns)
+    combined_variance = np.var(np.array(returns) + np.array(episode_returns))
     trap_reach_prob = traps_visited / num_episodes
     return avg_return, avg_episode_return, reach_prob, episode_variance, virtual_variance, combined_variance, trap_reach_prob
