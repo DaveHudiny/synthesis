@@ -1,4 +1,5 @@
 
+import vec_storm.simulator
 from environment.pomdp_builder import *
 from stormpy import simulator
 import vec_storm
@@ -139,20 +140,41 @@ def compare_overall_performance(vec_storm_simulator, storm_simulator):
     print("Average cumulative rewards vec_storm", rewards_cumulative_vec)
 
 
-def test_reality_of_rewards(vec_storm_simulator, reward_model):  
+def test_reality_of_rewards_single(vec_storm_simulator, reward_model):  
     max_steps = 5000
     print("Testing reality of rewards for model " + reward_model)
     _, allowed_actions, _ = vec_storm_simulator.reset()
     random_action = generate_uniform_action_given_mask(allowed_actions)
+    random_action = np.array([random_action])
     for _ in range(max_steps):
-        vec_observation, vec_rewards, vec_labels = vec_storm_simulator.step(random_action)
+        observations, vec_rewards, done, truncated, allowed_actions, metalabels = vec_storm_simulator.step(random_action)
+        random_action = np.array([generate_uniform_action_given_mask(allowed_actions)])
         if "evade" in reward_model:
             assert vec_rewards[0] == 1.0 or vec_rewards[0] == 0.0, f"Reward is not 0 or 1: {vec_rewards[0]}"
         elif "geo" in reward_model:
             assert vec_rewards[0] == 1.0 or vec_rewards[0] == 0.0, f"Reward is not 0 or 1: {vec_rewards[0]}"
         elif "refuel-10" in reward_model:
             assert vec_rewards[0] == 1.0 or vec_rewards[0] == 0.0 or vec_rewards[0] == 3.0, f"Reward is not 0, 1 or 3: {vec_rewards[0]}"
-    print("Reality of rewards tests passed for model", reward_model)
+    print("Reality of rewards tests passed for model with single simulator", reward_model)
+
+def test_reality_of_rewards_multiple(vec_storm_simulator: vec_storm.StormVecEnv, storm_simulator, reward_model):
+    num_envs = 8
+    max_steps = 5000
+    vec_storm_simulator.set_num_envs(num_envs)
+    _, allowed_actions, _ = vec_storm_simulator.reset()
+    random_actions = np.array([generate_uniform_action_given_mask(allowed_actions) for _ in range(num_envs)])
+    
+    for i in range(max_steps):
+        observations, vec_rewards, done, truncated, allowed_actions, metalabels = vec_storm_simulator.step(random_actions)
+        random_actions = np.array([generate_uniform_action_given_mask(allowed_actions) for _ in range(num_envs)])
+
+        if "evade" in reward_model or "geo" in reward_model:
+            assert np.all(np.isin(vec_rewards, [0.0, 1.0])), f"Rewards contain values other than 0 or 1: {vec_rewards}"
+        elif "refuel-10" in reward_model:
+            assert np.all(np.isin(vec_rewards, [0.0, 1.0, 3.0])), f"Rewards contain values other than 0, 1, or 3: {vec_rewards}"
+    
+    print("Reality of rewards tests passed for model with multiple simulators", reward_model)
+
 
 def perform_comparison(prism_model: str, prism_properties: str, constants: dict[str, str], reward_model: str = "evade"):
     print("Performing comparison on model", reward_model)
@@ -181,14 +203,13 @@ def perform_comparison(prism_model: str, prism_properties: str, constants: dict[
     vec_rand_action = generate_uniform_action_given_mask(allowed_actions) # How to generate random action with vectorized environment
 
     
-    print("Comparing overall performance")
+    print("Comparing overall performance for model", reward_model)
     compare_overall_performance(vec_storm_simulator, storm_simulator)
 
-    test_reality_of_rewards(vec_storm_simulator, reward_model)
+    test_reality_of_rewards_single(vec_storm_simulator, reward_model)
+    test_reality_of_rewards_multiple(vec_storm_simulator, storm_simulator, reward_model)
 
-
-    
-    print("Tests passed")
+    print("Tests finished")
 
 if __name__ == "__main__":
     perform_comparison("./models/evade/sketch.templ", "./models/evade/sketch.props", "", "evade")

@@ -91,7 +91,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
     for model in os.listdir(f"{path_to_models}"):
         if "drone" in model:  # Currently not supported model
             continue
-        if "geo" not in model and "rocks" not in model:
+        if "geo" not in model and "rocks" not in model and "mba-small" not in model:
             continue
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
