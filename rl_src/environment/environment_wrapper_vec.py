@@ -44,10 +44,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 def generate_reward_selection_function(rewards, labels):
-    keys = rewards.keys()
-    keys = list(keys)
-    reward = rewards[keys[-1]]
-    return reward
+    last_reward = labels[-1]
+    return rewards[last_reward]
 
 
 class Environment_Wrapper_Vec(py_environment.PyEnvironment):
@@ -246,7 +244,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.goal_state_mask = labels_mask & self.dones
         self.anti_goal_state_mask = ~labels_mask & self.dones & ~self.truncated
         still_running_mask = ~self.dones
-        
+
         self.reward = tf.where(
             self.goal_state_mask,
             goal_values_vector,
@@ -256,11 +254,20 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
+        # print("Mask", labels_mask)
+        # print("Dones", self.dones)
+        # print("Goal state mask", self.goal_state_mask)
+        # print("Anti goal state mask", self.anti_goal_state_mask)
+        # print("Truncated", self.truncated)
+        # print("Default rewards", self.default_rewards)
+        # print("Replacement positive", tf.where(self.goal_state_mask, goal_values_vector, self.default_rewards))
+        # print("Replacement negative", tf.where(self.anti_goal_state_mask, antigoal_values_vector, self.default_rewards))
         self.step_types = tf.where(
             still_running_mask,
             self.default_step_types,
             self.terminated_step_types
         )
+        # print("Normalizer:", self.normalizer)
         self._current_time_step = ts.TimeStep(
             step_type=self.step_types,
             reward=self.reward * self.normalizer,
@@ -268,6 +275,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             observation=self.get_observation()
         )
         self.virtual_reward = self.reward - self.default_rewards
+        # print("Reward:", self.reward)
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -277,6 +285,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         """
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
+        # print("Rewards from simulator: ", rewards)
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
@@ -287,7 +296,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         else:
             self.goal = False
         # Fix reward from the Storm values to the RL values by multiplier given purposed specification.
-        print(self.reward_multiplier)
         self.reward = tf.constant(rewards, dtype=tf.float32) * self.reward_multiplier
         # print("Reward: ", self.reward)
         self.dones = done

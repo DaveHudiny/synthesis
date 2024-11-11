@@ -81,9 +81,11 @@ class Recurrent_PPO_agent(FatherAgent):
             lambda_value=0.95,
             gradient_clipping=0.5,
             policy_l2_reg=0.0001,
-            value_function_l2_reg=0.0001,
-            value_pred_loss_coef=0.4,
+            # value_function_l2_reg=0.0001,
+            # value_pred_loss_coef=0.4,
             log_prob_clipping=5,
+            entropy_regularization=0.00001,
+            normalize_rewards=True,
         )
         self.agent.initialize()
         logging.info("Agent initialized")

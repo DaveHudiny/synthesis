@@ -258,13 +258,16 @@ class FatherAgent(AbstractAgent):
             iterations (int): Number of iterations to train agent.
         """
         
-        self.agent.train = common.function(self.agent.train)
+        # self.agent.train = common.function(self.agent.train)
+        # set earger function for training
+        
+
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
             single_deterministic_pass = True
         else:
             single_deterministic_pass = False
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=32, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass).prefetch(4)
+            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass).prefetch(8)
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
@@ -316,7 +319,7 @@ class FatherAgent(AbstractAgent):
         if use_fsc:
             self.init_fsc_policy_driver(self.tf_environment, self.fsc)
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(4)
+            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(8)
         self.iterator = iter(self.dataset)
         logger.info("Training agent")
         self.agent.train = common.function(self.agent.train)
