@@ -181,7 +181,7 @@ class FatherAgent(AbstractAgent):
         if not self.args.vectorized_envs:
             num_steps = self.args.num_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            num_steps = self.args.batch_size * self.args.num_steps
+            num_steps = self.args.batch_size * self.args.num_steps # TODO: Compare it with self.args.num_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
             num_steps = self.args.batch_size
         elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
@@ -264,7 +264,7 @@ class FatherAgent(AbstractAgent):
         else:
             single_deterministic_pass = False
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass).prefetch(8)
+            num_parallel_calls=4, sample_batch_size=32, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass).prefetch(4)
         self.best_iteration_final = 0.0
         self.best_iteration_steps = -tf.float32.min
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
@@ -278,6 +278,7 @@ class FatherAgent(AbstractAgent):
         # if self.args.random_start_simulator:
         #     self.environment.set_random_starts_simulation(True)
         #     self.tf_environment.reset()
+        self.environment.set_random_starts_simulation(False)
         for i in range(iterations):
             
             self.driver.run()
@@ -288,6 +289,7 @@ class FatherAgent(AbstractAgent):
                     train_loss = self.agent.train(mini_batch)
                     train_loss = train_loss.loss.numpy()
                 self.replay_buffer.clear()
+                # print(self.replay_buffer.gather_all())
             elif replay_buffer_option == ReplayBufferOptions.OFF_POLICY or replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 experience, _ = next(iterator)
                 train_loss = self.agent.train(experience).loss

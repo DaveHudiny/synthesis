@@ -76,7 +76,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         intersection_labels = [
             label for label in labeling if label in self.special_labels]
         metalabels = {"goals" : intersection_labels}
-        print(metalabels)
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs, max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
         # self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, generate_reward_selection_function, num_envs=num_envs, max_steps=args.max_steps, metalabels=metalabels)
@@ -233,6 +232,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             reward=self.reward_multiplier * self.reward,
             discount=self.discount,
             step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32))
+        
         return self._current_time_step
 
     def evaluate_simulator(self) -> ts.TimeStep:
@@ -268,8 +268,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             observation=self.get_observation()
         )
         self.virtual_reward = self.reward - self.default_rewards
-        if self.goal:
-            print(self.reward)
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -285,11 +283,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # List of bools for each environment goal
         self.labels_mask = metalabels
         if True in self.labels_mask:
-            print(self.labels_mask)
             self.goal = True
         else:
             self.goal = False
         # Fix reward from the Storm values to the RL values by multiplier given purposed specification.
+        print(self.reward_multiplier)
         self.reward = tf.constant(rewards, dtype=tf.float32) * self.reward_multiplier
         # print("Reward: ", self.reward)
         self.dones = done
@@ -301,8 +299,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self._do_step_in_simulator(action)
         evaluated_step = self.evaluate_simulator()
         # print("Evaluated step: ", evaluated_step.reward)
-        if self.cumulative_num_steps > 1000000:
-            exit(0)
         return evaluated_step
 
     def current_time_step(self) -> ts.TimeStep:
