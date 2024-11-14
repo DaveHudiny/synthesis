@@ -103,7 +103,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             # if not "network" in model:
             #     continue
-            for replay_buffer_option in [ReplayBufferOptions.ORIGINAL_OFF_POLICY]:
+            for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
                 logger.info(
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
@@ -111,7 +111,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=10, evaluation_antigoal=-2, trajectory_num_steps=64, discount_factor=0.99, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
-                                    vectorized_envs=False)
+                                    vectorized_envs=True)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)

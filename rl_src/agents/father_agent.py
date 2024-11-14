@@ -107,7 +107,7 @@ class FatherAgent(AbstractAgent):
                                  tf_environment.action_spec())
         self.init_replay_buffer()
         self.init_collector_driver(tf_environment)
-        self.init_vec_evaluation_driver(self.tf_environment, self.environment)
+        self.init_vec_evaluation_driver(self.tf_environment, self.environment, self.args.max_steps)
 
     def init_replay_buffer(self, buffer_size=None):
         """Initialize the uniform replay buffer for the agent.
@@ -120,7 +120,7 @@ class FatherAgent(AbstractAgent):
         if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or not self.args.vectorized_envs:
             batch_size = 1
         else:
-            batch_size = self.args.batch_size
+            batch_size = self.args.num_environments
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
             batch_size=batch_size,
@@ -140,7 +140,7 @@ class FatherAgent(AbstractAgent):
             tf_environment,
             eager,
             observers=[self.trajectory_buffer.add_batched_step],
-            num_steps=(1 + num_steps) * self.args.batch_size
+            num_steps=(1 + num_steps) * self.args.num_environments
         )
 
     def get_observers(self, alternative_observer):
@@ -166,10 +166,12 @@ class FatherAgent(AbstractAgent):
         if not self.args.vectorized_envs:
             num_steps = self.args.num_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            num_steps = self.args.batch_size * self.args.num_steps # TODO: Compare it with self.args.max_steps
+            num_steps = self.args.num_environments * self.args.num_steps # TODO: Compare it with self.args.max_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
-            num_steps = self.args.batch_size
+            num_steps = self.args.num_environments
         elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+            num_steps = self.args.num_steps
+        else:
             num_steps = self.args.num_steps
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
@@ -243,7 +245,7 @@ class FatherAgent(AbstractAgent):
             iterations (int): Number of iterations to train agent.
         """
         
-        # self.agent.train = common.function(self.agent.train)
+        self.agent.train = common.function(self.agent.train)
         # set earger function for training
         
 
@@ -267,17 +269,19 @@ class FatherAgent(AbstractAgent):
         #     self.environment.set_random_starts_simulation(True)
         #     self.tf_environment.reset()
         self.environment.set_random_starts_simulation(False)
-        policy_state = None
         for i in range(iterations):
             
-            _, policy_state = self.driver.run(policy_state=None)
+            self.driver.run()
             
             if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
                 data = self.replay_buffer.gather_all()
+                # dataset = self.replay_buffer.as_dataset(
+                #     num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass)
+                # for data, _ in dataset:
+                    # print(data)
                 train_loss = self.agent.train(data)
                 train_loss = train_loss.loss.numpy()
                 self.replay_buffer.clear()
-                # print(self.replay_buffer.gather_all())
             elif replay_buffer_option == ReplayBufferOptions.OFF_POLICY or replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 experience, _ = next(iterator)
                 train_loss = self.agent.train(experience).loss
@@ -494,7 +498,7 @@ class FatherAgent(AbstractAgent):
             #     self.get_evaluation_policy(), self.tf_environment, self.args.max_steps, self.args.batch_size, self.environment, self.evaluation_result.update)
 
         self.set_agent_stochastic()
-        if self.evaluation_result.best_updated:
+        if self.evaluation_result.best_updated and self.agent_folder is not None:
             self.save_agent(best=True)
         self.log_evaluation_info()
     

@@ -55,67 +55,10 @@ class Policy_Mask_Wrapper(TFPolicy):
     def set_greedy(self, is_greedy):
         self._is_greedy = is_greedy
 
-    def _prepare_fsc_oracle(self, number_of_possible_observations : int): # Unused in final version
-        self._fsc_action_function = tf.zeros(
-            [self._action_spec.maximum + 2, number_of_possible_observations], dtype=tf.int32)
-        self._fsc_update_function = tf.zeros(
-            [self._action_spec.maximum + 2, number_of_possible_observations], dtype=tf.int32)
-        labels_list = ["__no_label__" for _ in range(self._action_spec.maximum + 2)]
-        # +2 because of __no_label__ actions in the used FSC.
-        self._fsc_action_labels = tf.constant(labels_list, dtype=tf.string)
-        self.tf_action_labels = tf.constant(labels_list, dtype=tf.string)
-
-    tf.function
+    @tf.function
     def _get_initial_state(self, batch_size):
         # print("Getting initial state", batch_size)
-        return self._policy.get_initial_state(batch_size)
-    
-    def _update_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None): # Unused in final version
-        print("Shape of action function: ", self._fsc_action_function)
-        print("Shape of update function: ", self._fsc_update_function)
-        print("Shape of action labels: ", self._fsc_action_labels)
-        print("Shape of tf action labels: ", self.tf_action_labels)
-        
-        print("Shape of fsc_oracle action function: ", np.array(fsc_oracle.action_function).shape)
-        print("Shape of fsc_oracle update function: ", np.array(fsc_oracle.update_function).shape)
-        print("Shape of fsc_oracle action labels: ", np.array(fsc_oracle.action_labels).shape)
-        print("Shape of tf action keywords: ", np.array(tf_action_keywords).shape)
-
-        update_indices = tf.where(tf.not_equal(fsc_oracle.action_function, -1))
-        print(update_indices)
-        print(tf.constant(fsc_oracle.action_function)[update_indices[0, 0].numpy(), update_indices[0, 1].numpy()])
-        self._fsc_action_function = tf.tensor_scatter_nd_update(self._fsc_action_function,
-                                                                update_indices,
-                                                                tf.constant(fsc_oracle.action_function))
-
-        update_indices = tf.where(tf.not_equal(fsc_oracle.update_function, -1))
-        self._fsc_update_function = tf.tensor_scatter_nd_update(self._fsc_update_function,
-                                                                update_indices,
-                                                                tf.constant(fsc_oracle.update_function))
-        update_indices = tf.where(tf.not_equal(fsc_oracle.action_labels, ""))
-        self._fsc_action_labels = tf.tensor_scatter_nd_update(self._fsc_action_labels,
-                                                              update_indices,
-                                                              tf.constant(fsc_oracle.action_labels))
-        update_indices = tf.where(tf.not_equal(tf_action_keywords, ""))
-        self.tf_action_labels = tf.tensor_scatter_nd_update(self.tf_action_labels,
-                                                            update_indices,
-                                                            tf.constant(tf_action_keywords))
-
-    def _set_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None): # Unused in final version
-        
-        self._fsc_action_function = tf.constant(
-            fsc_oracle.action_function, dtype=tf.int32)
-        self._fsc_update_function = tf.constant(
-            fsc_oracle.update_function, dtype=tf.int32)
-        self._fsc_action_labels = tf.constant(
-            fsc_oracle.action_labels, dtype=tf.string)
-        self.tf_action_labels = tf.constant(tf_action_keywords, dtype=tf.string)
-        self._real_distribution = self._fsc_biased_distribution
-
-        
-
-    def _unset_fsc_oracle(self): # Unused in final version
-        self._real_distribution = self._distribution
+        return self._policy.get_initial_state(batch_size)    
 
     def _distribution(self, time_step, policy_state):
         observation, mask = self._observation_and_action_constraint_splitter(
@@ -124,50 +67,13 @@ class Policy_Mask_Wrapper(TFPolicy):
         distribution_result = self._policy.distribution(
             time_step, policy_state)
         logits = distribution_result.action.logits
+        print(logits)
         policy_state = distribution_result.state
         # Taken from q_policy.py from TensorFlow library
         almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
         logits = tf.compat.v2.where(
             tf.cast(mask, tf.bool), logits, almost_neg_inf
         )
-        distribution = tfp.distributions.Categorical(
-            logits=logits
-        )
-        distribution = tf.nest.pack_sequence_as(
-            self._action_spec, [distribution])
-        return policy_step.PolicyStep(distribution, policy_state, distribution_result.info)
-
-    @tf.function
-    def convert_to_tf_action_number(self, action_number):
-        keyword = self._fsc_action_labels[action_number]
-        if keyword == "__no_label__":
-            return tf.constant(-1, dtype=tf.int32)
-        tf_action_number = tf.argmax(
-            tf.cast(tf.equal(self.tf_action_labels, keyword), tf.int32), output_type=tf.int32)
-        return tf_action_number
-    
-    @tf.function
-    def _fsc_biased_distribution(self, time_step, policy_state):
-        fsc_observation = time_step.observation["integer"]
-        int_policy_state = tf.squeeze(self._fsc_memory)
-        fsc_observation = tf.squeeze(fsc_observation)
-        action_number = self._fsc_action_function[int_policy_state][fsc_observation]
-        action_number = self.convert_to_tf_action_number(action_number)
-        self._fsc_memory = self._fsc_update_function[int_policy_state][fsc_observation]
-
-        observation, mask = self._observation_and_action_constraint_splitter(
-            time_step.observation)
-        time_step = time_step._replace(observation=observation)
-        distribution_result = self._policy.distribution(
-            time_step, policy_state)
-        logits = distribution_result.action.logits
-        policy_state = distribution_result.state
-        # Taken from q_policy.py from TensorFlow library
-        almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
-        logits = tf.compat.v2.where(
-            tf.cast(mask, tf.bool), logits, almost_neg_inf
-        )
-        logits = logits[action_number] + 0.3
         distribution = tfp.distributions.Categorical(
             logits=logits
         )
