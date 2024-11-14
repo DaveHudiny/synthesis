@@ -100,7 +100,7 @@ class ExperimentInterface:
         else:
             self.environment = Environment_Wrapper(self.pomdp_model, args)
         # self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
-        tf_environment = tf_py_environment.TFPyEnvironment(self.environment)
+        tf_environment = tf_py_environment.TFPyEnvironment(self.environment, check_dims=True)
         # self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
         logger.info("Environment initialized")
         return tf_environment

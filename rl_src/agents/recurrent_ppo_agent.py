@@ -73,19 +73,22 @@ class Recurrent_PPO_agent(FatherAgent):
             optimizer,
             actor_net=self.actor_net,
             value_net=self.value_net,
-            num_epochs=3,
+            num_epochs=2,
             train_step_counter=train_step_counter,
             greedy_eval=False,
-            discount_factor=0.98,
+            discount_factor=0.99,
             use_gae=True,
             lambda_value=0.95,
             gradient_clipping=0.5,
             policy_l2_reg=0.0001,
-            # value_function_l2_reg=0.0001,
-            # value_pred_loss_coef=0.4,
-            log_prob_clipping=5,
-            entropy_regularization=0.00001,
+            # summarize_grads_and_vars=True,
+            value_function_l2_reg=0.0001,
+            value_pred_loss_coef=0.45,
+            # log_prob_clipping=2,
+            # entropy_regularization=0.01,
             normalize_rewards=True,
+            # adaptive_kl_target=0.02,
+
         )
         self.agent.initialize()
         logging.info("Agent initialized")

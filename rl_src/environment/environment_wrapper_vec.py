@@ -61,8 +61,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         """
         self.args = args
         super(Environment_Wrapper_Vec, self).__init__()
+        # self.batched = True
+        # self.batch_size = num_envs
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
+        
 
         # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
         # TODO: What if we want to minimize the probability of reaching some state or we want to maximize the probability of reaching some other state?
@@ -124,6 +127,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.cumulative_num_steps = 0
 
         # Step types used in the environment evaluation.
+        self.init_step_types = tf.constant(
+            [ts.StepType.FIRST] * self.num_envs, dtype=tf.int32)
         self.default_step_types = tf.constant(
             [ts.StepType.MID] * self.num_envs, dtype=tf.int32)
         self.terminated_step_types = tf.constant(
@@ -230,7 +235,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             reward=self.reward_multiplier * self.reward,
             discount=self.discount,
             step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32))
-        
+        self.prev_dones = np.array(len(self.last_observation) * [False])
         return self._current_time_step
 
     def evaluate_simulator(self) -> ts.TimeStep:
@@ -264,18 +269,24 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # print("Replacement negative", tf.where(self.anti_goal_state_mask, antigoal_values_vector, self.default_rewards))
         self.step_types = tf.where(
             still_running_mask,
-            self.default_step_types,
+            tf.where(
+                self.prev_dones,
+                self.init_step_types,
+                self.default_step_types
+            ),
             self.terminated_step_types
         )
         # print("Normalizer:", self.normalizer)
         self._current_time_step = ts.TimeStep(
             step_type=self.step_types,
-            reward=self.reward * self.normalizer,
+            reward=self.reward,
             discount=self.discount,
             observation=self.get_observation()
         )
+        self.prev_dones = self.dones
         self.virtual_reward = self.reward - self.default_rewards
         # print("Reward:", self.reward)
+        # print("Observation", self._current_time_step.observation)
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -285,8 +296,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         """
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
-        
-        print("Rewards from simulator: ", rewards)
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
@@ -297,7 +306,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         else:
             self.goal = False
         # Fix reward from the Storm values to the RL values by multiplier given purposed specification.
-        self.reward = tf.constant(rewards, dtype=tf.float32) * self.reward_multiplier
+        self.reward = tf.constant(rewards.tolist(), dtype=tf.float32) * self.reward_multiplier
         # print("Reward: ", self.reward)
         self.dones = done
         self.truncated = truncated

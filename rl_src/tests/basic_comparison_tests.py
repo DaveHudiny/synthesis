@@ -4,13 +4,15 @@ from environment.pomdp_builder import *
 from stormpy import simulator
 import vec_storm
 
+from general_test_tools import get_scalarized_reward, special_labels, initialize_prism_model
+
+
 import numpy as np
 import random
 
 import json
 
-special_labels = np.array(["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
-                               "((x = (10 - 1)) & (y = (10 - 1)))"])
+
 
 def create_valuations_encoding(observation, stormpy_model):
     valuations_json = stormpy_model.observation_valuations.get_json(
@@ -28,21 +30,8 @@ def create_valuations_encoding(observation, stormpy_model):
     return np.array(vector, dtype=np.float32)
 
 
-def parse_properties(prism_properties: str) -> list[str]:
-        with open(prism_properties, "r") as f:
-            lines = f.readlines()
-        properties = []
-        for line in lines:
-            if line.startswith("//"):
-                continue
-            properties.append(line.strip())
-        return properties
 
-def initialize_prism_model(prism_model: str, prism_properties, constants: dict[str, str]):
-    properties = parse_properties(prism_properties)
-    pomdp_args = POMDP_arguments(
-        prism_model, properties, constants)
-    return POMDP_builder.build_model(pomdp_args)
+
 
 # Compare Vec_Storm environment and storm environment with the same model and same random policy
 
@@ -101,7 +90,9 @@ def compare_overall_performance(vec_storm_simulator, storm_simulator):
                 observations, rewards, done, truncated, allowed_actions, metalabels = vec_storm_simulator.step(actions=actions)
                 vec_rand_action = generate_uniform_action_given_mask(allowed_actions)
                 rewards_cumulative_vec += rewards[0]
-            
+                if done[0]:
+                    print(rewards)
+
             
             intersection = intersection_with_special_labels(labels)
             if storm_running and len(intersection) > 0:
@@ -157,6 +148,18 @@ def test_reality_of_rewards_single(vec_storm_simulator, reward_model):
             assert vec_rewards[0] == 1.0 or vec_rewards[0] == 0.0 or vec_rewards[0] == 3.0, f"Reward is not 0, 1 or 3: {vec_rewards[0]}"
     print("Reality of rewards tests passed for model with single simulator", reward_model)
 
+def generate_uniform_action_given_mask_vectorized(mask):
+    number_of_available_actions = sum(sum(mask))
+    action = random.choice(range(number_of_available_actions))
+    index = -1
+    for i in range(len(mask[0])):
+        if mask[0][i]:
+            index += 1
+        if index == action:
+            return np.int32(i)
+        
+    return -1
+
 def test_reality_of_rewards_multiple(vec_storm_simulator: vec_storm.StormVecEnv, storm_simulator, reward_model):
     num_envs = 8
     max_steps = 5000
@@ -167,7 +170,8 @@ def test_reality_of_rewards_multiple(vec_storm_simulator: vec_storm.StormVecEnv,
     for i in range(max_steps):
         observations, vec_rewards, done, truncated, allowed_actions, metalabels = vec_storm_simulator.step(random_actions)
         random_actions = np.array([generate_uniform_action_given_mask(allowed_actions) for _ in range(num_envs)])
-
+        if i % 400 == 0:
+            vec_storm_simulator.reset()
         if "evade" in reward_model or "geo" in reward_model:
             assert np.all(np.isin(vec_rewards, [0.0, 1.0])), f"Rewards contain values other than 0 or 1: {vec_rewards}"
         elif "refuel-10" in reward_model:
@@ -178,9 +182,7 @@ def test_reality_of_rewards_multiple(vec_storm_simulator: vec_storm.StormVecEnv,
 
 def perform_comparison(prism_model: str, prism_properties: str, constants: dict[str, str], reward_model: str = "evade"):
     print("Performing comparison on model", reward_model)
-    def get_scalarized_reward(rewards, rewards_types):
-        last_reward = rewards_types[-1]
-        return rewards[last_reward]
+    
     model = initialize_prism_model(prism_model, prism_properties, constants)
     
     # Initialize storm simulator

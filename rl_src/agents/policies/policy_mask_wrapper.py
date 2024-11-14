@@ -67,6 +67,7 @@ class Policy_Mask_Wrapper(TFPolicy):
 
     tf.function
     def _get_initial_state(self, batch_size):
+        # print("Getting initial state", batch_size)
         return self._policy.get_initial_state(batch_size)
     
     def _update_fsc_oracle(self, fsc_oracle : FSC, tf_action_keywords = None): # Unused in final version
@@ -175,6 +176,8 @@ class Policy_Mask_Wrapper(TFPolicy):
         return policy_step.PolicyStep(distribution, policy_state, distribution_result.info)
     
     def _action(self, time_step, policy_state, seed) -> PolicyStep:
+        # policy_state["actor_network_state"] = tf.squeeze(policy_state["actor_network_state"])
+        # policy_state["value_network_state"] = tf.squeeze(policy_state["value_network_state"])
         distribution = self._real_distribution(time_step, policy_state)
         if self._is_greedy:
             action = tf.argmax(distribution.action.logits, output_type=tf.int32, axis=-1)

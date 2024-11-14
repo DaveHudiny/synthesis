@@ -2,16 +2,17 @@
 # Author: David Hudák
 # Login: xhudak03
 # File: interface.py
-
+import sys
+sys.path.append("../")
 import time
 import logging
 import os
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 from rl_src.experimental_interface import ExperimentInterface
-import sys
+
 
 from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
-sys.path.append("../")
+
 
 
 logger = logging.getLogger(__name__)
@@ -86,13 +87,13 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
-def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large"):
+def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256):
     """ Run multiple experiments for PAYNT oracle."""
     for model in os.listdir(f"{path_to_models}"):
         if "drone" in model:  # Currently not supported model
             continue
-        if "geo" not in model and "rocks" not in model and "mba-small" not in model:
-            continue
+        # if "network" not in model:
+        #     continue
         prism_model = f"{path_to_models}/{model}/sketch.templ"
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         encoding_method = "Valuations"
@@ -102,18 +103,23 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 continue
             # if not "network" in model:
             #     continue
-            for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
+            for replay_buffer_option in [ReplayBufferOptions.ORIGINAL_OFF_POLICY]:
                 logger.info(
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
-                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=0.00001,
-                                    restart_weights=0, learning_method=learning_method, evaluation_episodes=100,
+                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
+                                    restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                     nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
-                                    max_steps=400, evaluation_goal=1000, evaluation_antigoal=-2, trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
-                                    normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=256,
-                                    vectorized_envs=True)
+                                    max_steps=400, evaluation_goal=10, evaluation_antigoal=-2, trajectory_num_steps=64, discount_factor=0.99, num_environments=batch_size,
+                                    normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
+                                    vectorized_envs=False)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
 
 if __name__ == "__main__":
-    run_experiments("experiments_debugging", "./models")
+    # for _ in range(10):
+    #     for learning_rate in [0.00001, 0.00005, 0.0001, 0.0005, 0.001]:
+    #         for batch_size in [32, 64, 128, 256, 512, 1024]:
+    #             logger.info(f"Running experiments with learning rate: {learning_rate} and batch size: {batch_size}")
+    #             run_experiments(f"experiments_tuning/experiments_{learning_rate}_{batch_size}", "./models", learning_rate=learning_rate, batch_size=256)
+    run_experiments("experiments_single_original_env", "./models_large", learning_rate=0.0001, batch_size=64)
