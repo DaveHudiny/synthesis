@@ -2,6 +2,7 @@
 # Author: David Hudák
 
 from tf_agents.networks import actor_distribution_rnn_network
+from tf_agents.networks import actor_distribution_network
 from tf_agents.environments import tf_py_environment
 
 import tensorflow as tf
@@ -32,6 +33,13 @@ def create_recurrent_actor_net_demasked(tf_environment: tf_py_environment.TFPyEn
         input_fc_layer_params=layer_params,
         # output_fc_layer_params=(64,),
         lstm_size=(32, ),
+        conv_layer_params=None
+    )
+    actor_net = actor_distribution_network.ActorDistributionNetwork(
+        tf_environment.observation_spec()["observation"],
+        action_spec,
+        preprocessing_layers=preprocessing_layer,
+        fc_layer_params=layer_params,
         conv_layer_params=None
     )
     return actor_net

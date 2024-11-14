@@ -18,25 +18,12 @@ from tf_agents.policies import py_tf_eager_policy
 
 
 from environment.environment_wrapper import Environment_Wrapper
-from environment.environment_wrapper_vec import Environment_Wrapper_Vec
 
-from tf_agents.trajectories import trajectory
-from tf_agents.trajectories import Trajectory
-from tf_agents.trajectories import policy_step
-
-
-from agents.policies.stochastic_ppo_collector_policy import Stochastic_PPO_Collector_Policy
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.fsc_policy import FSC_Policy
 
-from paynt.rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
-
 from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
-
-from tools.evaluators import TrajectoryBuffer
-from tools.args_emulator import ReplayBufferOptions
-
 
 import sys
 sys.path.append("../")
@@ -81,14 +68,10 @@ class Recurrent_PPO_agent(FatherAgent):
             lambda_value=0.95,
             gradient_clipping=0.5,
             policy_l2_reg=0.0001,
-            # summarize_grads_and_vars=True,
             value_function_l2_reg=0.0001,
             value_pred_loss_coef=0.45,
-            # log_prob_clipping=2,
-            # entropy_regularization=0.01,
+            entropy_regularization=0.01,
             normalize_rewards=True,
-            # adaptive_kl_target=0.02,
-
         )
         self.agent.initialize()
         logging.info("Agent initialized")

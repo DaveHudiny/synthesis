@@ -42,6 +42,11 @@ def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEn
         # output_fc_layer_params=(64,),
         conv_layer_params=None
     )
+    value_net = tf_agents.networks.value_network.ValueNetwork(
+        tf_environment.observation_spec()["observation"],
+        preprocessing_layers=preprocessing_layer,
+        fc_layer_params=layer_params,
+    )
     return value_net
 
 class Periodic_FSC_Neural_Critic(tf_agents.networks.value_rnn_network.ValueRnnNetwork):

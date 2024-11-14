@@ -67,13 +67,17 @@ class Policy_Mask_Wrapper(TFPolicy):
         distribution_result = self._policy.distribution(
             time_step, policy_state)
         logits = distribution_result.action.logits
-        print(logits)
+        # print(logits)
         policy_state = distribution_result.state
         # Taken from q_policy.py from TensorFlow library
-        almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
+        # almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
+        almost_neg_inf = tf.constant(-1e10, dtype=logits.dtype)
+        # print(mask)
+        # print(logits)
         logits = tf.compat.v2.where(
             tf.cast(mask, tf.bool), logits, almost_neg_inf
         )
+        # print(logits)
         distribution = tfp.distributions.Categorical(
             logits=logits
         )
@@ -84,6 +88,7 @@ class Policy_Mask_Wrapper(TFPolicy):
     def _action(self, time_step, policy_state, seed) -> PolicyStep:
         # policy_state["actor_network_state"] = tf.squeeze(policy_state["actor_network_state"])
         # policy_state["value_network_state"] = tf.squeeze(policy_state["value_network_state"])
+        # print(time_step)
         distribution = self._real_distribution(time_step, policy_state)
         if self._is_greedy:
             action = tf.argmax(distribution.action.logits, output_type=tf.int32, axis=-1)

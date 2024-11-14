@@ -17,7 +17,7 @@ def init_environment(args : ArgsEmulator):
     return env, tf_env
 
 def init_args(prism_path, properties_path) -> ArgsEmulator:
-    args = ArgsEmulator(prism_model=prism_path, prism_properties=properties_path, num_environments=64)
+    args = ArgsEmulator(prism_model=prism_path, prism_properties=properties_path, num_environments=8, batch_size=4)
     return args
 
 def perform_tests():
