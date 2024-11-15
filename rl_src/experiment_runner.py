@@ -13,7 +13,7 @@ from rl_src.experimental_interface import ExperimentInterface
 
 from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
 
-
+import argparse 
 
 logger = logging.getLogger(__name__)
 
@@ -117,9 +117,23 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
 
 if __name__ == "__main__":
-    for _ in range(10):
-        for learning_rate in [0.00001, 0.00005, 0.0001, 0.0005, 0.001]:
-            for batch_size in [32, 64, 128, 256, 512, 1024]:
-                logger.info(f"Running experiments with learning rate: {learning_rate} and batch size: {batch_size}")
-                run_experiments(f"experiments_tuning/experiments_{learning_rate}_{batch_size}", "./models_large", learning_rate=learning_rate, batch_size=batch_size)
-    # run_experiments("experiments_action_masking", "./experiments_various_settings/don_t_run_with_saynt", learning_rate=0.0001, batch_size=128)
+    args_from_cmd = argparse.ArgumentParser()
+
+    args_from_cmd.add_argument("--batch_size", type=int, default=256)
+    args_from_cmd.add_argument("--learning_rate", type=float, default=0.0001)
+    args_from_cmd.add_argument("--path_to_models", type=str, default="./models")
+
+    args = args_from_cmd.parse_args()
+    
+    # Run experiments with the given arguments
+
+    run_experiments(f"experiments_tuning/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate, batch_size=args.batch_size)
+    # for _ in range(10):
+    #     # 0.00001
+    #     for learning_rate in [0.00005, 0.0001, 0.0005, 0.001]:
+    #         for batch_size in [32, 64, 128, 256, 512, 1024]:
+    #             logger.info(f"Running experiments with learning rate: {learning_rate} and batch size: {batch_size}")
+    #             run_experiments(f"experiments_tuning/experiments_{learning_rate}_{batch_size}", "./models_large", learning_rate=learning_rate, batch_size=batch_size)
+    # run_experiments("experiments_action_masking", "./models", learning_rate=0.0001, batch_size=128)
+    
+

@@ -77,8 +77,15 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         intersection_labels = [
             label for label in labeling if label in self.special_labels]
         metalabels = {"goals" : intersection_labels}
+        
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
-            stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs, max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
+            stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs, 
+            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
+            # self.vectorized_simulator.enable_random_init()
+            # print("Random init enabled")
+            # self.vectorized_simulator.reset()
+            # self.vectorized_simulator.disable_random_init()
+            # print("Random init disabled")
         # self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, generate_reward_selection_function, num_envs=num_envs, max_steps=args.max_steps, metalabels=metalabels)
 
         self.vectorized_simulator.reset()

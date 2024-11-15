@@ -246,7 +246,6 @@ class FatherAgent(AbstractAgent):
         """
         
         self.agent.train = common.function(self.agent.train)
-        # set earger function for training
         
 
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
@@ -265,10 +264,11 @@ class FatherAgent(AbstractAgent):
             logger.info('Fill replay buffer')
             for _ in range(self.args.num_steps):
                 self.driver.run()
-        # if self.args.random_start_simulator:
-        #     self.environment.set_random_starts_simulation(True)
-        #     self.tf_environment.reset()
-        self.environment.set_random_starts_simulation(False)
+        if self.args.random_start_simulator:
+            self.environment.set_random_starts_simulation(True)
+            self.tf_environment.reset()
+        else:
+            self.environment.set_random_starts_simulation(False)
         for i in range(iterations):
             
             self.driver.run()
@@ -294,9 +294,9 @@ class FatherAgent(AbstractAgent):
                     self.environment.set_random_starts_simulation(False)
                     self.evaluate_agent(vectorized=vectorized)
                     self.environment.set_random_starts_simulation(True)
+                    self.tf_environment.reset()
                 else:
                     self.evaluate_agent(vectorized=vectorized)
-                    policy_state = None
         self.evaluate_agent(vectorized=vectorized, last=True)
 
     def train_agent_off_policy(self, num_iterations, q_vals_rand: bool = False, random_init: bool = False, use_fsc: bool = False,
