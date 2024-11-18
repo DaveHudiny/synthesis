@@ -81,6 +81,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs, 
             max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
+        self.vectorized_simulator.set_num_envs(num_envs)
             # self.vectorized_simulator.enable_random_init()
             # print("Random init enabled")
             # self.vectorized_simulator.reset()

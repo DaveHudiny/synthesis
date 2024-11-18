@@ -64,7 +64,7 @@ class PPO_with_External_Networks(FatherAgent):
                     tf_environment.action_spec(),
                     optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
                     actor_net=self.actor_net,
-                    value_net=self.value_net,
+                    value_net=self.critic_net,
                     num_epochs=4,
                     train_step_counter=tf.Variable(0),
                     greedy_eval=False,
@@ -100,7 +100,7 @@ class PPO_with_External_Networks(FatherAgent):
         logging.info("Agent initialized")
         
         self.args.prefer_stochastic = True
-        self.init_replay_buffer(tf_environment)
+        self.init_replay_buffer()
         logging.info("Replay buffer initialized")
         self.init_collector_driver(self.tf_environment, demasked=True, alternative_observer=None)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),

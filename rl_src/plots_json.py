@@ -7,6 +7,39 @@ import matplotlib.pyplot as plt
 import os
 import ast
 
+class PreviousStats:
+    """Class for storing previous statistics."""
+    def __init__(self, best_return_spaynt, best_reach_probs_spaynt, best_return_rl, best_reach_probs_rl, best_return_unstable, best_reach_probs_unstable):
+        self.best_return = best_return_spaynt
+        self.best_reach_probs_spaynt = best_reach_probs_spaynt
+        self.best_return_rl = best_return_rl
+        self.best_reach_probs_rl = best_reach_probs_rl
+        self.best_return_unstable = best_return_unstable
+        self.best_reach_probs_unstable = best_reach_probs_unstable
+
+
+dict_of_prev_stats = {
+    "evade": PreviousStats(),
+    "evade-n=5-r=23": PreviousStats(),
+    "evade-n6-r2": PreviousStats(),
+    "grid-large-10-5": PreviousStats(),
+    "grid-large-30-5": PreviousStats(),
+    "intercept": PreviousStats(),
+    "intercept-n7-r1": PreviousStats(),
+    "mba": PreviousStats(),
+    "mba-small": PreviousStats(),
+    "network-3-8-20": PreviousStats(),
+    "obstacle": PreviousStats(),
+    "obstacles-uniform": PreviousStats(),
+    "refuel-10": PreviousStats(),
+    "refuel-20": PreviousStats(),
+    "rocks-16": PreviousStats(),
+    "super-intercept": PreviousStats(),
+    "geo-2-8": PreviousStats(),
+    "network-5-10-8": PreviousStats(),
+    "rocks-4-20": PreviousStats()
+    }
+
 METRICS = ["returns", "returns_episodic", "reach_probs", "losses", "combined_variance"]
 
 def load_from_json(path):

@@ -1,5 +1,6 @@
 from enum import Enum
 from rl_src.tools.args_emulator import ArgsEmulator
+from rl_src.tools.args_emulator import ReplayBufferOptions
 
 import logging
 logger = logging.getLogger(__name__)
@@ -33,8 +34,9 @@ def init_rl_args(mode: RL_SAYNT_Combo_Modes = RL_SAYNT_Combo_Modes.QVALUES_RANDO
     elif mode == RL_SAYNT_Combo_Modes.DQN_AS_QTABLE:
         args = ArgsEmulator(load_agent=False, learning_method="Stochastic_PPO", encoding_method="Valuations",
                             max_steps=400, restart_weights=0, agent_name="PAYNT_behavioral", learning_rate=1.6e-3,
-                            trajectory_num_steps=30, evaluation_goal=10, evaluation_episodes=40, evaluation_antigoal=-10,
-                            discount_factor=0.99, batch_size=32)
+                            trajectory_num_steps=32, evaluation_goal=40, evaluation_episodes=40, evaluation_antigoal=-10,
+                            discount_factor=0.99, batch_size=64, num_environments=64, vectorized_envs=True, buffer_size=50000, 
+                            random_start_simulator=False, replay_buffer_option=ReplayBufferOptions.ON_POLICY)
     else:
         logger.error("Mode:", mode, "not implemented yet.")
         args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",

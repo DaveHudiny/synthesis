@@ -87,7 +87,7 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
-def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256):
+def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256, random_start_simulator=False):
     """ Run multiple experiments for PAYNT oracle."""
     for model in os.listdir(f"{path_to_models}"):
         if "drone" in model:  # Currently not supported model
@@ -110,8 +110,9 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                     nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=40, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
-                                    normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=False, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
+                                    normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=random_start_simulator, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs=True)
+                
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
@@ -122,12 +123,18 @@ if __name__ == "__main__":
     args_from_cmd.add_argument("--batch_size", type=int, default=256)
     args_from_cmd.add_argument("--learning_rate", type=float, default=0.0001)
     args_from_cmd.add_argument("--path_to_models", type=str, default="./models")
+    args_from_cmd.add_argument("--random_start_simulator", action="store_true")
+
 
     args = args_from_cmd.parse_args()
     
     # Run experiments with the given arguments
+    if args.random_start_simulator:
+        name = "experiments_tuning_f_random"
+    else:
+        name = "experiments_tuning_f"
 
-    run_experiments(f"experiments_tuning/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate, batch_size=args.batch_size)
+    run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate, batch_size=args.batch_size, random_start_simulator=args.random_start_simulator)
     # for _ in range(10):
     #     # 0.00001
     #     for learning_rate in [0.00005, 0.0001, 0.0005, 0.001]:

@@ -316,8 +316,10 @@ class SynthesizerPomdp:
 
     def run_rl_synthesis_dqn_ppo(self, fsc_json_dict={}):
         fsc = self.storm_control.latest_paynt_result_fsc
-        sub_method = self.input_rl_settings_dict["sub_method"]
-        # self.quotient.get_property().__str__()
+        if hasattr(self, "input_rl_settings_dict"):
+            sub_method = self.input_rl_settings_dict["sub_method"]
+        else:
+            sub_method = "four phase"
         original_property = fsc_json_dict["specification_property"]
         is_probab_condition = self.property_is_reachability(original_property)
         is_maximizing = self.property_is_maximizing(original_property)
@@ -328,9 +330,10 @@ class SynthesizerPomdp:
         rl_synthesiser.dqn_and_ppo_training(fsc, sub_method=sub_method, fsc_quality=paynt_value,
                                             maximizing_value=is_maximizing,
                                             probability_cond=is_probab_condition)
-        rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
-                                    model=self.input_rl_settings_dict["model_name"],
-                                    method=f"{self.rl_args.learning_method}_{sub_method}")
+        if hasattr(self, "input_rl_settings_dict"):
+            rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
+                                        model=self.input_rl_settings_dict["model_name"],
+                                        method=f"{self.rl_args.learning_method}_{sub_method}")
 
     # main SAYNT loop
     def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
@@ -396,7 +399,7 @@ class SynthesizerPomdp:
 
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = True
-        self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
+        self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
         self.saynt = True
         self.try_faster = False
         self.rl_args = init_rl_args(mode=self.combo_mode)
@@ -415,16 +418,18 @@ class SynthesizerPomdp:
         if not skip:
             self.iterative_storm_loop_body(
                 timeout, paynt_timeout, storm_timeout, iteration_limit)
+            specification_property = self.quotient.get_property().__str__()
+            paynt_value = self.storm_control.paynt_bounds
+            storm_value = self.storm_control.storm_bounds
+            fsc_json_dict = {"specification_property": specification_property,
+                             "paynt_value": paynt_value, "storm_value": storm_value}
             if self.try_faster and hasattr(self, "input_rl_settings_dict"):
-                specification_property = self.quotient.get_property().__str__()
-                paynt_value = self.storm_control.paynt_bounds
-                storm_value = self.storm_control.storm_bounds
-                fsc_json_dict = {"specification_property": specification_property,
-                                 "paynt_value": paynt_value, "storm_value": storm_value}
+                
                 with open(f"{agent_task}/{fsc_file_name}", "wb") as f:
                     pickle.dump(self.storm_control.latest_paynt_result_fsc, f)
                 with open(f"{agent_task}/{fsc_file_name}_info.json", "w") as f:
                     json.dump(fsc_json_dict, f)
+            
         if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             self.run_rl_synthesis(self.saynt)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:

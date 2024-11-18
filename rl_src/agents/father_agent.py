@@ -297,6 +297,7 @@ class FatherAgent(AbstractAgent):
                     self.tf_environment.reset()
                 else:
                     self.evaluate_agent(vectorized=vectorized)
+        self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(vectorized=vectorized, last=True)
 
     def train_agent_off_policy(self, num_iterations, q_vals_rand: bool = False, random_init: bool = False, use_fsc: bool = False,

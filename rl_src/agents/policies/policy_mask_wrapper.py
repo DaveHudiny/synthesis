@@ -71,12 +71,12 @@ class Policy_Mask_Wrapper(TFPolicy):
         policy_state = distribution_result.state
         # Taken from q_policy.py from TensorFlow library
         # almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
-        almost_neg_inf = tf.constant(-1e10, dtype=logits.dtype)
+        # almost_neg_inf = tf.constant(-1e10, dtype=logits.dtype)
         # print(mask)
         # print(logits)
-        logits = tf.compat.v2.where(
-            tf.cast(mask, tf.bool), logits, almost_neg_inf
-        )
+        # logits = tf.compat.v2.where(
+        #     tf.cast(mask, tf.bool), logits, almost_neg_inf
+        # )
         # print(logits)
         distribution = tfp.distributions.Categorical(
             logits=logits
