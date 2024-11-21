@@ -17,6 +17,10 @@ from tf_agents.policies import TFPolicy
 from tf_agents.trajectories import TimeStep
 from tf_agents.trajectories import Trajectory
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class EvaluationResults:
     """Class for storing evaluation results."""
@@ -98,6 +102,22 @@ class EvaluationResults:
         """Add loss to the list of losses."""
         self.losses.append(loss)
 
+def log_evaluation_info(evaluation_result : EvaluationResults =None):
+    logger.info('Average Return = {0}'.format(
+        evaluation_result.returns[-1]))
+    logger.info('Average Virtual Goal Value = {0}'.format(
+        evaluation_result.returns_episodic[-1]))
+    logger.info('Goal Reach Probability = {0}'.format(
+        evaluation_result.reach_probs[-1]))
+    logger.info('Trap Reach Probability = {0}'.format(
+        evaluation_result.trap_reach_probs[-1]))
+    logger.info('Variance of Return = {0}'.format(
+        evaluation_result.each_episode_variance[-1]))
+    logger.info('Current Best Return = {0}'.format(
+        evaluation_result.best_return))
+    logger.info('Current Best Reach Probability = {0}'.format(
+        evaluation_result.best_reach_prob))
+
 
 class TrajectoryBuffer:
     class EpisodeOutcomes:
@@ -157,7 +177,7 @@ class TrajectoryBuffer:
         for index in finished_true_indices:
             if index[0] != prev_index[0]:
                 prev_index = np.array([index[0], -1])
-            
+
             in_episode_reward = np.sum(
                 self.real_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
             in_episode_virtual_reward = np.sum(
@@ -225,7 +245,7 @@ def compute_average_return(policy: TFPolicy, tf_environment: tf_py_environment.T
     return avg_return, avg_episode_return, reach_prob
 
 
-def run_single_episode(policy, policy_function, tf_environment : tf_py_environment.TFPyEnvironment, environment):
+def run_single_episode(policy, policy_function, tf_environment: tf_py_environment.TFPyEnvironment, environment):
     """Run a single episode and return the cumulative reward and success flag."""
     time_step = tf_environment.reset()
     policy_state = policy.get_initial_state(None)
@@ -246,7 +266,7 @@ def run_single_episode(policy, policy_function, tf_environment : tf_py_environme
     return cumulative_return, goal_visited, trap_visited
 
 
-def process_episode_results(cumulative_return: float, total_return, episode_return, 
+def process_episode_results(cumulative_return: float, total_return, episode_return,
                             environment: Environment_Wrapper, returns: list, episodic_returns: list,
                             goal_visited: bool, trap_visited: bool, goals_visited: int, traps_visited: int):
     """Update the cumulative return, episode return and success data after an episode."""

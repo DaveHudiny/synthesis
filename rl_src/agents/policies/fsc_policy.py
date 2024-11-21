@@ -81,18 +81,18 @@ class FSC_Policy(TFPolicy):
     def init_duplex_buffering(self, original_info_spec):
         self.duplex_buffering = True
         self._info_spec = {
-                'fsc': TensorSpec(shape=(), dtype=tf.bool, name='fsc'),
+                'fsc': TensorSpec(shape=(1,), dtype=tf.bool, name='fsc'),
                 'rl': original_info_spec,
-                'mem_node': TensorSpec(shape=(), dtype=tf.int32, name='mem_node')
+                'mem_node': TensorSpec(shape=(1,), dtype=tf.int32, name='mem_node')
         }
 
     tf.function
-    def _set_hidden_ppo_state(self):
+    def _set_hidden_ppo_state(self, batch_size=1):
         if self._parallel_policy is not None:
-            self._hidden_ppo_state = self._parallel_policy.get_initial_state(1)
+            self._hidden_ppo_state = self._parallel_policy.get_initial_state(batch_size)
 
     def _get_initial_state(self, batch_size):
-        self._set_hidden_ppo_state()
+        self._set_hidden_ppo_state(batch_size=batch_size)
         self.switched = False
         return tf.zeros((batch_size, 1), dtype=tf.int32)
 
@@ -125,16 +125,13 @@ class FSC_Policy(TFPolicy):
 
     def _generate_paynt_decision(self, time_step, policy_state, seed):
         observation = time_step.observation["integer"]
-        print("Policy state: ", policy_state)
         int_policy_state = tf.squeeze(policy_state)
         observation = tf.squeeze(observation)
         indices = tf.stack([int_policy_state, observation], axis=1)
         action_number = tf.gather_nd(self._fsc.action_function, indices)
-        # action_number = self._fsc.action_function[int_policy_state][observation]
         action_number = self.convert_to_tf_action_number(action_number)
-
-        # new_policy_state = self._fsc.update_function[int_policy_state][observation]
         new_policy_state = tf.gather_nd(self._fsc.update_function, indices)
+        new_policy_state = tf.convert_to_tensor(tf.reshape(new_policy_state, shape=(-1, 1)), dtype=tf.int32)
         return action_number, new_policy_state
 
     def _create_one_hot_fake_info(self, action_number):
@@ -150,6 +147,7 @@ class FSC_Policy(TFPolicy):
     
     # @tf.function
     def _action(self, time_step, policy_state, seed):
+        batch_size = tf.shape(time_step.observation["integer"])[0]
         policy_info = ()
         if self.switching: # Switching between FSC and PPO
             if self.switched:
@@ -175,15 +173,15 @@ class FSC_Policy(TFPolicy):
 
         if self.duplex_buffering:
             policy_info = {
-                "fsc": tf.constant(not self.switched, dtype=tf.bool),
+                "fsc": tf.constant([not self.switched] * batch_size, dtype=tf.bool),
                 "rl": policy_info,
-                "mem_node": tf.convert_to_tensor(tf.reshape(new_policy_state, shape=(-1, 1)), dtype=tf.int32)
+                "mem_node": new_policy_state
             }
         
         if policy_info == () and self.info_mem_node:
-            policy_info = {"mem_node" : tf.convert_to_tensor([new_policy_state], dtype=tf.int32)}
+            policy_info = {"mem_node" : new_policy_state}
         elif policy_info == () and self._info_spec != (): # If parallel policy does not return logits, use one-hot encoding of action number
             policy_info = self._create_one_hot_fake_info(action_number)
-        policy_step = PolicyStep(action=tf.convert_to_tensor(
-            tf.reshape(action_number, shape=(-1, 1)), dtype=tf.int32), state=new_policy_state, info=policy_info)
+        policy_step = PolicyStep(action=action_number, state=new_policy_state, info=policy_info)
         return policy_step
+    

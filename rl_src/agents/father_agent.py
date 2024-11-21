@@ -501,23 +501,8 @@ class FatherAgent(AbstractAgent):
         self.set_agent_stochastic()
         if self.evaluation_result.best_updated and self.agent_folder is not None:
             self.save_agent(best=True)
-        self.log_evaluation_info()
+        log_evaluation_info(self.evaluation_result)
     
-    def log_evaluation_info(self):
-        logger.info('Average Return = {0}'.format(
-            self.evaluation_result.returns[-1]))
-        logger.info('Average Virtual Goal Value = {0}'.format(
-            self.evaluation_result.returns_episodic[-1]))
-        logger.info('Goal Reach Probability = {0}'.format(
-            self.evaluation_result.reach_probs[-1]))
-        logger.info('Trap Reach Probability = {0}'.format(
-            self.evaluation_result.trap_reach_probs[-1]))
-        logger.info('Variance of Return = {0}'.format(
-            self.evaluation_result.each_episode_variance[-1]))
-        logger.info('Current Best Return = {0}'.format(
-            self.evaluation_result.best_return))
-        logger.info('Current Best Reach Probability = {0}'.format(
-            self.evaluation_result.best_reach_prob))
 
     def set_agent_greedy(self):
         """Set the agent for to be greedy for evaluation. Used only with PPO agent, where we select greedy evaluation.

@@ -5,17 +5,19 @@ from tf_agents.replay_buffers.tf_uniform_replay_buffer import TFUniformReplayBuf
 from tf_agents.environments import TFPyEnvironment
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 from tf_agents.drivers.dynamic_episode_driver import DynamicEpisodeDriver
+from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
 
 from rl_src.agents.networks.actor_networks import create_recurrent_actor_net_demasked
 from rl_src.agents.networks.value_networks import create_recurrent_value_net_demasked
 from tf_agents.networks.actor_distribution_rnn_network import ActorDistributionRnnNetwork
+from tf_agents.policies.actor_policy import ActorPolicy
 from tf_agents.networks.value_rnn_network import ValueRnnNetwork
 
 from rl_src.tools.args_emulator import ArgsEmulator
 from rl_src.agents.policies.fsc_policy import FSC_Policy
 from rl_src.agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from rl_src.environment.environment_wrapper import Environment_Wrapper
-from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter
+from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter, observation_and_action_constraint_splitter_no_mask
 from rl_src.tools.evaluators import *
 
 from tf_agents.trajectories import Trajectory
@@ -27,8 +29,10 @@ from tf_agents.specs import TensorSpec
 from paynt.quotient.fsc import FSC
 
 
+
+
 class Actor_Value_Pretrainer:
-    def __init__(self, environment: Environment_Wrapper, tf_environment: TFPyEnvironment, args: ArgsEmulator, collect_data_spec=None):
+    def __init__(self, environment: Environment_Wrapper_Vec, tf_environment: TFPyEnvironment, args: ArgsEmulator, collect_data_spec=None):
         self.args = args
 
         self.environment = environment
@@ -49,6 +53,7 @@ class Actor_Value_Pretrainer:
         self.critic_loss_fn = tf.keras.losses.MeanSquaredError()
         self.init_replay_buffer(
             tf_environment, collect_data_spec=collect_data_spec)
+        self.evaluation_result = EvaluationResults(self.environment.goal_value)
 
     def init_replay_buffer(self, tf_environment: TFPyEnvironment, collect_data_spec=None, buffer_size=None):
         """Initialize the uniform replay buffer for the agent.
@@ -59,7 +64,7 @@ class Actor_Value_Pretrainer:
         if buffer_size is None:
             buffer_size = self.args.buffer_size
         modified_collect_data_spec = collect_data_spec._replace(
-            policy_info={"mem_node": TensorSpec(shape=(), dtype=tf.int32, name='mem_node')})
+            policy_info={"mem_node": TensorSpec(shape=(1, ), dtype=tf.int32, name='mem_node')})
         self.replay_buffer = TFUniformReplayBuffer(
             data_spec=modified_collect_data_spec,
             batch_size=tf_environment.batch_size,
@@ -79,16 +84,16 @@ class Actor_Value_Pretrainer:
                                      observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec={"mem_node": TensorSpec(
-                                         shape=(), dtype=tf.int32, name='mem_node')},
+                                         shape=(1, ), dtype=tf.int32, name='mem_node')},
                                      info_mem_node=True)
         eager = PyTFEagerPolicy(
-            self.fsc_policy, use_tf_function=False, batch_time_steps=False)
+            self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observers = [self.get_demasked_observer()]
         self.fsc_driver = DynamicEpisodeDriver(
             tf_environment,
             eager,
             observers=observers,
-            num_episodes=1
+            num_episodes=64
         )
 
     def get_demasked_observer(self):
@@ -172,7 +177,7 @@ class Actor_Value_Pretrainer:
         if fsc is not None:
             self.reinit_fsc_policy_driver(fsc=fsc)
         dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=256, num_steps=20, single_deterministic_pass=False).prefetch(4)
+            num_parallel_calls=8, sample_batch_size=256, num_steps=32, single_deterministic_pass=False).prefetch(4)
         self.iterator = iter(dataset)
 
         if use_best_traj_only:
@@ -180,7 +185,7 @@ class Actor_Value_Pretrainer:
             runner = self.get_separator_driver_runner(self.fsc, observers=[observer])
 
         if not offline_data:
-            for _ in range(num_epochs*2):
+            for _ in range(num_epochs):
                 if use_best_traj_only:
                     runner(True, 2)
                 self.fsc_driver.run()
@@ -189,7 +194,7 @@ class Actor_Value_Pretrainer:
             #     if use_best_traj_only:
             #         runner(True, 5)
             #     else:
-            #         self.fsc_driver.run()
+            self.fsc_driver.run()
 
             experience, _ = next(self.iterator)
 
@@ -210,7 +215,7 @@ class Actor_Value_Pretrainer:
                                      observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec={"mem_node": TensorSpec(
-                                         shape=(), dtype=tf.int32, name='mem_node')},
+                                         shape=(1, ), dtype=tf.int32, name='mem_node')},
                                      info_mem_node=True)
         eager = PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
@@ -278,14 +283,48 @@ class Actor_Value_Pretrainer:
             return cumulative_return, goal_visited
 
         return runner
+    
+    def init_vectorized_evaluation_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps=400, actor_net = None):
+        """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
+
+        Args:
+            tf_environment: The TensorFlow environment object, used for simulation information.
+            environment: The vectorized environment object, used for simulation information.
+            num_steps: The number of steps for evaluation.
+        """
+        self.trajectory_buffer = TrajectoryBuffer(environment)
+        policy = ActorPolicy(tf_environment.time_step_spec(), tf_environment.action_spec(), actor_net, 
+                             observation_and_action_constraint_splitter=observation_and_action_constraint_splitter_no_mask)
+        eager = PyTFEagerPolicy(
+            policy=policy, use_tf_function=True, batch_time_steps=False)
+        self.vec_driver = DynamicStepDriver(
+            tf_environment,
+            eager,
+            observers=[self.trajectory_buffer.add_batched_step],
+            num_steps=(1 + num_steps) * self.args.num_environments
+        )
 
     def evaluate_actor(self, actor_net: ActorDistributionRnnNetwork, num_episodes: int):
         self.environment.set_random_starts_simulation(False)
-        avg_return, avg_episodic_return, success_rate = compute_average_return(policy=None, tf_environment=self.tf_environment, num_episodes=num_episodes, environment=self.environment,
-                                                                               custom_runner=self.create_actor_evaluator_runner(actor_net))
-        print("Average Return =", avg_return)
-        print("Average Virtual Goal Value =", avg_episodic_return)
-        print("Goal Reach Probability =", success_rate)
+        if self.args.vectorized_envs:
+            if not hasattr(self, "vec_driver"):
+                self.init_vectorized_evaluation_driver(
+                    self.tf_environment, self.environment, num_steps=400, actor_net=actor_net)
+            self.vec_driver.run()
+            self.trajectory_buffer.final_update_of_results(
+                self.evaluation_result.update)
+            self.trajectory_buffer.clear()
+            log_evaluation_info(self.evaluation_result)
+        else:
+            
+            avg_return, avg_episodic_return, success_rate = compute_average_return(policy=None, tf_environment=self.tf_environment, 
+                                                                                   num_episodes=num_episodes, environment=self.environment,
+                                                                                   custom_runner=self.create_actor_evaluator_runner(actor_net))
+        
+        
+            print("Average Return =", avg_return)
+            print("Average Virtual Goal Value =", avg_episodic_return)
+            print("Goal Reach Probability =", success_rate)
 
     def evaluate_critic(self, critic_net):
         pass

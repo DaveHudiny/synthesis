@@ -117,7 +117,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
-                                    nr_runs=8001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
                                     max_steps=400, evaluation_goal=50, evaluation_antigoal=-20, trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=random_start_simulator, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs=True)

@@ -16,6 +16,9 @@ class EncodingMethods:
 def observation_and_action_constraint_splitter(observation):
     return observation["observation"], observation["mask"]
 
+def observation_and_action_constraint_splitter_no_mask(observation):
+    return observation["observation"], None
+
 
 def create_one_hot_encoding(observation, possible_observations):
     observation_vector = np.zeros(

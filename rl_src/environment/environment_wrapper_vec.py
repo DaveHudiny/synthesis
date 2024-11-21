@@ -327,7 +327,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         is_action_allowed = tf.gather_nd(mask, gather_indices)
         
         new_actions = tf.where(
-            is_action_allowed, 
+            is_action_allowed,
             actions,
             lowest_allowed_actions
         )
@@ -335,8 +335,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
     def _step(self, action) -> ts.TimeStep:
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
-        mask = self._current_time_step.observation["mask"]
-        action = self.change_illegal_actions(action, mask)
+        # mask = self._current_time_step.observation["mask"]
+        # action = self.change_illegal_actions(action, mask)
         self.cumulative_num_steps += self.num_envs
         self._do_step_in_simulator(action)
         evaluated_step = self.evaluate_simulator()
