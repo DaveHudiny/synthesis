@@ -53,6 +53,9 @@ class ExperimentInterface:
         self.pomdp_model = pomdp_model
         self.agent = agent
 
+    def get_args(self) -> ArgsEmulator:
+        return self.args
+
     def asserts(self):
         if self.args.prism_model and not self.args.prism_properties:
             raise ValueError("Prism model is set but Prism properties are not")
@@ -87,8 +90,11 @@ class ExperimentInterface:
                 time_step = next_time_step
                 is_last = time_step.is_last()
 
-    def initialize_environment(self, args: ArgsEmulator = None):
-        self.pomdp_model = self.initialize_prism_model()
+    def initialize_environment(self, args: ArgsEmulator = None, pomdp_model=None):
+        if pomdp_model is None:
+            self.pomdp_model = self.initialize_prism_model()
+        else:
+            self.pomdp_model = pomdp_model
         logger.info("Model initialized")
         if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
             num_envs = 1
@@ -148,7 +154,7 @@ class ExperimentInterface:
             qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation,
             learning_method=learning_method, pre_training_dqn=pre_training_dqn)
         if self.args.restart_weights > 0:
-            tf_environment = self.get_tf_environment_eval()
+            tf_environment = self.tf_environment
             agent = WeightInitializationMethods.select_best_starting_weights(
                 agent, tf_environment, self.args)
         return agent

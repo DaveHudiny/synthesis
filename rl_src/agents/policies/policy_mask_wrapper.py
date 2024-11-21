@@ -85,16 +85,28 @@ class Policy_Mask_Wrapper(TFPolicy):
             self._action_spec, [distribution])
         return policy_step.PolicyStep(distribution, policy_state, distribution_result.info)
     
+    def _get_action_masked(self, distribution, mask):
+        logits = distribution.action.logits
+        almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
+        logits = tf.compat.v2.where(
+            tf.cast(mask, tf.bool), logits, almost_neg_inf
+        )
+        distribution = tfp.distributions.Categorical(
+            logits=logits
+        )
+        action = distribution.sample()
+        return action
+
     def _action(self, time_step, policy_state, seed) -> PolicyStep:
-        # policy_state["actor_network_state"] = tf.squeeze(policy_state["actor_network_state"])
-        # policy_state["value_network_state"] = tf.squeeze(policy_state["value_network_state"])
-        # print(time_step)
         distribution = self._real_distribution(time_step, policy_state)
+
         if self._is_greedy:
             action = tf.argmax(distribution.action.logits, output_type=tf.int32, axis=-1)
         else:
+            # _, mask = self._observation_and_action_constraint_splitter(time_step.observation)
+            # action = self._get_action_masked(distribution, mask)
             action = distribution.action.sample()
-
+            
         policy_step = PolicyStep(action=action, state=distribution.state, info=distribution.info)
         return policy_step
 

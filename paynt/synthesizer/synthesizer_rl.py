@@ -43,25 +43,16 @@ class Synthesizer_RL:
             initial_fsc_multiplier (float, optional): Initial soft FSC multiplier. Defaults to 1.0.
         """
 
-        self.initializer = ExperimentInterface(args, stormpy_model)
+        self.interface = ExperimentInterface(args, stormpy_model)
         self.random_initi_starts_q_vals = random_init_starts_q_vals
-        if random_init_starts_q_vals:
-            qvalues_env = qvalues
 
-        else:
-            qvalues_env = None
-        self.initializer.environment = Environment_Wrapper(
-            self.initializer.pomdp_model, args, q_values_table=qvalues_env)
-
-        self.initializer.tf_environment = tf_py_environment.TFPyEnvironment(
-            self.initializer.environment)
+        self.interface.tf_environment = self.interface.initialize_environment(self.interface.args, self.interface.pomdp_model)
         logger.info("RL Environment initialized")
-        self.agent = self.initializer.initialize_agent(
+        self.agent = self.interface.initialize_agent(
             qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
         
-
-        self.interpret = TracingInterpret(self.initializer.environment, self.initializer.tf_environment,
-                                          self.initializer.args.encoding_method)
+        self.interpret = TracingInterpret(self.interface.environment, self.interface.tf_environment,
+                                          self.interface.args.encoding_method)
         self.fsc_multiplier = initial_fsc_multiplier
 
     def train_agent(self, iterations: int):
@@ -73,7 +64,7 @@ class Synthesizer_RL:
         self.agent.save_agent()
 
     def train_agent_qval_randomization(self, iterations: int, qvalues: list):
-        self.initializer.environment.set_new_qvalues_table(
+        self.interface.environment.set_new_qvalues_table(
             qvalues_table=qvalues
         )
         self.agent.train_agent_off_policy(iterations, q_vals_rand=True)
@@ -93,7 +84,7 @@ class Synthesizer_RL:
             self.agent.set_agent_stochastic()
         else:
             self.agent.set_agent_greedy()
-        return self.interpret.get_dictionary(self.initializer.agent, with_refusing)
+        return self.interpret.get_dictionary(self.interface.agent, with_refusing)
 
     def update_fsc_multiplier(self, multiplier: float):
         """Multiply the FSC multiplier.
@@ -114,21 +105,21 @@ class Synthesizer_RL:
         except:
             logger.info("Agent not loaded, training from scratch.")
         self.agent.init_fsc_policy_driver(
-            self.initializer.tf_environment, fsc, soft_decision, self.fsc_multiplier)
+            self.interface.tf_environment, fsc, soft_decision, self.fsc_multiplier)
         self.agent.train_agent_off_policy(iterations)
 
     def sample_trajectories_with_fsc(self, episodes = 10, fsc = None, soft_decision = False, fsc_multiplier = None, switch_probability = False):
         from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter
-        fsc_policy = FSC_Policy(self.initializer.tf_environment, fsc,
+        fsc_policy = FSC_Policy(self.interface.tf_environment, fsc,
                                      observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
-                                     tf_action_keywords=self.initializer.environment.action_keywords,
+                                     tf_action_keywords=self.interface.environment.action_keywords,
                                      info_spec=(),
                                      soft_decision=soft_decision,
                                      soft_decision_multiplier=fsc_multiplier,
                                      switch_probability=switch_probability)
 
-        tf_environment = self.initializer.tf_environment
-        environment = self.initializer.environment
+        tf_environment = self.interface.tf_environment
+        environment = self.interface.environment
         environment.set_random_starts_simulation(False)
         from paynt.rl_extension.saynt_rl_tools.trajectory_collector import collect_trajectories
         episodes = collect_trajectories(num_of_episodes=10, policy=fsc_policy, environment=environment, tf_environment=tf_environment)
@@ -164,7 +155,7 @@ class Synthesizer_RL:
         """
         evaluation_result = self.agent.evaluation_result
         save_statistics_to_new_json(
-            experiment_name, model, method, evaluation_result, self.initializer.args)
+            experiment_name, model, method, evaluation_result, self.interface.args)
 
     def get_encoding_method(self, method_str: str = "Valuations") -> EncodingMethods:
         if method_str == "Valuations":
@@ -178,22 +169,22 @@ class Synthesizer_RL:
 
     def get_saynt_trajectories(self, storm_control, quotient, fsc: FSC = None, q_values=None, model_reward_multiplier=-1.0):
         
-        args = self.initializer.args
-        pre_trainer = Actor_Value_Pretrainer(self.initializer.environment, self.initializer.tf_environment,
+        args = self.interface.get_args()
+        pre_trainer = Actor_Value_Pretrainer(self.interface.environment, self.interface.tf_environment,
                                              args, self.agent.agent.collect_data_spec)
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
-        self.agent = PPO_with_External_Networks(self.initializer.environment, self.initializer.tf_environment, 
+        self.agent = PPO_with_External_Networks(self.interface.environment, self.interface.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
         observer = pre_trainer.replay_buffer._add_batch
-        tf_action_labels = self.initializer.environment.action_keywords
+        tf_action_labels = self.interface.environment.action_keywords
         if not hasattr(self, "saynt_driver"):
             print("Creating new SAYNT driver")
             encoding_method = self.get_encoding_method(
-                self.initializer.args.encoding_method)
+                self.interface.args.encoding_method)
             self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient,
-                                             tf_action_labels, encoding_method, self.initializer.args.discount_factor,
+                                             tf_action_labels, encoding_method, self.interface.args.discount_factor,
                                              fsc=fsc, q_values=q_values, model_reward_multiplier=model_reward_multiplier)
         # self.agent.train_agent_off_policy(101, random_init=True)
         self.saynt_driver.episodic_run(300)
@@ -222,8 +213,8 @@ class Synthesizer_RL:
     def dqn_and_ppo_training(self, fsc : FSC = None, sub_method = "only_pretrained",
                              fsc_quality : float = 0.0, maximizing_value : bool = True, probability_cond : bool = True):
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
-        args = self.initializer.args
-        pre_trainer = Actor_Value_Pretrainer(self.initializer.environment, self.initializer.tf_environment,
+        args = self.interface.args
+        pre_trainer = Actor_Value_Pretrainer(self.interface.environment, self.interface.tf_environment,
                                             args, self.agent.agent.collect_data_spec)
         if fsc == None:
             logger.info("No suitable FSC found.")
@@ -235,16 +226,16 @@ class Synthesizer_RL:
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
-        self.agent = PPO_with_External_Networks(self.initializer.environment, self.initializer.tf_environment, 
+        self.agent = PPO_with_External_Networks(self.interface.environment, self.interface.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
         if "four_phase" in sub_method and fsc is not None:
-            self.agent.train_agent_off_policy(450, probab_random_init_state=1.0, random_init=True)
+            # self.agent.train_agent(450, vectorized=args.vectorized_envs)
 
-            if self.check_four_phase_condition(fsc_quality=fsc_quality, 
-                                               maximizing_value=maximizing_value, 
-                                               probability_cond=probability_cond,
-                                               evaluation_result=self.agent.evaluation_result):
-                pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
+            # if self.check_four_phase_condition(fsc_quality=fsc_quality, 
+            #                                    maximizing_value=maximizing_value, 
+            #                                    probability_cond=probability_cond,
+            #                                    evaluation_result=self.agent.evaluation_result):
+            pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
         if fsc is not None:
             if sub_method == "only_duplex":
                 self.agent.train_duplex(2000, fsc, pre_trainer, critic_only=False)
@@ -262,11 +253,11 @@ class Synthesizer_RL:
             self.agent.train_agent_off_policy(4000, probab_random_init_state=0.06)
 
         if "four_phase" in sub_method:
-            if self.check_four_phase_condition(fsc_quality=fsc_quality, 
-                                               maximizing_value=maximizing_value, 
-                                               probability_cond=probability_cond, 
-                                               evaluation_result=self.agent.evaluation_result):
-                self.agent.train_duplex(500, fsc, pre_trainer, critic_only=True)
-            else:
-                self.agent.train_duplex(10, fsc, pre_trainer, critic_only=True)
+            # if self.check_four_phase_condition(fsc_quality=fsc_quality, 
+            #                                    maximizing_value=maximizing_value, 
+            #                                    probability_cond=probability_cond, 
+            #                                    evaluation_result=self.agent.evaluation_result):
+            #     self.agent.train_duplex(500, fsc, pre_trainer, critic_only=True)
+            # else:
+            #     self.agent.train_duplex(10, fsc, pre_trainer, critic_only=True)
             self.agent.train_agent_off_policy(4000, probab_random_init_state=0.06)

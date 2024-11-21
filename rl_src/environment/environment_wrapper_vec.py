@@ -65,7 +65,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # self.batch_size = num_envs
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
-        
+        self.state_to_observation_map = tf.constant(stormpy_model.observations)
+
+                
 
         # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
         # TODO: What if we want to minimize the probability of reaching some state or we want to maximize the probability of reaching some other state?
@@ -232,18 +234,25 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
         self.reward = tf.constant(
             np.array(len(self.last_observation) * [0.0]), dtype=tf.float32)
+        hidden_state = self.vectorized_simulator.simulator_states
+        integers = tf.reshape(
+                        tf.gather(self.state_to_observation_map, hidden_state.vertices),
+                        (self.num_envs, 1)
+                    )
         observation_tensor = {"observation": tf.constant(self.last_observation, tf.float32),
                               "mask": tf.constant(self.allowed_actions, tf.bool),
-                              "integer": tf.constant(tf.ones((len(self.last_observation), 1), dtype=tf.int32), dtype=tf.int32)}
+                              "integer": integers}
         self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.truncated = np.array(len(self.last_observation) * [False])
+        
         self._current_time_step = ts.TimeStep(
             observation=observation_tensor,
             reward=self.reward_multiplier * self.reward,
             discount=self.discount,
             step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32))
         self.prev_dones = np.array(len(self.last_observation) * [False])
+
         return self._current_time_step
 
     def evaluate_simulator(self) -> ts.TimeStep:
@@ -267,14 +276,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
-        # print("Mask", labels_mask)
-        # print("Dones", self.dones)
-        # print("Goal state mask", self.goal_state_mask)
-        # print("Anti goal state mask", self.anti_goal_state_mask)
-        # print("Truncated", self.truncated)
-        # print("Default rewards", self.default_rewards)
-        # print("Replacement positive", tf.where(self.goal_state_mask, goal_values_vector, self.default_rewards))
-        # print("Replacement negative", tf.where(self.anti_goal_state_mask, antigoal_values_vector, self.default_rewards))
         self.step_types = tf.where(
             still_running_mask,
             tf.where(
@@ -284,7 +285,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             ),
             self.terminated_step_types
         )
-        # print("Normalizer:", self.normalizer)
         self._current_time_step = ts.TimeStep(
             step_type=self.step_types,
             reward=self.reward,
@@ -293,8 +293,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         )
         self.prev_dones = self.dones
         self.virtual_reward = self.reward - self.default_rewards
-        # print("Reward:", self.reward)
-        # print("Observation", self._current_time_step.observation)
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -319,8 +317,26 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.dones = done
         self.truncated = truncated
 
+    
+
+    def change_illegal_actions(self, actions, mask):
+        """Changes the illegal actions to the nearest legal action with lower index with module after underflow given mask with allowed actions."""
+        lowest_allowed_actions = tf.argmax(mask, axis=-1, output_type=tf.int32)
+        rows = tf.range(tf.shape(mask)[0])
+        gather_indices = tf.stack([rows, actions], axis=-1)
+        is_action_allowed = tf.gather_nd(mask, gather_indices)
+        
+        new_actions = tf.where(
+            is_action_allowed, 
+            actions,
+            lowest_allowed_actions
+        )
+        return new_actions.numpy()
+
     def _step(self, action) -> ts.TimeStep:
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
+        mask = self._current_time_step.observation["mask"]
+        action = self.change_illegal_actions(action, mask)
         self.cumulative_num_steps += self.num_envs
         self._do_step_in_simulator(action)
         evaluated_step = self.evaluate_simulator()
@@ -339,8 +355,13 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def get_observation(self) -> dict[str: tf.Tensor]:
         encoded_observation = self.last_observation
         mask = self.allowed_actions
+        hidden_state = self.vectorized_simulator.simulator_states
+        integers = tf.reshape(
+                        tf.gather(self.state_to_observation_map, hidden_state.vertices),
+                        (self.num_envs, 1)
+                    )
         return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                "integer": tf.constant(np.ones((len(encoded_observation), 1)), dtype=tf.int32)}
+                "integer": integers}
 
     def get_simulator_observation(self) -> int:
         observation = self.last_observation

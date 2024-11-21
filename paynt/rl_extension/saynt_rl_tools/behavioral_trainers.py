@@ -82,7 +82,7 @@ class Actor_Value_Pretrainer:
                                          shape=(), dtype=tf.int32, name='mem_node')},
                                      info_mem_node=True)
         eager = PyTFEagerPolicy(
-            self.fsc_policy, use_tf_function=True, batch_time_steps=False)
+            self.fsc_policy, use_tf_function=False, batch_time_steps=False)
         observers = [self.get_demasked_observer()]
         self.fsc_driver = DynamicEpisodeDriver(
             tf_environment,

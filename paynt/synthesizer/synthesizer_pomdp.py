@@ -319,7 +319,7 @@ class SynthesizerPomdp:
         if hasattr(self, "input_rl_settings_dict"):
             sub_method = self.input_rl_settings_dict["sub_method"]
         else:
-            sub_method = "four phase"
+            sub_method = "four_phase"
         original_property = fsc_json_dict["specification_property"]
         is_probab_condition = self.property_is_reachability(original_property)
         is_maximizing = self.property_is_maximizing(original_property)
@@ -429,6 +429,7 @@ class SynthesizerPomdp:
                     pickle.dump(self.storm_control.latest_paynt_result_fsc, f)
                 with open(f"{agent_task}/{fsc_file_name}_info.json", "w") as f:
                     json.dump(fsc_json_dict, f)
+        print("Hello")
             
         if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             self.run_rl_synthesis(self.saynt)

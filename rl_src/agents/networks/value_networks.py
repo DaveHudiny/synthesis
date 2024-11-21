@@ -36,16 +36,11 @@ def create_recurrent_value_net_demasked(tf_environment: tf_py_environment.TFPyEn
     layer_params = (64, 64)
     value_net = tf_agents.networks.value_rnn_network.ValueRnnNetwork(
         tf_environment.observation_spec()["observation"],
-        preprocessing_layers=preprocessing_layer,
+        # preprocessing_layers=preprocessing_layer,
         input_fc_layer_params=layer_params,
         lstm_size=(32,),
         # output_fc_layer_params=(64,),
         conv_layer_params=None
-    )
-    value_net = tf_agents.networks.value_network.ValueNetwork(
-        tf_environment.observation_spec()["observation"],
-        preprocessing_layers=preprocessing_layer,
-        fc_layer_params=layer_params,
     )
     return value_net
 

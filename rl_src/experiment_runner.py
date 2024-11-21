@@ -87,10 +87,21 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
-def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256, random_start_simulator=False):
-    """ Run multiple experiments for PAYNT oracle."""
+def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256, 
+                    random_start_simulator=False, model_condition : str = ""):
+    """ Run multiple experiments for PAYNT oracle.
+    Args:
+        name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
+        path_to_models (str, optional): The path to the models. Defaults to "./models_large".
+        learning_rate (float, optional): The learning rate. Defaults to 0.0001.
+        batch_size (int, optional): The batch size. Defaults to 256.
+        random_start_simulator (bool, optional): Whether to start the simulator randomly. Defaults to False.
+        model_condition (str, optional): The condition of the model (rule condition is in the name of the model, e.g. "network"). Defaults to "".
+    """
     for model in os.listdir(f"{path_to_models}"):
         if "drone" in model:  # Currently not supported model
+            continue
+        if model_condition not in model:
             continue
         # if "network" not in model:
         #     continue
@@ -99,8 +110,6 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         encoding_method = "Valuations"
         refusing = None
         for learning_method in ["Stochastic_PPO"]:
-            if "drone" in model:  # Currently not supported model
-                continue
             # if not "network" in model:
             #     continue
             for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
@@ -108,8 +117,8 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
-                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
-                                    max_steps=400, evaluation_goal=40, evaluation_antigoal=-10, trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
+                                    nr_runs=8001, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
+                                    max_steps=400, evaluation_goal=50, evaluation_antigoal=-20, trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=random_start_simulator, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs=True)
                 
@@ -124,17 +133,21 @@ if __name__ == "__main__":
     args_from_cmd.add_argument("--learning_rate", type=float, default=0.0001)
     args_from_cmd.add_argument("--path_to_models", type=str, default="./models")
     args_from_cmd.add_argument("--random_start_simulator", action="store_true")
+    args_from_cmd.add_argument("--model_condition", type=str, default="")
 
 
     args = args_from_cmd.parse_args()
     
     # Run experiments with the given arguments
     if args.random_start_simulator:
-        name = "experiments_tuning_f_random"
+        name = "experiments_tuning_rnn_random"
     else:
-        name = "experiments_tuning_f"
+        name = "experiments_tuning_rnn"
+    if not os.path.exists(name):
+        os.makedirs(name)
 
-    run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate, batch_size=args.batch_size, random_start_simulator=args.random_start_simulator)
+    run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate, 
+                    batch_size=args.batch_size, random_start_simulator=args.random_start_simulator, model_condition=args.model_condition)
     # for _ in range(10):
     #     # 0.00001
     #     for learning_rate in [0.00005, 0.0001, 0.0005, 0.001]:
