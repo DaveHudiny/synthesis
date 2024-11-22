@@ -4,21 +4,16 @@
 # Project: diploma-thesis
 # File: father_agent.py
 
-import os
 from tf_agents.policies import py_tf_eager_policy
 from tf_agents.environments import tf_py_environment
-from tf_agents.networks import sequential
-from tf_agents.agents.dqn import dqn_agent
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.utils import common
 from tf_agents.trajectories import Trajectory
 
-from keras.optimizers import Adam
 
 import tensorflow as tf
 import tf_agents
 
-from environment.environment_wrapper import Environment_Wrapper
 from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from agents.random_agent import RandomAgent
@@ -107,7 +102,8 @@ class FatherAgent(AbstractAgent):
                                  tf_environment.action_spec())
         self.init_replay_buffer()
         self.init_collector_driver(tf_environment)
-        self.init_vec_evaluation_driver(self.tf_environment, self.environment, self.args.max_steps)
+        self.init_vec_evaluation_driver(
+            self.tf_environment, self.environment, self.args.max_steps)
 
     def init_replay_buffer(self, buffer_size=None):
         """Initialize the uniform replay buffer for the agent.
@@ -149,7 +145,7 @@ class FatherAgent(AbstractAgent):
         else:
             observers = [alternative_observer]
         return observers
-        
+
     def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, demasked=False, alternative_observer: callable = None):
         if demasked:
             self.collect_policy_wrapper = Policy_Mask_Wrapper(
@@ -166,13 +162,15 @@ class FatherAgent(AbstractAgent):
         if not self.args.vectorized_envs:
             num_steps = self.args.num_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            num_steps = self.args.num_environments * self.args.num_steps # TODO: Compare it with self.args.max_steps
+            # TODO: Compare it with self.args.max_steps
+            num_steps = self.args.num_environments * self.args.num_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
             num_steps = self.args.num_environments
         elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
             num_steps = self.args.num_steps
         else:
             num_steps = self.args.num_steps
+        self.num_steps = num_steps
         self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
@@ -190,11 +188,13 @@ class FatherAgent(AbstractAgent):
                                                                            tf_environment.action_spec(),
                                                                            observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter)
         observers = self.get_observers(alternative_observer)
+        if not hasattr(self, "num_steps"):
+            self.num_steps = self.args.num_steps
         self.random_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             random_policy,
             observers=observers,
-            num_steps=self.traj_num_steps
+            num_steps=self.num_steps
         )
 
     def get_initial_state(self, batch_size=None):
@@ -235,8 +235,70 @@ class FatherAgent(AbstractAgent):
         else:
             return self.wrapper
 
-    def train_body_original_off_policy(self, num_iterations):
-        pass
+    def train_innerest_body(self, experience, train_iteration, randomized=False, vectorized=False):
+        """Train the agent with the experience. Used for training the agent with the experience.
+
+        Args:
+            experience: The experience for training the agent.
+        """
+        train_loss = self.agent.train(experience).loss
+        train_loss = train_loss.numpy()
+        self.agent.train_step_counter.assign_add(1)
+        self.evaluation_result.add_loss(train_loss)
+        if train_iteration % 10 == 0:
+            logger.info(
+                f"Step: {train_iteration}, Training loss: {train_loss}")
+        if train_iteration % 50 == 0:
+            self.environment.set_random_starts_simulation(False)
+            self.evaluate_agent(vectorized=vectorized)
+            self.environment.set_random_starts_simulation(randomized)
+        return train_loss
+
+    def train_body_off_policy(self, num_iterations, vectorized: bool = True, randomized=False):
+        """Train the agent off-policy via original method (1 x num_steps). Main training function for the agents.
+
+        Args:
+            num_iterations: The number of iterations for training.
+            vectorized: Whether to use vectorized environment for training.
+            randomized: Whether to use random starts for simulation.
+        """
+
+        self.dataset = self.replay_buffer.as_dataset(
+            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(8)
+        iterator = iter(self.dataset)
+        logger.info("Training agent off-policy original")
+        self.environment.set_random_starts_simulation(
+            randomized_bool=randomized)
+        self.tf_environment.reset()
+
+        for _ in range(self.args.num_steps):
+            self.driver.run()
+
+        for i in range(num_iterations):
+            self.driver.run()
+            experience, _ = next(iterator)
+            self.train_innerest_body(
+                experience, i, randomized=randomized, vectorized=vectorized)
+
+    def train_body_on_policy(self, num_iterations, vectorized: bool = True, randomized=False):
+        """Train the agent on-policy. Main training function for the agents.
+
+        Args:
+            num_iterations: The number of iterations for training.
+            vectorized: Whether to use vectorized environment for training.
+            randomized: Whether to use random starts for simulation.
+        """
+        self.replay_buffer.clear()
+        self.environment.set_random_starts_simulation(
+            randomized_bool=randomized)
+        self.tf_environment.reset()
+        logger.info("Training agent on-policy")
+        for i in range(num_iterations):
+            self.driver.run()
+            data = self.replay_buffer.gather_all()
+            self.train_innerest_body(
+                data, i, randomized=randomized, vectorized=vectorized)
+            self.replay_buffer.clear()
 
     def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
@@ -244,111 +306,18 @@ class FatherAgent(AbstractAgent):
         Args:
             iterations (int): Number of iterations to train agent.
         """
-        
-        self.agent.train = common.function(self.agent.train)
-        
 
+        self.agent.train = common.function(self.agent.train)
+
+        logger.info("Training agent with replay buffer option: {0}".format(
+            replay_buffer_option))
+        if replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
+            self.train_body_off_policy(iterations, vectorized)
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            single_deterministic_pass = True
-        else:
-            single_deterministic_pass = False
-        self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass).prefetch(8)
-        self.best_iteration_final = 0.0
-        self.best_iteration_steps = -tf.float32.min
-        if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            self.replay_buffer.clear()
-        else:
-            iterator = iter(self.dataset)
-        if replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
-            logger.info('Fill replay buffer')
-            for _ in range(self.args.num_steps):
-                self.driver.run()
-        if self.args.random_start_simulator:
-            self.environment.set_random_starts_simulation(True)
-            self.tf_environment.reset()
-        else:
-            self.environment.set_random_starts_simulation(False)
-        for i in range(iterations):
-            
-            self.driver.run()
-            
-            if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-                data = self.replay_buffer.gather_all()
-                # dataset = self.replay_buffer.as_dataset(
-                #     num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=single_deterministic_pass)
-                # for data, _ in dataset:
-                    # print(data)
-                train_loss = self.agent.train(data)
-                train_loss = train_loss.loss.numpy()
-                self.replay_buffer.clear()
-            elif replay_buffer_option == ReplayBufferOptions.OFF_POLICY or replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
-                experience, _ = next(iterator)
-                train_loss = self.agent.train(experience).loss
-                train_loss = train_loss.numpy()
-            if i % 10 == 0:
-                logger.info(f"Step: {i}, Training loss: {train_loss}")
-            if i % 50 == 0:
-                self.evaluation_result.add_loss(train_loss)
-                if self.args.random_start_simulator:
-                    self.environment.set_random_starts_simulation(False)
-                    self.evaluate_agent(vectorized=vectorized)
-                    self.environment.set_random_starts_simulation(True)
-                    self.tf_environment.reset()
-                else:
-                    self.evaluate_agent(vectorized=vectorized)
+            self.train_body_on_policy(iterations, vectorized)
+        logger.info("Training finished.")
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(vectorized=vectorized, last=True)
-
-    def train_agent_off_policy(self, num_iterations, q_vals_rand: bool = False, random_init: bool = False, use_fsc: bool = False,
-                               probab_random_init_state=0.3):
-        """Train the agent off-policy. Main training function for the agents.
-
-        Args:
-            num_iterations: The number of iterations for training.
-        """
-        if use_fsc:
-            self.init_fsc_policy_driver(self.tf_environment, self.fsc)
-        self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=8, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(8)
-        self.iterator = iter(self.dataset)
-        logger.info("Training agent")
-        self.agent.train = common.function(self.agent.train)
-        self.environment.set_random_starts_simulation(False)
-        if self.agent.train_step_counter.numpy() == 0:
-            logger.info('Random Average Return = {0}'.format(compute_average_return(
-                self.get_evaluation_policy(), self.tf_environment_not_vectorized, self.evaluation_episodes, self.environment_not_vectorized, self.evaluation_result.update)))
-        # Because sometimes FSC driver does not sample enough trajectories to start learning.
-        for _ in range(5):
-            if q_vals_rand or random_init:
-                self.environment.set_random_starts_simulation(True)
-            self.driver.run()
-        for i in range(num_iterations):
-            if False:
-                self.random_driver.run()
-            if use_fsc and hasattr(self, "fsc_driver"):
-                self.fsc_driver.run()
-            else:
-                random_number = np.random.uniform(0.0, 1.0)
-                if q_vals_rand or random_init or random_number <= probab_random_init_state:
-                    self.environment.set_random_starts_simulation(True)
-                else:
-                    self.environment.set_random_starts_simulation(False)
-                self.driver.run()
-
-            experience, _ = next(self.iterator)
-            train_loss = self.agent.train(experience).loss
-            train_loss = train_loss.numpy()
-            self.agent.train_step_counter.assign_add(1)
-            self.evaluation_result.add_loss(train_loss)
-            if i % 10 == 0:
-                logger.info(f"Step: {i}, Training loss: {train_loss}")
-            if i % 50 == 0:
-                self.environment.set_random_starts_simulation(False)
-                self.evaluate_agent()
-        self.environment.set_random_starts_simulation(False)
-        self.evaluate_agent(last=True)
-        self.replay_buffer.clear()
 
     def pre_train_with_fsc(self, num_iterations: int, fsc: FSC, num_fsc_episodes: int = 10):
         self.init_fsc_policy_driver(self.tf_environment, fsc)
@@ -483,7 +452,8 @@ class FatherAgent(AbstractAgent):
                 self.get_evaluation_policy(), self.tf_environment, evaluation_episodes, self.environment, self.evaluation_result.update)
         else:
             if not hasattr(self, "vec_driver"):
-                self.init_vec_evaluation_driver(self.tf_environment, self.environment, num_steps=self.args.max_steps)
+                self.init_vec_evaluation_driver(
+                    self.tf_environment, self.environment, num_steps=self.args.max_steps)
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(
                     self.args.batch_size)
@@ -501,8 +471,23 @@ class FatherAgent(AbstractAgent):
         self.set_agent_stochastic()
         if self.evaluation_result.best_updated and self.agent_folder is not None:
             self.save_agent(best=True)
-        log_evaluation_info(self.evaluation_result)
-    
+        self.log_evaluation_info()
+
+    def log_evaluation_info(self):
+        logger.info('Average Return = {0}'.format(
+            self.evaluation_result.returns[-1]))
+        logger.info('Average Virtual Goal Value = {0}'.format(
+            self.evaluation_result.returns_episodic[-1]))
+        logger.info('Goal Reach Probability = {0}'.format(
+            self.evaluation_result.reach_probs[-1]))
+        logger.info('Trap Reach Probability = {0}'.format(
+            self.evaluation_result.trap_reach_probs[-1]))
+        logger.info('Variance of Return = {0}'.format(
+            self.evaluation_result.each_episode_variance[-1]))
+        logger.info('Current Best Return = {0}'.format(
+            self.evaluation_result.best_return))
+        logger.info('Current Best Reach Probability = {0}'.format(
+            self.evaluation_result.best_reach_prob))
 
     def set_agent_greedy(self):
         """Set the agent for to be greedy for evaluation. Used only with PPO agent, where we select greedy evaluation.
@@ -570,32 +555,18 @@ class FatherAgent(AbstractAgent):
 
     def get_demasked_observer(self, vectorized=False):
         """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""
-        if vectorized:
-            def _add_batch(item: Trajectory):
-                item.policy_info["dist_params"]["logits"] = item.policy_info["dist_params"]["logits"]
-                modified_item = Trajectory(
-                    step_type=item.step_type,
-                    observation=item.observation["observation"],
-                    action=item.action,
-                    policy_info=(item.policy_info),
-                    next_step_type=item.next_step_type,
-                    reward=item.reward,
-                    discount=item.discount,
-                )
-                self.replay_buffer._add_batch(modified_item)
-        else:
-            def _add_batch(item: Trajectory):
-                item.policy_info["dist_params"]["logits"] = item.policy_info["dist_params"]["logits"]
-                modified_item = Trajectory(
-                    step_type=item.step_type,
-                    observation=item.observation["observation"],
-                    action=item.action,
-                    policy_info=(item.policy_info),
-                    next_step_type=item.next_step_type,
-                    reward=item.reward,
-                    discount=item.discount,
-                )
-                self.replay_buffer._add_batch(modified_item)
+        def _add_batch(item: Trajectory):
+            item.policy_info["dist_params"]["logits"] = item.policy_info["dist_params"]["logits"]
+            modified_item = Trajectory(
+                step_type=item.step_type,
+                observation=item.observation["observation"],
+                action=item.action,
+                policy_info=(item.policy_info),
+                next_step_type=item.next_step_type,
+                reward=item.reward,
+                discount=item.discount,
+            )
+            self.replay_buffer._add_batch(modified_item)
         return _add_batch
 
     def get_action_handicapped_observer(self):

@@ -222,7 +222,7 @@ class Synthesizer_RL:
         else:
             logger.info("Suitable FSC found.")
             if sub_method == "only_pretrained" or sub_method == "complete":
-                pre_trainer.train_both_networks(150, fsc=fsc, use_best_traj_only=False)
+                pre_trainer.train_both_networks(1001, fsc=fsc, use_best_traj_only=False)
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
@@ -235,7 +235,7 @@ class Synthesizer_RL:
             #                                    maximizing_value=maximizing_value, 
             #                                    probability_cond=probability_cond,
             #                                    evaluation_result=self.agent.evaluation_result):
-            pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
+            pre_trainer.train_both_networks(801, fsc=fsc, use_best_traj_only=False)
         if fsc is not None:
             if sub_method == "only_duplex":
                 self.agent.train_duplex(2000, fsc, pre_trainer, critic_only=False)
@@ -260,4 +260,4 @@ class Synthesizer_RL:
             #     self.agent.train_duplex(500, fsc, pre_trainer, critic_only=True)
             # else:
             #     self.agent.train_duplex(10, fsc, pre_trainer, critic_only=True)
-            self.agent.train_agent_off_policy(4000, probab_random_init_state=0.06)
+            self.agent.train_agent(4001, vectorized=args.vectorized_envs)

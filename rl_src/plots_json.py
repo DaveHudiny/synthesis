@@ -7,6 +7,11 @@ import matplotlib.pyplot as plt
 import os
 import ast
 
+import pandas as pd
+
+
+
+
 
 class PreviousStats:
     """Class for storing previous statistics."""
@@ -40,7 +45,13 @@ dict_of_prev_stats = {
     "super-intercept": PreviousStats(None, None, None, 0.85),
     "geo-2-8": PreviousStats(None, 0.616, None, 0.8),
     "network-5-10-8": PreviousStats(-16.050, 1.0, -13.0, 1.0, -10.898, 1.0),
-    "rocks-4-20": PreviousStats(-76.0, 1.0, -75.9, 1.0)
+    "rocks-4-20": PreviousStats(-76.0, 1.0, -75.9, 1.0),
+    "geo-2-8-large": PreviousStats(None, None, None, None),
+    "obstacle-large": PreviousStats(),
+    "intercept-large": PreviousStats(),
+    "evade-large": PreviousStats(),
+    "maze-10": PreviousStats(),
+    "avoid": PreviousStats(),
 }
 
 METRICS = ["returns", "returns_episodic",
@@ -71,13 +82,13 @@ def get_experiment_setting_from_name(string):
     return model_name, algorithm_name
 
 
-def plot_single_curve(data, shown_metric, is_trap=False):
+def plot_single_curve(data, shown_metric, is_trap=False, plot_color='b'):
     data = ast.literal_eval(data)
     numpy_data = np.array(data).astype(np.float32)
-    print(shown_metric)
+    # print(shown_metric)
     plt.plot(numpy_data, label=shown_metric,
              linestyle='dashed' if is_trap else 'solid',
-             color='orange' if is_trap else 'blue')    
+             color='orange' if is_trap else plot_color)    
 
 def add_line_to_plot(model, metric):
     if model in dict_of_prev_stats:
@@ -105,61 +116,153 @@ def add_line_to_plot(model, metric):
 
     # add legend to axhline plots
             
-
-def plot_single_metric_for_model(jsons, metric, model, save_folder):
-    plt.figure(figsize=(6, 4))
-    try:
+def pre_compute_keys(jsons, is_multiple_experiments):
+    pre_computed_keys = set()
+    if is_multiple_experiments:
+        keys = jsons.keys()
+        single_jsons = jsons[list(keys)[0]]
+        for key in single_jsons:
+            pre_computed_keys.add(key)
+    else:
         for key in jsons:
-            model_name, algorithm_name = get_experiment_setting_from_name(key)
-            if model_name == model and not metric == "reach_probs":
-                data = jsons[key][metric]
-                plot_single_curve(data, algorithm_name)
-                add_line_to_plot(model, metric)
+            pre_computed_keys.add(key)
 
-            elif model_name == model and metric == "reach_probs":
-                data = jsons[key][metric]
-                try:
-                    trap_data = jsons[key]["trap_reach_probs"]
-                    # plot_single_curve(
-                    #     trap_data, f"Trap Reachability", is_trap=True)
-                except:
-                    pass
-                plot_single_curve(data, "Goal Reachability")
-                add_line_to_plot(model, metric)
+    return pre_computed_keys
+
+
+def plot_single_metric_for_model(jsons, metric, model, save_folder, is_multiple_experiments=False):
+    plt.figure(figsize=(7, 5))
+    pre_computed_keys = pre_compute_keys(jsons, is_multiple_experiments)
+    try:
+        for key in pre_computed_keys:
+            model_name, algorithm_name = get_experiment_setting_from_name(key)
+            if is_multiple_experiments:
+                first = True
+                color_index = 0
+                color_plots = ['b', 'y', 'm', 'c', 'g', 'k']
+                for experiment_name in jsons:
+                    plot_color = color_plots[color_index]
+                    color_index += 1
+                    if model_name == model and not metric == "reach_probs":
+                        data = jsons[experiment_name][key][metric]
+                        plot_single_curve(data, algorithm_name + " " + experiment_name, plot_color=plot_color)
+                        if first:
+                            add_line_to_plot(model, metric)
+                            first = False
+                    elif model_name == model and metric == "reach_probs":
+                        data = jsons[experiment_name][key][metric]
+                        plot_single_curve(data, "Goal Reachability" + " " + experiment_name, plot_color=plot_color)
+                        if first:
+                            add_line_to_plot(model, metric)
+                            first = False
+            else:   
+                if model_name == model and not metric == "reach_probs":
+                    data = jsons[key][metric]
+                    plot_single_curve(data, algorithm_name)
+                    add_line_to_plot(model, metric)
+
+                elif model_name == model and metric == "reach_probs":
+                    data = jsons[key][metric]
+                    try:
+                        trap_data = jsons[key]["trap_reach_probs"]
+                        # plot_single_curve(
+                        #     trap_data, f"Trap Reachability", is_trap=True)
+                    except:
+                        pass
+                    plot_single_curve(data, "Goal Reachability")
+                    add_line_to_plot(model, metric)
             
     except Exception as e:
         print(f"Error in {model} with {metric}: {e}")
 
     plt.title(f"Graph for {model} with {metric}")
-    plt.xlabel("i-th hundred iteration")
+    plt.xlabel("i-th 50 iteration")
     plt.ylabel(metric)
     plt.legend()
     plt.savefig(f"{save_folder}/{model}_{metric}.png")
     plt.close()
 
 
-def run_plots(folder, save_folder):
-    jsons = load_jsons_from_folder(folder)
-    models = set()
-    for key in jsons:  # Get all models
-        model_name, _ = get_experiment_setting_from_name(key)
-        models.add(model_name)
+def run_plots(results_folder, save_folder):
+    is_multiple_experiments = False
+    if isinstance(results_folder, dict):
+        is_multiple_experiments = True
+        jsons = {}
+        for experiment_name in results_folder:
+            jsons[experiment_name] = load_jsons_from_folder(results_folder[experiment_name])
+        models = set()
+        for experiment_name in jsons:  # Get all models
+            for key in jsons[experiment_name]:
+                print(key)
+                model_name, _ = get_experiment_setting_from_name(key)
+                models.add(model_name)
+    else:
+        jsons = load_jsons_from_folder(results_folder)
+        models = set()
+        for key in jsons:
+            model_name, _ = get_experiment_setting_from_name(key)
+            models.add(model_name)
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
     for model in models:  # Plot all metrics for each model
         for metric in METRICS:
-            plot_single_metric_for_model(jsons, metric, model, save_folder)
+            plot_single_metric_for_model(jsons, metric, model, save_folder, is_multiple_experiments)
+    summary_table_return, summary_table_reachability = get_summary_table(jsons, models)
+    df = pd.DataFrame(summary_table_return).T
+    print(df.to_excel(f"{save_folder}/summary_table_return.xlsx"))
+    df = pd.DataFrame(summary_table_reachability).T
+    print(df.to_excel(f"{save_folder}/summary_table_reachability.xlsx"))
 
+def get_summary_table(jsons, models):
+    summary_table = {}
+    summary_table["Best Reachability"] = {}
+    summary_table["Best Return"] = {}
+    for model in models:
+        metric = "Best Return"
+        summary_table[metric][model] = {}
+        summary_table[metric][model]["spaynt"] = dict_of_prev_stats[model].best_return_spaynt
+        summary_table[metric][model]["rl"] = dict_of_prev_stats[model].best_return_rl
+        summary_table[metric][model]["unstable"] = dict_of_prev_stats[model].best_return_unstable
+        for key in jsons:
+            for sub_key in jsons[key]:
+                model_name, _ = get_experiment_setting_from_name(sub_key)
+                if model_name == model:
+                    summary_table[metric][model][key] = jsons[key][sub_key]["best_return"]
+        metric = "Best Reachability"
+        summary_table[metric][model] = {}
+        summary_table[metric][model]["spaynt"] = dict_of_prev_stats[model].best_reach_probs_spaynt
+        summary_table[metric][model]["rl"] = dict_of_prev_stats[model].best_reach_probs_rl
+        summary_table[metric][model]["unstable"] = dict_of_prev_stats[model].best_reach_probs_unstable
+        for key in jsons:
+            for sub_key in jsons[key]:
+                model_name, _ = get_experiment_setting_from_name(sub_key)
+                if model_name == model:
+                    summary_table[metric][model][key] = jsons[key][sub_key]["best_reach_prob"]
+
+    return summary_table["Best Return"], summary_table["Best Reachability"]
 
 if __name__ == "__main__":
-    import argparse
+    if False:
+        import argparse
 
-    parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser()
 
-    parser.add_argument("--folder", type=str, default="experiments_original_boosted")
-    parser.add_argument("--save_folder", type=str, default="./plots_original")
-    
-    args = parser.parse_args()
-    run_plots(args.folder, args.save_folder)
+        parser.add_argument("--folder", type=str, default="experiments_original_boosted")
+        parser.add_argument("--save_folder", type=str, default="./plots_original")
+        
+
+        args = parser.parse_args()
+        run_plots(args.folder, args.save_folder)
+    else:
+        dict_of_folders = {
+            "Masked Randomized RNN": "experiments_tuning_rnn_random/experiments_0.001_256/",
+            "Masked RNN": "experiments_tuning_rnn/experiments_0.001_256/",
+            "Randomized FFNN": "experiments_various_settings/experiments_tuning_f_random/experiments_0.0005_512/",
+            "Unmasked RNN": "experiments_tuning_rnn_demasked/experiments_0.001_256/",
+            "Unmasked Randomized RNN": "experiments_tuning_rnn_random_demasked/experiments_0.001_256/",
+        } 
+        save_folder = "./plots_comparison_rnn_complex"
+
+        run_plots(dict_of_folders, save_folder)
 
 # run_plots("experiments_original_boosted", "./plots_original")

@@ -93,7 +93,7 @@ class Actor_Value_Pretrainer:
             tf_environment,
             eager,
             observers=observers,
-            num_episodes=64
+            num_episodes=self.args.num_environments
         )
 
     def get_demasked_observer(self):
@@ -185,7 +185,7 @@ class Actor_Value_Pretrainer:
             runner = self.get_separator_driver_runner(self.fsc, observers=[observer])
 
         if not offline_data:
-            for _ in range(num_epochs):
+            for _ in range(5):
                 if use_best_traj_only:
                     runner(True, 2)
                 self.fsc_driver.run()

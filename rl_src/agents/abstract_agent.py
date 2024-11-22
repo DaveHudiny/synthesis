@@ -16,10 +16,6 @@ class AbstractAgent(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    def train_agent_off_policy(self, num_iterations):
-        raise NotImplementedError
-    
-    @abstractmethod
     def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY):
         raise NotImplementedError
     
