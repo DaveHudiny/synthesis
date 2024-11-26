@@ -145,9 +145,8 @@ class ExperimentInterface:
             qvalues_table=qvalues_table, action_labels_at_observation=action_labels_at_observation,
             learning_method=learning_method, pre_training_dqn=pre_training_dqn)
         if self.args.restart_weights > 0:
-            tf_environment = self.tf_environment
             agent = WeightInitializationMethods.select_best_starting_weights(
-                agent, tf_environment, self.args)
+                agent, self.args)
         return agent
 
     def initialize_fsc_agent(self):
@@ -234,6 +233,7 @@ class ExperimentInterface:
         if hasattr(self, "tf_environment") and self.tf_environment is not None:
             try:
                 self.tf_environment.close()
+                
             except Exception as e:
                 pass
         if hasattr(self, "agent") and self.agent is not None:

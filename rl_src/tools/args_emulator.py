@@ -44,7 +44,7 @@ class ArgsEmulator:
             seed (int, optional): Seed for reproducibility. Defaults to 123456.
             evaluation_antigoal (int, optional): The evaluation antigoal. Defaults to -10.
             experiment_directory (str, optional): Directory for files from experiments. Defaults to "experiments".
-            buffer_size (int, optional): Buffer size for the replay buffer. Defaults to 1000.
+            buffer_size (int, optional): Buffer size for the replay buffer. Only used in off_policy methods. Defaults to 1000.
             interpretation_granularity (int, optional): The number of episodes for interpretation. Defaults to 50.
             restart_weights (int, optional): The number of restarts of weights before starting learning. Defaults to 0.
             agent_name (str, optional): The name of the agent. Defaults to "test".

@@ -27,6 +27,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 4 # max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
+
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -117,6 +119,11 @@ class FatherAgent(AbstractAgent):
             batch_size = 1
         else:
             batch_size = self.args.num_environments
+            if self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
+                buffer_size = self.args.max_steps * OFF_POLICY_BUFFER_SIZE_MULTIPLIER
+            elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
+                buffer_size = self.args.num_steps + 10 
+
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
             batch_size=batch_size,

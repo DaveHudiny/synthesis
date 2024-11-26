@@ -72,7 +72,7 @@ class WeightInitializationMethods:
         return cumulative_return, average_last_episode_return
 
     @staticmethod
-    def _check_saving_condition(agent: FatherAgent, cumulative_return, average_last_episode_return, 
+    def _check_saving_condition(cumulative_return, average_last_episode_return, 
                                best_cumulative_return, best_average_last_episode_return):
         """Check if the agent should be saved as the best agent.
 
@@ -86,7 +86,6 @@ class WeightInitializationMethods:
         Returns:
             bool: True if the agent should be saved as the best agent, False otherwise.
         """
-        cumulative_return, average_last_episode_return = WeightInitializationMethods.evaluate_agent(agent)
         if average_last_episode_return > best_average_last_episode_return:
             return True
         elif average_last_episode_return == best_average_last_episode_return:
@@ -104,7 +103,7 @@ class WeightInitializationMethods:
             logger.info(f"Restarting weights {i + 1}")
             agent.reset_weights()
             cumulative_return, average_last_episode_return = WeightInitializationMethods._evaluate_agent(agent, vectorized=args.vectorized_envs_flag)
-            if WeightInitializationMethods._check_saving_condition(agent, cumulative_return, average_last_episode_return, 
+            if WeightInitializationMethods._check_saving_condition(cumulative_return, average_last_episode_return, 
                                                                   best_cumulative_return, best_average_last_episode_return):
                 best_cumulative_return = cumulative_return
                 best_average_last_episode_return = average_last_episode_return
