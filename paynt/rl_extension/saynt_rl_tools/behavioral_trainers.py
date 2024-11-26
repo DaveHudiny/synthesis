@@ -306,7 +306,7 @@ class Actor_Value_Pretrainer:
 
     def evaluate_actor(self, actor_net: ActorDistributionRnnNetwork, num_episodes: int):
         self.environment.set_random_starts_simulation(False)
-        if self.args.vectorized_envs:
+        if self.args.vectorized_envs_flag:
             if not hasattr(self, "vec_driver"):
                 self.init_vectorized_evaluation_driver(
                     self.tf_environment, self.environment, num_steps=400, actor_net=actor_net)

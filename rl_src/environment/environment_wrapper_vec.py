@@ -171,7 +171,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                     len(parse_data) + OBSERVATION_SIZE,), dtype=tf.float32, name="observation"),
             except:
                 logging.error(
-                    "Valuation encoding not possible, currently not compatible.")
+                    "Valuation encoding not possible, currently not compatible. Probably model issue.")
                 exit(0)
         else:
             raise ValueError("Encoding method currently not implemented")
@@ -221,8 +221,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def set_num_envs(self, num_envs: int):
         self.num_envs = num_envs
         self.vectorized_simulator.set_num_envs(num_envs)
-        self.vectorized_simulator.reset()
-        self._current_time_step = self._reset()
+        self._reset()
 
     def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""

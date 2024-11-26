@@ -63,18 +63,8 @@ class ExperimentInterface:
             raise ValueError(
                 "Paynt imitation is set but there is not selected any JSON FSC file.")
 
-    def parse_properties(self):
-        with open(self.args.prism_properties, "r") as f:
-            lines = f.readlines()
-        properties = []
-        for line in lines:
-            if line.startswith("//"):
-                continue
-            properties.append(line.strip())
-        return properties
-
     def initialize_prism_model(self):
-        properties = self.parse_properties()
+        properties = parse_properties(self.args.prism_properties)
         pomdp_args = POMDP_arguments(
             self.args.prism_model, properties, self.args.constants)
         return POMDP_builder.build_model(pomdp_args)
@@ -96,20 +86,21 @@ class ExperimentInterface:
         else:
             self.pomdp_model = pomdp_model
         logger.info("Model initialized")
-        if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+        if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or not self.args.vectorized_envs_flag:
             num_envs = 1
+            self.args.num_environments = 1
         else:
             num_envs = self.args.num_environments
-        if self.args.vectorized_envs:
-            self.environment = Environment_Wrapper_Vec(
+        if self.args.vectorized_envs_flag:
+            environment = Environment_Wrapper_Vec(
                 self.pomdp_model, args, num_envs=num_envs)
         else:
-            self.environment = Environment_Wrapper(self.pomdp_model, args)
+            environment = Environment_Wrapper(self.pomdp_model, args)
         # self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
-        tf_environment = tf_py_environment.TFPyEnvironment(self.environment, check_dims=True)
+        tf_environment = tf_py_environment.TFPyEnvironment(environment, check_dims=True)
         # self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
         logger.info("Environment initialized")
-        return tf_environment
+        return environment, tf_environment
 
     def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None,
                           pre_training_dqn: bool = False) -> FatherAgent:
@@ -169,10 +160,11 @@ class ExperimentInterface:
         return policy
 
     def evaluate_random_policy(self):
+        """Evaluates the random policy. The result is saved to the self.agent.evaluation_result object."""
         agent_folder = f"./trained_agents/{self.args.agent_name}_{self.args.learning_method}_{self.args.encoding_method}"
         self.agent = FatherAgent(self.environment, self.tf_environment, self.args, agent_folder=agent_folder)
         
-        self.agent.evaluate_agent(False, vectorized=self.args.vectorized_envs)
+        self.agent.evaluate_agent(False, vectorized=self.args.vectorized_envs_flag)
         
         results = {}
         if self.args.perform_interpretation:
@@ -220,12 +212,12 @@ class ExperimentInterface:
         except ValueError as e:
             logger.error(e)
             return
-        self.tf_environment = self.initialize_environment(self.args)
+        self.environment, self.tf_environment = self.initialize_environment(self.args)
         if self.args.evaluate_random_policy:  # Evaluate random policy
             return self.evaluate_random_policy()
 
         self.agent = self.initialize_agent()
-        self.agent.train_agent(self.args.nr_runs, vectorized=self.args.vectorized_envs,
+        self.agent.train_agent(self.args.nr_runs, vectorized=self.args.vectorized_envs_flag,
                                replay_buffer_option=self.args.replay_buffer_option)
         self.agent.save_agent()
         result = {}

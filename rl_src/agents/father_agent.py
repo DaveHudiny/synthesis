@@ -113,7 +113,7 @@ class FatherAgent(AbstractAgent):
         """
         if buffer_size is None:
             buffer_size = self.args.buffer_size
-        if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or not self.args.vectorized_envs:
+        if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or not self.args.vectorized_envs_flag:
             batch_size = 1
         else:
             batch_size = self.args.num_environments
@@ -156,10 +156,10 @@ class FatherAgent(AbstractAgent):
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
         if demasked:
-            observers = [self.get_demasked_observer(self.args.vectorized_envs)]
+            observers = [self.get_demasked_observer(self.args.vectorized_envs_flag)]
         else:
             observers = self.get_observers(alternative_observer)
-        if not self.args.vectorized_envs:
+        if not self.args.vectorized_envs_flag:
             num_steps = self.args.num_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
             # TODO: Compare it with self.args.max_steps

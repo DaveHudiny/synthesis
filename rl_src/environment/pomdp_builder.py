@@ -15,6 +15,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def parse_properties(properties_file):
+    """Parses the properties from the properties file. Ignores lines with comments (starting with //).
+
+    Args:
+        properties_file (str): The path to the properties file.
+    Returns:
+        list: The list of properties.
+    """
+    with open(properties_file, "r") as f:
+        lines = f.readlines()
+    properties = []
+    for line in lines:
+        if line.startswith("//"):
+            continue
+        properties.append(line.strip())
+    return properties
+
+
 class POMDP_arguments:
     def __init__(self, prism, props, constants):
         self.prism = prism

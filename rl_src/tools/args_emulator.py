@@ -61,7 +61,7 @@ class ArgsEmulator:
             random_start_simulator (bool, optional): Sets initialized simulator to work with uniformly random initial states
             num_environments (int, optional): Number of environments for vectorization. Defaults to 32.
             perform_interpretation (bool, optional): Whether to perform interpretation, or provide results for training only. Defaults to False.
-            vectorized_envs (bool, optional): Whether to use vectorized environments. Defaults to True.
+            vectorized_envs_flag (bool, optional): Whether to use vectorized environments. Defaults to True.
 
         """
         self.prism_model = prism_model
@@ -100,4 +100,4 @@ class ArgsEmulator:
         self.random_start_simulator = random_start_simulator
         self.num_environments = num_environments
         self.perform_interpretation = perform_interpretation
-        self.vectorized_envs = vectorized_envs
+        self.vectorized_envs_flag = vectorized_envs

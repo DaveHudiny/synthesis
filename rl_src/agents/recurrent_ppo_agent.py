@@ -125,24 +125,16 @@ class Recurrent_PPO_agent(FatherAgent):
         )
     
     def reset_weights(self):
-        for layer in self.agent._actor_net.layers:
-            if isinstance(layer, tf.keras.layers.LSTM):
-                for w in layer.trainable_weights:
-                    w.assign(tf.random.normal(w.shape, stddev=0.05))
-            elif isinstance(layer, tf.keras.layers.Dense):
-                for w in layer.trainable_weights:
-                    w.assign(tf.random.normal(w.shape, stddev=0.05))
-        for layer in self.agent._value_net.layers:
-            if isinstance(layer, tf.keras.layers.LSTM):
-                for w in layer.trainable_weights:
-                    w.assign(tf.random.normal(w.shape, stddev=0.05))
-            elif isinstance(layer, tf.keras.layers.Dense):
-                for w in layer.trainable_weights:
-                    w.assign(tf.random.normal(w.shape, stddev=0.05))
-        self.agent._actor_net.built = False
-        self.agent._value_net.built = False
-        self.agent._actor_net.build(self.tf_environment.observation_spec())
-        self.agent._value_net.build(self.tf_environment.observation_spec())
+        for net_type in [self.agent._value_net, self.agent._actor_net]:
+            for layer in net_type.layers:
+                if isinstance(layer, tf.keras.layers.LSTM):
+                    for w in layer.trainable_weights:
+                        w.assign(tf.random.normal(w.shape, stddev=0.05))
+                elif isinstance(layer, tf.keras.layers.Dense):
+                    for w in layer.trainable_weights:
+                        w.assign(tf.random.normal(w.shape, stddev=0.05))
+            net_type.built = False
+            net_type.build(self.tf_environment.observation_spec())
 
     #######################################################################
     # Legacy Code -- Mostly used for dynamic action space.               #

@@ -46,7 +46,7 @@ class Synthesizer_RL:
         self.interface = ExperimentInterface(args, stormpy_model)
         self.random_initi_starts_q_vals = random_init_starts_q_vals
 
-        self.interface.tf_environment = self.interface.initialize_environment(self.interface.args, self.interface.pomdp_model)
+        self.interface.environment, self.interface.tf_environment = self.interface.initialize_environment(self.interface.args, self.interface.pomdp_model)
         logger.info("RL Environment initialized")
         self.agent = self.interface.initialize_agent(
             qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
@@ -260,4 +260,4 @@ class Synthesizer_RL:
             #     self.agent.train_duplex(500, fsc, pre_trainer, critic_only=True)
             # else:
             #     self.agent.train_duplex(10, fsc, pre_trainer, critic_only=True)
-            self.agent.train_agent(4001, vectorized=args.vectorized_envs)
+            self.agent.train_agent(4001, vectorized=args.vectorized_envs_flag)
