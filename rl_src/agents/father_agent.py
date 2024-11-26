@@ -458,7 +458,7 @@ class FatherAgent(AbstractAgent):
                 self.environment.set_num_envs(
                     self.args.batch_size)
             self.tf_environment.reset()
-            self.vec_driver.run(evaluation=False)
+            self.vec_driver.run()
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(1)
                 self.tf_environment.reset()
