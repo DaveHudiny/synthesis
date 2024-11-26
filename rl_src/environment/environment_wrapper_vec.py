@@ -84,13 +84,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs, 
             max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
         self.vectorized_simulator.set_num_envs(num_envs)
-            # self.vectorized_simulator.enable_random_init()
-            # print("Random init enabled")
-            # self.vectorized_simulator.reset()
-            # self.vectorized_simulator.disable_random_init()
-            # print("Random init disabled")
-        # self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, generate_reward_selection_function, num_envs=num_envs, max_steps=args.max_steps, metalabels=metalabels)
-
         self.vectorized_simulator.reset()
 
         # Default labels mask for the environment given that the number of metalabels is 1 ("goals").
@@ -102,6 +95,13 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
         self.antigoal_values_vector = tf.constant(
             [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+        
+        # Initialization of the penalty for illegal actions.
+        self.flag_penalty = args.flag_illegal_action_penalty
+        self.illegal_action_penalty = tf.constant(
+            [self.args.illegal_action_penalty_per_step] * self.num_envs, dtype=tf.float32)
+        
+        # Initialization of the discount factor for the environment.
         self.discount = tf.convert_to_tensor(
             [args.discount_factor] * self.num_envs, dtype=tf.float32)
         
@@ -275,6 +275,14 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
+        
+        if self.flag_penalty:
+            illegal_action_penalties = tf.where(
+                self._played_illegal_actions,
+                self.illegal_action_penalty,
+                tf.zeros((self.num_envs,), dtype=tf.float32)
+            )
+            self.reward += illegal_action_penalties 
         self.step_types = tf.where(
             still_running_mask,
             tf.where(
@@ -290,6 +298,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             discount=self.discount,
             observation=self.get_observation()
         )
+
         self.prev_dones = self.dones
         self.virtual_reward = self.reward - self.default_rewards
         return self._current_time_step
@@ -304,19 +313,21 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
-        # List of bools for each environment goal
         self.labels_mask = metalabels
         if True in self.labels_mask:
             self.goal = True
         else:
             self.goal = False
-        # Fix reward from the Storm values to the RL values by multiplier given purposed specification.
         self.reward = tf.constant(rewards.tolist(), dtype=tf.float32) * self.reward_multiplier
-        # print("Reward: ", self.reward)
         self.dones = done
         self.truncated = truncated
 
-    
+    def get_mask_of_played_illegal_actions(self, actions) -> tf.Tensor:
+        """Returns the mask of played illegal actions. Used for evaluation of the environment."""
+        rows = tf.range(tf.shape(self.allowed_actions)[0])
+        gather_indices = tf.stack([rows, actions], axis=-1)
+        is_action_allowed = tf.gather_nd(self.allowed_actions, gather_indices)
+        return is_action_allowed
 
     def change_illegal_actions(self, actions, mask):
         """Changes the illegal actions to the nearest legal action with lower index with module after underflow given mask with allowed actions."""
@@ -334,10 +345,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
     def _step(self, action) -> ts.TimeStep:
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
-        # mask = self._current_time_step.observation["mask"]
-        # action = self.change_illegal_actions(action, mask)
         self.cumulative_num_steps += self.num_envs
         self._do_step_in_simulator(action)
+        if self.flag_penalty:
+            self._played_illegal_actions = self.get_mask_of_played_illegal_actions(action)
         evaluated_step = self.evaluate_simulator()
         # print("Evaluated step: ", evaluated_step.reward)
         return evaluated_step

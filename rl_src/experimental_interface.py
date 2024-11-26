@@ -27,7 +27,6 @@ from tools.weight_initialization import WeightInitializationMethods
 import tensorflow as tf
 import sys
 import os
-import rl_parser
 
 import logging
 
@@ -46,8 +45,7 @@ tf.autograph.set_verbosity(0)
 class ExperimentInterface:
     def __init__(self, args: ArgsEmulator = None, pomdp_model=None, agent=None):
         if args is None:
-            self.parser = rl_parser.Parser()
-            self.args = self.parser.args
+            self.args = ArgsEmulator()
         else:
             self.args = args
         self.pomdp_model = pomdp_model

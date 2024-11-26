@@ -13,15 +13,16 @@ class ArgsEmulator:
 
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 8.6e-4, max_steps: int = 400, evaluation_episodes: int = 20,
-                 batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 5000, evaluation_goal: int = 50,
+                 batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 4001, evaluation_goal: int = 50,
                  interpretation_method: str = "Tracing", learning_method: str = "DQN",
-                 save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -300, experiment_directory: str = "experiments",
-                 buffer_size: int = 5000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0,
+                 save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -20, experiment_directory: str = "experiments",
+                 buffer_size: int = 50000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0,
                  agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None,
                  replay_buffer_option = ReplayBufferOptions.ON_POLICY,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
-                 random_start_simulator=False, num_environments: int = 32, perform_interpretation: bool = False, vectorized_envs: bool = True):
+                 random_start_simulator=False, num_environments: int = 32, perform_interpretation: bool = False, vectorized_envs: bool = True,
+                 illegal_action_penalty_per_step = -0.02, flag_illegal_action_penalty = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -62,6 +63,8 @@ class ArgsEmulator:
             num_environments (int, optional): Number of environments for vectorization. Defaults to 32.
             perform_interpretation (bool, optional): Whether to perform interpretation, or provide results for training only. Defaults to False.
             vectorized_envs_flag (bool, optional): Whether to use vectorized environments. Defaults to True.
+            illegal_action_penalty_per_step (float, optional): Penalty for illegal action. Defaults to -5.0.
+            flag_illegal_action_penalty (bool, optional): Whether to use illegal action penalty. Defaults to False.
 
         """
         self.prism_model = prism_model
@@ -101,3 +104,5 @@ class ArgsEmulator:
         self.num_environments = num_environments
         self.perform_interpretation = perform_interpretation
         self.vectorized_envs_flag = vectorized_envs
+        self.illegal_action_penalty_per_step = illegal_action_penalty_per_step
+        self.flag_illegal_action_penalty = flag_illegal_action_penalty

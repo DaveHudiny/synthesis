@@ -9,8 +9,6 @@ import stormpy.examples.files
 import stormpy.simulator
 import stormpy.pomdp
 
-from rl_parser import Parser
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -88,5 +86,5 @@ class POMDP_builder:
 
 
 if __name__ == "__main__":
-    parser = Parser()
-    args = parser.parse_args()
+    print("Testing POMDP builder")
+    
