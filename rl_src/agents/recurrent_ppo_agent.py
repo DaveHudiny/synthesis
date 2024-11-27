@@ -25,6 +25,9 @@ from agents.policies.fsc_policy import FSC_Policy
 from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
 
+from tf_agents.networks.value_rnn_network import ValueRnnNetwork
+from tf_agents.networks.actor_distribution_rnn_network import ActorDistributionRnnNetwork
+
 import sys
 sys.path.append("../")
 from paynt.quotient.fsc import FSC
@@ -38,18 +41,22 @@ logger = logging.getLogger(__name__)
 
 class Recurrent_PPO_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
-                 args, load=False, agent_folder=None):
+                 args, load=False, agent_folder=None, actor_net : ActorDistributionRnnNetwork = None, 
+                 critic_net : ValueRnnNetwork = None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(
             learning_rate=args.learning_rate, clipnorm=1.0)
         tf_environment = self.tf_environment
         action_spec = tf_environment.action_spec()
-        self.actor_net = create_recurrent_actor_net_demasked(
-            tf_environment, action_spec)
-        
-        self.value_net = create_recurrent_value_net_demasked(
-                tf_environment)
+        if actor_net is not None:
+            self.actor_net = actor_net
+        else:
+            self.actor_net = create_recurrent_actor_net_demasked(tf_environment, action_spec)
+        if critic_net is not None:
+            self.value_net = critic_net
+        else:
+            self.value_net = create_recurrent_value_net_demasked(tf_environment)
         
         time_step_spec = tf_environment.time_step_spec()
         time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
@@ -66,11 +73,11 @@ class Recurrent_PPO_agent(FatherAgent):
             discount_factor=0.99,
             use_gae=True,
             lambda_value=0.95,
-            # gradient_clipping=0.5,
-            # policy_l2_reg=0.0001,
-            # value_function_l2_reg=0.0001,
-            # value_pred_loss_coef=0.45,
-            # entropy_regularization=0.01,
+            gradient_clipping=0.5,
+            policy_l2_reg=0.0001,
+            value_function_l2_reg=0.0001,
+            value_pred_loss_coef=0.45,
+            entropy_regularization=0.01,
             normalize_rewards=True,
         )
         self.agent.initialize()
@@ -84,24 +91,6 @@ class Recurrent_PPO_agent(FatherAgent):
         if load:
             self.load_agent()
         self.init_vec_evaluation_driver(self.tf_environment, self.environment, num_steps=self.args.max_steps)
-
-    # def init_vec_evaluation_driver(self, tf_environment : tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps = 400):
-    #     """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
-
-    #     Args:
-    #         environment: The vectorized environment object, used for simulation information.
-    #         num_steps: The number of steps for evaluation.
-    #     """
-    #     self.trajectory_buffer = TrajectoryBuffer(environment)
-    #     eager = py_tf_eager_policy.PyTFEagerPolicy(
-    #         self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
-        
-    #     self.vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-    #         environment,
-    #         eager,
-    #         observers=[self.trajectory_buffer.add_batched_step],
-    #         num_steps=num_steps * self.args.batch_size
-    #     )
         
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
                                fsc_multiplier: float = 2.0, switch_probability : float = None):

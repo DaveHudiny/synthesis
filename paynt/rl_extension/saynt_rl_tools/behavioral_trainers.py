@@ -68,7 +68,7 @@ class Actor_Value_Pretrainer:
         self.replay_buffer = TFUniformReplayBuffer(
             data_spec=modified_collect_data_spec,
             batch_size=tf_environment.batch_size,
-            max_length=500000)
+            max_length=5000)
 
     def init_fsc_policy_driver(self, tf_environment: TFPyEnvironment, fsc: FSC = None, info_spec=None):
         """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
@@ -89,11 +89,11 @@ class Actor_Value_Pretrainer:
         eager = PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observers = [self.get_demasked_observer()]
-        self.fsc_driver = DynamicEpisodeDriver(
+        self.fsc_driver = DynamicStepDriver(
             tf_environment,
             eager,
             observers=observers,
-            num_episodes=self.args.num_environments
+            num_steps=self.args.num_environments * self.args.num_steps
         )
 
     def get_demasked_observer(self):
@@ -177,7 +177,7 @@ class Actor_Value_Pretrainer:
         if fsc is not None:
             self.reinit_fsc_policy_driver(fsc=fsc)
         dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=8, sample_batch_size=256, num_steps=32, single_deterministic_pass=False).prefetch(4)
+            num_parallel_calls=8, sample_batch_size=64, num_steps=32, single_deterministic_pass=False).prefetch(32)
         self.iterator = iter(dataset)
 
         if use_best_traj_only:

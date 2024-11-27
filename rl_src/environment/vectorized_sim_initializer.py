@@ -33,7 +33,7 @@ class SimulatorInitializer:
             os.makedirs(compiled_models_path)
         name = SimulatorInitializer.get_name_from_path(model_path)
         simulator = SimulatorInitializer.try_load_simulator_by_name_from_pickle(name, compiled_models_path)
-        if simulator is None:
+        if simulator is None or True:
             logger.info(f"Compiling model {name}...")
             simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward, num_envs=num_envs, max_steps=max_steps, metalabels=metalabels)
             simulator.save(f"{compiled_models_path}/{name}.pkl")

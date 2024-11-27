@@ -224,15 +224,15 @@ class FatherAgent(AbstractAgent):
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec=self.agent.policy.info_spec, need_logits=need_logits,
-                                     switch_probability=switch_probability)
+                                     switch_probability=switch_probability, soft_decision=soft_decision)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observers = self.get_observers(alternative_observer)
-        self.fsc_driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
+        self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
             observers=observers,
-            num_episodes=1
+            num_steps=self.args.num_steps * self.args.num_environments
         )
 
     def get_evaluation_policy(self):
@@ -301,13 +301,16 @@ class FatherAgent(AbstractAgent):
         self.tf_environment.reset()
         logger.info("Training agent on-policy")
         for i in range(num_iterations):
-            self.driver.run()
+            if self.fsc_training and i <= num_iterations // 4:
+                self.fsc_driver.run()
+            else:
+                self.driver.run()
             data = self.replay_buffer.gather_all()
             self.train_innerest_body(
                 data, i, randomized=randomized, vectorized=vectorized)
             self.replay_buffer.clear()
 
-    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY):
+    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY, fsc : FSC = None):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
@@ -315,6 +318,13 @@ class FatherAgent(AbstractAgent):
         """
 
         self.agent.train = common.function(self.agent.train)
+
+        # Set FSC training.
+        if fsc is not None:
+            self.init_fsc_policy_driver(self.tf_environment, fsc)
+            self.fsc_training = True
+        else:
+            self.fsc_training = False
 
         logger.info("Training agent with replay buffer option: {0}".format(
             replay_buffer_option))

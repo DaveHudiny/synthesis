@@ -167,12 +167,14 @@ def setup_logger(log_path = None):
                 help="Multiplier for the FSC cycling oracle. Default is 2.0.")
 @click.option("--rl-load-path", type=click.Path(), default="./",
                 help="Path to the RL oracle to load. Have to be used with --load-agent.")
-@click.option("--agent_task", type=click.Path(), default="test",
+@click.option("--agent-task", type=click.Path(), default="test",
                 help="Name to be used with output json file.")
-@click.option("--model_name", type=click.Path(), default="test",
+@click.option("--model-name", type=click.Path(), default="test",
                 help="Name of the model to be used with output json file.")
-@click.option("--sub_method", type=click.Path(), default="random",
+@click.option("--sub-method", type=click.Path(), default="random",
                 help="Name of the submethod to use with dqn critic.")
+@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts"], case_sensitive=False), default="BC",
+                help="Name of the method to process FSC/SAYNT controller to RL.")
 
 
 
@@ -193,7 +195,7 @@ def paynt_run(
     profiling,
     reinforcement_learning, load_agent, fsc_cycling, fsc_synthesis_time_limit, soft_fsc,
     fsc_training_iterations, rl_pretrain_iters, rl_training_iters, fsc_multiplier, rl_load_path,
-    rl_load_memory_flag, agent_task, model_name, sub_method):
+    rl_load_memory_flag, agent_task, model_name, sub_method, rl_method):
 
     if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
         logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
@@ -213,7 +215,8 @@ def paynt_run(
             "rl_load_memory_flag": rl_load_memory_flag,
             "agent_task": agent_task,
             "model_name": model_name,
-            "sub_method": sub_method
+            "sub_method": sub_method,
+            "rl_method": rl_method
         }
 
     profiler = None

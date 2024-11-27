@@ -245,7 +245,7 @@ class SynthesizerPomdp:
 
             # break
 
-    def run_rl_synthesis(self, saynt: bool = True):
+    def run_rl_trajectories(self, saynt: bool = True):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
         fsc = self.storm_control.latest_paynt_result_fsc
@@ -274,7 +274,7 @@ class SynthesizerPomdp:
         soft_decision = False
         logger.info("Training agent with combination of FSC and RL.")
         rl_synthesiser.train_agent_combined_with_fsc_advanced(
-            1000, fsc, self.storm_control.paynt_bounds)
+            4000, fsc, self.storm_control.paynt_bounds)
         return
         while True:
             logger.info("Training agent with FSC.")
@@ -327,7 +327,7 @@ class SynthesizerPomdp:
             self.quotient.pomdp, self.rl_args, pretrain_dqn=True)
         paynt_value = fsc_json_dict["paynt_value"]
         # = self.storm_control.paynt_bounds # TODO: SAYNT controller has the value defined in self.storm_control.storm_bounds
-        rl_synthesiser.dqn_and_ppo_training(fsc, sub_method=sub_method, fsc_quality=paynt_value,
+        rl_synthesiser.train_with_bc(fsc, sub_method=sub_method, fsc_quality=paynt_value,
                                             maximizing_value=is_maximizing,
                                             probability_cond=is_probab_condition)
         if hasattr(self, "input_rl_settings_dict"):
@@ -397,10 +397,27 @@ class SynthesizerPomdp:
 
         self.saynt_timer.stop()
 
+    def set_rl_setting(self, input_rl_settings_dict):
+        self.saynt = False
+        if input_rl_settings_dict["rl_method"] == "BC":
+            self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
+        elif input_rl_settings_dict["rl_method"] == "Trajectories":
+            self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE 
+        elif input_rl_settings_dict["rl_method"] == "SAYNT_Trajectories":
+            self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
+            self.saynt = True
+        elif input_rl_settings_dict["rl_method"] == "JumpStarts":
+            self.combo_mode = RL_SAYNT_Combo_Modes.JUMPSTART_MODE
+        else:
+            self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
+
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
-        self.run_rl = True
-        self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
-        self.saynt = True
+        self.run_rl = False
+        if hasattr(self, "input_rl_settings_dict"):
+            if self.input_rl_settings_dict["reinforcement_learning"]:
+                self.run_rl = True
+                self.set_rl_setting(self.input_rl_settings_dict)
+
         self.try_faster = False
         self.rl_args = init_rl_args(mode=self.combo_mode)
         skip = False
@@ -429,10 +446,9 @@ class SynthesizerPomdp:
                     pickle.dump(self.storm_control.latest_paynt_result_fsc, f)
                 with open(f"{agent_task}/{fsc_file_name}_info.json", "w") as f:
                     json.dump(fsc_json_dict, f)
-        print("Hello")
             
         if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
-            self.run_rl_synthesis(self.saynt)
+            self.run_rl_trajectories(self.saynt)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
             self.run_rl_synthesis_critic()
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:

@@ -12,7 +12,7 @@ from rl_src.tools.saving_tools import save_statistics_to_new_json
 from rl_src.tools.encoding_methods import *
 from rl_src.tools.evaluators import EvaluationResults
 from paynt.quotient.fsc import FSC
-from rl_src.agents.ppo_with_external_networks import PPO_with_External_Networks
+from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
 
 from tf_agents.environments import tf_py_environment
 
@@ -139,12 +139,10 @@ class Synthesizer_RL:
             fsc (FSC, optional): _description_. Defaults to None.
             condition (float, optional): _description_. Defaults to None.
         """
-        try:
-            self.agent.load_agent()
-        except:
-            logger.info("Agent not loaded, training from scratch.")
-            
-        episodes = self.sample_trajectories_with_fsc(10, fsc)
+        self.agent.train_agent(iterations,
+                               vectorized=self.interface.args.vectorized_envs_flag, 
+                               replay_buffer_option=self.interface.args.replay_buffer_option,
+                               fsc=fsc)
         return
         self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
 
@@ -175,8 +173,8 @@ class Synthesizer_RL:
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
-        self.agent = PPO_with_External_Networks(self.interface.environment, self.interface.tf_environment, 
-                                         args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
+        self.agent = Recurrent_PPO_agent(self.interface.environment, self.interface.tf_environment, 
+                        args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
         observer = pre_trainer.replay_buffer._add_batch
         tf_action_labels = self.interface.environment.action_keywords
         if not hasattr(self, "saynt_driver"):
@@ -191,7 +189,7 @@ class Synthesizer_RL:
         for i in range(10):
             self.saynt_driver.episodic_run(30)
             pre_trainer.train_both_networks(200, fsc=fsc, use_best_traj_only=False, offline_data=True)
-        self.agent.train_agent_off_policy(2000, random_init=False, probab_random_init_state=0.1)
+        # TODO: self.agent.train_agent_off_policy(2000, random_init=False, probab_random_init_state=0.1)
             
 
 
@@ -210,7 +208,7 @@ class Synthesizer_RL:
     # "only_pretrained", "only_duplex", "only_duplex_critic", "complete", "four_phase"
     # fsc_quality is either minimized or maximized. Condition given quality of FSC is currently used only in the four_phase implementation.
     # Condition can optimize probability (e.g. maximize probability of reaching the goal state) or reward (e.g. minimize number of steps to reach the goal state)
-    def dqn_and_ppo_training(self, fsc : FSC = None, sub_method = "only_pretrained",
+    def train_with_bc(self, fsc : FSC = None, sub_method = "only_pretrained",
                              fsc_quality : float = 0.0, maximizing_value : bool = True, probability_cond : bool = True):
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.interface.args
@@ -226,38 +224,9 @@ class Synthesizer_RL:
         actor = pre_trainer.actor_net
         critic = pre_trainer.critic_net
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
-        self.agent = PPO_with_External_Networks(self.interface.environment, self.interface.tf_environment, 
+        self.agent = Recurrent_PPO_agent(self.interface.environment, self.interface.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
-        if "four_phase" in sub_method and fsc is not None:
-            # self.agent.train_agent(450, vectorized=args.vectorized_envs)
+        pre_trainer.train_both_networks(1001, fsc=fsc, use_best_traj_only=False)
+        self.agent.train_agent(4001, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
 
-            # if self.check_four_phase_condition(fsc_quality=fsc_quality, 
-            #                                    maximizing_value=maximizing_value, 
-            #                                    probability_cond=probability_cond,
-            #                                    evaluation_result=self.agent.evaluation_result):
-            pre_trainer.train_both_networks(801, fsc=fsc, use_best_traj_only=False)
-        if fsc is not None:
-            if sub_method == "only_duplex":
-                self.agent.train_duplex(2000, fsc, pre_trainer, critic_only=False)
-            elif sub_method == "only_duplex_critic":
-                self.agent.train_duplex(2000, fsc, pre_trainer, critic_only=True)
-        else:
-            logger.info("No suitable FSC found. No duplexing will be performed.")
-            self.agent.train_agent_off_policy(4000, probab_random_init_state=0.2)
-            return 
-        if sub_method == "only_pretrained":
-            self.agent.train_agent_off_policy(10000, probab_random_init_state=0.1)
-
-        if sub_method == "complete":
-            self.agent.train_duplex(1000, fsc, pre_trainer, critic_only=True)
-            self.agent.train_agent_off_policy(4000, probab_random_init_state=0.06)
-
-        if "four_phase" in sub_method:
-            # if self.check_four_phase_condition(fsc_quality=fsc_quality, 
-            #                                    maximizing_value=maximizing_value, 
-            #                                    probability_cond=probability_cond, 
-            #                                    evaluation_result=self.agent.evaluation_result):
-            #     self.agent.train_duplex(500, fsc, pre_trainer, critic_only=True)
-            # else:
-            #     self.agent.train_duplex(10, fsc, pre_trainer, critic_only=True)
-            self.agent.train_agent(4001, vectorized=args.vectorized_envs_flag)
+        # TODO: Other methods of training with FSC or SAYNT controller.

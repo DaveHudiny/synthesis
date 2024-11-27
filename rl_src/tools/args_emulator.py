@@ -21,7 +21,7 @@ class ArgsEmulator:
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None,
                  replay_buffer_option = ReplayBufferOptions.ON_POLICY,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
-                 random_start_simulator=False, num_environments: int = 32, perform_interpretation: bool = False, vectorized_envs: bool = True,
+                 random_start_simulator=False, num_environments: int = 32, perform_interpretation: bool = False, vectorized_envs_flag: bool = True,
                  illegal_action_penalty_per_step = -0.02, flag_illegal_action_penalty = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
@@ -65,7 +65,6 @@ class ArgsEmulator:
             vectorized_envs_flag (bool, optional): Whether to use vectorized environments. Defaults to True.
             illegal_action_penalty_per_step (float, optional): Penalty for illegal action. Defaults to -5.0.
             flag_illegal_action_penalty (bool, optional): Whether to use illegal action penalty. Defaults to False.
-
         """
         self.prism_model = prism_model
         self.prism_properties = prism_properties
@@ -103,6 +102,6 @@ class ArgsEmulator:
         self.random_start_simulator = random_start_simulator
         self.num_environments = num_environments
         self.perform_interpretation = perform_interpretation
-        self.vectorized_envs_flag = vectorized_envs
+        self.vectorized_envs_flag = vectorized_envs_flag
         self.illegal_action_penalty_per_step = illegal_action_penalty_per_step
         self.flag_illegal_action_penalty = flag_illegal_action_penalty

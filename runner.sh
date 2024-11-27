@@ -25,7 +25,7 @@ run_saynt_bc(){
     echo "Running SAYNT with behavioral cloning"
     
     # sub_methods=("only_pretrained" "only_duplex" "only_duplex_critic" "complete")
-    sub_methods=("SAYNT_Pretraining_batch64")
+    sub_methods=("SAYNT_Pretraining_batch256")
     for entry in `ls $1`; do
         if [ -d $1/$entry ]; then
             echo "Running Paynt on $entry"
@@ -109,7 +109,7 @@ if [ $1 == "--saynt" ]; then
     run_saynt $2
 elif [ $1 == "--saynt-bc" ]; then
     if [ "$#" -ne 2 ]; then
-        echo "Usage: $0 --saynt_bc <path-to-models>"
+        echo "Usage: $0 --saynt-bc <path-to-models>"
         exit 1
     fi
     run_saynt_bc $2
