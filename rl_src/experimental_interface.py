@@ -95,7 +95,8 @@ class ExperimentInterface:
         else:
             environment = Environment_Wrapper(self.pomdp_model, args)
         # self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
-        tf_environment = tf_py_environment.TFPyEnvironment(environment, check_dims=True)
+        tf_environment = tf_py_environment.TFPyEnvironment(
+            environment, check_dims=True)
         # self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
         logger.info("Environment initialized")
         return environment, tf_environment
@@ -159,10 +160,12 @@ class ExperimentInterface:
     def evaluate_random_policy(self):
         """Evaluates the random policy. The result is saved to the self.agent.evaluation_result object."""
         agent_folder = f"./trained_agents/{self.args.agent_name}_{self.args.learning_method}_{self.args.encoding_method}"
-        self.agent = FatherAgent(self.environment, self.tf_environment, self.args, agent_folder=agent_folder)
-        
-        self.agent.evaluate_agent(False, vectorized=self.args.vectorized_envs_flag)
-        
+        self.agent = FatherAgent(
+            self.environment, self.tf_environment, self.args, agent_folder=agent_folder)
+
+        self.agent.evaluate_agent(
+            False, vectorized=self.args.vectorized_envs_flag)
+
         results = {}
         if self.args.perform_interpretation:
             interpret = TracingInterpret(self.environment, self.tf_environment,
@@ -209,7 +212,8 @@ class ExperimentInterface:
         except ValueError as e:
             logger.error(e)
             return
-        self.environment, self.tf_environment = self.initialize_environment(self.args)
+        self.environment, self.tf_environment = self.initialize_environment(
+            self.args)
         if self.args.evaluate_random_policy:  # Evaluate random policy
             return self.evaluate_random_policy()
 
@@ -231,7 +235,7 @@ class ExperimentInterface:
         if hasattr(self, "tf_environment") and self.tf_environment is not None:
             try:
                 self.tf_environment.close()
-                
+
             except Exception as e:
                 pass
         if hasattr(self, "agent") and self.agent is not None:

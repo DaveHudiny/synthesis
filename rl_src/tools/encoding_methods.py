@@ -6,15 +6,17 @@
 import numpy as np
 import json
 
+
 class EncodingMethods:
     INTEGER = 1
     VALUATIONS = 2
     VALUATIONS_PLUS = 3
     ONE_HOT_ENCODING = 4
-    
+
 
 def observation_and_action_constraint_splitter(observation):
     return observation["observation"], observation["mask"]
+
 
 def observation_and_action_constraint_splitter_no_mask(observation):
     return observation["observation"], None
@@ -42,11 +44,13 @@ def create_valuations_encoding(observation, stormpy_model):
             vector.append(float(parsed_valuations[key]))
     return np.array(vector, dtype=np.float32)
 
+
 def create_valuations_encoding_plus(observation, stormpy_model, state_number):
     valuations_json = stormpy_model.observation_valuations.get_json(
         observation)
     parsed_valuations = json.loads(str(valuations_json))
     vector = []
-    vector.extend([1.0 if isinstance(val, bool) and val else 0.0 if isinstance(val, bool) else float(val) for val in parsed_valuations.values()])
+    vector.extend([1.0 if isinstance(val, bool) and val else 0.0 if isinstance(
+        val, bool) else float(val) for val in parsed_valuations.values()])
     vector.append(state_number / stormpy_model.nr_states)
     return np.array(vector, dtype=np.float32)

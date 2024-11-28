@@ -1,15 +1,11 @@
+from tools.args_emulator import ReplayBufferOptions
+from tf_agents.environments.tf_py_environment import TFPyEnvironment
+from tools.args_emulator import ArgsEmulator
+from tools.evaluators import compute_average_return
+from agents.father_agent import FatherAgent
 import logging
 
 logger = logging.getLogger(__name__)
-
-from agents.father_agent import FatherAgent
-from tools.evaluators import compute_average_return
-from tools.args_emulator import ArgsEmulator
-
-from tf_agents.environments.tf_py_environment import TFPyEnvironment
-
-from tools.args_emulator import ReplayBufferOptions
-
 
 
 class WeightInitializationMethods:
@@ -54,7 +50,7 @@ class WeightInitializationMethods:
         return cumulative_return, average_last_episode_return
 
     @staticmethod
-    def _evaluate_agent(agent: FatherAgent, vectorized : bool = False):
+    def _evaluate_agent(agent: FatherAgent, vectorized: bool = False):
         """Evaluate the agent. Returns tuple of cumulative return and average last episode return.
 
         Args:
@@ -67,13 +63,14 @@ class WeightInitializationMethods:
             cumulative_return, average_last_episode_return, _ = compute_average_return(
                 agent.get_evaluation_policy(), agent.tf_environment, agent.args.evaluation_episodes)
         else:
-            cumulative_return, average_last_episode_return = WeightInitializationMethods._vectorized_evaluate_agent(agent)
+            cumulative_return, average_last_episode_return = WeightInitializationMethods._vectorized_evaluate_agent(
+                agent)
 
         return cumulative_return, average_last_episode_return
 
     @staticmethod
-    def _check_saving_condition(cumulative_return, average_last_episode_return, 
-                               best_cumulative_return, best_average_last_episode_return):
+    def _check_saving_condition(cumulative_return, average_last_episode_return,
+                                best_cumulative_return, best_average_last_episode_return):
         """Check if the agent should be saved as the best agent.
 
         Args:
@@ -94,17 +91,19 @@ class WeightInitializationMethods:
         return False
 
     @staticmethod
-    def select_best_starting_weights(agent: FatherAgent, args : ArgsEmulator):
+    def select_best_starting_weights(agent: FatherAgent, args: ArgsEmulator):
         logger.info("Selecting best starting weights")
-        best_cumulative_return, best_average_last_episode_return = WeightInitializationMethods._evaluate_agent(agent, vectorized=args.vectorized_envs_flag)
-        
+        best_cumulative_return, best_average_last_episode_return = WeightInitializationMethods._evaluate_agent(
+            agent, vectorized=args.vectorized_envs_flag)
+
         agent.save_agent()
         for i in range(args.restart_weights):
             logger.info(f"Restarting weights {i + 1}")
             agent.reset_weights()
-            cumulative_return, average_last_episode_return = WeightInitializationMethods._evaluate_agent(agent, vectorized=args.vectorized_envs_flag)
-            if WeightInitializationMethods._check_saving_condition(cumulative_return, average_last_episode_return, 
-                                                                  best_cumulative_return, best_average_last_episode_return):
+            cumulative_return, average_last_episode_return = WeightInitializationMethods._evaluate_agent(
+                agent, vectorized=args.vectorized_envs_flag)
+            if WeightInitializationMethods._check_saving_condition(cumulative_return, average_last_episode_return,
+                                                                   best_cumulative_return, best_average_last_episode_return):
                 best_cumulative_return = cumulative_return
                 best_average_last_episode_return = average_last_episode_return
                 agent.save_agent()

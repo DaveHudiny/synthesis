@@ -1,6 +1,7 @@
 import paynt
 import os
 
+
 class PAYNT_Playground:
     @staticmethod
     def fill_nones_in_qvalues(qvalues):
@@ -11,7 +12,8 @@ class PAYNT_Playground:
                         len(qvalues[state])) if qvalues[state][i] is not None])
         return qvalues
 
-    @classmethod # Not a good implementation, if we work in a loop with multiple different models.
+    # Not a good implementation, if we work in a loop with multiple different models.
+    @classmethod
     def singleton_init_models(cls, sketch_path, properties_path):
         if not os.path.exists(sketch_path):
             raise ValueError(f"Sketch file {sketch_path} does not exist.")

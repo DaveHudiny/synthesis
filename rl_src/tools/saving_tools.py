@@ -10,6 +10,7 @@ from rl_src.tools.evaluators import EvaluationResults
 import logging
 logger = logging.getLogger(__name__)
 
+
 def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, obs_action_dict, memory_dict, labels):
     """ Save dictionaries for Paynt oracle.
     Args:

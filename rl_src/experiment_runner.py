@@ -2,18 +2,16 @@
 # Author: David Hudák
 # Login: xhudak03
 # File: interface.py
+import argparse
+from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
+from rl_src.experimental_interface import ExperimentInterface
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
+import os
+import logging
+import time
 import sys
 sys.path.append("../")
-import time
-import logging
-import os
-from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
-from rl_src.experimental_interface import ExperimentInterface
 
-
-from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
-
-import argparse 
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +75,8 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     if args.perform_interpretation:
         if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
             os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
-        save_dictionaries_caller(dicts, name_of_experiment, model, learning_method, refusing)
+        save_dictionaries_caller(
+            dicts, name_of_experiment, model, learning_method, refusing)
     end_time = time.time()
     evaluation_time = end_time - start_time
     save_statistics_to_new_json(name_of_experiment, model, learning_method,
@@ -87,8 +86,8 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
-def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256, 
-                    random_start_simulator=False, model_condition : str = ""):
+def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256,
+                    random_start_simulator=False, model_condition: str = ""):
     """ Run multiple experiments for PAYNT oracle.
     Args:
         name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
@@ -121,23 +120,23 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     max_steps=400, evaluation_goal=100, evaluation_antigoal=-20, trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=50000, random_start_simulator=random_start_simulator, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs_flag=True, flag_illegal_action_penalty=False)
-                
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
+
 
 if __name__ == "__main__":
     args_from_cmd = argparse.ArgumentParser()
 
     args_from_cmd.add_argument("--batch_size", type=int, default=256)
     args_from_cmd.add_argument("--learning_rate", type=float, default=0.0001)
-    args_from_cmd.add_argument("--path_to_models", type=str, default="./models")
+    args_from_cmd.add_argument(
+        "--path_to_models", type=str, default="./models")
     args_from_cmd.add_argument("--random_start_simulator", action="store_true")
     args_from_cmd.add_argument("--model_condition", type=str, default="")
 
-
     args = args_from_cmd.parse_args()
-    
+
     # Run experiments with the given arguments
     if args.random_start_simulator:
         name = "experiments_tuning_rnn_random"
@@ -146,7 +145,7 @@ if __name__ == "__main__":
     if not os.path.exists(name):
         os.makedirs(name)
 
-    run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate, 
+    run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate,
                     batch_size=args.batch_size, random_start_simulator=args.random_start_simulator, model_condition=args.model_condition)
     # for _ in range(10):
     #     # 0.00001
@@ -155,5 +154,3 @@ if __name__ == "__main__":
     #             logger.info(f"Running experiments with learning rate: {learning_rate} and batch size: {batch_size}")
     #             run_experiments(f"experiments_tuning/experiments_{learning_rate}_{batch_size}", "./models_large", learning_rate=learning_rate, batch_size=batch_size)
     # run_experiments("experiments_action_masking", "./models", learning_rate=0.0001, batch_size=128)
-    
-

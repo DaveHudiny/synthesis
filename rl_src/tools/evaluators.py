@@ -102,7 +102,8 @@ class EvaluationResults:
         """Add loss to the list of losses."""
         self.losses.append(loss)
 
-def log_evaluation_info(evaluation_result : EvaluationResults =None):
+
+def log_evaluation_info(evaluation_result: EvaluationResults = None):
     logger.info('Average Return = {0}'.format(
         evaluation_result.returns[-1]))
     logger.info('Average Virtual Goal Value = {0}'.format(

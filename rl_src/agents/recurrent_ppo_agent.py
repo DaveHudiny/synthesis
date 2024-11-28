@@ -3,6 +3,8 @@
 # Login: xhudak03
 # File: recurrent_ppo_agent.py
 
+import logging
+from paynt.quotient.fsc import FSC
 from agents.father_agent import FatherAgent
 from tools.encoding_methods import *
 
@@ -30,19 +32,15 @@ from tf_agents.networks.actor_distribution_rnn_network import ActorDistributionR
 
 import sys
 sys.path.append("../")
-from paynt.quotient.fsc import FSC
 
-
-
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class Recurrent_PPO_agent(FatherAgent):
-    def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment, 
-                 args, load=False, agent_folder=None, actor_net : ActorDistributionRnnNetwork = None, 
-                 critic_net : ValueRnnNetwork = None):
+    def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
+                 args, load=False, agent_folder=None, actor_net: ActorDistributionRnnNetwork = None,
+                 critic_net: ValueRnnNetwork = None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(
@@ -52,14 +50,17 @@ class Recurrent_PPO_agent(FatherAgent):
         if actor_net is not None:
             self.actor_net = actor_net
         else:
-            self.actor_net = create_recurrent_actor_net_demasked(tf_environment, action_spec)
+            self.actor_net = create_recurrent_actor_net_demasked(
+                tf_environment, action_spec)
         if critic_net is not None:
             self.value_net = critic_net
         else:
-            self.value_net = create_recurrent_value_net_demasked(tf_environment)
-        
+            self.value_net = create_recurrent_value_net_demasked(
+                tf_environment)
+
         time_step_spec = tf_environment.time_step_spec()
-        time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
+        time_step_spec = time_step_spec._replace(
+            observation=tf_environment.observation_spec()["observation"])
 
         self.agent = ppo_agent.PPOAgent(
             time_step_spec,
@@ -90,10 +91,11 @@ class Recurrent_PPO_agent(FatherAgent):
                                            is_greedy=False)
         if load:
             self.load_agent()
-        self.init_vec_evaluation_driver(self.tf_environment, self.environment, num_steps=self.args.max_steps)
-        
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
-                               fsc_multiplier: float = 2.0, switch_probability : float = None):
+        self.init_vec_evaluation_driver(
+            self.tf_environment, self.environment, num_steps=self.args.max_steps)
+
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False,
+                               fsc_multiplier: float = 2.0, switch_probability: float = None):
         """Initializes the driver for the FSC policy. Used for hard and soft FSC advices."""
         parallel_policy = self.wrapper
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
@@ -112,7 +114,7 @@ class Recurrent_PPO_agent(FatherAgent):
             observers=[observer],
             num_steps=self.args.num_environments * self.args.num_steps
         )
-    
+
     def reset_weights(self):
         for net_type in [self.agent._value_net, self.agent._actor_net]:
             for layer in net_type.layers:

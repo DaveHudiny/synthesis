@@ -3,7 +3,7 @@
 # Author: David Hudák
 # Login: xhudak03
 # File: plots.py
- 
+
 
 from matplotlib import pyplot as plt
 
@@ -150,7 +150,6 @@ def plots_new(name, max_reward, load_files=load_files):
     plot_losses(labels, learning_algorithms=learning_algorithms, title=name +
                 " loss function (lower = better) with averaging with window = 30",
                 smoothing=True, window_size=30, save_file="./imgs/" + name + "_losses_windowed_30.pdf")
-    
 
 
 if __name__ == "__main__":
@@ -165,7 +164,7 @@ if __name__ == "__main__":
         "refuel-20": 50.0,
         "grid-large-30-5": 300.0,
         "intercept": 50.0,
-        "intercept-n7-r1" : 150.0
+        "intercept-n7-r1": 150.0
     }
     # plots_new("Grid Large", 50.0)
     os.makedirs("imgs", exist_ok=True)

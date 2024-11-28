@@ -29,6 +29,7 @@ import json
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
+
 def pad_labels(label):
     current_length = tf.shape(label)[0]
     if current_length < 1:
@@ -69,21 +70,19 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.stormpy_model = stormpy_model
         self.state_to_observation_map = tf.constant(stormpy_model.observations)
 
-                
-
         # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
         # TODO: What if we want to minimize the probability of reaching some state or we want to maximize the probability of reaching some other state?
         self.special_labels = np.array(["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
                                         "((x = (10 - 1)) & (y = (10 - 1)))"])
-        
+
         # Initialization of the vectorized simulator.
         labeling = stormpy_model.labeling.get_labels()
         intersection_labels = [
             label for label in labeling if label in self.special_labels]
-        metalabels = {"goals" : intersection_labels}
-        
+        metalabels = {"goals": intersection_labels}
+
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
-            stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs, 
+            stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs,
             max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
         self.vectorized_simulator.set_num_envs(num_envs)
         self.vectorized_simulator.reset()
@@ -97,16 +96,16 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
         self.antigoal_values_vector = tf.constant(
             [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
-        
+
         # Initialization of the penalty for illegal actions.
         self.flag_penalty = args.flag_illegal_action_penalty
         self.illegal_action_penalty = tf.constant(
             [self.args.illegal_action_penalty_per_step] * self.num_envs, dtype=tf.float32)
-        
+
         # Initialization of the discount factor for the environment.
         self.discount = tf.convert_to_tensor(
             [args.discount_factor] * self.num_envs, dtype=tf.float32)
-        
+
         # Initialization of the rewards before simulation.
         self.reward = tf.constant(0.0, dtype=tf.float32)
 
@@ -115,9 +114,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             self.reward_multiplier = -1.0
         elif list(stormpy_model.reward_models.keys())[-1] in "rewards":
             self.reward_multiplier = 1.0
-        else:  # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
+        # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
+        else:
             self.reward_multiplier = -1.0
-        
+
         self._current_time_step = None
 
         # Initialization of the TF Agents specifications
@@ -237,16 +237,16 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             np.array(len(self.last_observation) * [0.0]), dtype=tf.float32)
         hidden_state = self.vectorized_simulator.simulator_states
         integers = tf.reshape(
-                        tf.gather(self.state_to_observation_map, hidden_state.vertices),
-                        (self.num_envs, 1)
-                    )
+            tf.gather(self.state_to_observation_map, hidden_state.vertices),
+            (self.num_envs, 1)
+        )
         observation_tensor = {"observation": tf.constant(self.last_observation, tf.float32),
                               "mask": tf.constant(self.allowed_actions, tf.bool),
                               "integer": integers}
         self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.truncated = np.array(len(self.last_observation) * [False])
-        
+
         self._current_time_step = ts.TimeStep(
             observation=observation_tensor,
             reward=self.reward_multiplier * self.reward,
@@ -277,14 +277,14 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
-        
+
         if self.flag_penalty:
             illegal_action_penalties = tf.where(
                 self._played_illegal_actions,
                 self.illegal_action_penalty,
                 tf.zeros((self.num_envs,), dtype=tf.float32)
             )
-            self.reward += illegal_action_penalties 
+            self.reward += illegal_action_penalties
         self.step_types = tf.where(
             still_running_mask,
             tf.where(
@@ -320,7 +320,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             self.goal = True
         else:
             self.goal = False
-        self.reward = tf.constant(rewards.tolist(), dtype=tf.float32) * self.reward_multiplier
+        self.reward = tf.constant(
+            rewards.tolist(), dtype=tf.float32) * self.reward_multiplier
         self.dones = done
         self.truncated = truncated
 
@@ -337,7 +338,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         rows = tf.range(tf.shape(mask)[0])
         gather_indices = tf.stack([rows, actions], axis=-1)
         is_action_allowed = tf.gather_nd(mask, gather_indices)
-        
+
         new_actions = tf.where(
             is_action_allowed,
             actions,
@@ -350,7 +351,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.cumulative_num_steps += self.num_envs
         self._do_step_in_simulator(action)
         if self.flag_penalty:
-            self._played_illegal_actions = self.get_mask_of_played_illegal_actions(action)
+            self._played_illegal_actions = self.get_mask_of_played_illegal_actions(
+                action)
         evaluated_step = self.evaluate_simulator()
         # print("Evaluated step: ", evaluated_step.reward)
         return evaluated_step
@@ -369,9 +371,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         mask = self.allowed_actions
         hidden_state = self.vectorized_simulator.simulator_states
         integers = tf.reshape(
-                        tf.gather(self.state_to_observation_map, hidden_state.vertices),
-                        (self.num_envs, 1)
-                    )
+            tf.gather(self.state_to_observation_map, hidden_state.vertices),
+            (self.num_envs, 1)
+        )
         return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
                 "integer": integers}
 

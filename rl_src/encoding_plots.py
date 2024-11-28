@@ -11,6 +11,7 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 
+
 def recursive_find_files(folder_path, encoding_method, filename):
     """Find files in the folder recursively.
     Args:
@@ -27,6 +28,7 @@ def recursive_find_files(folder_path, encoding_method, filename):
                 files.append(os.path.join(root, file))
     return files
 
+
 def read_files(files):
     """Read files.
     Args:
@@ -40,8 +42,9 @@ def read_files(files):
             returns.append(np.array(values))
     return returns
 
-def plot_convergence_curves(returns, denominator : float = 100, filename : str = "convergence_curves.pdf", 
-                            y_name : str = "Probability of reaching goal minus probability of trap"):
+
+def plot_convergence_curves(returns, denominator: float = 100, filename: str = "convergence_curves.pdf",
+                            y_name: str = "Probability of reaching goal minus probability of trap"):
     """Plot convergence curves.
     Args:
         returns (list): List of returns.
@@ -56,7 +59,8 @@ def plot_convergence_curves(returns, denominator : float = 100, filename : str =
         q3 = np.percentile(data, 75, axis=0) / denominator
 
         plt.plot(range(1, len(medians) + 1), medians, label=f"Median of {key}")
-        plt.fill_between(range(1, len(medians) + 1), q1, q3, alpha=0.3, label=f"Interquartile Range of {key}")
+        plt.fill_between(range(1, len(medians) + 1), q1, q3,
+                         alpha=0.3, label=f"Interquartile Range of {key}")
 
     plt.xlabel("i-th hundred iteration")
     plt.ylabel(y_name)
@@ -64,8 +68,9 @@ def plot_convergence_curves(returns, denominator : float = 100, filename : str =
     plt.grid(True)
     plt.savefig(filename)
 
-def plot_convergence_curves_seaborn(returns, denominator : float = 100, filename : str = "convergence_curves_seaborn.pdf", 
-                                    y_name : str = "Probability of reaching goal minus probability of trap", random_policy_value = None):
+
+def plot_convergence_curves_seaborn(returns, denominator: float = 100, filename: str = "convergence_curves_seaborn.pdf",
+                                    y_name: str = "Probability of reaching goal minus probability of trap", random_policy_value=None):
     """Plot convergence curves using seaborn.
     Args:
         returns (list): List of returns.
@@ -78,17 +83,20 @@ def plot_convergence_curves_seaborn(returns, denominator : float = 100, filename
     for key in returns:
         for i, values in enumerate(returns[key]):
             for j, value in enumerate(values):
-                data.append({"i-th hundred iteration": j + 1, y_name: value / denominator, 
+                data.append({"i-th hundred iteration": j + 1, y_name: value / denominator,
                              "Encoding Method": key, "Experiment": i})
 
     data = pd.DataFrame(data)
-    sns.lineplot(x="i-th hundred iteration", y=y_name, hue="Encoding Method", data=data)
+    sns.lineplot(x="i-th hundred iteration", y=y_name,
+                 hue="Encoding Method", data=data)
     if random_policy_value is not None:
-        plt.axhline(y=random_policy_value, color='k', linestyle='--', label="Random policy")
+        plt.axhline(y=random_policy_value, color='k',
+                    linestyle='--', label="Random policy")
     plt.grid(False)
     plt.savefig(filename)
     plt.close()
-    
+
+
 def plot_function(folder_path, filename, save_filename, y_name, denominator=1, random_policy_value=None):
     """Plot function.
     Args:
@@ -102,11 +110,10 @@ def plot_function(folder_path, filename, save_filename, y_name, denominator=1, r
     plot_convergence_curves_seaborn(returns, denominator=denominator, filename=save_filename, y_name=y_name,
                                     random_policy_value=random_policy_value)
 
+
 if __name__ == "__main__":
     plot_function("./", "average_return_with_final.txt", "convergence_curves_seaborn_final.pdf",
-                  y_name = "Probability of reaching goal minus probability of trap", denominator=100, 
+                  y_name="Probability of reaching goal minus probability of trap", denominator=100,
                   random_policy_value=0.25)
     plot_function("./", "average_return_without_final.txt", "convergence_curves_seaborn_without.pdf",
-                  y_name = "Average return without virtual goal", denominator=1, random_policy_value=-70.0)
-
-    
+                  y_name="Average return without virtual goal", denominator=1, random_policy_value=-70.0)

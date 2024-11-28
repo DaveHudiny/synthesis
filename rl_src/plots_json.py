@@ -10,14 +10,11 @@ import ast
 import pandas as pd
 
 
-
-
-
 class PreviousStats:
     """Class for storing previous statistics."""
 
-    def __init__(self, best_return_spaynt = None, best_reach_probs_spaynt = None, best_return_rl = None, 
-                 best_reach_probs_rl = None, best_return_unstable = None, best_reach_probs_unstable = None):
+    def __init__(self, best_return_spaynt=None, best_reach_probs_spaynt=None, best_return_rl=None,
+                 best_reach_probs_rl=None, best_return_unstable=None, best_reach_probs_unstable=None):
         self.best_return_spaynt = best_return_spaynt
         self.best_reach_probs_spaynt = best_reach_probs_spaynt
         self.best_return_rl = best_return_rl
@@ -88,38 +85,51 @@ def plot_single_curve(data, shown_metric, is_trap=False, plot_color='b'):
     # print(shown_metric)
     if plot_color is not None:
         plt.plot(numpy_data, label=shown_metric,
-                linestyle='dashed' if is_trap else 'solid',
-                color='orange' if is_trap else plot_color)
+                 linestyle='dashed' if is_trap else 'solid',
+                 color='orange' if is_trap else plot_color)
     else:
         plt.plot(numpy_data, label=shown_metric,
-                linestyle='dashed' if is_trap else 'solid')
+                 linestyle='dashed' if is_trap else 'solid')
+
 
 def add_line_to_plot(model, metric):
     if model in dict_of_prev_stats:
         if metric == "returns":
             if dict_of_prev_stats[model].best_return_spaynt is not None:
-                plt.axhline(y=dict_of_prev_stats[model].best_return_spaynt, color='r', linestyle='dashed')
-                plt.plot([], label='Best of (S)PAYNT', color='r', linestyle='dashed')
+                plt.axhline(
+                    y=dict_of_prev_stats[model].best_return_spaynt, color='r', linestyle='dashed')
+                plt.plot([], label='Best of (S)PAYNT',
+                         color='r', linestyle='dashed')
             if dict_of_prev_stats[model].best_return_rl is not None:
-                plt.axhline(y=dict_of_prev_stats[model].best_return_rl, color='g', linestyle='dashed')
-                plt.plot([], label='Best of Previous RL', color='g', linestyle='dashed')
+                plt.axhline(
+                    y=dict_of_prev_stats[model].best_return_rl, color='g', linestyle='dashed')
+                plt.plot([], label='Best of Previous RL',
+                         color='g', linestyle='dashed')
             if dict_of_prev_stats[model].best_return_unstable is not None:
-                plt.axhline(y=dict_of_prev_stats[model].best_return_unstable, color='pink', linestyle='dotted')
-                plt.plot([], label='Best of Somewhere', color='pink', linestyle='dotted')
+                plt.axhline(
+                    y=dict_of_prev_stats[model].best_return_unstable, color='pink', linestyle='dotted')
+                plt.plot([], label='Best of Somewhere',
+                         color='pink', linestyle='dotted')
         elif metric == "reach_probs":
             if dict_of_prev_stats[model].best_reach_probs_spaynt is not None:
-                plt.axhline(y=dict_of_prev_stats[model].best_reach_probs_spaynt, color='r', linestyle='dashed')
-                plt.plot([], label='Best of (S)PAYNT', color='r', linestyle='dashed')
+                plt.axhline(
+                    y=dict_of_prev_stats[model].best_reach_probs_spaynt, color='r', linestyle='dashed')
+                plt.plot([], label='Best of (S)PAYNT',
+                         color='r', linestyle='dashed')
             if dict_of_prev_stats[model].best_reach_probs_rl is not None:
-                plt.axhline(y=dict_of_prev_stats[model].best_reach_probs_rl, color='g', linestyle='dashed')
-                plt.plot([], label='Best of Previous RL', color='g', linestyle='dashed')
+                plt.axhline(
+                    y=dict_of_prev_stats[model].best_reach_probs_rl, color='g', linestyle='dashed')
+                plt.plot([], label='Best of Previous RL',
+                         color='g', linestyle='dashed')
             if dict_of_prev_stats[model].best_reach_probs_unstable is not None:
-                plt.axhline(y=dict_of_prev_stats[model].best_reach_probs_unstable, color='pink', linestyle='dotted')
-                plt.plot([], label='Best of Somewhere', color='pink', linestyle='dotted')
-        
+                plt.axhline(
+                    y=dict_of_prev_stats[model].best_reach_probs_unstable, color='pink', linestyle='dotted')
+                plt.plot([], label='Best of Somewhere',
+                         color='pink', linestyle='dotted')
 
     # add legend to axhline plots
-            
+
+
 def pre_compute_keys(jsons, is_multiple_experiments):
     pre_computed_keys = set()
     if is_multiple_experiments:
@@ -166,13 +176,16 @@ def plot_multiple_experiments(jsons, metric, model, pre_computed_keys):
             if model_name == model and not metric == "reach_probs":
                 try:
                     data = jsons[experiment_name][key][metric]
-                    plot_single_curve(data, algorithm_name + " " + experiment_name, plot_color=plot_color)
+                    plot_single_curve(
+                        data, algorithm_name + " " + experiment_name, plot_color=plot_color)
                 except Exception as e:
-                    print(f"Error in {model} with experiment {experiment_name} and metric {metric}: {e}")
+                    print(
+                        f"Error in {model} with experiment {experiment_name} and metric {metric}: {e}")
             elif model_name == model and metric == "reach_probs":
                 try:
                     data = jsons[experiment_name][key][metric]
-                    plot_single_curve(data, "Goal Reachability" + " " + experiment_name, plot_color=plot_color)
+                    plot_single_curve(
+                        data, "Goal Reachability" + " " + experiment_name, plot_color=plot_color)
                 except Exception as e:
                     print(f"Error in {model} with {metric}: {e}")
     add_line_to_plot(model, metric)
@@ -202,7 +215,8 @@ def run_plots(results_folder, save_folder):
         is_multiple_experiments = True
         jsons = {}
         for experiment_name in results_folder:
-            jsons[experiment_name] = load_jsons_from_folder(results_folder[experiment_name])
+            jsons[experiment_name] = load_jsons_from_folder(
+                results_folder[experiment_name])
         models = set()
         for experiment_name in jsons:  # Get all models
             for key in jsons[experiment_name]:
@@ -219,12 +233,15 @@ def run_plots(results_folder, save_folder):
         os.makedirs(save_folder)
     for model in models:  # Plot all metrics for each model
         for metric in METRICS:
-            plot_single_metric_for_model(jsons, metric, model, save_folder, is_multiple_experiments)
-    summary_table_return, summary_table_reachability = get_summary_table(jsons, models)
+            plot_single_metric_for_model(
+                jsons, metric, model, save_folder, is_multiple_experiments)
+    summary_table_return, summary_table_reachability = get_summary_table(
+        jsons, models)
     df = pd.DataFrame(summary_table_return).T
     df.to_excel(f"{save_folder}/summary_table_return.xlsx")
     df = pd.DataFrame(summary_table_reachability).T
     df.to_excel(f"{save_folder}/summary_table_reachability.xlsx")
+
 
 def get_summary_table(jsons, models):
     summary_table = {}
@@ -232,16 +249,21 @@ def get_summary_table(jsons, models):
         summary_table[metric[0]] = {}
         for model in models:
             summary_table[metric[0]][model] = {}
-            summary_table[metric[0]][model]["spaynt"] = dict_of_prev_stats[model].best_return_spaynt
-            summary_table[metric[0]][model]["rl"] = dict_of_prev_stats[model].best_return_rl
-            summary_table[metric[0]][model]["unstable"] = dict_of_prev_stats[model].best_return_unstable
+            summary_table[metric[0]
+                          ][model]["spaynt"] = dict_of_prev_stats[model].best_return_spaynt
+            summary_table[metric[0]
+                          ][model]["rl"] = dict_of_prev_stats[model].best_return_rl
+            summary_table[metric[0]
+                          ][model]["unstable"] = dict_of_prev_stats[model].best_return_unstable
             for key in jsons:
                 for sub_key in jsons[key]:
                     model_name, _ = get_experiment_setting_from_name(sub_key)
                     if model_name == model:
-                        summary_table[metric[0]][model][key] = jsons[key][sub_key][metric[1]]
+                        summary_table[metric[0]
+                                      ][model][key] = jsons[key][sub_key][metric[1]]
 
     return summary_table["Best Return"], summary_table["Best Reachability"]
+
 
 if __name__ == "__main__":
     if False:
@@ -249,9 +271,10 @@ if __name__ == "__main__":
 
         parser = argparse.ArgumentParser()
 
-        parser.add_argument("--folder", type=str, default="experiments_original_boosted")
-        parser.add_argument("--save_folder", type=str, default="./plots_original")
-        
+        parser.add_argument("--folder", type=str,
+                            default="experiments_original_boosted")
+        parser.add_argument("--save_folder", type=str,
+                            default="./plots_original")
 
         args = parser.parse_args()
         run_plots(args.folder, args.save_folder)
@@ -262,7 +285,7 @@ if __name__ == "__main__":
         #     "Randomized FFNN": "experiments_various_settings/experiments_tuning_f_random/experiments_0.0005_512/",
         #     "Unmasked RNN": "experiments_tuning_rnn_demasked/experiments_0.001_256/",
         #     "Unmasked Randomized RNN": "experiments_tuning_rnn_random_demasked/experiments_0.001_256/",
-        # } 
+        # }
         dict_of_folders = {
             # "Randomized FFNN": "experiments_various_settings/experiments_tuning_f_random/experiments_0.0005_512/",
             "Randomized RNN Batch 256 LR 0.001": "experiments_tuning_rnn_random_demasked/experiments_0.001_256/",

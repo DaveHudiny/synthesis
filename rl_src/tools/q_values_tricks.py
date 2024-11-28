@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class QValuesTricks():
     @staticmethod
     def make_qvalues_tensorable(qvalues_table):

@@ -1,20 +1,22 @@
 # This file is used to initialize the vectorized simulation environment
 
-import os, sys
+import vec_storm
+import os
+import sys
 import pickle as pkl
 import re
 
 import logging
 logger = logging.getLogger(__name__)
 
-import vec_storm
 
 # self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward=generate_reward_selection_function,
 #                                                           num_envs=num_envs, max_steps=args.max_steps, metalabels={"goals": intersection_labels})
 
+
 class SimulatorInitializer:
     @staticmethod
-    def load_and_store_simulator(stormpy_model, get_scalarized_reward, num_envs, max_steps, metalabels, model_path, compiled_models_path = "compiled_models_vec_storm"):
+    def load_and_store_simulator(stormpy_model, get_scalarized_reward, num_envs, max_steps, metalabels, model_path, compiled_models_path="compiled_models_vec_storm"):
         """ Load the simulator for the environment. If the model was not compiled previously, the model is compiled from scratch and saved. Otherwise, the model is loaded from the file.
 
         Args:
@@ -32,13 +34,14 @@ class SimulatorInitializer:
         if not os.path.exists(compiled_models_path):
             os.makedirs(compiled_models_path)
         name = SimulatorInitializer.get_name_from_path(model_path)
-        simulator = SimulatorInitializer.try_load_simulator_by_name_from_pickle(name, compiled_models_path)
+        simulator = SimulatorInitializer.try_load_simulator_by_name_from_pickle(
+            name, compiled_models_path)
         if simulator is None or True:
             logger.info(f"Compiling model {name}...")
-            simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward, num_envs=num_envs, max_steps=max_steps, metalabels=metalabels)
+            simulator = vec_storm.StormVecEnv(
+                stormpy_model, get_scalarized_reward, num_envs=num_envs, max_steps=max_steps, metalabels=metalabels)
             simulator.save(f"{compiled_models_path}/{name}.pkl")
         return simulator
-
 
     @staticmethod
     def get_name_from_path(model_path):
@@ -66,8 +69,10 @@ class SimulatorInitializer:
             VectorizedSimulator: The simulator.
         """
         if not os.path.exists(f"{path_to_compiled_models}/{name}.pkl"):
-            logger.info(f"Model {name} not found in {path_to_compiled_models}. The model will be compiled.")
+            logger.info(
+                f"Model {name} not found in {path_to_compiled_models}. The model will be compiled.")
             return None
         else:
-            logger.info(f"Model {name} found in {path_to_compiled_models}. The model will be loaded")
+            logger.info(
+                f"Model {name} found in {path_to_compiled_models}. The model will be loaded")
             return vec_storm.StormVecEnv.load(f"{path_to_compiled_models}/{name}.pkl")

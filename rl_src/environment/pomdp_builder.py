@@ -87,4 +87,3 @@ class POMDP_builder:
 
 if __name__ == "__main__":
     print("Testing POMDP builder")
-    

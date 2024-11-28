@@ -19,10 +19,10 @@ class ArgsEmulator:
                  buffer_size: int = 50000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0,
                  agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None,
-                 replay_buffer_option = ReplayBufferOptions.ON_POLICY,
+                 replay_buffer_option=ReplayBufferOptions.ON_POLICY,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
                  random_start_simulator=False, num_environments: int = 32, perform_interpretation: bool = False, vectorized_envs_flag: bool = True,
-                 illegal_action_penalty_per_step = -0.02, flag_illegal_action_penalty = False):
+                 illegal_action_penalty_per_step=-0.02, flag_illegal_action_penalty=False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
