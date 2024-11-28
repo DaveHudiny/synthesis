@@ -12,13 +12,12 @@ from stormpy import simulator
 from stormpy.storage import storage
 import stormpy
 
-from tf_agents.environments import py_environment
+from environment import py_environment
 
 
 from tf_agents.trajectories import time_step as ts
 import tensorflow as tf
 from tf_agents.specs import tensor_spec
-from tf_agents.specs import array_spec
 from tf_agents.trajectories import time_step_spec
 from tools.encoding_methods import *
 

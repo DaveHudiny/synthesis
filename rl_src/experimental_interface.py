@@ -15,7 +15,7 @@ from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from agents.ppo_with_qvalues_fsc import PPO_with_QValues_FSC
 from agents.periodic_fsc_neural_ppo import Periodic_FSC_Neural_PPO
 
-from tf_agents.environments import tf_py_environment
+from environment import tf_py_environment
 from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
 from tools.evaluators import *
 from environment.environment_wrapper import *

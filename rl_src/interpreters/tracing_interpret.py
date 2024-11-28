@@ -1,6 +1,6 @@
 from interpreters.interpret import Interpret
 from environment.environment_wrapper import Environment_Wrapper
-from tf_agents.environments import tf_py_environment
+from environment import tf_py_environment
 from agents.father_agent import FatherAgent
 
 import numpy as np

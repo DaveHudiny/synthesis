@@ -11,7 +11,7 @@ from tools.encoding_methods import *
 import tensorflow as tf
 import tf_agents
 
-from tf_agents.environments import tf_py_environment
+from environment import tf_py_environment
 from tf_agents.agents.ppo import ppo_agent
 
 from tf_agents.utils import common

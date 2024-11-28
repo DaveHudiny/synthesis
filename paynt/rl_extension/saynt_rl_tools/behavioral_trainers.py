@@ -2,7 +2,7 @@ import tensorflow as tf
 from tf_agents.networks import value_rnn_network, actor_distribution_network
 from tf_agents.replay_buffers.tf_uniform_replay_buffer import TFUniformReplayBuffer
 
-from tf_agents.environments import TFPyEnvironment
+from rl_src.environment import TFPyEnvironment
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 from tf_agents.drivers.dynamic_episode_driver import DynamicEpisodeDriver
 from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver

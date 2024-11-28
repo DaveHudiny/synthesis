@@ -3,7 +3,7 @@
 
 from tf_agents.networks import actor_distribution_rnn_network
 from tf_agents.networks import actor_distribution_network
-from tf_agents.environments import tf_py_environment
+from environment import tf_py_environment
 
 import tensorflow as tf
 import numpy as np

@@ -4,8 +4,7 @@
 # File: environment_wrapper.py
 
 import os
-from vec_storm.storm_vec_env import ResetInfo, StepInfo
-import vec_storm
+from vec_storm.storm_vec_env import StepInfo
 import logging
 import numpy as np
 import tensorflow as tf
@@ -13,7 +12,7 @@ import tensorflow as tf
 from stormpy import simulator
 from stormpy.storage import storage
 
-from tf_agents.environments import py_environment
+from environment import py_environment
 
 
 from tf_agents.trajectories import time_step as ts

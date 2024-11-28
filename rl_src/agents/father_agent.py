@@ -5,7 +5,7 @@
 # File: father_agent.py
 
 from tf_agents.policies import py_tf_eager_policy
-from tf_agents.environments import tf_py_environment
+from environment import tf_py_environment
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.utils import common
 from tf_agents.trajectories import Trajectory

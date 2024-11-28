@@ -10,7 +10,7 @@ from tf_agents.trajectories import StepType
 
 import tf_agents.trajectories as Trajectories
 
-from tf_agents.environments import tf_py_environment
+from rl_src.environment import tf_py_environment
 
 from paynt.quotient.fsc import FSC
 

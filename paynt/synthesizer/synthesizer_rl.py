@@ -14,7 +14,7 @@ from rl_src.tools.evaluators import EvaluationResults
 from paynt.quotient.fsc import FSC
 from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
 
-from tf_agents.environments import tf_py_environment
+from rl_src.environment import tf_py_environment
 
 from paynt.quotient.fsc import FSC
 from paynt.rl_extension.saynt_controller.saynt_driver import SAYNT_Driver

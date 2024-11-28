@@ -1,5 +1,5 @@
 from tools.args_emulator import ReplayBufferOptions
-from tf_agents.environments.tf_py_environment import TFPyEnvironment
+from environment.tf_py_environment import TFPyEnvironment
 from tools.args_emulator import ArgsEmulator
 from tools.evaluators import compute_average_return
 from agents.father_agent import FatherAgent

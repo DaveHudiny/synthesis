@@ -6,7 +6,7 @@
 import random
 
 from tools.encoding_methods import *
-from tf_agents.environments import tf_py_environment
+from environment import tf_py_environment
 from tf_agents.policies.tf_policy import TFPolicy
 from tf_agents.trajectories.policy_step import PolicyStep
 from tf_agents.specs.tensor_spec import TensorSpec

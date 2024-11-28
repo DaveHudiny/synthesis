@@ -13,7 +13,7 @@ from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from tools.encoding_methods import observation_and_action_constraint_splitter
 
 
-from tf_agents.environments import tf_py_environment
+from environment import tf_py_environment
 from tf_agents.agents.ppo import ppo_agent
 from tf_agents.policies import py_tf_eager_policy
 
