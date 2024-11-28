@@ -119,39 +119,10 @@ class Recurrent_PPO_agent(FatherAgent):
                 if isinstance(layer, tf.keras.layers.LSTM):
                     for w in layer.trainable_weights:
                         w.assign(tf.random.normal(w.shape, stddev=0.05))
+                        # glorlot_uniform
+                        w.assign(tf.random.normal(w.shape, stddev=0.05))
                 elif isinstance(layer, tf.keras.layers.Dense):
                     for w in layer.trainable_weights:
                         w.assign(tf.random.normal(w.shape, stddev=0.05))
             net_type.built = False
             net_type.build(self.tf_environment.observation_spec())
-
-    #######################################################################
-    # Legacy Code -- Mostly used for dynamic action space.               #
-    #######################################################################
-        
-    def create_recurrent_actor_net(self, tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
-        preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (50, 50)
-        actor_net = tf_agents.networks.actor_distribution_rnn_network.ActorDistributionRnnNetwork(
-            tf_environment.observation_spec(),
-            action_spec,
-            preprocessing_layers=preprocessing_layer,
-            input_fc_layer_params=layer_params,
-            output_fc_layer_params=None,
-            lstm_size=(64,),
-            conv_layer_params=None,
-        )
-        return actor_net
-        
-    def create_recurrent_value_net(self, tf_environment: tf_py_environment.TFPyEnvironment, action_spec):
-        preprocessing_layer = tf.keras.layers.Dense(64, activation='relu')
-        layer_params = (50, 50)
-        value_net = tf_agents.networks.value_rnn_network.ValueRnnNetwork(
-            tf_environment.observation_spec(),
-            preprocessing_layers=preprocessing_layer,
-            input_fc_layer_params=layer_params,
-            output_fc_layer_params=None,
-            lstm_size=(64,),
-            conv_layer_params=None
-        )
-        return value_net
