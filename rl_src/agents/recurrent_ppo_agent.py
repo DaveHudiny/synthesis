@@ -106,11 +106,11 @@ class Recurrent_PPO_agent(FatherAgent):
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.get_demasked_observer()
-        self.fsc_driver = tf_agents.drivers.dynamic_episode_driver.DynamicEpisodeDriver(
+        self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
             observers=[observer],
-            num_episodes=1
+            num_steps=self.args.num_environments * self.args.num_steps
         )
     
     def reset_weights(self):

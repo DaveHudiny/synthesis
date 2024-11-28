@@ -208,31 +208,25 @@ class FatherAgent(AbstractAgent):
         """Get the initial state of the agent."""
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None,
-                               soft_decision=False, fsc_multiplier=2.0, need_logits: bool = True,
-                               switch_probability: float = None, alternative_observer: callable = None):
-        """Initialize the FSC policy driver for the agent. Used for imitation learning with FSC.
-
-        Args:
-            tf_environment: The TensorFlow environment object, used for simulation information.
-            fsc: The FSC object for imitation learning.
-            soft_decision: Whether to use soft decision for FSC. Used only in PPO initialization.
-            fsc_multiplier: The multiplier for the FSC. Used only in PPO initialization.
-        """
-        self.need_logits = need_logits
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
+                               fsc_multiplier: float = 2.0, switch_probability : float = None):
+        """Initializes the driver for the FSC policy. Used for hard and soft FSC advices."""
+        parallel_policy = self.wrapper
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
-                                     info_spec=self.agent.policy.info_spec, need_logits=need_logits,
-                                     switch_probability=switch_probability, soft_decision=soft_decision)
+                                     info_spec=self.agent.collect_policy.info_spec,
+                                     parallel_policy=parallel_policy, soft_decision=soft_decision,
+                                     soft_decision_multiplier=fsc_multiplier,
+                                     switch_probability=switch_probability)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
-        observers = self.get_observers(alternative_observer)
+        observer = self.get_demasked_observer()
         self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
-            observers=observers,
-            num_steps=self.args.num_steps * self.args.num_environments
+            observers=[observer],
+            num_steps=self.args.num_environments * self.args.num_steps
         )
 
     def get_evaluation_policy(self):
@@ -303,6 +297,9 @@ class FatherAgent(AbstractAgent):
         for i in range(num_iterations):
             if self.fsc_training and i <= num_iterations // 4:
                 self.fsc_driver.run()
+            # elif self.fsc_training and i <= num_iterations // 4 and i % 50 == 40:
+            #    self.tf_environment.reset()
+            #    self.driver.run()
             else:
                 self.driver.run()
             data = self.replay_buffer.gather_all()
@@ -310,18 +307,23 @@ class FatherAgent(AbstractAgent):
                 data, i, randomized=randomized, vectorized=vectorized)
             self.replay_buffer.clear()
 
-    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY, fsc : FSC = None):
+    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY, fsc : FSC = None,
+                    jumpstart_fsc : bool = False, debug: bool = False):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
             iterations (int): Number of iterations to train agent.
         """
-
-        self.agent.train = common.function(self.agent.train)
+        if not debug:
+            self.agent.train = common.function(self.agent.train)
 
         # Set FSC training.
         if fsc is not None:
-            self.init_fsc_policy_driver(self.tf_environment, fsc)
+            if jumpstart_fsc:
+                switch_probability = 0.05
+            else:
+                switch_probability = None
+            self.init_fsc_policy_driver(self.tf_environment, fsc, switch_probability=switch_probability)
             self.fsc_training = True
         else:
             self.fsc_training = False

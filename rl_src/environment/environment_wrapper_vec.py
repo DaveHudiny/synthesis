@@ -29,7 +29,6 @@ import json
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
-
 def pad_labels(label):
     current_length = tf.shape(label)[0]
     if current_length < 1:
@@ -41,6 +40,9 @@ def pad_labels(label):
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO)
+
+logging.getLogger("jax").setLevel(logging.ERROR)
+os.environ["JAX_LOG_LEVEL"] = "ERROR"
 
 
 def generate_reward_selection_function(rewards, labels):

@@ -12,6 +12,8 @@ from tf_agents.trajectories.policy_step import PolicyStep
 from tf_agents.specs.tensor_spec import TensorSpec
 from tf_agents.utils import common
 
+from tf_agents.trajectories import StepType
+
 import tensorflow_probability as tfp
 
 import tensorflow as tf
@@ -96,7 +98,7 @@ class FSC_Policy(TFPolicy):
         self.switched = False
         return tf.zeros((batch_size, 1), dtype=tf.int32)
 
-    def _distribution(self, time_step, policy_state):
+    def _distribution(self, time_step, policy_state, seed):
         raise NotImplementedError(
             "FSC policy does not support distribution-based action selection")
 
@@ -137,7 +139,7 @@ class FSC_Policy(TFPolicy):
     def _create_one_hot_fake_info(self, action_number):
         one_hot_encoding = tf.one_hot(action_number, len(self.tf_action_labels)) / 2.0
         one_hot_encoding_with_alternative = tf.where(one_hot_encoding == 0.0, -1.0, one_hot_encoding)
-        one_hot_encoding = tf.cast([one_hot_encoding_with_alternative], tf.float32, name="CategoricalProjectionNetwork_logits")
+        one_hot_encoding = tf.cast(one_hot_encoding_with_alternative, tf.float32, name="CategoricalProjectionNetwork_logits")
         return {"dist_params": {"logits": one_hot_encoding}}
     
     def _get_switched_ppo_action(self, time_step, seed):
@@ -147,6 +149,23 @@ class FSC_Policy(TFPolicy):
     
     # @tf.function
     def _action(self, time_step, policy_state, seed):
+        # Change the policy_state for the first time steps
+        equal_mask = tf.math.equal(time_step.step_type, StepType.FIRST)
+        equal_mask = tf.reshape(equal_mask, shape=(-1, 1))
+        policy_state = tf.where(
+            equal_mask,
+            self._get_initial_state(tf.shape(time_step.observation["integer"])[0]),
+            policy_state
+        )
+        init_state = self._parallel_policy.get_initial_state(tf.shape(time_step.observation["integer"])[0])
+        for key in self._hidden_ppo_state.keys():
+            for i in range(len(self._hidden_ppo_state[key])):
+                self._hidden_ppo_state[key][i] = tf.where(
+                    equal_mask,
+                    init_state[key][i],
+                    self._hidden_ppo_state[key][i]
+                )
+
         batch_size = tf.shape(time_step.observation["integer"])[0]
         policy_info = ()
         if self.switching: # Switching between FSC and PPO
@@ -162,7 +181,7 @@ class FSC_Policy(TFPolicy):
             action_number, new_policy_state = self._generate_paynt_decision(time_step, policy_state, seed)
         if self._info_spec is None or self._info_spec == ():
             policy_info = ()
-
+        
         elif self._parallel_policy is not None and policy_info == (): # Generate logits from PPO policy
             if self._soft_decision: # Use PPO policy to make a decision combined with FSC
                 action_number, policy_info = self._make_soft_decision(action_number, time_step, seed)
@@ -170,14 +189,12 @@ class FSC_Policy(TFPolicy):
                 parallel_policy_step = self._parallel_policy_function(time_step, self._hidden_ppo_state, seed)
                 self._hidden_ppo_state = parallel_policy_step.state
                 policy_info = parallel_policy_step.info
-
         if self.duplex_buffering:
             policy_info = {
                 "fsc": tf.constant([not self.switched] * batch_size, dtype=tf.bool),
                 "rl": policy_info,
                 "mem_node": new_policy_state
             }
-        
         if policy_info == () and self.info_mem_node:
             policy_info = {"mem_node" : new_policy_state}
         elif policy_info == () and self._info_spec != (): # If parallel policy does not return logits, use one-hot encoding of action number
