@@ -38,22 +38,24 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
         self.actor_net = create_recurrent_actor_net_demasked(
             tf_environment, tf_environment.action_spec())
         self.critic_net = Periodic_FSC_Neural_Critic(
-            tf_environment.observation_spec()["observation"], 
+            tf_environment.observation_spec()["observation"],
             qvalues_table=self.qvalues_function, nr_observations=environment.nr_obs,
-            stormpy_model=environment.stormpy_model, 
+            stormpy_model=environment.stormpy_model,
             tf_environment=tf_environment,
             periode_length=2
-            )
-        
+        )
+
         time_step_spec = tf_environment.time_step_spec()
-        time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
-        
+        time_step_spec = time_step_spec._replace(
+            observation=tf_environment.observation_spec()["observation"])
+
         self.agent = ppo_agent.PPOAgent(
             time_step_spec,
             tf_environment.action_spec(),
             actor_net=self.actor_net,
             value_net=self.critic_net,
-            optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
+            optimizer=tf.keras.optimizers.Adam(
+                learning_rate=args.learning_rate),
             normalize_observations=False,
             normalize_rewards=False,
             use_gae=True,
@@ -68,18 +70,18 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
         )
         self.agent.initialize()
         logging.info("Agent initialized")
-        
+
         self.args.prefer_stochastic = True
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
-        self.init_collector_driver_ppo(self.tf_environment_train)
+        self.init_collector_driver_ppo(self.tf_environment)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy
         self.custom_pseudo_driver_run(tf_environment, steps=10)
         if load:
             self.load_agent()
-            
+
     def init_collector_driver_ppo(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
@@ -94,8 +96,8 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
             eager,
             observers=[observer],
             num_steps=self.traj_num_steps)
-        
-    def custom_pseudo_driver_run(self, tf_environment: tf_py_environment.TFPyEnvironment, steps : int = 1000):
+
+    def custom_pseudo_driver_run(self, tf_environment: tf_py_environment.TFPyEnvironment, steps: int = 1000):
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
         step = 0

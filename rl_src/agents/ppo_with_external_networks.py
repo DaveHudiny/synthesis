@@ -34,9 +34,9 @@ logger = logging.getLogger(__name__)
 
 class PPO_with_External_Networks(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
-                 args, load=False, agent_folder=None, dqn_agent : DqnAgent = None, 
-                 actor_net : ActorDistributionRnnNetwork = None, critic_net : ValueRnnNetwork = None):
-        
+                 args, load=False, agent_folder=None, dqn_agent: DqnAgent = None,
+                 actor_net: ActorDistributionRnnNetwork = None, critic_net: ValueRnnNetwork = None):
+
         self.common_init(environment, tf_environment, args, load, agent_folder)
         tf_environment = self.tf_environment
         self.agent = None
@@ -47,35 +47,38 @@ class PPO_with_External_Networks(FatherAgent):
         else:
             self.actor_net = create_recurrent_actor_net_demasked(
                 tf_environment, tf_environment.action_spec())
-        
+
         if critic_net is not None:
-            self.critic_net = critic_net        
+            self.critic_net = critic_net
         elif dqn_agent is not None:
             self.dqn_critic_net = dqn_agent._q_network
             self.critic_net = Value_DQNet(self.dqn_critic_net)
         else:
-            raise ValueError("This type of network expects at least one external critic.")
+            raise ValueError(
+                "This type of network expects at least one external critic.")
 
         time_step_spec = tf_environment.time_step_spec()
-        time_step_spec = time_step_spec._replace(observation=tf_environment.observation_spec()["observation"])
-        
+        time_step_spec = time_step_spec._replace(
+            observation=tf_environment.observation_spec()["observation"])
+
         self.agent = ppo_agent.PPOAgent(
-                    time_step_spec,
-                    tf_environment.action_spec(),
-                    optimizer=tf.keras.optimizers.Adam(learning_rate=args.learning_rate),
-                    actor_net=self.actor_net,
-                    value_net=self.critic_net,
-                    num_epochs=4,
-                    train_step_counter=tf.Variable(0),
-                    greedy_eval=False,
-                    discount_factor=0.99,
-                    use_gae=True,
-                    # lambda_value=0.82,
-                    # gradient_clipping=0.9,
-                    # policy_l2_reg=0.00001,
-                    # value_function_l2_reg=0.00001,
-                    # value_pred_loss_coef=0.4,
-                )
+            time_step_spec,
+            tf_environment.action_spec(),
+            optimizer=tf.keras.optimizers.Adam(
+                learning_rate=args.learning_rate),
+            actor_net=self.actor_net,
+            value_net=self.critic_net,
+            num_epochs=4,
+            train_step_counter=tf.Variable(0),
+            greedy_eval=False,
+            discount_factor=0.99,
+            use_gae=True,
+            # lambda_value=0.82,
+            # gradient_clipping=0.9,
+            # policy_l2_reg=0.00001,
+            # value_function_l2_reg=0.00001,
+            # value_pred_loss_coef=0.4,
+        )
 
         # self.agent = ppo_agent.PPOAgent(
         #     time_step_spec,
@@ -98,46 +101,48 @@ class PPO_with_External_Networks(FatherAgent):
         # )
         self.agent.initialize()
         logging.info("Agent initialized")
-        
+
         self.args.prefer_stochastic = True
         self.init_replay_buffer()
         logging.info("Replay buffer initialized")
-        self.init_collector_driver(self.tf_environment, demasked=True, alternative_observer=None)
+        self.init_collector_driver(
+            self.tf_environment, demasked=True, alternative_observer=None)
         self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy
         if load:
             self.load_agent()
 
-
-    def train_iteration_rl_fsc(self, pre_trainer : Actor_Value_Pretrainer, experience_rl, experience_fsc, critic_only : bool = False):
+    def train_iteration_rl_fsc(self, pre_trainer: Actor_Value_Pretrainer, experience_rl, experience_fsc, critic_only: bool = False):
         train_loss = self.agent.train(experience_rl).loss
         if critic_only:
-            actor_loss = pre_trainer.train_actor_iteration(actor_net=self.agent._actor_net, experience=experience_fsc)
+            actor_loss = pre_trainer.train_actor_iteration(
+                actor_net=self.agent._actor_net, experience=experience_fsc)
         else:
             actor_loss = ()
-        critic_loss = pre_trainer.train_value_iteration(critic_net=self.agent._value_net, experience=experience_fsc)
+        critic_loss = pre_trainer.train_value_iteration(
+            critic_net=self.agent._value_net, experience=experience_fsc)
         return train_loss, actor_loss, critic_loss
 
-    def train_duplex(self, epochs : int, fsc : FSC, pre_trainer : Actor_Value_Pretrainer, critic_only : bool = False):
-        duplex_driver = pre_trainer.get_duplex_driver(fsc=fsc, rl_agent=self.agent, 
-                                                      replay_buffer_fsc=pre_trainer.replay_buffer, 
+    def train_duplex(self, epochs: int, fsc: FSC, pre_trainer: Actor_Value_Pretrainer, critic_only: bool = False):
+        duplex_driver = pre_trainer.get_duplex_driver(fsc=fsc, rl_agent=self.agent,
+                                                      replay_buffer_fsc=pre_trainer.replay_buffer,
                                                       replay_buffer_rl=self.replay_buffer,
                                                       parallel_policy=self.wrapper)
-        
+
         self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, 
+            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps,
             single_deterministic_pass=False
         ).prefetch(4)
 
         self.dataset_fsc = pre_trainer.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, 
+            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps,
             single_deterministic_pass=False
         ).prefetch(4)
 
         iterator = iter(self.dataset)
         iterator_fsc = iter(self.dataset_fsc)
-        
+
         logger.info("Training agent")
         pre_trainer.reinit_fsc_policy_driver(fsc)
         for _ in range(7):
@@ -150,7 +155,7 @@ class PPO_with_External_Networks(FatherAgent):
             pre_trainer.fill_replay_buffer_with_fsc()
             experience_rl, _ = next(iterator)
             experience_fsc, _ = next(iterator_fsc)
-            train_loss, actor_loss, critic_loss = self.train_iteration_rl_fsc(pre_trainer, experience_rl=experience_rl, 
+            train_loss, actor_loss, critic_loss = self.train_iteration_rl_fsc(pre_trainer, experience_rl=experience_rl,
                                                                               experience_fsc=experience_fsc, critic_only=critic_only)
             train_loss = train_loss.numpy()
             self.agent.train_step_counter.assign_add(1)
@@ -163,11 +168,14 @@ class PPO_with_External_Networks(FatherAgent):
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(last=True)
         self.replay_buffer.clear()
-            
+
     def init_collector_driver_ppo(self, tf_environment: tf_py_environment.TFPyEnvironment):
         self.collect_policy_wrapper = Policy_Mask_Wrapper(
-            self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
-            select_rand_action_probability=0.00)
+            self.agent.collect_policy,
+            observation_and_action_constraint_splitter,
+            tf_environment.time_step_spec(),
+            select_rand_action_probability=0.00
+        )
         # self.collect_policy_wrapper = self.agent.collect_policy
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)

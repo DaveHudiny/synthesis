@@ -27,7 +27,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 4 # max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
+# max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
+OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 4
 
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -122,7 +123,7 @@ class FatherAgent(AbstractAgent):
             if self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
                 buffer_size = self.args.max_steps * OFF_POLICY_BUFFER_SIZE_MULTIPLIER
             elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-                buffer_size = self.args.num_steps + 10 
+                buffer_size = self.args.num_steps + 10
 
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
@@ -163,7 +164,8 @@ class FatherAgent(AbstractAgent):
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
         if demasked:
-            observers = [self.get_demasked_observer(self.args.vectorized_envs_flag)]
+            observers = [self.get_demasked_observer(
+                self.args.vectorized_envs_flag)]
         else:
             observers = self.get_observers(alternative_observer)
         if not self.args.vectorized_envs_flag:
@@ -208,8 +210,8 @@ class FatherAgent(AbstractAgent):
         """Get the initial state of the agent."""
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False, 
-                               fsc_multiplier: float = 2.0, switch_probability : float = None):
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False,
+                               fsc_multiplier: float = 2.0, switch_probability: float = None):
         """Initializes the driver for the FSC policy. Used for hard and soft FSC advices."""
         parallel_policy = self.wrapper
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
@@ -307,8 +309,8 @@ class FatherAgent(AbstractAgent):
                 data, i, randomized=randomized, vectorized=vectorized)
             self.replay_buffer.clear()
 
-    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY, fsc : FSC = None,
-                    jumpstart_fsc : bool = False, debug: bool = False):
+    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY, fsc: FSC = None,
+                    jumpstart_fsc: bool = False, debug: bool = False):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
@@ -323,7 +325,8 @@ class FatherAgent(AbstractAgent):
                 switch_probability = 0.05
             else:
                 switch_probability = None
-            self.init_fsc_policy_driver(self.tf_environment, fsc, switch_probability=switch_probability)
+            self.init_fsc_policy_driver(
+                self.tf_environment, fsc, switch_probability=switch_probability)
             self.fsc_training = True
         else:
             self.fsc_training = False

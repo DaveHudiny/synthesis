@@ -4,6 +4,7 @@
 # File: random_agent.py
 
 
+import collections
 import tensorflow as tf
 
 from tf_agents.agents import TFAgent
@@ -19,12 +20,13 @@ from tools.encoding_methods import *
 
 logger = logging.getLogger(__name__)
 
-import collections
 LossInfo = collections.namedtuple("LossInfo", ("loss", "extra"))
+
 
 class RandomAgent(TFAgent):
     def __init__(self, time_step_spec, action_spec, *args, **kwargs):
-        random_policy = random_tf_policy.RandomTFPolicy(time_step_spec, action_spec, observation_and_action_constraint_splitter=observation_and_action_constraint_splitter)
+        random_policy = random_tf_policy.RandomTFPolicy(
+            time_step_spec, action_spec, observation_and_action_constraint_splitter=observation_and_action_constraint_splitter)
         super().__init__(
             time_step_spec,
             action_spec,
