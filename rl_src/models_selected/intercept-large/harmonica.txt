@@ -1,0 +1,1919 @@
+2024-09-03 10:08:15,517 - cli.py - This is Paynt version 0.1.0.
+2024-09-03 10:08:15,517 - sketch.py - loading sketch from rl_src/models/intercept/sketch.templ ...
+2024-09-03 10:08:15,518 - sketch.py - assuming sketch in PRISM format...
+2024-09-03 10:08:15,521 - prism_parser.py - PRISM model type: POMDP
+2024-09-03 10:08:15,521 - prism_parser.py - loading properties from rl_src/models/intercept/sketch.props ...
+2024-09-03 10:08:15,522 - prism_parser.py - found the following specification: optimality: Pmax=? ["notbad" U "goal"] 
+2024-09-03 10:08:15,556 - sketch.py - sketch parsing OK
+2024-09-03 10:08:15,561 - sketch.py - converting state rewards 'steps' to state-action rewards
+2024-09-03 10:08:15,564 - sketch.py - constructed explicit quotient having 4705 states and 11473 actions
+2024-09-03 10:08:15,564 - property.py - converting until formula to eventually...
+2024-09-03 10:08:15,564 - sketch.py - found the following specification optimality: Pmax=? [F "goal"] 
+2024-09-03 10:08:15,567 - pomdp.py - constructed POMDP having 2598 observations.
+2024-09-03 10:08:15,588 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-09-03 10:08:15,590 - pomdp.py - constructed quotient MDP having 4705 states and 11473 actions.
+2024-09-03 10:08:16,190 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-09-03 10:08:16,365 - __init__.py - Creating converter from 7 to 5
+2024-09-03 10:08:16,365 - __init__.py - Creating converter from 5 to 7
+2024-09-03 10:08:16,365 - __init__.py - Creating converter from 7 to 5
+2024-09-03 10:08:16,365 - __init__.py - Creating converter from 5 to 7
+2024-09-03 10:08:17,068 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-09-03 10:08:17,068 - synthesizer_pomdp.py - Storm settings: iterative - (150, 10, 7), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-09-03 10:08:17,074 - synthesizer_pomdp.py - Timeout for PAYNT started
+-----------PAYNT-----------                     
+Value = 0.997309458709328 | Time elapsed = 0.3s | FSC size = 5196
+
+-----------PAYNT-----------                     
+Value = 0.9974102917208414 | Time elapsed = 0.8s | FSC size = 5196
+
+-----------PAYNT-----------                     
+Value = 0.999755859375 | Time elapsed = 1.2s | FSC size = 5196
+
+> progress 6.25%, elapsed 3 s, estimated 48 s, iters = {MDP: 411}, opt = 1.0
+-----------PAYNT-----------                     
+Value = 0.9998586740951362 | Time elapsed = 3.2s | FSC size = 5196
+
+-----------PAYNT-----------                     
+Value = 0.9999721756019629 | Time elapsed = 3.6s | FSC size = 5196
+
+2024-09-03 10:08:21,010 - synthesizer.py - double-checking specification satisfiability:  : 0.9999721756019629
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 3.94 s
+number of holes: 1215, family size: 1e731, quotient: 4705 states / 11473 actions
+explored: 100 %
+MDP stats: avg MDP size: 4661, iterations: 570
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:21,654 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:21,655 - pomdp.py - unfolding 2-FSC template into POMDP...
+2024-09-03 10:08:21,660 - pomdp.py - constructed quotient MDP having 6935 states and 29573 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.01 s
+number of holes: 2375, family size: 1e1095, quotient: 6935 states / 29573 actions
+explored: 100 %
+MDP stats: avg MDP size: 6935, iterations: 1
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:21,938 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:21,939 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:21,941 - pomdp.py - unfolding 3-FSC template into POMDP...
+2024-09-03 10:08:21,950 - pomdp.py - constructed quotient MDP having 9165 states and 58673 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.02 s
+number of holes: 2547, family size: 1e1379, quotient: 9165 states / 58673 actions
+explored: 100 %
+MDP stats: avg MDP size: 9165, iterations: 1
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:22,195 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:22,196 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:22,200 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-09-03 10:08:22,214 - pomdp.py - constructed quotient MDP having 11395 states and 98773 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.03 s
+number of holes: 2719, family size: 1e1637, quotient: 11395 states / 98773 actions
+explored: 100 %
+MDP stats: avg MDP size: 11395, iterations: 1
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:22,500 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:22,501 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:22,507 - pomdp.py - unfolding 5-FSC template into POMDP...
+2024-09-03 10:08:22,691 - pomdp.py - constructed quotient MDP having 13625 states and 149873 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.04 s
+number of holes: 2891, family size: 1e1883, quotient: 13625 states / 149873 actions
+explored: 100 %
+MDP stats: avg MDP size: 13625, iterations: 1
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:23,230 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:23,230 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:23,239 - pomdp.py - unfolding 6-FSC template into POMDP...
+2024-09-03 10:08:23,447 - pomdp.py - constructed quotient MDP having 15855 states and 211973 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.06 s
+number of holes: 3063, family size: 1e2126, quotient: 15855 states / 211973 actions
+explored: 100 %
+MDP stats: avg MDP size: 15855, iterations: 1
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:23,895 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:23,896 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:23,909 - pomdp.py - unfolding 7-FSC template into POMDP...
+2024-09-03 10:08:24,132 - pomdp.py - constructed quotient MDP having 18085 states and 285073 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.09 s
+number of holes: 3235, family size: 1e2367, quotient: 18085 states / 285073 actions
+explored: 100 %
+MDP stats: avg MDP size: 18085, iterations: 1
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:24,871 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:24,872 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:24,888 - pomdp.py - unfolding 8-FSC template into POMDP...
+2024-09-03 10:08:25,330 - pomdp.py - constructed quotient MDP having 20315 states and 369173 actions.
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.13 s
+number of holes: 3407, family size: 1e2607, quotient: 20315 states / 369173 actions
+explored: 100 %
+MDP stats: avg MDP size: 20315, iterations: 1
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:26,026 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:26,027 - synthesizer_pomdp.py - Increase memory in all imperfect observation
+2024-09-03 10:08:26,046 - pomdp.py - unfolding 9-FSC template into POMDP...
+2024-09-03 10:08:26,522 - pomdp.py - constructed quotient MDP having 22545 states and 464273 actions.
+2024-09-03 10:08:27,422 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 10:08:27,428 - storm_pomdp_control.py - Interactive Storm started
+2024-09-03 10:08:27,429 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-09-03 10:08:35,437 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 35.5s | FSC size = 10925
+
+
+------------------------------------
+
+PAYNT results: 
+0.9999721756019629
+controller size: 5196
+
+Storm results: 
+1.0
+controller size: 10925
+
+------------------------------------
+
+2024-09-03 10:08:53,257 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 10:08:53,450 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 10:08:53,450 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 0.0 s
+number of holes: 3579, family size: 1e2849, quotient: 22545 states / 464273 actions
+explored: 0 %
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:08:53,452 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:08:53,453 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 10:08:53,482 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-09-03 10:08:53,501 - pomdp.py - constructed quotient MDP having 6450 states and 21133 actions.
+2024-09-03 10:08:53,551 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e1152 to 1e432
+2024-09-03 10:08:54,397 - synthesizer_ar_storm.py - Main family synthesis done
+2024-09-03 10:08:54,397 - synthesizer_ar_storm.py - Subfamilies buffer contains: 1422 families
+> progress 0.0%, elapsed 3 s, estimated 3004026 s (34 days), iters = {MDP: 322}, opt = 1.0
+> progress 0.0%, elapsed 6 s, estimated 6007287 s (69 days), iters = {MDP: 645}, opt = 1.0
+2024-09-03 10:09:03,285 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 10:09:03,374 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 10:09:03,374 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 10:09:11,384 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 78.5s | FSC size = 10959
+
+
+------------------------------------
+
+PAYNT results: 
+0.9999721756019629
+controller size: 5196
+
+Storm results: 
+1.0
+controller size: 10959
+
+------------------------------------
+
+2024-09-03 10:09:36,266 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 10:09:36,321 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 10:09:36,321 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 8.9 s
+number of holes: 2054, family size: 1e1152, quotient: 6450 states / 21133 actions
+explored: 0 %
+MDP stats: avg MDP size: 6112, iterations: 976
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:09:36,322 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:09:36,323 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 10:09:36,328 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-09-03 10:09:36,333 - pomdp.py - constructed quotient MDP having 6367 states and 20631 actions.
+2024-09-03 10:09:36,381 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e1131 to 1e410
+2024-09-03 10:09:37,447 - synthesizer_ar_storm.py - Main family synthesis done
+2024-09-03 10:09:37,447 - synthesizer_ar_storm.py - Subfamilies buffer contains: 1413 families
+> progress 0.0%, elapsed 3 s, estimated 3002958 s (34 days), iters = {MDP: 345}, opt = 1.0
+> progress 0.0%, elapsed 6 s, estimated 6004175 s (69 days), iters = {MDP: 689}, opt = 1.0
+2024-09-03 10:09:46,283 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 10:09:46,383 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 10:09:46,383 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 10:09:54,393 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 124.5s | FSC size = 11003
+
+
+------------------------------------
+
+PAYNT results: 
+0.9999721756019629
+controller size: 5196
+
+Storm results: 
+1.0
+controller size: 11003
+
+------------------------------------
+
+2024-09-03 10:10:22,277 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 10:10:22,322 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 10:10:22,322 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 8.85 s
+number of holes: 2027, family size: 1e1131, quotient: 6367 states / 20631 actions
+explored: 0 %
+MDP stats: avg MDP size: 5961, iterations: 1022
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:10:22,323 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:10:22,324 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 10:10:22,328 - pomdp.py - unfolding 4-FSC template into POMDP...
+2024-09-03 10:10:22,333 - pomdp.py - constructed quotient MDP having 6525 states and 21520 actions.
+2024-09-03 10:10:22,384 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e1151 to 1e432
+2024-09-03 10:10:23,392 - synthesizer_ar_storm.py - Main family synthesis done
+2024-09-03 10:10:23,393 - synthesizer_ar_storm.py - Subfamilies buffer contains: 1403 families
+> progress 0.0%, elapsed 3 s, estimated 3001883 s (34 days), iters = {MDP: 319}, opt = 1.0
+> progress 0.0%, elapsed 6 s, estimated 6009440 s (69 days), iters = {MDP: 645}, opt = 1.0
+2024-09-03 10:10:32,298 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 10:10:32,398 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 10:10:32,399 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 10:10:40,408 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 176.5s | FSC size = 11137
+
+
+------------------------------------
+
+PAYNT results: 
+0.9999721756019629
+controller size: 5196
+
+Storm results: 
+1.0
+controller size: 11137
+
+------------------------------------
+
+2024-09-03 10:11:15,589 - synthesizer_ar_storm.py - Terminating controller synthesis
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 8.92 s
+number of holes: 2041, family size: 1e1151, quotient: 6525 states / 21520 actions
+explored: 0 %
+MDP stats: avg MDP size: 6186, iterations: 968
+
+optimum: 0.999972
+--------------------
+2024-09-03 10:11:15,591 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 10:11:15,593 - storm_pomdp_control.py - Storm POMDP analysis completed
+2024-09-03 10:11:15,630 - synthesizer_rl.py - RL Environment initialized
+2024-09-03 10:11:15,748 - periodic_fsc_neural_ppo.py - Agent initialized
+2024-09-03 10:11:15,758 - periodic_fsc_neural_ppo.py - Replay buffer initialized
+2024-09-03 10:11:16,629 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:17,657 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:17,861 - father_agent.py - Training agent
+2024-09-03 10:11:17,968 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:18,031 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:20,436 - father_agent.py - Step: 0, Training loss: 0.17406167089939117
+2024-09-03 10:11:23,039 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:23,574 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:23,754 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:23,801 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:23,837 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:24,040 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:24,220 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:24,297 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:24,375 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:24,471 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:24,537 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:24,660 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:24,780 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:24,942 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:25,179 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:25,381 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:25,588 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:25,664 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:25,735 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:25,963 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:26,256 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:26,333 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:26,386 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:26,486 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:26,588 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:26,607 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:26,790 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:26,938 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:26,969 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:26,995 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:27,056 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:27,129 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:27,366 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:27,532 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:27,662 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:27,811 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:27,991 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:28,143 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:28,200 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:28,855 - father_agent.py - Average Return = -102.17500305175781
+2024-09-03 10:11:28,855 - father_agent.py - Average Virtual Goal Value = 187.5
+2024-09-03 10:11:28,855 - father_agent.py - Goal Reach Probability = 0.675
+2024-09-03 10:11:29,056 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:29,180 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:29,474 - father_agent.py - Step: 10, Training loss: 0.11650380492210388
+2024-09-03 10:11:29,724 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:30,083 - father_agent.py - Step: 20, Training loss: 0.14312279224395752
+2024-09-03 10:11:30,215 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:30,455 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:30,676 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:30,688 - father_agent.py - Step: 30, Training loss: 0.17693939805030823
+2024-09-03 10:11:30,979 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:31,120 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:31,297 - father_agent.py - Step: 40, Training loss: 0.17826706171035767
+2024-09-03 10:11:31,385 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:31,493 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:31,915 - father_agent.py - Step: 50, Training loss: 0.16473335027694702
+2024-09-03 10:11:32,369 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:32,443 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:32,526 - father_agent.py - Step: 60, Training loss: 0.16710078716278076
+2024-09-03 10:11:32,926 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:33,132 - father_agent.py - Step: 70, Training loss: 0.17336851358413696
+2024-09-03 10:11:33,734 - father_agent.py - Step: 80, Training loss: 0.21745160222053528
+2024-09-03 10:11:33,748 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:33,863 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:34,352 - father_agent.py - Step: 90, Training loss: 0.14159126579761505
+2024-09-03 10:11:34,515 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:34,560 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:34,694 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:34,827 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:34,963 - father_agent.py - Step: 100, Training loss: 0.16841435432434082
+2024-09-03 10:11:35,251 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:35,389 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:35,429 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:35,535 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:35,619 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:35,769 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:35,876 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:35,981 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,072 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,180 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,245 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,328 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,364 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,421 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,494 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,606 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:36,723 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:36,802 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:37,074 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:37,109 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:37,249 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:37,484 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:37,540 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:38,331 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:38,370 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:38,691 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:38,788 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:38,824 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:38,858 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:38,915 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:39,319 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:39,369 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:39,497 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:39,570 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:39,748 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:40,004 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:40,044 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:40,237 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:40,413 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:40,415 - father_agent.py - Average Return = -90.5
+2024-09-03 10:11:40,415 - father_agent.py - Average Virtual Goal Value = 137.5
+2024-09-03 10:11:40,415 - father_agent.py - Goal Reach Probability = 0.625
+2024-09-03 10:11:40,611 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:40,942 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:41,028 - father_agent.py - Step: 110, Training loss: 0.1486429125070572
+2024-09-03 10:11:41,168 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:41,429 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:41,479 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:41,638 - father_agent.py - Step: 120, Training loss: 0.1580059677362442
+2024-09-03 10:11:41,711 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:42,249 - father_agent.py - Step: 130, Training loss: 0.16873478889465332
+2024-09-03 10:11:42,603 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:42,837 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:42,864 - father_agent.py - Step: 140, Training loss: 0.2099117785692215
+2024-09-03 10:11:43,124 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:43,194 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:43,475 - father_agent.py - Step: 150, Training loss: 0.1861979216337204
+2024-09-03 10:11:43,742 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:43,941 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:44,113 - father_agent.py - Step: 160, Training loss: 0.15967373549938202
+2024-09-03 10:11:44,131 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:44,670 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:44,721 - father_agent.py - Step: 170, Training loss: 0.13940712809562683
+2024-09-03 10:11:45,046 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:45,328 - father_agent.py - Step: 180, Training loss: 0.21678473055362701
+2024-09-03 10:11:45,420 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:45,932 - father_agent.py - Step: 190, Training loss: 0.2547922432422638
+2024-09-03 10:11:46,545 - father_agent.py - Step: 200, Training loss: 0.37528693675994873
+2024-09-03 10:11:46,827 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:47,039 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:47,156 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:47,429 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:47,536 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:47,639 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:47,818 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:47,944 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:48,216 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:48,426 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:48,546 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:48,632 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:48,762 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:48,936 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:49,041 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:49,056 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:49,604 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:49,847 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:49,949 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:49,993 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:50,097 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:50,145 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:50,198 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:50,421 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:50,452 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:51,012 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:51,290 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:51,515 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:51,976 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:52,015 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:52,181 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:52,200 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:52,372 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:52,513 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:52,633 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:52,664 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:52,849 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:52,961 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:53,047 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:53,198 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:53,200 - father_agent.py - Average Return = -110.94999694824219
+2024-09-03 10:11:53,200 - father_agent.py - Average Virtual Goal Value = 100.0
+2024-09-03 10:11:53,200 - father_agent.py - Goal Reach Probability = 0.6
+2024-09-03 10:11:53,424 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:53,767 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:53,818 - father_agent.py - Step: 210, Training loss: 0.3096714913845062
+2024-09-03 10:11:53,884 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:54,205 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:54,436 - father_agent.py - Step: 220, Training loss: 0.2526698112487793
+2024-09-03 10:11:54,781 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:54,828 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:55,052 - father_agent.py - Step: 230, Training loss: 0.133177250623703
+2024-09-03 10:11:55,273 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:55,327 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:55,636 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:55,669 - father_agent.py - Step: 240, Training loss: 0.23639874160289764
+2024-09-03 10:11:55,797 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:56,222 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:56,298 - father_agent.py - Step: 250, Training loss: 0.3181881010532379
+2024-09-03 10:11:56,343 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:56,388 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:56,520 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:56,838 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:56,915 - father_agent.py - Step: 260, Training loss: 0.2845139503479004
+2024-09-03 10:11:57,499 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:57,524 - father_agent.py - Step: 270, Training loss: 0.27163833379745483
+2024-09-03 10:11:57,754 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:57,905 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:57,970 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:58,139 - father_agent.py - Step: 280, Training loss: 0.275323748588562
+2024-09-03 10:11:58,184 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:58,475 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:58,696 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:58,753 - father_agent.py - Step: 290, Training loss: 0.23503132164478302
+2024-09-03 10:11:59,102 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:59,270 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:11:59,358 - father_agent.py - Step: 300, Training loss: 0.23586438596248627
+2024-09-03 10:11:59,654 - environment_wrapper.py - Goal reached!
+2024-09-03 10:11:59,701 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:00,004 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:00,052 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:00,081 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:00,194 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:00,590 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:00,646 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:00,927 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:01,047 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:01,155 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:01,324 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:01,408 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:01,607 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:01,757 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:01,991 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:02,108 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:02,159 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:02,256 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:02,419 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:02,593 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:02,660 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:02,686 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:02,899 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:02,923 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:03,129 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:03,159 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:03,225 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:03,438 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:03,506 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:03,574 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:03,624 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:03,767 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:03,840 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:03,905 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:04,141 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:04,272 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:04,394 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:04,566 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:04,762 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:04,797 - father_agent.py - Average Return = -88.3499984741211
+2024-09-03 10:12:04,797 - father_agent.py - Average Virtual Goal Value = 200.0
+2024-09-03 10:12:04,797 - father_agent.py - Goal Reach Probability = 0.7
+2024-09-03 10:12:05,063 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:05,378 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:05,406 - father_agent.py - Step: 310, Training loss: 0.24549756944179535
+2024-09-03 10:12:05,863 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:06,014 - father_agent.py - Step: 320, Training loss: 0.27294623851776123
+2024-09-03 10:12:06,625 - father_agent.py - Step: 330, Training loss: 0.3952338695526123
+2024-09-03 10:12:06,707 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:07,210 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:07,233 - father_agent.py - Step: 340, Training loss: 0.2530842125415802
+2024-09-03 10:12:07,562 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:07,678 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:07,842 - father_agent.py - Step: 350, Training loss: 0.29119497537612915
+2024-09-03 10:12:08,168 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:08,198 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:08,414 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:08,462 - father_agent.py - Step: 360, Training loss: 0.42163100838661194
+2024-09-03 10:12:08,591 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:08,908 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:09,082 - father_agent.py - Step: 370, Training loss: 0.3664337396621704
+2024-09-03 10:12:09,430 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:09,608 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:09,696 - father_agent.py - Step: 380, Training loss: 0.30374598503112793
+2024-09-03 10:12:10,068 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:10,308 - father_agent.py - Step: 390, Training loss: 0.24080699682235718
+2024-09-03 10:12:10,580 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:10,840 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:10,922 - father_agent.py - Step: 400, Training loss: 0.26366978883743286
+2024-09-03 10:12:11,216 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:11,286 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:11,353 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:11,373 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:11,494 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:11,634 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:11,680 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:12,001 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:12,205 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:12,364 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:12,433 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:12,756 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:12,998 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:13,120 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:13,176 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:13,250 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:13,505 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:13,574 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:13,813 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:14,004 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:14,099 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:14,199 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:14,255 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:14,683 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:14,747 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:14,819 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:14,929 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:15,101 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:15,226 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:15,659 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:15,767 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:15,843 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:15,972 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:16,036 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:16,383 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:16,455 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:16,595 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:16,954 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:17,053 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:17,170 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:17,172 - father_agent.py - Average Return = -102.94999694824219
+2024-09-03 10:12:17,172 - father_agent.py - Average Virtual Goal Value = 125.0
+2024-09-03 10:12:17,172 - father_agent.py - Goal Reach Probability = 0.625
+2024-09-03 10:12:17,787 - father_agent.py - Step: 410, Training loss: 0.3402388095855713
+2024-09-03 10:12:17,920 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:18,173 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:18,401 - father_agent.py - Step: 420, Training loss: 0.29110679030418396
+2024-09-03 10:12:18,887 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:19,027 - father_agent.py - Step: 430, Training loss: 0.3200855553150177
+2024-09-03 10:12:19,610 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:19,650 - father_agent.py - Step: 440, Training loss: 0.2524392008781433
+2024-09-03 10:12:19,851 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:19,919 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:20,269 - father_agent.py - Step: 450, Training loss: 0.301673948764801
+2024-09-03 10:12:20,579 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:20,645 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:20,886 - father_agent.py - Step: 460, Training loss: 0.47771984338760376
+2024-09-03 10:12:21,406 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:21,491 - father_agent.py - Step: 470, Training loss: 0.33843839168548584
+2024-09-03 10:12:21,623 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:21,743 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:22,108 - father_agent.py - Step: 480, Training loss: 0.28105032444000244
+2024-09-03 10:12:22,112 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:22,472 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:22,699 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:22,736 - father_agent.py - Step: 490, Training loss: 0.2914808988571167
+2024-09-03 10:12:22,777 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:23,136 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:23,351 - father_agent.py - Step: 500, Training loss: 0.2674413025379181
+2024-09-03 10:12:23,973 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:24,149 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:24,364 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:24,486 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:24,540 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:24,743 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:24,979 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,035 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,210 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,377 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,452 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:25,517 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:25,593 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,715 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,862 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,892 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,916 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:25,959 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:26,006 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:26,173 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:26,358 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:26,424 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:26,527 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:26,675 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:26,757 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:26,948 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:27,051 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:27,078 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:27,190 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:27,237 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:27,383 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:27,610 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:27,667 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:27,990 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:28,104 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:28,284 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:28,471 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:28,548 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:28,671 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:29,019 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:29,055 - father_agent.py - Average Return = -93.17500305175781
+2024-09-03 10:12:29,055 - father_agent.py - Average Virtual Goal Value = 250.0
+2024-09-03 10:12:29,055 - father_agent.py - Goal Reach Probability = 0.75
+2024-09-03 10:12:29,137 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:29,222 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:29,654 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:29,687 - father_agent.py - Step: 510, Training loss: 0.3558322489261627
+2024-09-03 10:12:29,720 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:29,974 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:30,074 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:30,316 - father_agent.py - Step: 520, Training loss: 0.326472669839859
+2024-09-03 10:12:30,533 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:30,660 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:30,788 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:30,947 - father_agent.py - Step: 530, Training loss: 0.28448769450187683
+2024-09-03 10:12:31,324 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:31,388 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:31,573 - father_agent.py - Step: 540, Training loss: 0.3155469298362732
+2024-09-03 10:12:31,598 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:32,213 - father_agent.py - Step: 550, Training loss: 0.4191269278526306
+2024-09-03 10:12:32,237 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:32,357 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:32,452 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:32,745 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:32,841 - father_agent.py - Step: 560, Training loss: 0.4117399752140045
+2024-09-03 10:12:32,931 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:33,074 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:33,356 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:33,474 - father_agent.py - Step: 570, Training loss: 0.4159671366214752
+2024-09-03 10:12:34,094 - father_agent.py - Step: 580, Training loss: 0.33540716767311096
+2024-09-03 10:12:34,718 - father_agent.py - Step: 590, Training loss: 0.346042275428772
+2024-09-03 10:12:34,749 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:35,017 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:35,339 - father_agent.py - Step: 600, Training loss: 0.3664414584636688
+2024-09-03 10:12:35,746 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:35,937 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:35,976 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,007 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,067 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,168 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,287 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,452 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:36,630 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,677 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,776 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:36,832 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:36,994 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:37,046 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:37,141 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:37,281 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:37,381 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:37,492 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:37,566 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:37,623 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:37,780 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:37,965 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:38,210 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:38,305 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:38,354 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:38,439 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:38,564 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:38,669 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:38,735 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:38,794 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:38,881 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:38,950 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:39,005 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:39,150 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:39,230 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:39,337 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:39,579 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:39,708 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:39,775 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:39,850 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:39,851 - father_agent.py - Average Return = -73.2249984741211
+2024-09-03 10:12:39,852 - father_agent.py - Average Virtual Goal Value = 175.0
+2024-09-03 10:12:39,852 - father_agent.py - Goal Reach Probability = 0.675
+2024-09-03 10:12:40,105 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:40,446 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:40,474 - father_agent.py - Step: 610, Training loss: 0.40315163135528564
+2024-09-03 10:12:40,758 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:41,092 - father_agent.py - Step: 620, Training loss: 0.3888035714626312
+2024-09-03 10:12:41,364 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:41,681 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:41,723 - father_agent.py - Step: 630, Training loss: 0.3821730613708496
+2024-09-03 10:12:41,798 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:42,251 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:42,342 - father_agent.py - Step: 640, Training loss: 0.5215950608253479
+2024-09-03 10:12:42,763 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:42,821 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:42,969 - father_agent.py - Step: 650, Training loss: 0.44230833649635315
+2024-09-03 10:12:43,386 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:43,595 - father_agent.py - Step: 660, Training loss: 0.39313575625419617
+2024-09-03 10:12:43,894 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:44,227 - father_agent.py - Step: 670, Training loss: 0.34250521659851074
+2024-09-03 10:12:44,645 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:44,855 - father_agent.py - Step: 680, Training loss: 0.48367437720298767
+2024-09-03 10:12:44,884 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:45,206 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:45,481 - father_agent.py - Step: 690, Training loss: 0.5279561281204224
+2024-09-03 10:12:45,912 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:46,095 - father_agent.py - Step: 700, Training loss: 0.40098440647125244
+2024-09-03 10:12:46,413 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:46,561 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:46,605 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:46,828 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:47,124 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:47,309 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:47,416 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:47,608 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:47,642 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:47,877 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:47,940 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:48,119 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:48,550 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:48,830 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:48,929 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:49,009 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:49,036 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:49,109 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:49,178 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:49,266 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:49,453 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:49,541 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:49,747 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:50,000 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:50,088 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:50,146 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:50,531 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:50,629 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:50,842 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:51,202 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:51,267 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:51,345 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:51,412 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:51,655 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:51,819 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:51,853 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:52,075 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:52,130 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:52,258 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:52,291 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:52,293 - father_agent.py - Average Return = -101.80000305175781
+2024-09-03 10:12:52,293 - father_agent.py - Average Virtual Goal Value = 175.0
+2024-09-03 10:12:52,293 - father_agent.py - Goal Reach Probability = 0.675
+2024-09-03 10:12:52,897 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:52,920 - father_agent.py - Step: 710, Training loss: 0.4204292595386505
+2024-09-03 10:12:52,998 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:53,418 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:53,489 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:53,536 - father_agent.py - Step: 720, Training loss: 0.3950009047985077
+2024-09-03 10:12:53,643 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:53,761 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:54,163 - father_agent.py - Step: 730, Training loss: 0.40551793575286865
+2024-09-03 10:12:54,664 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:54,783 - father_agent.py - Step: 740, Training loss: 0.4987001419067383
+2024-09-03 10:12:55,164 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:55,359 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:55,397 - father_agent.py - Step: 750, Training loss: 0.4391784071922302
+2024-09-03 10:12:55,858 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:56,021 - father_agent.py - Step: 760, Training loss: 0.631572961807251
+2024-09-03 10:12:56,244 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:56,636 - father_agent.py - Step: 770, Training loss: 0.5311709046363831
+2024-09-03 10:12:56,712 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:57,009 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:57,087 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:57,146 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:57,256 - father_agent.py - Step: 780, Training loss: 0.6187224388122559
+2024-09-03 10:12:57,332 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:57,531 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:57,876 - father_agent.py - Step: 790, Training loss: 0.5427711009979248
+2024-09-03 10:12:57,981 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:58,036 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:58,151 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:58,465 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:58,494 - father_agent.py - Step: 800, Training loss: 0.507645845413208
+2024-09-03 10:12:58,867 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:59,098 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:12:59,269 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:59,521 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:59,579 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:59,917 - environment_wrapper.py - Goal reached!
+2024-09-03 10:12:59,990 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:00,196 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:00,485 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:00,546 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:00,709 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:00,750 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:00,888 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:00,927 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:01,009 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:01,179 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:01,617 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:01,653 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:01,955 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:02,149 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:02,393 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:02,473 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:02,551 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:02,659 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:02,844 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:03,005 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:03,172 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:03,341 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:03,448 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:03,567 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:03,736 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:03,873 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:04,010 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:04,062 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:04,215 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:04,329 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:04,411 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:04,454 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:04,664 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:04,780 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:04,782 - father_agent.py - Average Return = -105.19999694824219
+2024-09-03 10:13:04,782 - father_agent.py - Average Virtual Goal Value = 100.0
+2024-09-03 10:13:04,782 - father_agent.py - Goal Reach Probability = 0.6
+2024-09-03 10:13:04,935 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:05,407 - father_agent.py - Step: 810, Training loss: 0.544270932674408
+2024-09-03 10:13:05,488 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:06,028 - father_agent.py - Step: 820, Training loss: 0.615217924118042
+2024-09-03 10:13:06,100 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:06,433 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:06,555 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:06,651 - father_agent.py - Step: 830, Training loss: 0.5228281021118164
+2024-09-03 10:13:07,066 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:07,276 - father_agent.py - Step: 840, Training loss: 0.5537641048431396
+2024-09-03 10:13:07,426 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:07,543 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:07,898 - father_agent.py - Step: 850, Training loss: 0.5998063683509827
+2024-09-03 10:13:08,123 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:08,308 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:08,398 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:08,443 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:08,487 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:08,521 - father_agent.py - Step: 860, Training loss: 0.6702486276626587
+2024-09-03 10:13:08,801 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:09,109 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:09,142 - father_agent.py - Step: 870, Training loss: 0.7511529326438904
+2024-09-03 10:13:09,231 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:09,650 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:09,760 - father_agent.py - Step: 880, Training loss: 0.7054724097251892
+2024-09-03 10:13:09,891 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:10,031 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:10,101 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:10,339 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:10,391 - father_agent.py - Step: 890, Training loss: 0.7231354713439941
+2024-09-03 10:13:10,743 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:10,926 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:11,015 - father_agent.py - Step: 900, Training loss: 0.6414217948913574
+2024-09-03 10:13:11,350 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:11,441 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:11,638 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:11,676 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:11,733 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:11,764 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:11,855 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:11,915 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:12,020 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:12,228 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:12,281 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:12,343 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:12,490 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:12,632 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:12,854 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:12,993 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:13,028 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:13,058 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:13,151 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:13,253 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:13,307 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:13,382 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:13,428 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:13,551 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:13,719 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:13,939 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:13,961 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,099 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,137 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,179 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,267 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,363 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,498 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,764 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:14,866 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:15,075 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:15,138 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:15,290 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:15,377 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:15,472 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:15,502 - father_agent.py - Average Return = -72.6500015258789
+2024-09-03 10:13:15,502 - father_agent.py - Average Virtual Goal Value = 275.0
+2024-09-03 10:13:15,502 - father_agent.py - Goal Reach Probability = 0.775
+2024-09-03 10:13:15,784 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:16,025 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:16,118 - father_agent.py - Step: 910, Training loss: 0.6218016147613525
+2024-09-03 10:13:16,197 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:16,570 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:16,684 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:16,733 - father_agent.py - Step: 920, Training loss: 0.5812285542488098
+2024-09-03 10:13:17,129 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:17,342 - father_agent.py - Step: 930, Training loss: 0.5840738415718079
+2024-09-03 10:13:17,423 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:17,503 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:17,639 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:17,959 - father_agent.py - Step: 940, Training loss: 0.5477433800697327
+2024-09-03 10:13:18,576 - father_agent.py - Step: 950, Training loss: 0.5682001113891602
+2024-09-03 10:13:18,661 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:18,931 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:19,201 - father_agent.py - Step: 960, Training loss: 0.6507713198661804
+2024-09-03 10:13:19,231 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:19,313 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:19,618 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:19,747 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:19,829 - father_agent.py - Step: 970, Training loss: 0.5911422967910767
+2024-09-03 10:13:19,879 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:20,225 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:20,465 - father_agent.py - Step: 980, Training loss: 0.5245348215103149
+2024-09-03 10:13:20,573 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:20,701 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:21,088 - father_agent.py - Step: 990, Training loss: 0.7625685930252075
+2024-09-03 10:13:21,116 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:21,300 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:21,381 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:21,492 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:21,707 - father_agent.py - Step: 1000, Training loss: 0.7981548309326172
+2024-09-03 10:13:21,994 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:22,074 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:22,446 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:22,514 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:22,647 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:22,729 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:22,822 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:22,924 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:22,999 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:23,061 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:23,279 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:23,452 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:23,545 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:23,618 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:23,753 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:23,860 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:23,948 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:24,062 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:24,191 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:24,256 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:24,610 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:24,694 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:24,797 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:24,873 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:25,015 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:25,105 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:25,258 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:25,299 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:25,426 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:25,520 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:25,589 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:25,751 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:25,823 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:25,988 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:26,105 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:26,232 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:26,314 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:26,489 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:26,629 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:26,698 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:26,699 - father_agent.py - Average Return = -81.25
+2024-09-03 10:13:26,700 - father_agent.py - Average Virtual Goal Value = 100.0
+2024-09-03 10:13:26,700 - father_agent.py - Goal Reach Probability = 0.6
+2024-09-03 10:13:26,864 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:27,036 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:27,161 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:27,317 - father_agent.py - Step: 1010, Training loss: 0.6544497609138489
+2024-09-03 10:13:27,549 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:27,789 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:27,929 - father_agent.py - Step: 1020, Training loss: 0.733271598815918
+2024-09-03 10:13:28,128 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:28,537 - father_agent.py - Step: 1030, Training loss: 0.7063585519790649
+2024-09-03 10:13:28,552 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:28,691 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:29,152 - father_agent.py - Step: 1040, Training loss: 0.6390554308891296
+2024-09-03 10:13:29,405 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:29,431 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:29,761 - father_agent.py - Step: 1050, Training loss: 0.6763424873352051
+2024-09-03 10:13:30,192 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:30,323 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:30,378 - father_agent.py - Step: 1060, Training loss: 0.6584112048149109
+2024-09-03 10:13:30,850 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:30,989 - father_agent.py - Step: 1070, Training loss: 0.6692217588424683
+2024-09-03 10:13:31,388 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:31,592 - father_agent.py - Step: 1080, Training loss: 0.7987126111984253
+2024-09-03 10:13:31,786 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:31,985 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:32,080 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:32,215 - father_agent.py - Step: 1090, Training loss: 0.7310237288475037
+2024-09-03 10:13:32,324 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:32,439 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:32,684 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:32,831 - father_agent.py - Step: 1100, Training loss: 0.7938534617424011
+2024-09-03 10:13:33,233 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:33,369 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:33,638 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:33,694 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:33,791 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:33,936 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:33,961 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:33,987 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:34,064 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:34,108 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:34,471 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:34,616 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:34,648 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:34,760 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:35,000 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:35,110 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:35,393 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:35,489 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:35,630 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:35,755 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:35,822 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:35,870 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:36,162 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:36,213 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:36,460 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:36,563 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:36,678 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:36,773 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:36,892 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:37,299 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:37,405 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:37,442 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:37,476 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:37,589 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:37,911 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:38,037 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:38,114 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:38,188 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:38,330 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:38,373 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:38,375 - father_agent.py - Average Return = -91.875
+2024-09-03 10:13:38,375 - father_agent.py - Average Virtual Goal Value = 225.0
+2024-09-03 10:13:38,375 - father_agent.py - Goal Reach Probability = 0.725
+2024-09-03 10:13:38,718 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:38,773 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:38,833 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:38,995 - father_agent.py - Step: 1110, Training loss: 0.5697003602981567
+2024-09-03 10:13:39,045 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:39,155 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:39,253 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:39,415 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:39,581 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:39,615 - father_agent.py - Step: 1120, Training loss: 0.7112641930580139
+2024-09-03 10:13:39,721 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:40,220 - father_agent.py - Step: 1130, Training loss: 0.7785405516624451
+2024-09-03 10:13:40,410 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:40,659 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:40,833 - father_agent.py - Step: 1140, Training loss: 0.6806548833847046
+2024-09-03 10:13:41,391 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:41,439 - father_agent.py - Step: 1150, Training loss: 0.8679244518280029
+2024-09-03 10:13:41,655 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:42,054 - father_agent.py - Step: 1160, Training loss: 0.7829768061637878
+2024-09-03 10:13:42,092 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:42,492 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:42,666 - father_agent.py - Step: 1170, Training loss: 0.6666598916053772
+2024-09-03 10:13:42,760 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:42,875 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:43,196 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:43,277 - father_agent.py - Step: 1180, Training loss: 0.7986923456192017
+2024-09-03 10:13:43,427 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:43,589 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:43,659 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:43,813 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:43,901 - father_agent.py - Step: 1190, Training loss: 0.7268809080123901
+2024-09-03 10:13:44,426 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:44,517 - father_agent.py - Step: 1200, Training loss: 0.7441633939743042
+2024-09-03 10:13:44,797 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:44,904 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:45,152 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:45,297 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:45,449 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:45,525 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:45,641 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:45,695 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:45,737 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:45,823 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:46,083 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:46,144 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:46,327 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:46,556 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:46,584 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:46,785 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:46,814 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:47,046 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:47,190 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:47,213 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:47,249 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:47,288 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:47,535 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:47,592 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:47,622 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:47,749 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:47,893 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:47,997 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,037 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,090 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,383 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,487 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,591 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,624 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:48,702 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,741 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,910 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:48,998 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:49,039 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:49,191 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:49,193 - father_agent.py - Average Return = -75.875
+2024-09-03 10:13:49,193 - father_agent.py - Average Virtual Goal Value = 225.0
+2024-09-03 10:13:49,193 - father_agent.py - Goal Reach Probability = 0.725
+2024-09-03 10:13:49,269 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:49,414 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:49,480 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:49,791 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:49,816 - father_agent.py - Step: 1210, Training loss: 0.8416591882705688
+2024-09-03 10:13:49,858 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:50,016 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:50,112 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:50,220 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:50,356 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:50,432 - father_agent.py - Step: 1220, Training loss: 0.7134954333305359
+2024-09-03 10:13:50,911 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:51,050 - father_agent.py - Step: 1230, Training loss: 0.7473357319831848
+2024-09-03 10:13:51,335 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:51,381 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:51,674 - father_agent.py - Step: 1240, Training loss: 0.7366498112678528
+2024-09-03 10:13:52,284 - father_agent.py - Step: 1250, Training loss: 0.7077659368515015
+2024-09-03 10:13:52,321 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:52,576 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:52,810 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:52,897 - father_agent.py - Step: 1260, Training loss: 0.8455014824867249
+2024-09-03 10:13:53,234 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:53,473 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:53,511 - father_agent.py - Step: 1270, Training loss: 0.7095242142677307
+2024-09-03 10:13:53,619 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:53,951 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:54,072 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:54,129 - father_agent.py - Step: 1280, Training loss: 0.8301587700843811
+2024-09-03 10:13:54,225 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:54,347 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:54,750 - father_agent.py - Step: 1290, Training loss: 0.5648101568222046
+2024-09-03 10:13:54,791 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:54,925 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:55,350 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:55,371 - father_agent.py - Step: 1300, Training loss: 0.7790284752845764
+2024-09-03 10:13:55,710 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:55,772 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:55,827 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:56,017 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:56,091 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:56,320 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:56,380 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:56,710 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:56,829 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:57,014 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:57,037 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:57,077 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:57,260 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:57,389 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:57,837 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:57,868 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:57,962 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:58,231 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:58,320 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:58,366 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:58,443 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:58,498 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:58,729 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:58,862 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,052 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:59,108 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:59,188 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,256 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,391 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,532 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,688 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,743 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:13:59,831 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,873 - environment_wrapper.py - Goal reached!
+2024-09-03 10:13:59,922 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:00,143 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:00,178 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:00,421 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:00,489 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:00,581 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:00,583 - father_agent.py - Average Return = -85.07499694824219
+2024-09-03 10:14:00,583 - father_agent.py - Average Virtual Goal Value = 250.0
+2024-09-03 10:14:00,583 - father_agent.py - Goal Reach Probability = 0.75
+2024-09-03 10:14:00,816 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:00,975 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:01,059 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:01,208 - father_agent.py - Step: 1310, Training loss: 0.7984979748725891
+2024-09-03 10:14:01,294 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:01,524 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:01,607 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:01,777 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:01,827 - father_agent.py - Step: 1320, Training loss: 0.8386825919151306
+2024-09-03 10:14:02,075 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:02,153 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:02,440 - father_agent.py - Step: 1330, Training loss: 0.6883717775344849
+2024-09-03 10:14:02,692 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:02,838 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:03,050 - father_agent.py - Step: 1340, Training loss: 0.8963822722434998
+2024-09-03 10:14:03,248 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:03,658 - father_agent.py - Step: 1350, Training loss: 0.9129610657691956
+2024-09-03 10:14:03,732 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:03,789 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:03,999 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:04,122 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:04,287 - father_agent.py - Step: 1360, Training loss: 1.227856159210205
+2024-09-03 10:14:04,303 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:04,465 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:04,554 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:04,755 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:04,913 - father_agent.py - Step: 1370, Training loss: 0.8908154368400574
+2024-09-03 10:14:05,023 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:05,329 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:05,529 - father_agent.py - Step: 1380, Training loss: 0.8812500834465027
+2024-09-03 10:14:05,552 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:05,691 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:06,069 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:06,153 - father_agent.py - Step: 1390, Training loss: 0.6493770480155945
+2024-09-03 10:14:06,607 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:06,776 - father_agent.py - Step: 1400, Training loss: 0.6253647804260254
+2024-09-03 10:14:07,145 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:07,301 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:07,463 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:07,887 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:07,926 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:07,991 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,047 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,290 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:08,321 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:08,395 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:08,479 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,529 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,634 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,656 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,713 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,752 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,809 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:08,864 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:08,922 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:09,085 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:09,310 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:09,417 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:09,485 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:09,582 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:09,776 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:09,964 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:10,016 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:10,074 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:10,291 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:10,323 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:10,515 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:10,547 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:10,685 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:10,798 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:10,991 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:11,038 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:11,156 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:11,332 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:11,383 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:11,430 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:11,432 - father_agent.py - Average Return = -76.625
+2024-09-03 10:14:11,432 - father_agent.py - Average Virtual Goal Value = 275.0
+2024-09-03 10:14:11,432 - father_agent.py - Goal Reach Probability = 0.775
+2024-09-03 10:14:11,632 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:11,760 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:12,050 - father_agent.py - Step: 1410, Training loss: 0.7352117300033569
+2024-09-03 10:14:12,080 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:12,258 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:12,660 - father_agent.py - Step: 1420, Training loss: 0.8580241799354553
+2024-09-03 10:14:12,700 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:12,882 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:12,977 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:13,131 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:13,280 - father_agent.py - Step: 1430, Training loss: 0.8283866047859192
+2024-09-03 10:14:13,311 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:13,376 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:13,871 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:13,892 - father_agent.py - Step: 1440, Training loss: 0.7798936367034912
+2024-09-03 10:14:14,300 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:14,506 - father_agent.py - Step: 1450, Training loss: 0.8910295367240906
+2024-09-03 10:14:14,903 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:15,120 - father_agent.py - Step: 1460, Training loss: 0.584578275680542
+2024-09-03 10:14:15,184 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:15,573 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:15,736 - father_agent.py - Step: 1470, Training loss: 0.8918117880821228
+2024-09-03 10:14:15,815 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:15,950 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:16,325 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:16,348 - father_agent.py - Step: 1480, Training loss: 0.9630227088928223
+2024-09-03 10:14:16,500 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:16,736 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:16,957 - father_agent.py - Step: 1490, Training loss: 0.5612013936042786
+2024-09-03 10:14:17,126 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:17,453 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:17,571 - father_agent.py - Step: 1500, Training loss: 0.7937296628952026
+2024-09-03 10:14:17,912 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,036 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:18,080 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,183 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:18,226 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,247 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,332 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,427 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,456 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,567 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:18,681 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,830 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:18,885 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:18,972 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:19,022 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:19,334 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:19,429 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:19,569 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:19,672 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:19,821 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:19,900 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:19,927 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,010 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:20,071 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,086 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,193 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,301 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,447 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,472 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,550 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,579 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,743 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:20,759 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,871 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:20,896 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:21,033 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:21,140 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:21,259 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:21,333 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:21,543 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:21,573 - father_agent.py - Average Return = -63.92499923706055
+2024-09-03 10:14:21,573 - father_agent.py - Average Virtual Goal Value = 325.0
+2024-09-03 10:14:21,573 - father_agent.py - Goal Reach Probability = 0.825
+2024-09-03 10:14:21,906 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:22,183 - father_agent.py - Step: 1510, Training loss: 0.8545410633087158
+2024-09-03 10:14:22,356 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:22,781 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:22,807 - father_agent.py - Step: 1520, Training loss: 0.39982110261917114
+2024-09-03 10:14:23,023 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:23,315 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:23,421 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:23,437 - father_agent.py - Step: 1530, Training loss: 0.72255939245224
+2024-09-03 10:14:24,053 - father_agent.py - Step: 1540, Training loss: 0.9513946771621704
+2024-09-03 10:14:24,144 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:24,346 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:24,597 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:24,679 - father_agent.py - Step: 1550, Training loss: 0.788216233253479
+2024-09-03 10:14:24,683 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:24,722 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:24,914 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:25,219 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:25,314 - father_agent.py - Step: 1560, Training loss: 0.7468966841697693
+2024-09-03 10:14:25,394 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:25,846 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:25,941 - father_agent.py - Step: 1570, Training loss: 0.8832442164421082
+2024-09-03 10:14:26,571 - father_agent.py - Step: 1580, Training loss: 0.769971489906311
+2024-09-03 10:14:26,723 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:26,966 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:27,192 - father_agent.py - Step: 1590, Training loss: 0.7105520963668823
+2024-09-03 10:14:27,382 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:27,454 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:27,666 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:27,821 - father_agent.py - Step: 1600, Training loss: 0.7719957828521729
+2024-09-03 10:14:28,143 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:28,345 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:28,390 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:28,417 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:28,457 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:28,577 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:28,720 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:28,772 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:28,821 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:28,944 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:29,128 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:29,317 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:29,344 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:29,545 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:29,665 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:29,766 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:29,901 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:30,127 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:30,184 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:30,320 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:30,399 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:30,461 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:30,720 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:31,185 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:31,294 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:31,397 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:31,534 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:31,643 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:31,715 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:31,872 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:31,972 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:32,241 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:32,276 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:32,490 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:32,575 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:32,604 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:32,645 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:32,788 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:32,999 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:33,132 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:33,133 - father_agent.py - Average Return = -87.19999694824219
+2024-09-03 10:14:33,134 - father_agent.py - Average Virtual Goal Value = 275.0
+2024-09-03 10:14:33,134 - father_agent.py - Goal Reach Probability = 0.775
+2024-09-03 10:14:33,353 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:33,468 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:33,550 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:33,741 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:33,765 - father_agent.py - Step: 1610, Training loss: 0.6938708424568176
+2024-09-03 10:14:34,268 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:34,385 - father_agent.py - Step: 1620, Training loss: 0.5931152105331421
+2024-09-03 10:14:34,648 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:34,865 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:35,010 - father_agent.py - Step: 1630, Training loss: 0.7933768630027771
+2024-09-03 10:14:35,046 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:35,336 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:35,402 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:35,622 - father_agent.py - Step: 1640, Training loss: 0.6709336042404175
+2024-09-03 10:14:36,126 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:36,229 - father_agent.py - Step: 1650, Training loss: 0.7829583287239075
+2024-09-03 10:14:36,276 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:36,395 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:36,835 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:36,851 - father_agent.py - Step: 1660, Training loss: 0.8246423602104187
+2024-09-03 10:14:37,243 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:37,444 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:37,472 - father_agent.py - Step: 1670, Training loss: 0.5558295249938965
+2024-09-03 10:14:37,575 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:38,047 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:38,106 - father_agent.py - Step: 1680, Training loss: 0.6964991092681885
+2024-09-03 10:14:38,509 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:38,716 - father_agent.py - Step: 1690, Training loss: 0.7347263097763062
+2024-09-03 10:14:38,795 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:38,936 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:39,327 - father_agent.py - Step: 1700, Training loss: 0.5484925508499146
+2024-09-03 10:14:39,635 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:39,906 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,035 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:40,189 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,457 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,549 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,634 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:40,685 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,740 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,769 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,850 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,903 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:40,969 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:41,197 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:41,343 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:41,525 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:41,642 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:41,867 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:41,974 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:42,100 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:42,209 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:42,462 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:42,563 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:42,752 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:42,804 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:42,963 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:43,076 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:43,293 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:43,362 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:43,403 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:43,441 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:43,489 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:43,600 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:43,731 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:43,789 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:43,897 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:44,092 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:44,181 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:44,405 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:44,463 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:44,465 - father_agent.py - Average Return = -83.5999984741211
+2024-09-03 10:14:44,465 - father_agent.py - Average Virtual Goal Value = 300.0
+2024-09-03 10:14:44,465 - father_agent.py - Goal Reach Probability = 0.8
+2024-09-03 10:14:45,075 - father_agent.py - Step: 1710, Training loss: 0.799067497253418
+2024-09-03 10:14:45,104 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:45,212 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:45,414 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:45,655 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:45,690 - father_agent.py - Step: 1720, Training loss: 0.7649044990539551
+2024-09-03 10:14:45,767 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:45,852 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:46,200 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:46,308 - father_agent.py - Step: 1730, Training loss: 0.613103985786438
+2024-09-03 10:14:46,532 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:46,895 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:46,928 - father_agent.py - Step: 1740, Training loss: 0.7382676601409912
+2024-09-03 10:14:47,439 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:47,546 - father_agent.py - Step: 1750, Training loss: 0.698711633682251
+2024-09-03 10:14:47,823 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:48,158 - father_agent.py - Step: 1760, Training loss: 0.6129887104034424
+2024-09-03 10:14:48,180 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:48,263 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:48,440 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:48,665 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:48,773 - father_agent.py - Step: 1770, Training loss: 0.6044216752052307
+2024-09-03 10:14:48,961 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:49,170 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:49,309 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:49,397 - father_agent.py - Step: 1780, Training loss: 0.46895211935043335
+2024-09-03 10:14:49,675 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:49,862 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:49,973 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:50,013 - father_agent.py - Step: 1790, Training loss: 0.7473875284194946
+2024-09-03 10:14:50,214 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:50,290 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:50,640 - father_agent.py - Step: 1800, Training loss: 0.670776903629303
+2024-09-03 10:14:51,055 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,162 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,268 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,407 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,510 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:51,557 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:51,601 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:51,703 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,761 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,855 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,893 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:51,918 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:52,107 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:52,149 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:52,194 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:52,335 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:52,741 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:52,908 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:52,981 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:53,057 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:53,109 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:53,262 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:53,348 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:53,686 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:53,818 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:53,951 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:54,138 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:54,187 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:54,267 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:54,284 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:54,626 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:54,748 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:54,894 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:55,189 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:55,271 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:55,405 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:55,465 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:55,637 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:55,713 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:55,745 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:55,747 - father_agent.py - Average Return = -83.05000305175781
+2024-09-03 10:14:55,747 - father_agent.py - Average Virtual Goal Value = 300.0
+2024-09-03 10:14:55,747 - father_agent.py - Goal Reach Probability = 0.8
+2024-09-03 10:14:55,838 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:55,977 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:56,045 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:56,233 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:56,390 - father_agent.py - Step: 1810, Training loss: 0.6146599054336548
+2024-09-03 10:14:56,736 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:57,016 - father_agent.py - Step: 1820, Training loss: 0.50947505235672
+2024-09-03 10:14:57,343 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:57,638 - father_agent.py - Step: 1830, Training loss: 1.0038762092590332
+2024-09-03 10:14:57,956 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:58,094 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:58,133 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:58,235 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:58,258 - father_agent.py - Step: 1840, Training loss: 0.4714861512184143
+2024-09-03 10:14:58,411 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:58,646 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:58,881 - father_agent.py - Step: 1850, Training loss: 0.8002318739891052
+2024-09-03 10:14:59,358 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:59,487 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:59,513 - father_agent.py - Step: 1860, Training loss: 0.6392166614532471
+2024-09-03 10:14:59,608 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:14:59,807 - environment_wrapper.py - Goal reached!
+2024-09-03 10:14:59,927 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:00,043 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:00,142 - father_agent.py - Step: 1870, Training loss: 0.6653027534484863
+2024-09-03 10:15:00,157 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:00,433 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:00,538 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:00,767 - father_agent.py - Step: 1880, Training loss: 0.40375563502311707
+2024-09-03 10:15:00,944 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:01,390 - father_agent.py - Step: 1890, Training loss: 2.0040969848632812
+2024-09-03 10:15:01,426 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:01,619 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:01,835 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:02,015 - father_agent.py - Step: 1900, Training loss: 10.26239013671875
+2024-09-03 10:15:02,293 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:02,393 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:02,488 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:02,583 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:02,627 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:02,958 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:03,029 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,097 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,282 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,384 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:03,423 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,461 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,492 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,622 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,795 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:03,970 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:04,088 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:04,131 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:04,258 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:04,362 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:04,458 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:04,542 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:04,634 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:04,746 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:04,839 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,180 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,332 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,492 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,618 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,665 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,720 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,814 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,934 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:05,982 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:06,040 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:06,163 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:06,235 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:06,332 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:06,379 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:06,450 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:06,452 - father_agent.py - Average Return = -72.5
+2024-09-03 10:15:06,459 - father_agent.py - Average Virtual Goal Value = 300.0
+2024-09-03 10:15:06,459 - father_agent.py - Goal Reach Probability = 0.8
+2024-09-03 10:15:06,539 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:06,780 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:06,970 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:07,077 - father_agent.py - Step: 1910, Training loss: 4.002107620239258
+2024-09-03 10:15:07,690 - father_agent.py - Step: 1920, Training loss: 0.9032310247421265
+2024-09-03 10:15:07,697 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:07,910 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:08,206 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:08,321 - father_agent.py - Step: 1930, Training loss: 0.8131495118141174
+2024-09-03 10:15:08,465 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:08,719 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:08,940 - father_agent.py - Step: 1940, Training loss: 0.8705103993415833
+2024-09-03 10:15:08,986 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:09,110 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:09,472 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:09,536 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:09,571 - father_agent.py - Step: 1950, Training loss: 1.0112216472625732
+2024-09-03 10:15:09,639 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:09,797 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:09,853 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:10,165 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:10,189 - father_agent.py - Step: 1960, Training loss: 0.9374510049819946
+2024-09-03 10:15:10,346 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:10,622 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:10,804 - father_agent.py - Step: 1970, Training loss: 0.7056517601013184
+2024-09-03 10:15:10,851 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:11,214 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:11,323 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:11,422 - father_agent.py - Step: 1980, Training loss: 0.8429921865463257
+2024-09-03 10:15:11,434 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:11,587 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:11,692 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:11,780 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:11,902 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:12,053 - father_agent.py - Step: 1990, Training loss: 1.046064853668213
+2024-09-03 10:15:12,139 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:12,226 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:12,394 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:12,883 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,041 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:13,109 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,298 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,331 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:13,375 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,477 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,543 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:13,611 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,639 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,698 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:13,937 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:14,029 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:14,064 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:14,122 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:14,178 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:14,364 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:14,400 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:14,513 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:14,715 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:14,795 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:15,025 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:15,117 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:15,197 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:15,430 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:15,456 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:15,495 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:15,541 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:15,926 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:15,993 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:16,025 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,141 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:16,183 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,221 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,314 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,453 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:16,482 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:16,531 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,722 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,771 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,881 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:16,928 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:17,088 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:17,200 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:17,251 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:17,355 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:17,432 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:17,486 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:17,562 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:17,743 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:18,153 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:18,219 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:18,317 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:18,402 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:18,748 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:18,784 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:18,870 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:18,921 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:19,026 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,132 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,337 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,498 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,557 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:19,627 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,663 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,700 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,862 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,917 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:19,966 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:20,063 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:20,121 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:20,175 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:20,365 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:20,635 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:20,687 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:20,730 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:20,854 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:21,003 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:21,160 - environment_wrapper.py - Ended, but not in a goal state: ['exits']
+2024-09-03 10:15:21,224 - environment_wrapper.py - Goal reached!
+2024-09-03 10:15:21,226 - father_agent.py - Average Return = -71.5875015258789
+2024-09-03 10:15:21,226 - father_agent.py - Average Virtual Goal Value = 237.5
+2024-09-03 10:15:21,226 - father_agent.py - Goal Reach Probability = 0.7375
+
+------------------------------------
+
+PAYNT results: 
+0.9999721756019629
+controller size: 5196
+
+Storm results: 
+1.0
+controller size: 11137
+
+------------------------------------
+

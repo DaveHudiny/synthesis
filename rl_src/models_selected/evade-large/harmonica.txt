@@ -1,0 +1,1653 @@
+2024-09-03 09:32:02,561 - cli.py - This is Paynt version 0.1.0.
+2024-09-03 09:32:02,562 - sketch.py - loading sketch from rl_src/models/evade/sketch.templ ...
+2024-09-03 09:32:02,562 - sketch.py - assuming sketch in PRISM format...
+2024-09-03 09:32:02,565 - prism_parser.py - PRISM model type: POMDP
+2024-09-03 09:32:02,565 - prism_parser.py - loading properties from rl_src/models/evade/sketch.props ...
+2024-09-03 09:32:02,565 - prism_parser.py - found the following specification: optimality: Pmax=? ["notbad" U "goal"] 
+2024-09-03 09:32:02,621 - sketch.py - sketch parsing OK
+2024-09-03 09:32:02,630 - sketch.py - converting state rewards 'steps' to state-action rewards
+2024-09-03 09:32:02,636 - sketch.py - constructed explicit quotient having 8108 states and 23908 actions
+2024-09-03 09:32:02,636 - property.py - converting until formula to eventually...
+2024-09-03 09:32:02,636 - sketch.py - found the following specification optimality: Pmax=? [F "goal"] 
+2024-09-03 09:32:02,643 - pomdp.py - constructed POMDP having 4172 observations.
+2024-09-03 09:32:02,694 - pomdp.py - unfolding 1-FSC template into POMDP...
+2024-09-03 09:32:02,708 - pomdp.py - constructed quotient MDP having 8108 states and 23908 actions.
+2024-09-03 09:32:03,380 - tpu_cluster_resolver.py - Falling back to TensorFlow client; we recommended you install the Cloud TPU client directly with pip install cloud-tpu-client.
+2024-09-03 09:32:03,492 - __init__.py - Creating converter from 7 to 5
+2024-09-03 09:32:03,492 - __init__.py - Creating converter from 5 to 7
+2024-09-03 09:32:03,492 - __init__.py - Creating converter from 7 to 5
+2024-09-03 09:32:03,492 - __init__.py - Creating converter from 5 to 7
+2024-09-03 09:32:04,339 - synthesizer_pomdp.py - Storm POMDP option enabled
+2024-09-03 09:32:04,339 - synthesizer_pomdp.py - Storm settings: iterative - (150, 10, 7), get_storm_result - None, storm_options - cutoff, prune_storm - False, unfold_strategy - (True, False), use_storm_cutoffs - False
+2024-09-03 09:32:04,345 - synthesizer_pomdp.py - Timeout for PAYNT started
+-----------PAYNT-----------                     
+Value = 0.9301141205086961 | Time elapsed = 2.3s | FSC size = 8344
+
+-----------PAYNT-----------                     
+Value = 0.9303043831962149 | Time elapsed = 2.4s | FSC size = 8344
+
+-----------PAYNT-----------                     
+Value = 0.931559357242135 | Time elapsed = 2.5s | FSC size = 8344
+
+-----------PAYNT-----------                     
+Value = 0.9317057378153508 | Time elapsed = 2.7s | FSC size = 8344
+
+-----------PAYNT-----------                     
+Value = 0.9318820704828861 | Time elapsed = 2.8s | FSC size = 8344
+
+> progress 0.0%, elapsed 3 s, estimated 213525468239988037739301142790144 s (6770848181125951545933824 years), iters = {MDP: 76}, opt = 0.932
+> progress 0.0%, elapsed 6 s, estimated 71096738761259565411974607011840 s (2254462796843593511206912 years), iters = {MDP: 184}, opt = 0.932
+-----------PAYNT-----------                     
+Value = 0.93201282778677 | Time elapsed = 8.6s | FSC size = 8344
+
+> progress 0.0%, elapsed 9 s, estimated 48093976427899756906066917457920 s (1525049988200778591895552 years), iters = {MDP: 295}, opt = 0.932
+2024-09-03 09:32:14,661 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 09:32:14,682 - storm_pomdp_control.py - Interactive Storm started
+2024-09-03 09:32:14,683 - storm_pomdp_control.py - starting Storm POMDP analysis
+2024-09-03 09:32:22,690 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 25.8s | FSC size = 32151
+
+
+------------------------------------
+
+PAYNT results: 
+0.93201282778677
+controller size: 8344
+
+Storm results: 
+1.0
+controller size: 32151
+
+------------------------------------
+
+2024-09-03 09:32:31,969 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 09:32:32,691 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 09:32:32,691 - synthesizer_ar_storm.py - Additional memory needed
+2024-09-03 09:32:32,710 - synthesizer.py - double-checking specification satisfiability:  : 0.93201282778677
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 10.32 s
+number of holes: 2023, family size: 1e1414, quotient: 8108 states / 23908 actions
+explored: 0 %
+MDP stats: avg MDP size: 5919, iterations: 331
+
+optimum: 0.932013
+--------------------
+2024-09-03 09:32:35,173 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 09:32:35,176 - pomdp.py - unfolding 5-FSC template into POMDP...
+2024-09-03 09:32:35,188 - pomdp.py - constructed quotient MDP having 10946 states and 64528 actions.
+2024-09-03 09:32:35,487 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e2777 to 1e1325
+2024-09-03 09:32:42,126 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 09:32:42,216 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 09:32:42,217 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 09:32:50,228 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 57.3s | FSC size = 30255
+
+
+------------------------------------
+
+PAYNT results: 
+0.93201282778677
+controller size: 8344
+
+Storm results: 
+1.0
+controller size: 30255
+
+------------------------------------
+
+2024-09-03 09:33:03,596 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 09:33:04,160 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 09:33:04,160 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 3.0 s
+number of holes: 4834, family size: 1e2777, quotient: 10946 states / 64528 actions
+explored: 0 %
+MDP stats: avg MDP size: 7465, iterations: 21
+
+optimum: 0.932013
+--------------------
+2024-09-03 09:33:04,172 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 09:33:04,173 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 09:33:04,179 - pomdp.py - unfolding 5-FSC template into POMDP...
+2024-09-03 09:33:04,193 - pomdp.py - constructed quotient MDP having 11001 states and 65456 actions.
+2024-09-03 09:33:04,500 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e2818 to 1e1363
+> progress 0.0%, elapsed 3 s, estimated 3246343 s (37 days), iters = {MDP: 24}, opt = 0.932
+2024-09-03 09:33:13,620 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 09:33:13,712 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 09:33:13,713 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 09:33:21,723 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 92.8s | FSC size = 25677
+
+
+------------------------------------
+
+PAYNT results: 
+0.93201282778677
+controller size: 8344
+
+Storm results: 
+1.0
+controller size: 25677
+
+------------------------------------
+
+2024-09-03 09:33:38,722 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 09:33:39,659 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 09:33:39,659 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 4.9 s
+number of holes: 4910, family size: 1e2818, quotient: 11001 states / 65456 actions
+explored: 0 %
+MDP stats: avg MDP size: 7280, iterations: 53
+
+optimum: 0.932013
+--------------------
+2024-09-03 09:33:39,684 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 09:33:39,684 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 09:33:39,691 - pomdp.py - unfolding 5-FSC template into POMDP...
+2024-09-03 09:33:39,906 - pomdp.py - constructed quotient MDP having 11214 states and 68892 actions.
+2024-09-03 09:33:40,225 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e2934 to 1e1475
+> progress 0.0%, elapsed 3 s, estimated 3126460 s (36 days), iters = {MDP: 24}, opt = 0.932
+2024-09-03 09:33:48,808 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 09:33:48,851 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 09:33:48,852 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 09:33:56,860 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 131.0s | FSC size = 30033
+
+
+------------------------------------
+
+PAYNT results: 
+0.93201282778677
+controller size: 8344
+
+Storm results: 
+1.0
+controller size: 30033
+
+------------------------------------
+
+2024-09-03 09:34:17,234 - synthesizer_pomdp.py - Timeout for PAYNT started
+2024-09-03 09:34:17,851 - synthesizer_ar_storm.py - Resuming synthesis
+2024-09-03 09:34:17,851 - synthesizer_ar_storm.py - Additional memory needed
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 4.83 s
+number of holes: 5144, family size: 1e2934, quotient: 11214 states / 68892 actions
+explored: 0 %
+MDP stats: avg MDP size: 7717, iterations: 37
+
+optimum: 0.932013
+--------------------
+2024-09-03 09:34:17,867 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 09:34:17,868 - synthesizer_pomdp.py - Added memory nodes for observation based on Storm data
+2024-09-03 09:34:17,875 - pomdp.py - unfolding 5-FSC template into POMDP...
+2024-09-03 09:34:18,089 - pomdp.py - constructed quotient MDP having 11189 states and 67849 actions.
+2024-09-03 09:34:18,232 - storm_pomdp_control.py - Main family based on data from Storm: reduced design space from 1e2901 to 1e1444
+> progress 0.0%, elapsed 3 s, estimated 3058412 s (35 days), iters = {MDP: 24}, opt = 0.932
+2024-09-03 09:34:27,281 - synthesizer_ar_storm.py - Pausing synthesis
+2024-09-03 09:34:27,356 - storm_pomdp_control.py - Interactive Storm resumed
+2024-09-03 09:34:27,357 - storm_pomdp_control.py - Updating FSC values in Storm
+2024-09-03 09:34:35,368 - storm_pomdp_control.py - Pausing Storm
+Finished exploring under-approximation MDP.
+Start analysis...
+-----------Storm-----------               
+Value = 1.0 | Time elapsed = 171.6s | FSC size = 34985
+
+
+------------------------------------
+
+PAYNT results: 
+0.93201282778677
+controller size: 8344
+
+Storm results: 
+1.0
+controller size: 34985
+
+------------------------------------
+
+2024-09-03 09:34:58,326 - synthesizer_ar_storm.py - Terminating controller synthesis
+--------------------
+Synthesis summary:
+optimality objective: Pmax=? [F "goal"] 
+
+method: AR, synthesis time: 5.22 s
+number of holes: 5101, family size: 1e2901, quotient: 11189 states / 67849 actions
+explored: 0 %
+MDP stats: avg MDP size: 7509, iterations: 56
+
+optimum: 0.932013
+--------------------
+2024-09-03 09:34:58,352 - synthesizer_pomdp.py - Assignment is None
+2024-09-03 09:34:58,354 - storm_pomdp_control.py - Storm POMDP analysis completed
+2024-09-03 09:34:58,437 - synthesizer_rl.py - RL Environment initialized
+2024-09-03 09:34:58,759 - periodic_fsc_neural_ppo.py - Agent initialized
+2024-09-03 09:34:58,769 - periodic_fsc_neural_ppo.py - Replay buffer initialized
+2024-09-03 09:35:00,215 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:00,855 - father_agent.py - Training agent
+2024-09-03 09:35:01,097 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:03,186 - father_agent.py - Step: 0, Training loss: 0.2749581038951874
+2024-09-03 09:35:05,699 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:05,925 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:05,989 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:06,099 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:06,466 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:06,901 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:07,245 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:07,424 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:07,490 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:07,748 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:07,883 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:08,045 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:08,141 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:08,301 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:09,011 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:09,312 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:09,371 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:09,501 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:09,768 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:09,977 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:10,092 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:10,414 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:10,472 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:10,557 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:10,884 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,160 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,254 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,285 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,416 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,534 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,723 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,802 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,882 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:11,907 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:12,520 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:12,581 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:12,626 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:13,088 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:13,143 - father_agent.py - Average Return = -580.4749755859375
+2024-09-03 09:35:13,143 - father_agent.py - Average Virtual Goal Value = -425.0
+2024-09-03 09:35:13,143 - father_agent.py - Goal Reach Probability = 0.05
+2024-09-03 09:35:13,484 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:13,761 - father_agent.py - Step: 10, Training loss: 0.2819356918334961
+2024-09-03 09:35:14,005 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:14,115 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:14,294 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:14,390 - father_agent.py - Step: 20, Training loss: 0.31851691007614136
+2024-09-03 09:35:14,531 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:15,007 - father_agent.py - Step: 30, Training loss: 0.4266873002052307
+2024-09-03 09:35:15,072 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:15,470 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:15,618 - father_agent.py - Step: 40, Training loss: 0.3082384467124939
+2024-09-03 09:35:15,712 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:15,822 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:16,144 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:16,227 - father_agent.py - Step: 50, Training loss: 0.24135419726371765
+2024-09-03 09:35:16,550 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:16,627 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:16,724 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:16,805 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:16,839 - father_agent.py - Step: 60, Training loss: 0.35896238684654236
+2024-09-03 09:35:16,942 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:17,206 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:17,444 - father_agent.py - Step: 70, Training loss: 0.28936830163002014
+2024-09-03 09:35:18,047 - father_agent.py - Step: 80, Training loss: 0.23327457904815674
+2024-09-03 09:35:18,654 - father_agent.py - Step: 90, Training loss: 0.21886873245239258
+2024-09-03 09:35:19,262 - father_agent.py - Step: 100, Training loss: 0.2402593493461609
+2024-09-03 09:35:19,594 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:19,682 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:19,819 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:20,248 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:20,301 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:20,501 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:20,583 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:20,673 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:21,109 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:21,382 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:21,451 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:21,710 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:21,773 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:21,848 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:21,989 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:22,288 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:22,388 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:22,452 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:22,503 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:22,828 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:22,895 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:22,989 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:23,147 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:23,215 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:23,283 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:23,422 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:24,292 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:24,344 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:24,372 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:24,550 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:24,655 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:25,147 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:25,294 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:25,539 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:25,606 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:25,842 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:25,946 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:26,114 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:26,212 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:26,214 - father_agent.py - Average Return = -578.625
+2024-09-03 09:35:26,214 - father_agent.py - Average Virtual Goal Value = -437.5
+2024-09-03 09:35:26,214 - father_agent.py - Goal Reach Probability = 0.05
+2024-09-03 09:35:26,435 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:26,821 - father_agent.py - Step: 110, Training loss: 0.3976839780807495
+2024-09-03 09:35:26,835 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:27,045 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:27,134 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:27,328 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:27,437 - father_agent.py - Step: 120, Training loss: 0.2096431702375412
+2024-09-03 09:35:27,777 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:28,044 - father_agent.py - Step: 130, Training loss: 0.114846371114254
+2024-09-03 09:35:28,354 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:28,623 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:28,651 - father_agent.py - Step: 140, Training loss: 0.30389705300331116
+2024-09-03 09:35:28,696 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:28,863 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:28,991 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:29,258 - father_agent.py - Step: 150, Training loss: 0.2660175561904907
+2024-09-03 09:35:29,416 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:29,544 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:29,864 - father_agent.py - Step: 160, Training loss: 0.36134639382362366
+2024-09-03 09:35:29,931 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:30,124 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:30,465 - father_agent.py - Step: 170, Training loss: 0.15531086921691895
+2024-09-03 09:35:30,626 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:30,989 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:31,065 - father_agent.py - Step: 180, Training loss: 0.41302379965782166
+2024-09-03 09:35:31,277 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:31,499 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:31,574 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:31,673 - father_agent.py - Step: 190, Training loss: 0.32964229583740234
+2024-09-03 09:35:31,751 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:31,881 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:31,966 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:32,282 - father_agent.py - Step: 200, Training loss: 0.3985382616519928
+2024-09-03 09:35:32,639 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:32,690 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:32,993 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:33,146 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:33,315 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:33,492 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:33,688 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:33,785 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:34,005 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:34,056 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:34,438 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:34,717 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:34,824 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:35,662 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:35,732 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:35,922 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:36,150 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:36,450 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:36,531 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:36,602 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:36,757 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:36,995 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:37,243 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:37,336 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:37,418 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:37,714 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:38,079 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:38,180 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:38,573 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:38,943 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:39,106 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:39,427 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:39,928 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:40,343 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:40,428 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:40,698 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:40,845 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:41,386 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:41,524 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:41,526 - father_agent.py - Average Return = -619.4749755859375
+2024-09-03 09:35:41,526 - father_agent.py - Average Virtual Goal Value = -437.5
+2024-09-03 09:35:41,526 - father_agent.py - Goal Reach Probability = 0.05
+2024-09-03 09:35:42,130 - father_agent.py - Step: 210, Training loss: 0.4200020432472229
+2024-09-03 09:35:42,267 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:42,537 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:42,739 - father_agent.py - Step: 220, Training loss: 0.34708115458488464
+2024-09-03 09:35:43,124 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:43,205 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:43,345 - father_agent.py - Step: 230, Training loss: 0.2452394664287567
+2024-09-03 09:35:43,707 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:43,955 - father_agent.py - Step: 240, Training loss: 0.30255454778671265
+2024-09-03 09:35:44,006 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:44,174 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:44,569 - father_agent.py - Step: 250, Training loss: 0.4327459931373596
+2024-09-03 09:35:44,634 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:44,823 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:45,073 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:45,185 - father_agent.py - Step: 260, Training loss: 0.36845821142196655
+2024-09-03 09:35:45,317 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:45,790 - father_agent.py - Step: 270, Training loss: 0.46732276678085327
+2024-09-03 09:35:46,285 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:46,397 - father_agent.py - Step: 280, Training loss: 0.41911518573760986
+2024-09-03 09:35:46,796 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:47,005 - father_agent.py - Step: 290, Training loss: 0.33204203844070435
+2024-09-03 09:35:47,143 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:47,387 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:47,620 - father_agent.py - Step: 300, Training loss: 0.2829279601573944
+2024-09-03 09:35:48,095 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:48,554 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:48,589 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:48,641 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:48,877 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:49,662 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:49,755 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:50,055 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:50,304 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:50,655 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:50,717 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:50,835 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:51,526 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:51,597 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:51,841 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:51,956 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:52,086 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:52,333 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:52,534 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:52,599 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:52,810 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:52,861 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:52,993 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:53,338 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:53,584 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:53,718 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:53,791 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:53,892 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:54,110 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:54,249 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:54,608 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:54,674 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:54,869 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:54,911 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:54,988 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:55,219 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:55,275 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:55,352 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:55,353 - father_agent.py - Average Return = -581.125
+2024-09-03 09:35:55,353 - father_agent.py - Average Virtual Goal Value = -425.0
+2024-09-03 09:35:55,354 - father_agent.py - Goal Reach Probability = 0.05
+2024-09-03 09:35:55,740 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:55,968 - father_agent.py - Step: 310, Training loss: 0.2053510546684265
+2024-09-03 09:35:56,310 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:56,570 - father_agent.py - Step: 320, Training loss: 0.3809800446033478
+2024-09-03 09:35:56,582 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:56,946 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:57,172 - father_agent.py - Step: 330, Training loss: 0.39610767364501953
+2024-09-03 09:35:57,786 - father_agent.py - Step: 340, Training loss: 0.26877862215042114
+2024-09-03 09:35:57,805 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:57,918 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:58,221 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:58,396 - father_agent.py - Step: 350, Training loss: 0.351298063993454
+2024-09-03 09:35:58,663 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:59,006 - father_agent.py - Step: 360, Training loss: 0.36265140771865845
+2024-09-03 09:35:59,164 - environment_wrapper.py - Goal reached!
+2024-09-03 09:35:59,298 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:59,579 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:59,621 - father_agent.py - Step: 370, Training loss: 0.2984808087348938
+2024-09-03 09:35:59,666 - environment_wrapper.py - Trapped!
+2024-09-03 09:35:59,880 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:00,224 - father_agent.py - Step: 380, Training loss: 0.292083203792572
+2024-09-03 09:36:00,270 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:00,380 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:00,828 - father_agent.py - Step: 390, Training loss: 0.4057539105415344
+2024-09-03 09:36:01,429 - father_agent.py - Step: 400, Training loss: 0.23408497869968414
+2024-09-03 09:36:01,730 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:01,909 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:02,026 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:02,167 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:02,266 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:02,398 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:02,491 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:02,613 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:02,729 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:03,182 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:03,323 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:03,476 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:03,755 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:03,888 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:04,020 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:04,250 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:04,409 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:04,479 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:04,528 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:04,610 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:04,844 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:05,068 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:05,240 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:05,435 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:05,489 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:05,619 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:05,961 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:05,997 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:06,143 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:06,189 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:06,346 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:07,012 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:07,090 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:07,148 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:07,293 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:07,429 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:07,612 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:07,826 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:07,980 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:08,010 - father_agent.py - Average Return = -509.7250061035156
+2024-09-03 09:36:08,010 - father_agent.py - Average Virtual Goal Value = -312.5
+2024-09-03 09:36:08,010 - father_agent.py - Goal Reach Probability = 0.175
+2024-09-03 09:36:08,515 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:08,610 - father_agent.py - Step: 410, Training loss: 0.13360917568206787
+2024-09-03 09:36:08,822 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:09,006 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:09,216 - father_agent.py - Step: 420, Training loss: 0.462161660194397
+2024-09-03 09:36:09,428 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:09,721 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:09,824 - father_agent.py - Step: 430, Training loss: 0.38836997747421265
+2024-09-03 09:36:09,973 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:10,206 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:10,436 - father_agent.py - Step: 440, Training loss: 0.27428027987480164
+2024-09-03 09:36:10,720 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:10,809 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:10,871 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:11,043 - father_agent.py - Step: 450, Training loss: 0.3729453682899475
+2024-09-03 09:36:11,323 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:11,471 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:11,629 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:11,654 - father_agent.py - Step: 460, Training loss: 0.3580968379974365
+2024-09-03 09:36:11,931 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:12,211 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:12,245 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:12,263 - father_agent.py - Step: 470, Training loss: 0.2856445908546448
+2024-09-03 09:36:12,369 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:12,870 - father_agent.py - Step: 480, Training loss: 0.40459930896759033
+2024-09-03 09:36:13,018 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:13,478 - father_agent.py - Step: 490, Training loss: 0.34299278259277344
+2024-09-03 09:36:13,552 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:14,090 - father_agent.py - Step: 500, Training loss: 0.22556908428668976
+2024-09-03 09:36:14,452 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:14,656 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:14,745 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:14,924 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:15,228 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:15,338 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:15,591 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:16,397 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:16,430 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:16,606 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:16,680 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:16,871 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:16,999 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:17,190 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:17,285 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:17,683 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:17,718 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:17,819 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:18,713 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:18,853 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:18,914 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:19,031 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:19,408 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:19,448 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:19,559 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:19,650 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:19,715 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:19,805 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:20,165 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:20,339 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:20,461 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:20,555 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:20,862 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:20,916 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:21,063 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:21,472 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:21,680 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:21,834 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:21,835 - father_agent.py - Average Return = -529.4500122070312
+2024-09-03 09:36:21,836 - father_agent.py - Average Virtual Goal Value = -325.0
+2024-09-03 09:36:21,836 - father_agent.py - Goal Reach Probability = 0.15
+2024-09-03 09:36:22,412 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:22,439 - father_agent.py - Step: 510, Training loss: 0.28623589873313904
+2024-09-03 09:36:23,044 - father_agent.py - Step: 520, Training loss: 0.3050515949726105
+2024-09-03 09:36:23,142 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:23,652 - father_agent.py - Step: 530, Training loss: 0.21005980670452118
+2024-09-03 09:36:23,982 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:24,248 - father_agent.py - Step: 540, Training loss: 0.28770875930786133
+2024-09-03 09:36:24,537 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:24,836 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:24,856 - father_agent.py - Step: 550, Training loss: 0.17202505469322205
+2024-09-03 09:36:24,936 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:25,090 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:25,471 - father_agent.py - Step: 560, Training loss: 0.338323175907135
+2024-09-03 09:36:25,620 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:25,768 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:26,057 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:26,095 - father_agent.py - Step: 570, Training loss: 0.2740238904953003
+2024-09-03 09:36:26,291 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:26,706 - father_agent.py - Step: 580, Training loss: 0.27065637707710266
+2024-09-03 09:36:26,998 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:27,162 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:27,319 - father_agent.py - Step: 590, Training loss: 0.35744592547416687
+2024-09-03 09:36:27,382 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:27,776 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:27,927 - father_agent.py - Step: 600, Training loss: 0.3173660337924957
+2024-09-03 09:36:28,225 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:28,336 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:28,485 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:28,561 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:28,734 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:28,833 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:28,908 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:29,026 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:29,247 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:29,389 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:29,661 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:29,860 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:30,018 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:30,138 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:30,352 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:30,551 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:30,913 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:31,397 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:31,540 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:31,709 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:32,066 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:32,651 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:32,810 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:32,904 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:32,992 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:33,289 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:33,530 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:33,693 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:33,788 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:33,914 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:34,095 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:34,181 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:34,354 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:35,127 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:35,410 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:35,507 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:35,680 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:35,859 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:35,942 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:35,944 - father_agent.py - Average Return = -608.5750122070312
+2024-09-03 09:36:35,944 - father_agent.py - Average Virtual Goal Value = -462.5
+2024-09-03 09:36:35,944 - father_agent.py - Goal Reach Probability = 0.025
+2024-09-03 09:36:36,198 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:36,352 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:36,550 - father_agent.py - Step: 610, Training loss: 0.34950098395347595
+2024-09-03 09:36:36,563 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:37,157 - father_agent.py - Step: 620, Training loss: 0.4381888508796692
+2024-09-03 09:36:37,605 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:37,770 - father_agent.py - Step: 630, Training loss: 0.27514660358428955
+2024-09-03 09:36:38,086 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:38,379 - father_agent.py - Step: 640, Training loss: 0.34249886870384216
+2024-09-03 09:36:38,400 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:38,627 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:38,987 - father_agent.py - Step: 650, Training loss: 0.18178492784500122
+2024-09-03 09:36:39,095 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:39,595 - father_agent.py - Step: 660, Training loss: 0.39708107709884644
+2024-09-03 09:36:39,640 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:40,038 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:40,205 - father_agent.py - Step: 670, Training loss: 0.3255457878112793
+2024-09-03 09:36:40,578 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:40,762 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:40,817 - father_agent.py - Step: 680, Training loss: 0.36452576518058777
+2024-09-03 09:36:41,120 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:41,420 - father_agent.py - Step: 690, Training loss: 0.3431623876094818
+2024-09-03 09:36:41,918 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:42,025 - father_agent.py - Step: 700, Training loss: 0.47019124031066895
+2024-09-03 09:36:42,359 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:42,468 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:43,080 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:43,154 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:43,315 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:43,529 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:43,580 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:43,698 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:43,818 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:44,255 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:44,352 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:44,524 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:44,577 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:44,726 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:44,816 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,022 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:45,116 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,254 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,322 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,423 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,584 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,641 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,716 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:45,848 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:46,154 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:46,680 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:46,714 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:47,087 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:47,369 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:47,490 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:47,619 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:47,766 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:47,953 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:48,156 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:48,395 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:48,535 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:48,707 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:48,805 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:49,020 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:49,022 - father_agent.py - Average Return = -580.2750244140625
+2024-09-03 09:36:49,022 - father_agent.py - Average Virtual Goal Value = -437.5
+2024-09-03 09:36:49,022 - father_agent.py - Goal Reach Probability = 0.05
+2024-09-03 09:36:49,632 - father_agent.py - Step: 710, Training loss: 0.21700766682624817
+2024-09-03 09:36:49,883 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:50,238 - father_agent.py - Step: 720, Training loss: 0.21228760480880737
+2024-09-03 09:36:50,844 - father_agent.py - Step: 730, Training loss: 0.2904374599456787
+2024-09-03 09:36:51,060 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:51,273 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:51,456 - father_agent.py - Step: 740, Training loss: 0.24888202548027039
+2024-09-03 09:36:51,797 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:51,932 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:52,067 - father_agent.py - Step: 750, Training loss: 0.21689963340759277
+2024-09-03 09:36:52,672 - father_agent.py - Step: 760, Training loss: 0.222518190741539
+2024-09-03 09:36:52,769 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:53,164 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:53,282 - father_agent.py - Step: 770, Training loss: 0.22790762782096863
+2024-09-03 09:36:53,617 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:53,895 - father_agent.py - Step: 780, Training loss: 0.22211836278438568
+2024-09-03 09:36:54,266 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:54,486 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:54,504 - father_agent.py - Step: 790, Training loss: 0.2268788367509842
+2024-09-03 09:36:54,769 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:55,116 - father_agent.py - Step: 800, Training loss: 0.1367420256137848
+2024-09-03 09:36:55,402 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:55,449 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:55,495 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:55,759 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:55,992 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:56,108 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:56,372 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:56,467 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:56,515 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:56,933 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:57,040 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:57,246 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:57,597 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:57,678 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:57,872 - environment_wrapper.py - Goal reached!
+2024-09-03 09:36:58,036 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:58,232 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:58,522 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:58,606 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:59,289 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:59,469 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:59,751 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:59,798 - environment_wrapper.py - Trapped!
+2024-09-03 09:36:59,958 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:00,036 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:00,316 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:00,392 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:00,561 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:00,784 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:01,177 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:01,277 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:01,409 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:01,464 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:01,498 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:01,854 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:01,905 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:02,063 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:02,167 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:02,711 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:02,713 - father_agent.py - Average Return = -564.6249389648438
+2024-09-03 09:37:02,713 - father_agent.py - Average Virtual Goal Value = -387.5
+2024-09-03 09:37:02,713 - father_agent.py - Goal Reach Probability = 0.1
+2024-09-03 09:37:03,038 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:03,291 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:03,320 - father_agent.py - Step: 810, Training loss: 0.14460740983486176
+2024-09-03 09:37:03,932 - father_agent.py - Step: 820, Training loss: 0.2771279811859131
+2024-09-03 09:37:04,541 - father_agent.py - Step: 830, Training loss: 0.22619840502738953
+2024-09-03 09:37:04,621 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:04,691 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:05,146 - father_agent.py - Step: 840, Training loss: 0.3633633255958557
+2024-09-03 09:37:05,252 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:05,590 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:05,755 - father_agent.py - Step: 850, Training loss: 0.16408124566078186
+2024-09-03 09:37:06,341 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:06,359 - father_agent.py - Step: 860, Training loss: 0.2138383537530899
+2024-09-03 09:37:06,585 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:06,770 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:06,915 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:06,972 - father_agent.py - Step: 870, Training loss: 0.21106135845184326
+2024-09-03 09:37:07,283 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:07,576 - father_agent.py - Step: 880, Training loss: 0.26173973083496094
+2024-09-03 09:37:07,768 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:07,892 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:08,203 - father_agent.py - Step: 890, Training loss: 0.38025546073913574
+2024-09-03 09:37:08,517 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:08,812 - father_agent.py - Step: 900, Training loss: 0.225826233625412
+2024-09-03 09:37:09,154 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:09,334 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:09,667 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:10,132 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:10,432 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:10,845 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:11,109 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:11,490 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:11,669 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:11,782 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:11,868 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,023 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,071 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,186 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,413 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,491 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,564 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,605 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,747 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:12,869 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:13,138 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:13,593 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:13,801 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:13,934 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:14,158 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:14,244 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:14,319 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:14,354 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:14,684 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:14,706 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:15,166 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:15,264 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:15,371 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:15,766 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:15,890 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:15,929 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:16,410 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:16,625 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:16,760 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:16,984 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:16,986 - father_agent.py - Average Return = -561.7249755859375
+2024-09-03 09:37:16,986 - father_agent.py - Average Virtual Goal Value = -350.0
+2024-09-03 09:37:16,986 - father_agent.py - Goal Reach Probability = 0.15
+2024-09-03 09:37:17,087 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:17,427 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:17,541 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:17,594 - father_agent.py - Step: 910, Training loss: 0.18635456264019012
+2024-09-03 09:37:17,752 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:18,202 - father_agent.py - Step: 920, Training loss: 0.22103318572044373
+2024-09-03 09:37:18,306 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:18,412 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:18,554 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:18,813 - father_agent.py - Step: 930, Training loss: 0.2534558176994324
+2024-09-03 09:37:19,137 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:19,269 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:19,422 - father_agent.py - Step: 940, Training loss: 0.3469434976577759
+2024-09-03 09:37:19,770 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:20,032 - father_agent.py - Step: 950, Training loss: 0.17341448366641998
+2024-09-03 09:37:20,642 - father_agent.py - Step: 960, Training loss: 0.10678829252719879
+2024-09-03 09:37:20,900 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:21,245 - father_agent.py - Step: 970, Training loss: 0.22863078117370605
+2024-09-03 09:37:21,500 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:21,849 - father_agent.py - Step: 980, Training loss: 0.2887645959854126
+2024-09-03 09:37:22,042 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:22,293 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:22,457 - father_agent.py - Step: 990, Training loss: 0.2842630445957184
+2024-09-03 09:37:22,550 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:22,994 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:23,069 - father_agent.py - Step: 1000, Training loss: 0.23215878009796143
+2024-09-03 09:37:23,488 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:24,197 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:24,229 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:24,767 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:25,248 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:25,427 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:25,562 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:25,879 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:25,993 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:26,161 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:26,458 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:26,651 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:26,741 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:27,133 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:27,364 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:27,880 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:27,972 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:28,318 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:29,146 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:29,399 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:29,579 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:29,714 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:30,077 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:30,234 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:30,701 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:30,850 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:31,321 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:31,626 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:31,656 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:31,975 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:32,081 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:32,288 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:32,976 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:33,067 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:33,109 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:34,004 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:34,033 - father_agent.py - Average Return = -559.75
+2024-09-03 09:37:34,033 - father_agent.py - Average Virtual Goal Value = -300.0
+2024-09-03 09:37:34,033 - father_agent.py - Goal Reach Probability = 0.15
+2024-09-03 09:37:34,198 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:34,362 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:34,644 - father_agent.py - Step: 1010, Training loss: 0.19115933775901794
+2024-09-03 09:37:35,086 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:35,248 - father_agent.py - Step: 1020, Training loss: 0.22969266772270203
+2024-09-03 09:37:35,856 - father_agent.py - Step: 1030, Training loss: 0.35528719425201416
+2024-09-03 09:37:36,004 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:36,464 - father_agent.py - Step: 1040, Training loss: 0.20907753705978394
+2024-09-03 09:37:36,984 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:37,073 - father_agent.py - Step: 1050, Training loss: 0.1514144092798233
+2024-09-03 09:37:37,360 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:37,681 - father_agent.py - Step: 1060, Training loss: 0.17214970290660858
+2024-09-03 09:37:38,016 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:38,289 - father_agent.py - Step: 1070, Training loss: 0.23010875284671783
+2024-09-03 09:37:38,632 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:38,863 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:38,895 - father_agent.py - Step: 1080, Training loss: 0.2663561701774597
+2024-09-03 09:37:39,353 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:39,503 - father_agent.py - Step: 1090, Training loss: 0.39083272218704224
+2024-09-03 09:37:39,657 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:39,774 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:40,035 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:40,118 - father_agent.py - Step: 1100, Training loss: 0.5008544325828552
+2024-09-03 09:37:40,435 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:40,611 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:40,801 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:40,934 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:41,106 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:41,407 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:41,631 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:41,774 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:41,917 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:42,058 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:42,213 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:42,325 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:42,424 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:42,498 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:42,999 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:43,062 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:43,792 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:43,837 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:44,243 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:44,439 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:44,622 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:45,009 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:45,159 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:45,235 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:45,449 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:45,533 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:45,734 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:45,861 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:46,133 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:46,273 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:46,367 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:46,614 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:46,871 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:47,128 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:47,448 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:47,469 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:47,578 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:47,613 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:48,211 - father_agent.py - Average Return = -497.9750061035156
+2024-09-03 09:37:48,211 - father_agent.py - Average Virtual Goal Value = -250.0
+2024-09-03 09:37:48,211 - father_agent.py - Goal Reach Probability = 0.225
+2024-09-03 09:37:48,617 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:48,821 - father_agent.py - Step: 1110, Training loss: 0.3691761791706085
+2024-09-03 09:37:49,379 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:49,427 - father_agent.py - Step: 1120, Training loss: 0.1815851926803589
+2024-09-03 09:37:50,029 - father_agent.py - Step: 1130, Training loss: 0.21580223739147186
+2024-09-03 09:37:50,251 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:50,614 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:50,640 - father_agent.py - Step: 1140, Training loss: 0.18083269894123077
+2024-09-03 09:37:51,244 - father_agent.py - Step: 1150, Training loss: 0.21992447972297668
+2024-09-03 09:37:51,457 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:51,744 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:51,858 - father_agent.py - Step: 1160, Training loss: 0.259016752243042
+2024-09-03 09:37:51,872 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:52,465 - father_agent.py - Step: 1170, Training loss: 0.23874230682849884
+2024-09-03 09:37:53,068 - father_agent.py - Step: 1180, Training loss: 0.23281961679458618
+2024-09-03 09:37:53,361 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:53,678 - father_agent.py - Step: 1190, Training loss: 0.21721409261226654
+2024-09-03 09:37:53,757 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:53,875 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:54,287 - father_agent.py - Step: 1200, Training loss: 0.1182064563035965
+2024-09-03 09:37:54,887 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:55,074 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:55,305 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:55,440 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:55,664 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:55,821 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:56,028 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:56,240 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:56,362 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:56,623 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:56,935 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:56,999 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:57,068 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:57,881 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:57,983 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:58,045 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:58,148 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:58,368 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:58,830 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:59,197 - environment_wrapper.py - Goal reached!
+2024-09-03 09:37:59,384 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:59,687 - environment_wrapper.py - Trapped!
+2024-09-03 09:37:59,822 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:00,069 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:00,173 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:00,346 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:00,541 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:00,633 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:01,153 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:01,214 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:01,241 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:01,443 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:01,636 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:01,737 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:02,013 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:02,272 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:02,978 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:03,245 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:03,247 - father_agent.py - Average Return = -564.2249755859375
+2024-09-03 09:38:03,247 - father_agent.py - Average Virtual Goal Value = -350.0
+2024-09-03 09:38:03,247 - father_agent.py - Goal Reach Probability = 0.125
+2024-09-03 09:38:03,721 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:03,858 - father_agent.py - Step: 1210, Training loss: 0.1636536419391632
+2024-09-03 09:38:04,132 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:04,462 - father_agent.py - Step: 1220, Training loss: 0.30677106976509094
+2024-09-03 09:38:04,786 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:05,047 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:05,072 - father_agent.py - Step: 1230, Training loss: 0.22022117674350739
+2024-09-03 09:38:05,680 - father_agent.py - Step: 1240, Training loss: 0.18270103633403778
+2024-09-03 09:38:06,292 - father_agent.py - Step: 1250, Training loss: 0.3084717392921448
+2024-09-03 09:38:06,596 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:06,882 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:06,899 - father_agent.py - Step: 1260, Training loss: 0.25943222641944885
+2024-09-03 09:38:07,169 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:07,507 - father_agent.py - Step: 1270, Training loss: 0.48849353194236755
+2024-09-03 09:38:07,637 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:08,108 - father_agent.py - Step: 1280, Training loss: 0.2472238391637802
+2024-09-03 09:38:08,310 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:08,442 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:08,714 - father_agent.py - Step: 1290, Training loss: 0.1487136334180832
+2024-09-03 09:38:09,317 - father_agent.py - Step: 1300, Training loss: 0.23952385783195496
+2024-09-03 09:38:10,278 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:10,459 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:10,708 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:10,827 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:10,871 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:10,928 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:11,120 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:11,564 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:11,768 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:11,942 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:12,739 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:13,345 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:13,455 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:13,629 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:13,756 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:13,991 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:14,035 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:14,072 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:14,185 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:14,436 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:14,899 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:15,259 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:15,932 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:16,133 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:16,213 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:16,388 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:16,474 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:16,631 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:16,816 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:17,007 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:17,123 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:17,357 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:17,594 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:17,803 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:17,879 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:18,007 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:18,120 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:18,123 - father_agent.py - Average Return = -569.125
+2024-09-03 09:38:18,123 - father_agent.py - Average Virtual Goal Value = -387.5
+2024-09-03 09:38:18,123 - father_agent.py - Goal Reach Probability = 0.075
+2024-09-03 09:38:18,379 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:18,727 - father_agent.py - Step: 1310, Training loss: 1.6760379076004028
+2024-09-03 09:38:18,977 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:19,330 - father_agent.py - Step: 1320, Training loss: 0.4464121460914612
+2024-09-03 09:38:19,933 - father_agent.py - Step: 1330, Training loss: 0.38516852259635925
+2024-09-03 09:38:19,947 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:20,082 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:20,340 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:20,548 - father_agent.py - Step: 1340, Training loss: 2.762242555618286
+2024-09-03 09:38:20,800 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:20,882 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:21,156 - father_agent.py - Step: 1350, Training loss: 2.4030964374542236
+2024-09-03 09:38:21,761 - father_agent.py - Step: 1360, Training loss: 0.5628292560577393
+2024-09-03 09:38:21,905 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:22,213 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:22,365 - father_agent.py - Step: 1370, Training loss: 0.29219555854797363
+2024-09-03 09:38:22,476 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:22,755 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:22,973 - father_agent.py - Step: 1380, Training loss: 0.040303394198417664
+2024-09-03 09:38:23,293 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:23,536 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:23,580 - father_agent.py - Step: 1390, Training loss: 0.6200575232505798
+2024-09-03 09:38:23,828 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:23,990 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:24,192 - father_agent.py - Step: 1400, Training loss: 1.6093008518218994
+2024-09-03 09:38:24,592 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:24,894 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:25,417 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:25,698 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:25,745 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:25,990 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:26,038 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:26,111 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:26,259 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:26,772 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:26,931 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:27,032 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:27,215 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:27,326 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:27,416 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:27,888 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:27,947 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:28,118 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:28,233 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:28,313 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:28,515 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:28,881 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:29,302 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:29,436 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:29,597 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:29,768 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:29,837 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:29,969 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:30,081 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:30,109 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:30,284 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:30,511 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:30,880 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:31,132 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:31,292 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:31,662 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:31,710 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:31,978 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:32,256 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:32,792 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:32,794 - father_agent.py - Average Return = -570.375
+2024-09-03 09:38:32,794 - father_agent.py - Average Virtual Goal Value = -350.0
+2024-09-03 09:38:32,794 - father_agent.py - Goal Reach Probability = 0.15
+2024-09-03 09:38:33,241 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:33,399 - father_agent.py - Step: 1410, Training loss: 2.657806873321533
+2024-09-03 09:38:33,435 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:34,001 - father_agent.py - Step: 1420, Training loss: 1.4026272296905518
+2024-09-03 09:38:34,126 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:34,258 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:34,408 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:34,608 - father_agent.py - Step: 1430, Training loss: -0.22160139679908752
+2024-09-03 09:38:34,654 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:35,212 - father_agent.py - Step: 1440, Training loss: -0.08016078174114227
+2024-09-03 09:38:35,408 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:35,536 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:35,745 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:35,821 - father_agent.py - Step: 1450, Training loss: 1.2680389881134033
+2024-09-03 09:38:35,833 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:35,915 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:36,132 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:36,426 - father_agent.py - Step: 1460, Training loss: 0.8701941967010498
+2024-09-03 09:38:36,705 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:37,031 - father_agent.py - Step: 1470, Training loss: 0.7670171856880188
+2024-09-03 09:38:37,638 - father_agent.py - Step: 1480, Training loss: 0.35931122303009033
+2024-09-03 09:38:37,774 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:38,245 - father_agent.py - Step: 1490, Training loss: 0.20037385821342468
+2024-09-03 09:38:38,629 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:38,846 - father_agent.py - Step: 1500, Training loss: 0.18446682393550873
+2024-09-03 09:38:39,303 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:39,351 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:39,635 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:39,758 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:39,844 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:39,995 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:40,226 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:40,271 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:40,868 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:40,921 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:41,186 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:41,243 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:41,413 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:41,752 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:41,830 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:42,589 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:42,681 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:43,092 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:43,164 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:43,215 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:43,517 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:43,799 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:43,902 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:43,932 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:44,292 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:44,632 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:44,987 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:45,136 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:45,220 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:45,281 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:45,423 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:45,602 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:45,728 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:46,070 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:46,145 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:46,427 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:46,518 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:46,660 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:46,661 - father_agent.py - Average Return = -518.0
+2024-09-03 09:38:46,661 - father_agent.py - Average Virtual Goal Value = -300.0
+2024-09-03 09:38:46,661 - father_agent.py - Goal Reach Probability = 0.175
+2024-09-03 09:38:46,745 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:47,045 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:47,269 - father_agent.py - Step: 1510, Training loss: 0.46851611137390137
+2024-09-03 09:38:47,870 - father_agent.py - Step: 1520, Training loss: 0.04874087870121002
+2024-09-03 09:38:48,100 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:48,477 - father_agent.py - Step: 1530, Training loss: 0.13572269678115845
+2024-09-03 09:38:48,623 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:49,078 - father_agent.py - Step: 1540, Training loss: 0.5407199263572693
+2024-09-03 09:38:49,182 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:49,249 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:49,428 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:49,693 - father_agent.py - Step: 1550, Training loss: 0.40834397077560425
+2024-09-03 09:38:50,069 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:50,202 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:50,303 - father_agent.py - Step: 1560, Training loss: 0.40388691425323486
+2024-09-03 09:38:50,367 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:50,753 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:50,915 - father_agent.py - Step: 1570, Training loss: 0.3019419014453888
+2024-09-03 09:38:50,949 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:51,523 - father_agent.py - Step: 1580, Training loss: 0.2119288295507431
+2024-09-03 09:38:51,587 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:51,840 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:52,137 - father_agent.py - Step: 1590, Training loss: 0.29340416193008423
+2024-09-03 09:38:52,337 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:52,743 - father_agent.py - Step: 1600, Training loss: 0.3139255940914154
+2024-09-03 09:38:53,196 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:53,411 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:53,504 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:54,308 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:54,518 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:54,728 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:54,865 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:55,184 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:55,408 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:55,744 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:55,866 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:56,176 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:56,255 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:56,415 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:56,477 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:56,674 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:56,776 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:56,970 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:57,087 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:57,637 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:57,737 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:57,975 - environment_wrapper.py - Goal reached!
+2024-09-03 09:38:58,874 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:58,968 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:59,002 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:59,519 - environment_wrapper.py - Trapped!
+2024-09-03 09:38:59,719 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:00,012 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:00,111 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:00,206 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:00,543 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:01,015 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:01,193 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:01,605 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:01,761 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:01,795 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:01,833 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:02,056 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:02,058 - father_agent.py - Average Return = -569.9249877929688
+2024-09-03 09:39:02,058 - father_agent.py - Average Virtual Goal Value = -350.0
+2024-09-03 09:39:02,058 - father_agent.py - Goal Reach Probability = 0.125
+2024-09-03 09:39:02,461 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:02,648 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:02,671 - father_agent.py - Step: 1610, Training loss: 0.2574171721935272
+2024-09-03 09:39:02,716 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:03,180 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:03,278 - father_agent.py - Step: 1620, Training loss: 0.4165063202381134
+2024-09-03 09:39:03,357 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:03,767 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:03,881 - father_agent.py - Step: 1630, Training loss: 0.15993201732635498
+2024-09-03 09:39:04,439 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:04,488 - father_agent.py - Step: 1640, Training loss: 0.29215574264526367
+2024-09-03 09:39:04,714 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:05,095 - father_agent.py - Step: 1650, Training loss: 0.27385351061820984
+2024-09-03 09:39:05,124 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:05,656 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:05,701 - father_agent.py - Step: 1660, Training loss: 0.14745508134365082
+2024-09-03 09:39:06,157 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:06,270 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:06,311 - father_agent.py - Step: 1670, Training loss: 0.20893076062202454
+2024-09-03 09:39:06,702 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:06,917 - father_agent.py - Step: 1680, Training loss: 0.11743588000535965
+2024-09-03 09:39:07,080 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:07,519 - father_agent.py - Step: 1690, Training loss: 0.3125442862510681
+2024-09-03 09:39:08,132 - father_agent.py - Step: 1700, Training loss: 0.15592022240161896
+2024-09-03 09:39:09,013 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:09,309 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:09,978 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:10,005 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:10,134 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:10,430 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:10,652 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:10,752 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:10,992 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:11,134 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:11,866 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:12,096 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:12,281 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:12,389 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:12,682 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:12,967 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:13,358 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:13,487 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:13,661 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:13,763 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:13,851 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:13,895 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:14,224 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:14,407 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:15,355 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:15,648 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:15,726 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:15,871 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:16,046 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:16,749 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:16,856 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:17,199 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:17,343 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:17,717 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:18,096 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:18,098 - father_agent.py - Average Return = -556.0499877929688
+2024-09-03 09:39:18,098 - father_agent.py - Average Virtual Goal Value = -337.5
+2024-09-03 09:39:18,098 - father_agent.py - Goal Reach Probability = 0.1
+2024-09-03 09:39:18,312 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:18,700 - father_agent.py - Step: 1710, Training loss: 0.2593587636947632
+2024-09-03 09:39:19,040 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:19,314 - father_agent.py - Step: 1720, Training loss: 0.2900370955467224
+2024-09-03 09:39:19,905 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:19,926 - father_agent.py - Step: 1730, Training loss: 0.287858784198761
+2024-09-03 09:39:20,193 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:20,534 - father_agent.py - Step: 1740, Training loss: 0.20193377137184143
+2024-09-03 09:39:20,741 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:20,924 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:21,141 - father_agent.py - Step: 1750, Training loss: 0.16512413322925568
+2024-09-03 09:39:21,305 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:21,721 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:21,745 - father_agent.py - Step: 1760, Training loss: 0.19611220061779022
+2024-09-03 09:39:21,836 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:22,345 - father_agent.py - Step: 1770, Training loss: 0.26996567845344543
+2024-09-03 09:39:22,413 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:22,945 - father_agent.py - Step: 1780, Training loss: 0.26419034600257874
+2024-09-03 09:39:23,542 - father_agent.py - Step: 1790, Training loss: 0.137337327003479
+2024-09-03 09:39:23,925 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:24,146 - father_agent.py - Step: 1800, Training loss: 0.3255142569541931
+2024-09-03 09:39:24,570 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:24,631 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:24,941 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:25,673 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:25,753 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:25,961 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:26,342 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:26,485 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:26,973 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:27,023 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:27,273 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:27,502 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:27,714 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:28,282 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:28,364 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:28,483 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:28,938 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:29,083 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:29,403 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:29,813 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:30,088 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:30,314 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:30,425 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:30,676 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:30,711 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:31,024 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:31,089 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:31,131 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:31,332 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:31,472 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:31,577 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:31,741 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:31,969 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:32,039 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:33,074 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:33,339 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:33,648 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:33,781 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:33,783 - father_agent.py - Average Return = -538.125
+2024-09-03 09:39:33,783 - father_agent.py - Average Virtual Goal Value = -275.0
+2024-09-03 09:39:33,783 - father_agent.py - Goal Reach Probability = 0.2
+2024-09-03 09:39:33,858 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:33,985 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:34,159 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:34,394 - father_agent.py - Step: 1810, Training loss: 0.29699862003326416
+2024-09-03 09:39:34,885 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:35,003 - father_agent.py - Step: 1820, Training loss: 0.13914954662322998
+2024-09-03 09:39:35,225 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:35,607 - father_agent.py - Step: 1830, Training loss: 0.31395643949508667
+2024-09-03 09:39:36,121 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:36,205 - father_agent.py - Step: 1840, Training loss: 0.12845270335674286
+2024-09-03 09:39:36,810 - father_agent.py - Step: 1850, Training loss: 0.13657903671264648
+2024-09-03 09:39:37,267 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:37,415 - father_agent.py - Step: 1860, Training loss: 0.28755834698677063
+2024-09-03 09:39:37,719 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:38,017 - father_agent.py - Step: 1870, Training loss: 0.28348875045776367
+2024-09-03 09:39:38,209 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:38,269 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:38,470 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:38,623 - father_agent.py - Step: 1880, Training loss: 0.1309405267238617
+2024-09-03 09:39:38,662 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:38,891 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:39,226 - father_agent.py - Step: 1890, Training loss: 0.17801733314990997
+2024-09-03 09:39:39,651 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:39,827 - father_agent.py - Step: 1900, Training loss: 0.3117750287055969
+2024-09-03 09:39:40,328 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:40,655 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:40,752 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:41,632 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:41,829 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:41,973 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:42,167 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:42,288 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:42,385 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:42,727 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:43,399 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:43,501 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:43,600 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:43,797 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:43,975 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:44,258 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:44,470 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:44,597 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:44,811 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:45,035 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:45,146 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:45,177 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:45,298 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:45,791 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:46,281 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:46,960 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:47,282 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:47,580 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:47,802 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:47,885 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:47,985 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:48,091 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:48,362 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:48,502 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:48,756 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:49,157 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:49,509 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:49,511 - father_agent.py - Average Return = -537.5750122070312
+2024-09-03 09:39:49,517 - father_agent.py - Average Virtual Goal Value = -287.5
+2024-09-03 09:39:49,518 - father_agent.py - Goal Reach Probability = 0.175
+2024-09-03 09:39:49,783 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:49,980 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:50,137 - father_agent.py - Step: 1910, Training loss: 0.2048027366399765
+2024-09-03 09:39:50,388 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:50,474 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:50,688 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:50,748 - father_agent.py - Step: 1920, Training loss: 0.15764151513576508
+2024-09-03 09:39:50,794 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:51,347 - father_agent.py - Step: 1930, Training loss: 0.26982104778289795
+2024-09-03 09:39:51,955 - father_agent.py - Step: 1940, Training loss: 0.236080139875412
+2024-09-03 09:39:52,561 - father_agent.py - Step: 1950, Training loss: 0.12692144513130188
+2024-09-03 09:39:52,790 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:53,088 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:53,168 - father_agent.py - Step: 1960, Training loss: 0.16982299089431763
+2024-09-03 09:39:53,773 - father_agent.py - Step: 1970, Training loss: 0.3382740914821625
+2024-09-03 09:39:53,883 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:54,185 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:54,389 - father_agent.py - Step: 1980, Training loss: 0.2592116594314575
+2024-09-03 09:39:54,994 - father_agent.py - Step: 1990, Training loss: 0.21982356905937195
+2024-09-03 09:39:56,105 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:56,159 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:56,256 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:56,669 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:56,844 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:57,155 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:57,775 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:58,234 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:58,607 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:59,016 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:59,227 - environment_wrapper.py - Goal reached!
+2024-09-03 09:39:59,317 - environment_wrapper.py - Trapped!
+2024-09-03 09:39:59,930 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:00,268 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:00,398 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:00,496 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:00,762 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:00,895 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:01,115 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:01,636 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:01,740 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:01,821 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:01,995 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:02,216 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:02,452 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:02,779 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:02,946 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:03,004 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:03,072 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:03,170 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:03,306 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:03,760 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:03,848 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:04,100 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:04,179 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:04,268 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:04,387 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:04,471 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:04,629 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:04,969 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:05,020 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:05,104 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:05,182 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:05,257 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:05,639 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:05,866 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:05,965 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:06,139 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:06,531 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:06,677 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:07,051 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:07,218 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:07,277 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:07,808 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:08,055 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:08,161 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:08,470 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:08,704 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:08,736 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:08,969 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:09,916 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:09,992 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:10,200 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:10,369 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:10,523 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:10,584 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:10,874 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:11,202 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:11,241 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:11,312 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:11,530 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:11,812 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:11,931 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:12,360 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:12,529 - environment_wrapper.py - Goal reached!
+2024-09-03 09:40:12,574 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:12,686 - environment_wrapper.py - Trapped!
+2024-09-03 09:40:12,688 - father_agent.py - Average Return = -554.5
+2024-09-03 09:40:12,688 - father_agent.py - Average Virtual Goal Value = -331.25
+2024-09-03 09:40:12,688 - father_agent.py - Goal Reach Probability = 0.15
+
+------------------------------------
+
+PAYNT results: 
+0.93201282778677
+controller size: 8344
+
+Storm results: 
+1.0
+controller size: 34985
+
+------------------------------------
+

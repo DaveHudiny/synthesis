@@ -6,7 +6,7 @@ source ../prerequisites/venv/bin/activate
 # Define arrays and parameters
 list_of_learning_rates=(0.001)
 list_of_batch_sizes=(256)
-list_of_model_paths=("models_large" "models")
+list_of_model_paths=("models_selected")
 num_of_iterations=10
 
 # Trap signals and clean up child processes
