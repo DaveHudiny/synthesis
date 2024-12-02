@@ -283,7 +283,7 @@ class FSC_Policy(TFPolicy):
                 print("Time step", time_step)
                 print("Policy state", self._hidden_ppo_state)
                 print("Seed", seed)
-                parallel_policy_step = self._parallel_policy.action(
+                parallel_policy_step = self._parallel_policy_function(
                     time_step, self._hidden_ppo_state, seed)
                 self._hidden_ppo_state = parallel_policy_step.state
                 policy_info = parallel_policy_step.info

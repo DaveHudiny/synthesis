@@ -147,7 +147,7 @@ class FatherAgent(AbstractAgent):
         """
         self.trajectory_buffer = TrajectoryBuffer(environment)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.get_evaluation_policy(), use_tf_function=False, batch_time_steps=False)
+            self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
         self.vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
@@ -167,7 +167,7 @@ class FatherAgent(AbstractAgent):
             self.collect_policy_wrapper = Policy_Mask_Wrapper(
                 self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
             eager = py_tf_eager_policy.PyTFEagerPolicy(
-                self.collect_policy_wrapper, use_tf_function=False, batch_time_steps=False)
+                self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
         else:
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
@@ -230,7 +230,7 @@ class FatherAgent(AbstractAgent):
                                      soft_decision_multiplier=fsc_multiplier,
                                      switch_probability=switch_probability)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.fsc_policy, use_tf_function=False, batch_time_steps=False)
+            self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.get_demasked_observer()
         self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
@@ -340,8 +340,8 @@ class FatherAgent(AbstractAgent):
         Args:
             iterations (int): Number of iterations to train agent.
         """
-        # if not debug:
-            # self.agent.train = common.function(self.agent.train)
+        if not debug:
+            self.agent.train = common.function(self.agent.train)
 
         # Set FSC training.
         if fsc is not None:
@@ -390,7 +390,7 @@ class FatherAgent(AbstractAgent):
                                      policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
 
         eager = py_tf_eager_policy.PyTFEagerPolicy(
-            fsc_policy, use_tf_function=False, batch_time_steps=False)
+            fsc_policy, use_tf_function=True, batch_time_steps=False)
         num_of_fsc_steps = np.random.geometric(0.05)
         throw_away_fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             self.tf_environment, eager, observers=[], num_steps=self.args.num_environments * num_of_fsc_steps)
