@@ -2,6 +2,7 @@
 # Author: David Hudák
 # Login: xhudak03
 # File: interface.py
+sys.path.append("../")
 import argparse
 from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
 from rl_src.experimental_interface import ExperimentInterface
@@ -10,7 +11,7 @@ import os
 import logging
 import time
 import sys
-sys.path.append("../")
+
 
 
 logger = logging.getLogger(__name__)
