@@ -2,6 +2,7 @@
 # Author: David Hudák
 # Login: xhudak03
 # File: interface.py
+import sys
 sys.path.append("../")
 import argparse
 from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
@@ -10,7 +11,6 @@ from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 import os
 import logging
 import time
-import sys
 
 
 
