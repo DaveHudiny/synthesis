@@ -19,7 +19,7 @@ from rl_src.environment import tf_py_environment
 from paynt.quotient.fsc import FSC
 from paynt.rl_extension.saynt_controller.saynt_driver import SAYNT_Driver
 
-from ..rl_extension.saynt_rl_tools.behavioral_trainers import Actor_Value_Pretrainer
+from rl_src.agents.duplexing.behavioral_trainers import Actor_Value_Pretrainer
 
 
 import logging
@@ -142,7 +142,7 @@ class Synthesizer_RL:
         self.agent.train_agent(iterations,
                                vectorized=self.interface.args.vectorized_envs_flag, 
                                replay_buffer_option=self.interface.args.replay_buffer_option,
-                               fsc=fsc)
+                               fsc=fsc, jumpstart_fsc=False)
         return
         self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
 
@@ -230,3 +230,10 @@ class Synthesizer_RL:
         self.agent.train_agent(4001, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
 
         # TODO: Other methods of training with FSC or SAYNT controller.
+
+    def train_agent_with_jumpstarts(self, fsc, iterations):
+        self.agent.train_agent(iterations, 
+                               vectorized=self.interface.args.vectorized_envs_flag, 
+                               replay_buffer_option=self.interface.args.replay_buffer_option, 
+                               fsc=fsc,
+                               jumpstart_fsc=True)

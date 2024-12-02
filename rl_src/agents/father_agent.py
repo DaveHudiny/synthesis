@@ -5,6 +5,8 @@
 # File: father_agent.py
 
 from tf_agents.policies import py_tf_eager_policy
+
+
 from environment import tf_py_environment
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.utils import common
@@ -22,6 +24,11 @@ from agents.policies.fsc_policy import FSC_Policy, FSC
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
+from agents.policies.simple_fsc_policy import *
+from agents.duplexing.behavioral_trainers import Actor_Value_Pretrainer
+
+from tf_agents.agents import TFAgent
+from tf_agents.replay_buffers import TFUniformReplayBuffer
 
 import logging
 
@@ -87,6 +94,7 @@ class FatherAgent(AbstractAgent):
             self.fsc = self.load_fsc(args.paynt_fsc_json)
         self.wrapper = wrapper
         self.evaluation_result = EvaluationResults(self.environment.goal_value)
+        self.duplexing = False
 
     def __init__(self, environment: Environment_Wrapper_Vec, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
         """Initialization of the father agent. Not recommended to use this class directly, use the child classes instead. Implemented as example.
@@ -139,7 +147,7 @@ class FatherAgent(AbstractAgent):
         """
         self.trajectory_buffer = TrajectoryBuffer(environment)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
+            self.get_evaluation_policy(), use_tf_function=False, batch_time_steps=False)
         self.vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
             eager,
@@ -159,7 +167,7 @@ class FatherAgent(AbstractAgent):
             self.collect_policy_wrapper = Policy_Mask_Wrapper(
                 self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
             eager = py_tf_eager_policy.PyTFEagerPolicy(
-                self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
+                self.collect_policy_wrapper, use_tf_function=False, batch_time_steps=False)
         else:
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
@@ -222,7 +230,7 @@ class FatherAgent(AbstractAgent):
                                      soft_decision_multiplier=fsc_multiplier,
                                      switch_probability=switch_probability)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.fsc_policy, use_tf_function=True, batch_time_steps=False)
+            self.fsc_policy, use_tf_function=False, batch_time_steps=False)
         observer = self.get_demasked_observer()
         self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
@@ -244,6 +252,8 @@ class FatherAgent(AbstractAgent):
         Args:
             experience: The experience for training the agent.
         """
+        # print("Training iteration: ", train_iteration)
+        # print("Experience: ", experience)
         train_loss = self.agent.train(experience).loss
         train_loss = train_loss.numpy()
         self.agent.train_step_counter.assign_add(1)
@@ -297,11 +307,11 @@ class FatherAgent(AbstractAgent):
         self.tf_environment.reset()
         logger.info("Training agent on-policy")
         for i in range(num_iterations):
-            if self.fsc_training and i <= num_iterations // 4:
-                self.fsc_driver.run()
-            # elif self.fsc_training and i <= num_iterations // 4 and i % 50 == 40:
-            #    self.tf_environment.reset()
-            #    self.driver.run()
+            if not self.jumpstarting and self.fsc_training and i <= num_iterations // 4:
+                self.run_special_runner()
+            elif self.jumpstarting and i % 7 == 0:
+                self.perform_jumpstart(self.switch_probability)
+                self.driver.run()
             else:
                 self.driver.run()
             data = self.replay_buffer.gather_all()
@@ -309,27 +319,46 @@ class FatherAgent(AbstractAgent):
                 data, i, randomized=randomized, vectorized=vectorized)
             self.replay_buffer.clear()
 
-    def train_agent(self, iterations: int, vectorized: bool = True, replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY, fsc: FSC = None,
-                    jumpstart_fsc: bool = False, debug: bool = False):
+    def run_special_runner(self):
+        """Run the runner for the agent. Used for running the agent."""
+        if self.fsc_training and self.switch_probability is None:
+            self.fsc_driver.run()
+        elif self.fsc_training and self.switch_probability is not None:
+            self.fsc_driver.run()
+            if np.random.rand() < self.switch_probability / 10:
+                self.fsc_policy.reset_switching()
+                self.tf_environment.reset()
+
+    def train_agent(self, iterations: int,
+                    vectorized: bool = True,
+                    replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY,
+                    fsc: FSC = None,
+                    jumpstart_fsc: bool = False,
+                    debug: bool = False):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
             iterations (int): Number of iterations to train agent.
         """
-        if not debug:
-            self.agent.train = common.function(self.agent.train)
+        # if not debug:
+            # self.agent.train = common.function(self.agent.train)
 
         # Set FSC training.
         if fsc is not None:
             if jumpstart_fsc:
-                switch_probability = 0.05
+                self.switch_probability = 0.05
+                self.jumpstarting = True
+                self.init_jumpstarting(fsc)
             else:
-                switch_probability = None
-            self.init_fsc_policy_driver(
-                self.tf_environment, fsc, switch_probability=switch_probability)
+                self.switch_probability = None
+                self.jumpstarting = False
+                self.init_fsc_policy_driver(
+                    self.tf_environment, fsc, switch_probability=None)
+
             self.fsc_training = True
         else:
             self.fsc_training = False
+            self.jumpstarting = False
 
         logger.info("Training agent with replay buffer option: {0}".format(
             replay_buffer_option))
@@ -340,37 +369,6 @@ class FatherAgent(AbstractAgent):
         logger.info("Training finished.")
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(vectorized=vectorized, last=True)
-
-    def pre_train_with_fsc(self, num_iterations: int, fsc: FSC, num_fsc_episodes: int = 10):
-        self.init_fsc_policy_driver(self.tf_environment, fsc)
-
-        self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=4, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(4)
-        self.iterator = iter(self.dataset)
-        logger.info("Training agent")
-        self.agent.train = common.function(self.agent.train)
-        self.environment.set_random_starts_simulation(False)
-        for _ in range(10):
-            self.fsc_driver.run()
-        for i in range(num_iterations):
-            self.fsc_driver.run()
-            experience, _ = next(self.iterator)
-            train_loss = self.agent.train(experience).loss
-            train_loss = train_loss.numpy()
-            self.agent.train_step_counter.assign_add(1)
-            if i % 10 == 0:
-                logger.info(f"Step: {i}, Training loss: {train_loss}")
-            if i % 100 == 0:
-                self.evaluate_agent()
-        self.evaluate_agent(last=True)
-
-    def load_mixed_data(self):
-        self.environment.set_random_starts_simulation(False)
-        self.fsc_driver.run()
-        self.driver.run()
-        for _ in range(1):
-            self.environment.set_random_starts_simulation(True)
-            self.driver.run()
 
     def _check_condition(self, evaluation_result: EvaluationResults, performance_condition: float):
         import math
@@ -386,6 +384,31 @@ class FatherAgent(AbstractAgent):
                 return True
             return False
 
+    def get_throw_away_driver(self, fsc: FSC):
+
+        fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
+                                     policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
+
+        eager = py_tf_eager_policy.PyTFEagerPolicy(
+            fsc_policy, use_tf_function=False, batch_time_steps=False)
+        num_of_fsc_steps = np.random.geometric(0.05)
+        throw_away_fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+            self.tf_environment, eager, observers=[], num_steps=self.args.num_environments * num_of_fsc_steps)
+        return throw_away_fsc_driver
+
+    def init_jumpstarting(self, fsc: FSC, saynt: bool = False):
+        if saynt:
+            raise NotImplementedError(
+                "SAYNT jumpstarting is not implemented yet.")
+        self.throw_away_driver = self.get_throw_away_driver(fsc)
+
+    def perform_jumpstart(self, geometric_distribution_parameter: float = 0.05):
+        self.tf_environment.reset()
+        num_of_fsc_steps = np.random.geometric(
+            geometric_distribution_parameter)
+        for _ in range(num_of_fsc_steps):
+            self.throw_away_driver.run()
+
     def is_rl_better(self, evaluation_result: EvaluationResults, performance_condition: float):
         import math
         if performance_condition is None or math.isnan(performance_condition):
@@ -399,61 +422,6 @@ class FatherAgent(AbstractAgent):
             if evaluation_result.best_reach_prob >= performance_condition * 0.75:
                 return True
             return False
-
-    def mixed_fsc_train(self, iterations: int, on_policy: bool = True, performance_condition: float = None, fsc: FSC = None, soft_fsc: bool = False,
-                        switch_probability: float = None):
-        """Mixed training with FSC and PPO agent policy. 
-
-        Args:
-            iterations (int): Number of training iterations.
-            on_policy (bool, optional): If set, the replay buffer is cleared after each training iteration. Defaults to True.
-            performance_condition (float, optional) : If this value is set, the FSC data generation will be stopped. 
-        """
-        self.init_fsc_policy_driver(
-            self.tf_environment, fsc=fsc, soft_decision=soft_fsc, switch_probability=switch_probability)
-        self.dataset = self.replay_buffer.as_dataset(
-            num_parallel_calls=3, sample_batch_size=self.args.batch_size, num_steps=self.traj_num_steps, single_deterministic_pass=False).prefetch(3)
-        self.iterator = iter(self.dataset)
-        logger.info("Training agent")
-        self.agent.train = common.function(self.agent.train)
-        for i in range(iterations):
-            if False:
-                if performance_condition is not None:
-                    if self.evaluation_result.best_reach_prob > performance_condition:
-                        for _ in range(2):
-                            self.environment.set_random_starts_simulation(
-                                False)
-                            self.driver.run()
-                        for _ in range(1):
-                            self.environment.set_random_starts_simulation(True)
-                            self.driver.run()
-
-                    else:
-                        self.load_mixed_data()
-                else:
-                    self.load_mixed_data()
-            if self.is_rl_better(self.evaluation_result, performance_condition=performance_condition):
-                self.environment.set_random_starts_simulation(True)
-                self.driver.run()
-                self.environment.set_random_starts_simulation(False)
-            else:
-                self.fsc_driver.run()
-            self.driver.run()
-            experience, _ = next(self.iterator)
-            train_loss = self.agent.train(experience).loss
-            train_loss = train_loss.numpy()
-            self.agent.train_step_counter.assign_add(1)
-            self.evaluation_result.add_loss(train_loss)
-            if i % 10 == 0:
-                logger.info(f"Step: {i}, Training loss: {train_loss}")
-            if i % 100 == 0:
-                self.environment.set_random_starts_simulation(False)
-                self.evaluate_agent()
-            if on_policy:
-                self.replay_buffer.clear()
-        self.environment.set_random_starts_simulation(False)
-        self.evaluate_agent(last=True)
-        self.replay_buffer.clear()
 
     def evaluate_agent(self, last=False, vectorized=False):
         """Evaluate the agent. Used for evaluation of the agent during training.
@@ -603,4 +571,10 @@ class FatherAgent(AbstractAgent):
                 discount=item.discount,
             )
             self.replay_buffer._add_batch(modified_item)
+        return _add_batch
+
+    def get_jumpstart_observer(self):
+        def _add_batch(item: Trajectory):
+            if self.fsc_policy.switched:
+                self.replay_buffer._add_batch(item)
         return _add_batch

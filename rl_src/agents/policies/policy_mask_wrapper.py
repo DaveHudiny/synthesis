@@ -96,6 +96,9 @@ class Policy_Mask_Wrapper(TFPolicy):
         )
         action = distribution.sample()
         return action
+    
+    def _get_initial_state(self, batch_size):
+        return self._policy.get_initial_state(batch_size)
 
     def _action(self, time_step, policy_state, seed) -> PolicyStep:
         distribution = self._real_distribution(time_step, policy_state)

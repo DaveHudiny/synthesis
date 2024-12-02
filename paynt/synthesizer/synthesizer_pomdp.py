@@ -334,6 +334,14 @@ class SynthesizerPomdp:
             rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
                                         model=self.input_rl_settings_dict["model_name"],
                                         method=f"{self.rl_args.learning_method}_{sub_method}")
+            
+    def run_rl_synthesis_jumpstarts(self, fsc, saynt : bool = False):
+        if saynt:
+            raise NotImplementedError("SAYNT jumpstarts not implemented yet")
+        rl_synthesiser = Synthesizer_RL(
+            self.quotient.pomdp, self.rl_args)
+        rl_synthesiser.train_agent_with_jumpstarts(fsc, 4000)
+        rl_synthesiser.save_to_json("PAYNT_Jumpstarts")
 
     # main SAYNT loop
     def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
@@ -455,6 +463,8 @@ class SynthesizerPomdp:
             self.run_rl_synthesis_q_vals_rand()
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.DQN_AS_QTABLE:
             self.run_rl_synthesis_dqn_ppo(fsc_json_dict)
+        elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
+            self.run_rl_synthesis_jumpstarts(self.storm_control.latest_paynt_result_fsc, False)
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):
