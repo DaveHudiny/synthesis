@@ -220,7 +220,7 @@ class FatherAgent(AbstractAgent):
 
     def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False,
                                fsc_multiplier: float = 2.0, switch_probability: float = None):
-        """Initializes the driver for the FSC policy. Used for hard and soft FSC advices."""
+        """Initializes the driver for the FSC policy. Used for hard and soft FSC advices. Currently implemented only for wrapped policies."""
         parallel_policy = self.wrapper
         self.fsc_policy = FSC_Policy(tf_environment, fsc,
                                      observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,

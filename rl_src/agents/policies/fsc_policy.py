@@ -256,7 +256,7 @@ class FSC_Policy(TFPolicy):
     def reset_switching(self):
         self.switched = False
 
-    # @tf.function
+    @tf.function
     def _action(self, time_step, policy_state, seed) -> PolicyStep:
         # Change the policy_state for the first time steps
         if self.switching and self.independent_switches:
@@ -280,9 +280,6 @@ class FSC_Policy(TFPolicy):
                 action_number, policy_info = self._make_soft_decision(
                     action_number, time_step, seed)
             else:  # Hard FSC decision
-                print("Time step", time_step)
-                print("Policy state", self._hidden_ppo_state)
-                print("Seed", seed)
                 parallel_policy_step = self._parallel_policy_function(
                     time_step, self._hidden_ppo_state, seed)
                 self._hidden_ppo_state = parallel_policy_step.state

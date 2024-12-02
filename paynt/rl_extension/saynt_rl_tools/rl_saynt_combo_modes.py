@@ -45,6 +45,7 @@ def init_rl_args(mode: RL_SAYNT_Combo_Modes = RL_SAYNT_Combo_Modes.QVALUES_RANDO
                             trajectory_num_steps=32, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-20, batch_size=256,
                             discount_factor=0.99, vectorized_envs_flag=True, buffer_size=500, random_start_simulator=False, 
                             replay_buffer_option=ReplayBufferOptions.ON_POLICY)
+    else:
         logger.error("Mode:", mode, "not implemented yet.")
         args = ArgsEmulator(load_agent=False, learning_method="PPO", encoding_method="Valuations",
                             max_steps=400, restart_weights=0, agent_name="PAYNT", learning_rate=1e-4,
