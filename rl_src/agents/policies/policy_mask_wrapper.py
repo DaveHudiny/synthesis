@@ -13,7 +13,7 @@ import tensorflow_probability as tfp
 
 from tools.encoding_methods import observation_and_action_constraint_splitter
 
-from agents.policies.fsc_policy import FSC
+from rl_src.agents.policies.parallel_fsc_policy import FSC
 
 import logging
 

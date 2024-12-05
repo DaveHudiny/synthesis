@@ -14,7 +14,8 @@ from tf_agents.policies.actor_policy import ActorPolicy
 from tf_agents.networks.value_rnn_network import ValueRnnNetwork
 
 from rl_src.tools.args_emulator import ArgsEmulator
-from rl_src.agents.policies.fsc_policy import FSC_Policy
+from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
+from rl_src.agents.policies.simple_fsc_policy import SimpleFSCPolicy, fsc_action_constraint_splitter
 from rl_src.agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter, observation_and_action_constraint_splitter_no_mask
@@ -64,7 +65,7 @@ class Actor_Value_Pretrainer:
         if buffer_size is None:
             buffer_size = self.args.buffer_size
         modified_collect_data_spec = collect_data_spec._replace(
-            policy_info={"mem_node": TensorSpec(shape=(1, ), dtype=tf.int32, name='mem_node')})
+            policy_info=())
         self.replay_buffer = TFUniformReplayBuffer(
             data_spec=modified_collect_data_spec,
             batch_size=tf_environment.batch_size,
@@ -80,12 +81,9 @@ class Actor_Value_Pretrainer:
             fsc_multiplier: The multiplier for the FSC. Used only in PPO initialization.
         """
         self.fsc = fsc
-        self.fsc_policy = FSC_Policy(tf_environment=tf_environment, fsc=fsc,
-                                     observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
-                                     tf_action_keywords=self.environment.action_keywords,
-                                     info_spec={"mem_node": TensorSpec(
-                                         shape=(1, ), dtype=tf.int32, name='mem_node')},
-                                     info_mem_node=True)
+        self.fsc_policy = SimpleFSCPolicy(fsc=fsc, tf_action_keywords=self.environment.action_keywords,
+                                          observation_and_action_constraint_splitter=fsc_action_constraint_splitter, time_step_spec=tf_environment.time_step_spec(),
+                                          action_spec=tf_environment.action_spec(), info_spec=())
         eager = PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         observers = [self.get_demasked_observer()]
@@ -211,7 +209,7 @@ class Actor_Value_Pretrainer:
                 
 
     def get_separator_driver_runner(self, fsc, observers):
-        self.fsc_policy = FSC_Policy(tf_environment=self.tf_environment, fsc=fsc,
+        self.fsc_policy = SimpleFSCPolicy(tf_environment=self.tf_environment, fsc=fsc,
                                      observation_and_action_constraint_splitter=observation_and_action_constraint_splitter,
                                      tf_action_keywords=self.environment.action_keywords,
                                      info_spec={"mem_node": TensorSpec(

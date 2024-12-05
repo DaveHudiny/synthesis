@@ -24,6 +24,7 @@ from tools.encoding_methods import *
 from tools.args_emulator import ArgsEmulator
 from environment.vectorized_sim_initializer import SimulatorInitializer
 
+
 import json
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
@@ -144,6 +145,15 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             [ts.StepType.MID] * self.num_envs, dtype=tf.int32)
         self.terminated_step_types = tf.constant(
             [ts.StepType.LAST] * self.num_envs, dtype=tf.int32)
+        
+        # Add reward shaping
+        self.reward_shaper_function = lambda observation, action: tf.zeros((observation.shape[0],), dtype=tf.float32) 
+
+    def set_reward_shaper(self, reward_shaper_function):
+        self.reward_shaper_function = reward_shaper_function
+
+    def unset_reward_shaper(self):
+        self.reward_shaper_function = lambda observation, action: tf.zeros((observation.shape[0],), dtype=tf.float32)
 
     def set_action_labeling(self):
         """Computes the keywords for the actions and stores them to self.act_to_keywords and other dictionaries."""
@@ -235,17 +245,16 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.reward = tf.constant(
             np.array(len(self.last_observation) * [0.0]), dtype=tf.float32)
         hidden_state = self.vectorized_simulator.simulator_states
-        integers = tf.reshape(
+        self.integers = tf.reshape(
             tf.gather(self.state_to_observation_map, hidden_state.vertices),
             (self.num_envs, 1)
         )
         observation_tensor = {"observation": tf.constant(self.last_observation, tf.float32),
                               "mask": tf.constant(self.allowed_actions, tf.bool),
-                              "integer": integers}
+                              "integer": self.integers}
         self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.truncated = np.array(len(self.last_observation) * [False])
-
         self._current_time_step = ts.TimeStep(
             observation=observation_tensor,
             reward=self.reward_multiplier * self.reward,
@@ -276,6 +285,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
+        self.reward += self.reward_shaping_rewards
 
         if self.flag_penalty:
             illegal_action_penalties = tf.where(
@@ -309,6 +319,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             returns:
                 tuple of new TimeStep and penalty for performed action.
         """
+        
+        self.prev_states = np.reshape(self.vectorized_simulator.simulator_states.vertices, (self.num_envs, 1))
+        # self.reward_shaping_rewards = self.reward_shaper_function(self.integers, actions)
+        self.reward_shaping_rewards = self.reward_shaper_function(self.prev_states, actions)
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
         self.last_observation = observations
@@ -323,6 +337,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             rewards.tolist(), dtype=tf.float32) * self.reward_multiplier
         self.dones = done
         self.truncated = truncated
+        self.integers =  tf.reshape(
+            tf.gather(self.state_to_observation_map, self.states.vertices),
+            (self.num_envs, 1)
+        )
 
     def get_mask_of_played_illegal_actions(self, actions) -> tf.Tensor:
         """Returns the mask of played illegal actions. Used for evaluation of the environment."""
@@ -348,16 +366,19 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def _step(self, action) -> ts.TimeStep:
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
         self.cumulative_num_steps += self.num_envs
+        self.last_action = action
         self._do_step_in_simulator(action)
         if self.flag_penalty:
             self._played_illegal_actions = self.get_mask_of_played_illegal_actions(
                 action)
         evaluated_step = self.evaluate_simulator()
-        # print("Evaluated step: ", evaluated_step.reward)
         return evaluated_step
 
     def current_time_step(self) -> ts.TimeStep:
         return self._current_time_step
+    
+    def current_state(self):
+        return self.vectorized_simulator.simulator_states
 
     def observation_spec(self) -> ts.tensor_spec:
         return self._observation_spec
@@ -368,13 +389,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def get_observation(self) -> dict[str: tf.Tensor]:
         encoded_observation = self.last_observation
         mask = self.allowed_actions
-        hidden_state = self.vectorized_simulator.simulator_states
-        integers = tf.reshape(
-            tf.gather(self.state_to_observation_map, hidden_state.vertices),
-            (self.num_envs, 1)
-        )
+        
         return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                "integer": integers}
+                "integer": self.integers}
 
     def get_simulator_observation(self) -> int:
         observation = self.last_observation

@@ -173,7 +173,7 @@ def setup_logger(log_path = None):
                 help="Name of the model to be used with output json file.")
 @click.option("--sub-method", type=click.Path(), default="random",
                 help="Name of the submethod to use with dqn critic.")
-@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts"], case_sensitive=False), default="BC",
+@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="BC",
                 help="Name of the method to process FSC/SAYNT controller to RL.")
 
 

@@ -178,7 +178,6 @@ class TrajectoryBuffer:
         for index in finished_true_indices:
             if index[0] != prev_index[0]:
                 prev_index = np.array([index[0], -1])
-
             in_episode_reward = np.sum(
                 self.real_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
             in_episode_virtual_reward = np.sum(

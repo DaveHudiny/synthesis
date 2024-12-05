@@ -7,7 +7,7 @@
 from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.experimental_interface import ArgsEmulator, ExperimentInterface
 from rl_src.interpreters.tracing_interpret import TracingInterpret
-from rl_src.agents.policies.fsc_policy import FSC_Policy
+from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
 from rl_src.tools.saving_tools import save_statistics_to_new_json
 from rl_src.tools.encoding_methods import *
 from rl_src.tools.evaluators import EvaluationResults
@@ -226,7 +226,7 @@ class Synthesizer_RL:
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         self.agent = Recurrent_PPO_agent(self.interface.environment, self.interface.tf_environment, 
                                          args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
-        pre_trainer.train_both_networks(1001, fsc=fsc, use_best_traj_only=False)
+        pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
         self.agent.train_agent(4001, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
 
         # TODO: Other methods of training with FSC or SAYNT controller.
@@ -237,3 +237,11 @@ class Synthesizer_RL:
                                replay_buffer_option=self.interface.args.replay_buffer_option, 
                                fsc=fsc,
                                jumpstart_fsc=True)
+        
+    def train_agent_with_shaping(self, fsc : FSC, iterations : int = 4000):
+        self.agent.train_agent(iterations, 
+                               vectorized=self.interface.args.vectorized_envs_flag, 
+                               replay_buffer_option=self.interface.args.replay_buffer_option, 
+                               fsc=fsc,
+                               jumpstart_fsc=False,
+                               shaping=True)

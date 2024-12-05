@@ -343,6 +343,14 @@ class SynthesizerPomdp:
         rl_synthesiser.train_agent_with_jumpstarts(fsc, 4000)
         rl_synthesiser.save_to_json("PAYNT_Jumpstarts")
 
+    def run_rl_synthesis_shaping (self, fsc, saynt : bool = False):
+        if saynt:
+            raise NotImplementedError("SAYNT shaping not implemented yet")
+        rl_synthesiser = Synthesizer_RL(
+            self.quotient.pomdp, self.rl_args)
+        rl_synthesiser.train_agent_with_shaping(fsc, 4000)
+        rl_synthesiser.save_to_json("PAYNT_Shaping")
+
     # main SAYNT loop
     def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.interactive_queue = Queue()
@@ -416,6 +424,8 @@ class SynthesizerPomdp:
             self.saynt = True
         elif input_rl_settings_dict["rl_method"] == "JumpStarts":
             self.combo_mode = RL_SAYNT_Combo_Modes.JUMPSTART_MODE
+        elif input_rl_settings_dict["rl_method"] == "R_Shaping":
+            self.combo_mode = RL_SAYNT_Combo_Modes.SHAPING_MODE
         else:
             self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
 
@@ -465,6 +475,9 @@ class SynthesizerPomdp:
             self.run_rl_synthesis_dqn_ppo(fsc_json_dict)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
             self.run_rl_synthesis_jumpstarts(self.storm_control.latest_paynt_result_fsc, False)
+        elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.SHAPING_MODE:
+            self.run_rl_synthesis_shaping(self.storm_control.latest_paynt_result_fsc, False)
+            
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

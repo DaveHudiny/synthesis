@@ -1,4 +1,4 @@
-# Includes implemenation of FSCPolicy class, which is a TFPolicy implementation of FSC used for Hard and Soft FSC oracle.
+# Includes implemenation of ParallelFSCPolicy class, which is a TFPolicy implementation of FSC with emulated recurrent feedback to allow trajectory learning.
 # Author: David Hudák
 # Login: xhudak03
 # File: fsc_policy.py

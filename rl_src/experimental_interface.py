@@ -5,7 +5,7 @@
 # Login: xhudak03
 
 from agents.father_agent import FatherAgent
-from agents.policies.fsc_policy import FSC_Policy, FSC
+from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy, FSC
 from interpreters.tracing_interpret import TracingInterpret
 from interpreters.model_free_interpret import ModelFreeInterpret, ModelInfo
 

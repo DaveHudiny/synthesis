@@ -8,6 +8,9 @@ from tf_agents.policies import py_tf_eager_policy
 
 
 from environment import tf_py_environment
+
+from environment.sparse_reward_shaper import SparseRewardShaper, RewardShaperMethods, ObservationLevel
+
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.utils import common
 from tf_agents.trajectories import Trajectory
@@ -20,15 +23,12 @@ from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from agents.random_agent import RandomAgent
 from tools.evaluators import *
-from agents.policies.fsc_policy import FSC_Policy, FSC
+from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy, FSC
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
 from agents.policies.simple_fsc_policy import *
-from agents.duplexing.behavioral_trainers import Actor_Value_Pretrainer
 
-from tf_agents.agents import TFAgent
-from tf_agents.replay_buffers import TFUniformReplayBuffer
 
 import logging
 
@@ -314,6 +314,8 @@ class FatherAgent(AbstractAgent):
                 self.driver.run()
             else:
                 self.driver.run()
+            if i == num_iterations // 4:
+                self.environment.unset_reward_shaper()
             data = self.replay_buffer.gather_all()
             self.train_innerest_body(
                 data, i, randomized=randomized, vectorized=vectorized)
@@ -329,12 +331,62 @@ class FatherAgent(AbstractAgent):
                 self.fsc_policy.reset_switching()
                 self.tf_environment.reset()
 
+    def init_demonstration_shaper(self, fsc: FSC):
+        self.shaper = SparseRewardShaper(RewardShaperMethods.DEMONSTRATION, ObservationLevel.STATE_ACTION, maximum_reward=1.9,
+                                         batch_size=self.args.batch_size, buffer_length=100, cyclic_buffer=False, observation_length=1, action_length=1)
+
+        def _add_batch(item: Trajectory):
+            observation = item.observation["integer"]
+            states = self.environment.prev_states
+            self.shaper.add_demonstration(
+                
+                item.action, observation=observation, states=states)
+
+        fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
+                                     policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
+
+        fsc_policy = py_tf_eager_policy.PyTFEagerPolicy(
+            fsc_policy, use_tf_function=True, batch_time_steps=False)
+        demonstration_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+            self.tf_environment, fsc_policy, observers=[_add_batch], num_steps=self.args.num_environments * 100)
+        demonstration_driver.run()
+
+    def init_reward_shaping(self, fsc: FSC):
+        self.init_demonstration_shaper(fsc)
+        self.environment.set_reward_shaper(
+            self.shaper.create_reward_function())
+        
+    def evaluate_fsc(self, fsc: FSC):
+        fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
+                                     policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
+        eager = py_tf_eager_policy.PyTFEagerPolicy(
+            fsc_policy, use_tf_function=True, batch_time_steps=False)
+        trajectory_buffer = TrajectoryBuffer(self.environment)
+        vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+            self.tf_environment, eager, observers=[trajectory_buffer.add_batched_step], num_steps=self.args.num_environments * (self.args.max_steps + 1))
+        vec_driver.run()
+
+        def print_results(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes,
+                    trap_reach_prob, virtual_variance, combined_variance):
+            logger.info("Average return: {0}".format(avg_return))
+            logger.info("Average episode return: {0}".format(avg_episode_return))
+            logger.info("Reachability probability: {0}".format(reach_prob))
+            logger.info("Episode variance: {0}".format(episode_variance))
+            logger.info("Number of episodes: {0}".format(num_episodes))
+            logger.info("Trap reachability probability: {0}".format(trap_reach_prob))
+            logger.info("Virtual variance: {0}".format(virtual_variance))
+            logger.info("Combined variance: {0}".format(combined_variance))
+
+
+        trajectory_buffer.final_update_of_results(print_results)
+
     def train_agent(self, iterations: int,
                     vectorized: bool = True,
                     replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY,
                     fsc: FSC = None,
                     jumpstart_fsc: bool = False,
-                    debug: bool = False):
+                    debug: bool = False,
+                    shaping = False):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
@@ -342,9 +394,16 @@ class FatherAgent(AbstractAgent):
         """
         if not debug:
             self.agent.train = common.function(self.agent.train)
-
-        # Set FSC training.
         if fsc is not None:
+            self.evaluate_fsc(fsc)
+        
+        self.evaluate_agent(vectorized=vectorized)
+        
+        if fsc is not None and shaping:
+            self.init_reward_shaping(fsc)
+            # self.evaluate_fsc(fsc)
+        # Set FSC training.
+        if fsc is not None and not shaping:
             if jumpstart_fsc:
                 self.switch_probability = 0.05
                 self.jumpstarting = True
@@ -455,8 +514,6 @@ class FatherAgent(AbstractAgent):
             self.trajectory_buffer.final_update_of_results(
                 self.evaluation_result.update)
             self.trajectory_buffer.clear()
-            # compute_vectorized_average_return(
-            #     self.get_evaluation_policy(), self.tf_environment, self.args.max_steps, self.args.batch_size, self.environment, self.evaluation_result.update)
 
         self.set_agent_stochastic()
         if self.evaluation_result.best_updated and self.agent_folder is not None:

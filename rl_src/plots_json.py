@@ -14,13 +14,15 @@ class PreviousStats:
     """Class for storing previous statistics."""
 
     def __init__(self, best_return_spaynt=None, best_reach_probs_spaynt=None, best_return_rl=None,
-                 best_reach_probs_rl=None, best_return_unstable=None, best_reach_probs_unstable=None):
+                 best_reach_probs_rl=None, best_return_unstable=None, best_reach_probs_unstable=None,
+                 best_reach_probs_paynt=None):
         self.best_return_spaynt = best_return_spaynt
         self.best_reach_probs_spaynt = best_reach_probs_spaynt
         self.best_return_rl = best_return_rl
         self.best_reach_probs_rl = best_reach_probs_rl
         self.best_return_unstable = best_return_unstable
         self.best_reach_probs_unstable = best_reach_probs_unstable
+        self.best_reach_probs_paynt = best_reach_probs_paynt
 
 
 dict_of_prev_stats = {
@@ -288,18 +290,36 @@ if __name__ == "__main__":
         # }
         dict_of_folders = {
             # "Randomized FFNN": "experiments_various_settings/experiments_tuning_f_random/experiments_0.0005_512/",
-            "Randomized RNN Batch 256 LR 0.001": "experiments_tuning_rnn_random_demasked/experiments_0.001_256/",
-            "RNN Batch 256 LR 0.001": "experiments_tuning_rnn_demasked/experiments_0.001_256/",
-            "Regularized Randomized Batch 256 LR 0.0001": "experiments_tuning_rnn_random_demasked_regularized/experiments_0.0001_256/",
-            "Regularized Randomized Batch 256 LR 0.001": "experiments_tuning_rnn_random_demasked_regularized/experiments_0.001_256/",
-            "Regularized Randomized Batch 512 LR 0.0001": "experiments_tuning_rnn_random_demasked_regularized/experiments_0.0001_512/",
-            "Regularized Randomized Batch 256 LR 5e-05": "experiments_tuning_rnn_random_demasked_regularized/experiments_5e-05_256/",
-            "Regularized Batch 256 LR 0.0001": "experiments_tuning_rnn_demasked_regularized/experiments_0.0001_256/",
-            "Regularized Batch 256 LR 0.001": "experiments_tuning_rnn_demasked_regularized/experiments_0.001_256/",
-            "Regularized Batch 512 LR 0.0001": "experiments_tuning_rnn_demasked_regularized/experiments_0.0001_512/",
-            "Regularized Batch 256 LR 5e-05": "experiments_tuning_rnn_demasked_regularized/experiments_5e-05_256/",
+            # "Randomized RNN Batch 256 LR 0.001": "experiments_tuning_rnn_random_demasked/experiments_0.001_256/",
+            # "RNN Batch 256 LR 0.001": "experiments_tuning_rnn_demasked/experiments_0.001_256/",
+            # "Regularized Randomized Batch 256 LR 0.0001": "experiments_tuning_rnn_random_demasked_regularized/experiments_0.0001_256/",
+            # "Regularized Randomized Batch 256 LR 0.001": "experiments_tuning_rnn_random_demasked_regularized/experiments_0.001_256/",
+            # "Regularized Randomized Batch 512 LR 0.0001": "experiments_tuning_rnn_random_demasked_regularized/experiments_0.0001_512/",
+            # "Regularized Randomized Batch 256 LR 5e-05": "experiments_tuning_rnn_random_demasked_regularized/experiments_5e-05_256/",
+            # "Regularized Batch 256 LR 0.0001": "experiments_tuning_rnn_demasked_regularized/experiments_0.0001_256/",
+            # "Regularized Batch 256 LR 0.001": "experiments_tuning_rnn_demasked_regularized/experiments_0.001_256/",
+            # "Regularized Batch 512 LR 0.0001": "experiments_tuning_rnn_demasked_regularized/experiments_0.0001_512/",
+            # "Regularized Batch 256 LR 5e-05": "experiments_tuning_rnn_demasked_regularized/experiments_5e-05_256/",
+
+            # rocks-16 comparison
+            # "Original Regularized Batch 128 LR 0.00016" : "evaluation_rocks-16/experiments_0.00016_128",
+            # "Behavioral Cloning Batch 256 LR 0.00016" : "evaluation_rocks-16/bc_0.00016_256",
+            # "Jumpstarts Batch 128 LR 0.00016" : "evaluation_rocks-16/Jumpstarting_0.00016_128",
+            # "Shaping w Sudden End Batch 128 LR 0.00016" : "evaluation_rocks-16/ShapingSudden_0.00016_128",
+            # "Shaping w Jumpstarts Batch 128 LR 0.00016" : "evaluation_rocks-16/ShapingWJumpstarts_0.00016_128",
+            # "Shaping w Jumpstarts w Sudden End Batch 128 LR 0.00016" : "evaluation_rocks-16/ShapingWJumpstartsSudden_0.00016_128",
+
+            # refuel-10 comparison
+            "Average randomized Original Batch 256 LR 5e-05": "enchanced_refuels/averagerandomized_5e-05_256",
+            "Best Original Original Batch 512 LR 0.0001": "enchanced_refuels/bestoriginal_0.0001_512",
+            "Behavioral Cloning Batch 256 LR 0.00016": "enchanced_refuels/bc_0.00016_256",
+            "Handcrafted Reward Batch 512 LR 0.0005": "enchanced_refuels/handcrafted_0.0005_512",
+            "Handcrafted Reward Batch 512 LR 5e-05": "enchanced_refuels/handcrafted_5e-05_512",
+            "Handcrafted Reward Batch 256 LR 5e-05": "enchanced_refuels/handcrafted_5e-05_256",
+            "Jumpstarts Batch 128 LR 0.00016": "enchanced_refuels/jumpstarts_0.00016_128",
+
         }
-        save_folder = "./plots_comparison_ablation"
+        save_folder = "./plots_comparison_refuel"
 
         run_plots(dict_of_folders, save_folder)
 

@@ -10,10 +10,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# self.vectorized_simulator = vec_storm.StormVecEnv(stormpy_model, get_scalarized_reward=generate_reward_selection_function,
-#                                                           num_envs=num_envs, max_steps=args.max_steps, metalabels={"goals": intersection_labels})
-
-
 class SimulatorInitializer:
     @staticmethod
     def load_and_store_simulator(stormpy_model, get_scalarized_reward, num_envs, max_steps, metalabels, model_path, compiled_models_path="compiled_models_vec_storm"):
@@ -68,7 +64,7 @@ class SimulatorInitializer:
         Returns:
             VectorizedSimulator: The simulator.
         """
-        if not os.path.exists(f"{path_to_compiled_models}/{name}.pkl"):
+        if not os.path.exists(f"{path_to_compiled_models}/{name}.pkl") or name is None:
             logger.info(
                 f"Model {name} not found in {path_to_compiled_models}. The model will be compiled.")
             return None

@@ -22,7 +22,7 @@ from tf_agents.policies import py_tf_eager_policy
 from environment.environment_wrapper import Environment_Wrapper
 
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
-from agents.policies.fsc_policy import FSC_Policy
+from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
 
 from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
@@ -78,7 +78,7 @@ class Recurrent_PPO_agent(FatherAgent):
             policy_l2_reg=0.0001,
             value_function_l2_reg=0.0001,
             value_pred_loss_coef=0.45,
-            entropy_regularization=0.01,
+            entropy_regularization=0.1,
             normalize_rewards=True,
         )
         self.agent.initialize()
