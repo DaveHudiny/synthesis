@@ -38,6 +38,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 
 sys.path.append("../")
 
+import jax
 
 tf.autograph.set_verbosity(0)
 
@@ -240,6 +241,7 @@ class ExperimentInterface:
                 pass
         if hasattr(self, "agent") and self.agent is not None:
             self.agent.save_agent()
+        jax.clear_caches()
 
 
 if __name__ == "__main__":
