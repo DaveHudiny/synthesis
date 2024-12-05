@@ -32,10 +32,26 @@ run_saynt_bc(){
             
             for sub_method in "${sub_methods[@]}"; do
                 echo "Running Paynt with --sub_method=$sub_method on $entry"
-                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model_name $entry --agent_task behavioral_cloning --sub_method $sub_method $1/$entry > $1/$entry/offline_pretrain_$sub_method.fixed.txt
+                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --agent_task behavioral_cloning --sub_method $sub_method $1/$entry > $1/$entry/offline_pretrain_$sub_method.fixed.txt
             done
         fi
     done
+}
+
+run_paynt_imitation(){
+    source prerequisites/venv/bin/activate
+    echo "Running PAYNT with imitation learning"
+    methods=("BC" "R_Shaping" "Jumpstarts")
+    for entry in `ls $1`; do
+        if [ -d $1/$entry ]; then
+            echo "Running Paynt on $entry"
+            for method in "${methods[@]}"; do
+                echo "Running Paynt with --imitation-learning=$method on $entry"
+                echo "python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method $1/$entry > $1/$entry/imitation_$method.txt"
+                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method $1/$entry > $1/$entry/imitation_$method.txt
+            done
+        fi
+    done    
 }
 
 run_with_dictionary() {
@@ -113,6 +129,12 @@ elif [ $1 == "--saynt-bc" ]; then
         exit 1
     fi
     run_saynt_bc $2
+elif [ $1 == "--imitation-learning" ]; then
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: $0 --imitation <path-to-models>"
+        exit 1
+    fi
+    run_paynt_imitation $2
 elif [ $1 == "--fsc-synthesis" ]; then
     if [ "$#" -ne 3 ]; then
         echo "Usage: $0 --fsc-synthesis <path-to-models> <timeout>"

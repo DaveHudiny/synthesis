@@ -275,20 +275,7 @@ class SynthesizerPomdp:
         logger.info("Training agent with combination of FSC and RL.")
         rl_synthesiser.train_agent_combined_with_fsc_advanced(
             4000, fsc, self.storm_control.paynt_bounds)
-        return
-        while True:
-            logger.info("Training agent with FSC.")
-            if fsc and (first_time or repeated_fsc):
-                rl_synthesiser.train_agent_with_fsc_data(
-                    100, fsc, soft_decision=soft_decision)
-                first_time = False
-            if soft_decision:
-                rl_synthesiser.update_fsc_multiplier(0.5)
-            logger.info("Training agent for {} iterations.".format(2000))
-            rl_synthesiser.train_agent(2000)
-            if not repeated_fsc:
-                break
-        rl_synthesiser.save_to_json("PAYNTc+RL")
+        rl_synthesiser.save_to_json(experiment_name=self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
 
     def run_rl_synthesis_critic(self):
         qvalues = self.storm_control.qvalues
@@ -296,7 +283,7 @@ class SynthesizerPomdp:
             self.quotient.pomdp, self.rl_args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation)
         rl_synthesiser.train_agent(2000)
-        rl_synthesiser.save_to_json("PAYNTc_Critic+RL")
+        rl_synthesiser.save_to_json(experiment_name=self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
 
     def run_rl_synthesis_q_vals_rand(self):
         qvalues = self.storm_control.qvalues
@@ -306,7 +293,7 @@ class SynthesizerPomdp:
             random_init_starts_q_vals=True
         )
         rl_synthesizer.train_agent_qval_randomization(2000, qvalues)
-        rl_synthesizer.save_to_json("PAYNTq_randomization")
+        rl_synthesizer.save_to_json(experiment_name=self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
 
     def property_is_reachability(self, property: str):
         return "Pmax" in property or "Pmin" in property
@@ -341,7 +328,7 @@ class SynthesizerPomdp:
         rl_synthesiser = Synthesizer_RL(
             self.quotient.pomdp, self.rl_args)
         rl_synthesiser.train_agent_with_jumpstarts(fsc, 4000)
-        rl_synthesiser.save_to_json("PAYNT_Jumpstarts")
+        rl_synthesiser.save_to_json(self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
 
     def run_rl_synthesis_shaping (self, fsc, saynt : bool = False):
         if saynt:
@@ -349,7 +336,7 @@ class SynthesizerPomdp:
         rl_synthesiser = Synthesizer_RL(
             self.quotient.pomdp, self.rl_args)
         rl_synthesiser.train_agent_with_shaping(fsc, 4000)
-        rl_synthesiser.save_to_json("PAYNT_Shaping")
+        rl_synthesiser.save_to_json(self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
 
     # main SAYNT loop
     def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
@@ -435,6 +422,7 @@ class SynthesizerPomdp:
             if self.input_rl_settings_dict["reinforcement_learning"]:
                 self.run_rl = True
                 self.set_rl_setting(self.input_rl_settings_dict)
+                
 
         self.try_faster = False
         self.rl_args = init_rl_args(mode=self.combo_mode)
@@ -477,7 +465,6 @@ class SynthesizerPomdp:
             self.run_rl_synthesis_jumpstarts(self.storm_control.latest_paynt_result_fsc, False)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.SHAPING_MODE:
             self.run_rl_synthesis_shaping(self.storm_control.latest_paynt_result_fsc, False)
-            
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

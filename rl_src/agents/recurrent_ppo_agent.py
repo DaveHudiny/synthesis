@@ -87,33 +87,12 @@ class Recurrent_PPO_agent(FatherAgent):
         logging.info("Replay buffer initialized")
 
         self.init_collector_driver(self.tf_environment, demasked=True)
-        self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
+        self.wrapper = Policy_Mask_Wrapper(self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         if load:
             self.load_agent()
         self.init_vec_evaluation_driver(
             self.tf_environment, self.environment, num_steps=self.args.max_steps)
-
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False,
-                               fsc_multiplier: float = 2.0, switch_probability: float = None):
-        """Initializes the driver for the FSC policy. Used for hard and soft FSC advices."""
-        parallel_policy = self.wrapper
-        self.fsc_policy = FSC_Policy(tf_environment, fsc,
-                                     observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
-                                     tf_action_keywords=self.environment.action_keywords,
-                                     info_spec=self.agent.collect_policy.info_spec,
-                                     parallel_policy=parallel_policy, soft_decision=soft_decision,
-                                     soft_decision_multiplier=fsc_multiplier,
-                                     switch_probability=switch_probability)
-        eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.fsc_policy, use_tf_function=True, batch_time_steps=False)
-        observer = self.get_demasked_observer()
-        self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-            tf_environment,
-            eager,
-            observers=[observer],
-            num_steps=self.args.num_environments * self.args.num_steps
-        )
 
     def reset_weights(self):
         for net_type in [self.agent._value_net, self.agent._actor_net]:

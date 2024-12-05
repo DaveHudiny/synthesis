@@ -15,6 +15,7 @@ models_rl/
 various_experimental_settings/
 behavioral_cloning/
 .rl_src_experimental/
+rl_src/models_paynt_experiments/
 
 .vscode
 *.pkl

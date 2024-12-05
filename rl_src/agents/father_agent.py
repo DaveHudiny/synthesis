@@ -23,7 +23,9 @@ from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from agents.random_agent import RandomAgent
 from tools.evaluators import *
-from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy, FSC
+from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
+from rl_src.agents.policies.fsc_copy import FSC
+from rl_src.agents.policies.combination_policy import CombinationPolicy, CombinationSettings
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
 from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
@@ -218,23 +220,21 @@ class FatherAgent(AbstractAgent):
         """Get the initial state of the agent."""
         return self.agent.policy.get_initial_state(batch_size=batch_size)
 
-    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None, soft_decision: bool = False,
-                               fsc_multiplier: float = 2.0, switch_probability: float = None):
+    def init_fsc_policy_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, fsc: FSC = None):
         """Initializes the driver for the FSC policy. Used for hard and soft FSC advices. Currently implemented only for wrapped policies."""
         parallel_policy = self.wrapper
-        self.fsc_policy = FSC_Policy(tf_environment, fsc,
-                                     observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
-                                     tf_action_keywords=self.environment.action_keywords,
-                                     info_spec=self.agent.collect_policy.info_spec,
-                                     parallel_policy=parallel_policy, soft_decision=soft_decision,
-                                     soft_decision_multiplier=fsc_multiplier,
-                                     switch_probability=switch_probability)
-        eager = py_tf_eager_policy.PyTFEagerPolicy(
-            self.fsc_policy, use_tf_function=True, batch_time_steps=False)
+        self.fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
+                                            policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
+        self.fsc_policy = py_tf_eager_policy.PyTFEagerPolicy(self.fsc_policy, use_tf_function=True, batch_time_steps=False)
+        self.combination_policy = CombinationPolicy(policies=[self.fsc_policy, parallel_policy], time_step_spec=self.tf_environment.time_step_spec(),
+                                                    action_spec=self.tf_environment.action_spec(), observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
+                                                    enable_masking=False, combination_settings=CombinationSettings.PRIMARY_POLICY, primary_policy_index=0)
+        self.combination_policy = py_tf_eager_policy.PyTFEagerPolicy(
+            self.combination_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.get_demasked_observer()
         self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
             tf_environment,
-            eager,
+            self.combination_policy,
             observers=[observer],
             num_steps=self.args.num_environments * self.args.num_steps
         )
@@ -355,30 +355,6 @@ class FatherAgent(AbstractAgent):
         self.init_demonstration_shaper(fsc)
         self.environment.set_reward_shaper(
             self.shaper.create_reward_function())
-        
-    def evaluate_fsc(self, fsc: FSC):
-        fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
-                                     policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
-        eager = py_tf_eager_policy.PyTFEagerPolicy(
-            fsc_policy, use_tf_function=True, batch_time_steps=False)
-        trajectory_buffer = TrajectoryBuffer(self.environment)
-        vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-            self.tf_environment, eager, observers=[trajectory_buffer.add_batched_step], num_steps=self.args.num_environments * (self.args.max_steps + 1))
-        vec_driver.run()
-
-        def print_results(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes,
-                    trap_reach_prob, virtual_variance, combined_variance):
-            logger.info("Average return: {0}".format(avg_return))
-            logger.info("Average episode return: {0}".format(avg_episode_return))
-            logger.info("Reachability probability: {0}".format(reach_prob))
-            logger.info("Episode variance: {0}".format(episode_variance))
-            logger.info("Number of episodes: {0}".format(num_episodes))
-            logger.info("Trap reachability probability: {0}".format(trap_reach_prob))
-            logger.info("Virtual variance: {0}".format(virtual_variance))
-            logger.info("Combined variance: {0}".format(combined_variance))
-
-
-        trajectory_buffer.final_update_of_results(print_results)
 
     def train_agent(self, iterations: int,
                     vectorized: bool = True,
@@ -397,7 +373,7 @@ class FatherAgent(AbstractAgent):
         if fsc is not None:
             self.evaluate_fsc(fsc)
         
-        self.evaluate_agent(vectorized=vectorized)
+        # self.evaluate_agent(vectorized=vectorized)
         
         if fsc is not None and shaping:
             self.init_reward_shaping(fsc)
@@ -412,7 +388,7 @@ class FatherAgent(AbstractAgent):
                 self.switch_probability = None
                 self.jumpstarting = False
                 self.init_fsc_policy_driver(
-                    self.tf_environment, fsc, switch_probability=None)
+                    self.tf_environment, fsc)
 
             self.fsc_training = True
         else:
@@ -635,3 +611,27 @@ class FatherAgent(AbstractAgent):
             if self.fsc_policy.switched:
                 self.replay_buffer._add_batch(item)
         return _add_batch
+    
+    def evaluate_fsc(self, fsc: FSC):
+        fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
+                                     policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
+        eager = py_tf_eager_policy.PyTFEagerPolicy(
+            fsc_policy, use_tf_function=True, batch_time_steps=False)
+        trajectory_buffer = TrajectoryBuffer(self.environment)
+        vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+            self.tf_environment, eager, observers=[trajectory_buffer.add_batched_step], num_steps=self.args.num_environments * (self.args.max_steps + 1))
+        vec_driver.run()
+
+        def print_results(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes,
+                    trap_reach_prob, virtual_variance, combined_variance):
+            logger.info("Average return: {0}".format(avg_return))
+            logger.info("Average episode return: {0}".format(avg_episode_return))
+            logger.info("Reachability probability: {0}".format(reach_prob))
+            logger.info("Episode variance: {0}".format(episode_variance))
+            logger.info("Number of episodes: {0}".format(num_episodes))
+            logger.info("Trap reachability probability: {0}".format(trap_reach_prob))
+            logger.info("Virtual variance: {0}".format(virtual_variance))
+            logger.info("Combined variance: {0}".format(combined_variance))
+
+
+        trajectory_buffer.final_update_of_results(print_results)

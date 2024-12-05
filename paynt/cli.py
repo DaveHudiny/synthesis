@@ -167,9 +167,9 @@ def setup_logger(log_path = None):
                 help="Multiplier for the FSC cycling oracle. Default is 2.0.")
 @click.option("--rl-load-path", type=click.Path(), default="./",
                 help="Path to the RL oracle to load. Have to be used with --load-agent.")
-@click.option("--agent-task", type=click.Path(), default="test",
+@click.option("--agent-task", type=click.Path(), default="unknown_task",
                 help="Name to be used with output json file.")
-@click.option("--model-name", type=click.Path(), default="test",
+@click.option("--model-name", type=click.Path(), default="unknown_model",
                 help="Name of the model to be used with output json file.")
 @click.option("--sub-method", type=click.Path(), default="random",
                 help="Name of the submethod to use with dqn critic.")
