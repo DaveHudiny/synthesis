@@ -189,14 +189,10 @@ class ExperimentInterface:
             if with_refusing == None:
                 result = {}
                 self.agent.load_agent(quality == "best")
-                if self.args.learning_method == "PPO" and self.args.prefer_stochastic:
-                    self.agent.set_agent_stochastic()
-                elif self.args.learning_method == "PPO":
-                    self.agent.set_agent_greedy()
                 result[f"{quality}_with_refusing"] = interpret.get_dictionary(
-                    self.agent, with_refusing=True)
+                    self.agent, with_refusing=True, vectorized=self.args.vectorized_envs_flag)
                 result[f"{quality}_without_refusing"] = interpret.get_dictionary(
-                    self.agent, with_refusing=False)
+                    self.agent, with_refusing=False, vectorized=self.args.vectorized_envs_flag)
             else:
                 result = interpret.get_dictionary(self.agent, with_refusing)
         return result
@@ -247,7 +243,7 @@ class ExperimentInterface:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     initializer = ExperimentInterface()
-    args = initializer.parser.args
+    args = ArgsEmulator()
     result = initializer.perform_experiment(args.with_refusing)
     if args.with_refusing is None:
         save_dictionaries(args.experiment_directory, args.agent_name,

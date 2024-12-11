@@ -42,6 +42,7 @@ class EvaluationResults:
         self.each_episode_virtual_variance = []
         self.combined_variance = []
         self.num_episodes = []
+        self.paynt_bounds = [] # Shape (n, 2), where n is the number of iterations of PAYNT<->RL loop and 2 is the bound and number of iteration of each bound given the current iteration of RL.
 
     def set_experiment_settings(self, learning_algorithm: str = "", learning_rate: float = float("nan"),
                                 nn_details: dict = {}, max_steps: int = float("nan")):
@@ -49,6 +50,10 @@ class EvaluationResults:
         self.learning_rate = learning_rate
         self.nn_details = "Not implemented yet"
         self.max_steps = max_steps
+
+    def add_paynt_bound(self, bound: float):
+        number_of_iterations = len(self.returns)
+        self.paynt_bounds.append([bound, number_of_iterations])
 
     def save_to_json(self, filename, evaluation_time: float = float("nan")):
         import json

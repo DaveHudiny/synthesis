@@ -60,7 +60,7 @@ class Synthesizer_RL:
         Args:
             iterations (int): Number of iterations.
         """
-        self.agent.train_agent_off_policy(iterations)
+        self.agent.train_agent(iterations)
         self.agent.save_agent()
 
     def train_agent_qval_randomization(self, iterations: int, qvalues: list):
@@ -69,7 +69,7 @@ class Synthesizer_RL:
         )
         self.agent.train_agent_off_policy(iterations, q_vals_rand=True)
 
-    def interpret_agent(self, best: bool = False, with_refusing: bool = False, greedy: bool = False):
+    def interpret_agent(self, best: bool = False, with_refusing: bool = False, greedy: bool = False, randomize_illegal_actions: bool = True):
         """Interpret the agent.
         Args:
             best (bool, optional): Whether to use the best, or the last trained agent. Defaults to False.
@@ -78,13 +78,16 @@ class Synthesizer_RL:
         Returns:
             dict: Dictionary of the interpretation.
         """
-        self.agent.load_agent(best)
+        if best:
+            self.agent.load_agent(best)
         # Works only with agents which use policy wrapping (in our case only PPO)
         if greedy:
-            self.agent.set_agent_stochastic()
-        else:
             self.agent.set_agent_greedy()
-        return self.interpret.get_dictionary(self.interface.agent, with_refusing)
+        else:
+            self.agent.set_agent_stochastic()
+        result = self.interpret.get_dictionary(self.agent, with_refusing, randomize_illegal_actions=randomize_illegal_actions, vectorized=True)
+        self.agent.set_agent_stochastic()
+        return result
 
     def update_fsc_multiplier(self, multiplier: float):
         """Multiply the FSC multiplier.
@@ -146,14 +149,14 @@ class Synthesizer_RL:
         return
         self.agent.mixed_fsc_train(iterations, on_policy=False, performance_condition=condition, fsc=fsc, soft_fsc=False, switch_probability = 0.05)
 
-    def save_to_json(self, experiment_name: str = "PAYNTc+RL", model="model", method="PPO"):
+    def save_to_json(self, experiment_name: str = "PAYNTc+RL", model="model", method="PPO", time: float = -1.0):
         """Save the agent to JSON.
         Args:
             experiment_name (str): Name of the experiment.
         """
         evaluation_result = self.agent.evaluation_result
         save_statistics_to_new_json(
-            experiment_name, model, method, evaluation_result, self.interface.args)
+            experiment_name, model, method, evaluation_result, self.interface.args, time)
 
     def get_encoding_method(self, method_str: str = "Valuations") -> EncodingMethods:
         if method_str == "Valuations":
@@ -208,26 +211,28 @@ class Synthesizer_RL:
     # "only_pretrained", "only_duplex", "only_duplex_critic", "complete", "four_phase"
     # fsc_quality is either minimized or maximized. Condition given quality of FSC is currently used only in the four_phase implementation.
     # Condition can optimize probability (e.g. maximize probability of reaching the goal state) or reward (e.g. minimize number of steps to reach the goal state)
-    def train_with_bc(self, fsc : FSC = None, sub_method = "only_pretrained",
-                             fsc_quality : float = 0.0, maximizing_value : bool = True, probability_cond : bool = True):
+    def train_with_bc(self, fsc : FSC = None, sub_method = "only_pretrained", nr_of_iterations : int = 1000):
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.interface.args
-        pre_trainer = Actor_Value_Pretrainer(self.interface.environment, self.interface.tf_environment,
-                                            args, self.agent.agent.collect_data_spec)
-        if fsc == None:
-            logger.info("No suitable FSC found.")
-        
+        if sub_method == "longer_trajectories":
+            args.num_steps = args.num_steps * 4
+        if not hasattr(self, "pre_trainer"):
+            logger.info("Creating pretrainer")
+            self.pre_trainer = Actor_Value_Pretrainer(self.interface.environment, self.interface.tf_environment,
+                                                     args, self.agent.agent.collect_data_spec)
+            actor = self.pre_trainer.actor_net
+            critic = self.pre_trainer.critic_net
+            agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
+            self.agent = Recurrent_PPO_agent(self.interface.environment, self.interface.tf_environment, 
+                                             args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
+        self.agent.evaluate_agent(vectorized=args.vectorized_envs_flag)
+        if sub_method == "continuous_training":
+            for _ in range(8):
+                self.pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
+                self.agent.train_agent(500, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
         else:
-            logger.info("Suitable FSC found.")
-            if sub_method == "only_pretrained" or sub_method == "complete":
-                pre_trainer.train_both_networks(1001, fsc=fsc, use_best_traj_only=False)
-        actor = pre_trainer.actor_net
-        critic = pre_trainer.critic_net
-        agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
-        self.agent = Recurrent_PPO_agent(self.interface.environment, self.interface.tf_environment, 
-                                         args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
-        pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
-        self.agent.train_agent(4001, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
+            self.pre_trainer.train_both_networks(nr_of_iterations // 4, fsc=fsc, use_best_traj_only=False)
+            self.agent.train_agent(nr_of_iterations, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
 
         # TODO: Other methods of training with FSC or SAYNT controller.
 

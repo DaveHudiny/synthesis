@@ -149,17 +149,9 @@ def setup_logger(log_path = None):
               help="Run with reinforcement learning oracle. Compatibile only with options --fsc-synthesis and --storm-pomdp. Enables following options.")
 @click.option("--load-agent", is_flag=True, default=False,
               help="Load the oracle, only works with --reinforcement-learning. If not set, the oracle will be trained before PAYNT synthesis.")
-@click.option("--rl-load-memory-flag", is_flag=True, default=False,
-              help="Load the memory of the RL oracle. Only works with --load-agent.")
-@click.option("--fsc-cycling", is_flag=True, default=False,
-              help="Run the FSC cycling oracle. Not compatible with --load-agent.")
-@click.option("--fsc-synthesis-time-limit", type=click.INT, default=60,
-              help="Limit the time for FSC cycling . Default is 60.")
-@click.option("--soft-fsc", is_flag=True, default=False,
-              help="Use soft FSC cycling oracle. Default is hard.")
 @click.option("--fsc-training-iterations", type=click.INT, default=100,
                 help="Number of training iterations with FSC oracle. Default is 100.")
-@click.option("--rl-pretrain-iters", type=click.INT, default=500,
+@click.option("--rl-pretrain-iters", type=click.INT, default=51,
                 help="Number of pretraining iterations with RL oracle. Default is 500.")
 @click.option("--rl-training-iters", type=click.INT, default=300,
                 help="Number of training iterations with RL oracle. Default is 300.")
@@ -167,6 +159,8 @@ def setup_logger(log_path = None):
                 help="Multiplier for the FSC cycling oracle. Default is 2.0.")
 @click.option("--rl-load-path", type=click.Path(), default="./",
                 help="Path to the RL oracle to load. Have to be used with --load-agent.")
+@click.option("--rl-load-memory-flag", is_flag=True, default=False,
+              help="Load the memory of the RL oracle. Only works with --load-agent.")
 @click.option("--agent-task", type=click.Path(), default="unknown_task",
                 help="Name to be used with output json file.")
 @click.option("--model-name", type=click.Path(), default="unknown_model",
@@ -175,6 +169,16 @@ def setup_logger(log_path = None):
                 help="Name of the submethod to use with dqn critic.")
 @click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="BC",
                 help="Name of the method to process FSC/SAYNT controller to RL.")
+@click.option("--greedy", is_flag=True, default=False,
+              help="Use greedy policy for RL oracle. Default is False.")
+@click.option("--loop", is_flag=True, default=False,
+              help="Use loop policy for RL oracle. Default is False.")
+@click.option("--fsc-time-in-loop", default=60, type=click.INT,
+                help="Time in loop policy for FSC oracle. Default is 60.")
+@click.option("--time-limit", default=3600, type=click.INT,
+                help="Time limit for RL oracle. Default is 60.")
+
+
 
 
 
@@ -193,9 +197,9 @@ def paynt_run(
     constraint_bound,
     ce_generator,
     profiling,
-    reinforcement_learning, load_agent, fsc_cycling, fsc_synthesis_time_limit, soft_fsc,
+    reinforcement_learning, load_agent,
     fsc_training_iterations, rl_pretrain_iters, rl_training_iters, fsc_multiplier, rl_load_path,
-    rl_load_memory_flag, agent_task, model_name, sub_method, rl_method):
+    rl_load_memory_flag, agent_task, model_name, sub_method, rl_method, greedy, loop, fsc_time_in_loop, time_limit):
 
     if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
         logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
@@ -204,9 +208,6 @@ def paynt_run(
         rl_input_dictionary = {
             "reinforcement_learning": reinforcement_learning,
             "load_agent": load_agent,
-            "fsc_cycling": fsc_cycling,
-            "fsc_synthesis_time_limit": fsc_synthesis_time_limit,
-            "soft_fsc": soft_fsc,
             "fsc_training_iterations": fsc_training_iterations,
             "rl_pretrain_iters": rl_pretrain_iters,
             "rl_training_iters": rl_training_iters,
@@ -216,9 +217,12 @@ def paynt_run(
             "agent_task": agent_task,
             "model_name": model_name,
             "sub_method": sub_method,
-            "rl_method": rl_method
+            "rl_method": rl_method,
+            "greedy": greedy,
+            "loop": loop,
+            "fsc_time_in_loop": fsc_time_in_loop,
+            "time_limit" : time_limit
         }
-
     profiler = None
     if profiling:
         profiler = cProfile.Profile()

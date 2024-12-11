@@ -309,7 +309,7 @@ class FatherAgent(AbstractAgent):
         for i in range(num_iterations):
             if not self.jumpstarting and self.fsc_training and i <= num_iterations // 4:
                 self.run_special_runner()
-            elif self.jumpstarting and i % 7 == 0:
+            elif self.jumpstarting and i % 7 == 0 and i < num_iterations // 4:
                 self.perform_jumpstart(self.switch_probability)
                 self.driver.run()
             else:
@@ -377,8 +377,6 @@ class FatherAgent(AbstractAgent):
         
         if fsc is not None and shaping:
             self.init_reward_shaping(fsc)
-            # self.evaluate_fsc(fsc)
-        # Set FSC training.
         if fsc is not None and not shaping:
             if jumpstart_fsc:
                 self.switch_probability = 0.05
@@ -483,6 +481,9 @@ class FatherAgent(AbstractAgent):
                 self.environment.set_num_envs(
                     self.args.batch_size)
             self.tf_environment.reset()
+            if last:
+                self.set_agent_greedy()
+                logger.info("Evaluating agent with greedy policy.")
             self.vec_driver.run()
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(1)

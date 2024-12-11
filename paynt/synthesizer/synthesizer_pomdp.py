@@ -67,13 +67,13 @@ class SynthesizerPomdp:
                 self.synthesizer.saynt_timer = self.saynt_timer
                 self.storm_control.saynt_timer = self.saynt_timer
 
-    def synthesize(self, family=None, print_stats=True):
+    def synthesize(self, family=None, print_stats=True, timer=None):
         if family is None:
             family = self.quotient.family
         synthesizer = self.synthesizer(self.quotient)
         family.constraint_indices = self.quotient.family.constraint_indices
         assignment = synthesizer.synthesize(
-            family, keep_optimum=True, print_stats=print_stats)
+            family, keep_optimum=True, print_stats=print_stats, timeout=timer)
         iters_mdp = synthesizer.stat.iterations_mdp if synthesizer.stat.iterations_mdp is not None else 0
         self.total_iters += iters_mdp
         return assignment
@@ -90,7 +90,7 @@ class SynthesizerPomdp:
         original_qvalues = make_qvalues_table_tensorable(original_qvalues)
         if "Pmax" in original_property_str:
             qvalues = np.multiply(
-                original_qvalues, self.rl_args.evaluation_goal)
+                original_qvalues, self.args.evaluation_goal)
             # TODO: More possible names of reward model
             try:
                 reward_model_name = list(
@@ -101,22 +101,22 @@ class SynthesizerPomdp:
             trap_qvalues = self.get_qvalues_by_property(
                 f"Pmin=? [ F (!\"notbad\" & !\"goal\")]", prism, assignment)
             cum_reward_qvalues = self.get_qvalues_by_property(
-                f"R{{\"{reward_model_name}\"}}min=? [ C<={self.rl_args.max_steps} ]", prism, assignment)
+                f"R{{\"{reward_model_name}\"}}min=? [ C<={self.args.max_steps} ]", prism, assignment)
             qvalues = qvalues + trap_qvalues * \
-                self.rl_args.evaluation_antigoal - cum_reward_qvalues
+                self.args.evaluation_antigoal - cum_reward_qvalues
         elif "Pmin" in original_property_str:
             # TODO: Make proper Pmin correction
-            qvalues = self.rl_args.evaluation_antigoal * original_qvalues
+            qvalues = self.args.evaluation_antigoal * original_qvalues
         elif RegexPatterns.check_max_property(original_property_str):
-            qvalues = original_qvalues + self.rl_args.evaluation_goal
+            qvalues = original_qvalues + self.args.evaluation_goal
         elif RegexPatterns.check_min_property(original_property_str):
-            qvalues = (-original_qvalues) + self.rl_args.evaluation_goal
+            qvalues = (-original_qvalues) + self.args.evaluation_goal
         else:
             logger.info(
                 f"Unknown property type: {original_property_str}. Using qvalues computed with given original property")
             qvalues = original_qvalues
-        if self.rl_args.normalize_simulator_rewards:
-            qvalues = qvalues / self.rl_args.evaluation_goal
+        if self.args.normalize_simulator_rewards:
+            qvalues = qvalues / self.args.evaluation_goal
         return qvalues
 
     def compute_qvalues_for_rl(self, assignment):
@@ -249,7 +249,7 @@ class SynthesizerPomdp:
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
         fsc = self.storm_control.latest_paynt_result_fsc
-        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.rl_args)
+        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.args)
         if saynt:
             original_property = self.quotient.get_property()
             original_property_str = original_property.__str__()
@@ -267,7 +267,7 @@ class SynthesizerPomdp:
             sub_method = self.input_rl_settings_dict["sub_method"]
             rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
                                         model=self.input_rl_settings_dict["model_name"],
-                                        method=f"{self.rl_args.learning_method}_{sub_method}")
+                                        method=f"{self.args.learning_method}_{sub_method}")
             return
         first_time = True
         repeated_fsc = False
@@ -275,25 +275,28 @@ class SynthesizerPomdp:
         logger.info("Training agent with combination of FSC and RL.")
         rl_synthesiser.train_agent_combined_with_fsc_advanced(
             4000, fsc, self.storm_control.paynt_bounds)
-        rl_synthesiser.save_to_json(experiment_name=self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
+        rl_synthesiser.save_to_json(experiment_name=self.args.agent_name,
+                                    model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def run_rl_synthesis_critic(self):
         qvalues = self.storm_control.qvalues
         rl_synthesiser = Synthesizer_RL(
-            self.quotient.pomdp, self.rl_args, qvalues=qvalues,
+            self.quotient.pomdp, self.args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation)
         rl_synthesiser.train_agent(2000)
-        rl_synthesiser.save_to_json(experiment_name=self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
+        rl_synthesiser.save_to_json(experiment_name=self.args.agent_name,
+                                    model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def run_rl_synthesis_q_vals_rand(self):
         qvalues = self.storm_control.qvalues
         rl_synthesizer = Synthesizer_RL(
-            self.quotient.pomdp, self.rl_args, qvalues=qvalues,
+            self.quotient.pomdp, self.args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation,
             random_init_starts_q_vals=True
         )
         rl_synthesizer.train_agent_qval_randomization(2000, qvalues)
-        rl_synthesizer.save_to_json(experiment_name=self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
+        rl_synthesizer.save_to_json(experiment_name=self.args.agent_name,
+                                    model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def property_is_reachability(self, property: str):
         return "Pmax" in property or "Pmin" in property
@@ -301,42 +304,44 @@ class SynthesizerPomdp:
     def property_is_maximizing(self, property: str):
         return "max" in property
 
-    def run_rl_synthesis_dqn_ppo(self, fsc_json_dict={}):
-        fsc = self.storm_control.latest_paynt_result_fsc
-        if hasattr(self, "input_rl_settings_dict"):
-            sub_method = self.input_rl_settings_dict["sub_method"]
-        else:
-            sub_method = "four_phase"
-        original_property = fsc_json_dict["specification_property"]
-        is_probab_condition = self.property_is_reachability(original_property)
-        is_maximizing = self.property_is_maximizing(original_property)
-        rl_synthesiser = Synthesizer_RL(
-            self.quotient.pomdp, self.rl_args, pretrain_dqn=True)
-        paynt_value = fsc_json_dict["paynt_value"]
-        # = self.storm_control.paynt_bounds # TODO: SAYNT controller has the value defined in self.storm_control.storm_bounds
-        rl_synthesiser.train_with_bc(fsc, sub_method=sub_method, fsc_quality=paynt_value,
-                                            maximizing_value=is_maximizing,
-                                            probability_cond=is_probab_condition)
-        if hasattr(self, "input_rl_settings_dict"):
-            rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
-                                        model=self.input_rl_settings_dict["model_name"],
-                                        method=f"{self.rl_args.learning_method}_{sub_method}")
-            
-    def run_rl_synthesis_jumpstarts(self, fsc, saynt : bool = False):
+    def run_rl_synthesis_behavioral_cloning(self, fsc, save=True, nr_of_iterations=4000):
+        sub_method = self.input_rl_settings_dict["sub_method"]
+        if not hasattr(self, "rl_synthesiser"):
+            self.rl_synthesiser = Synthesizer_RL(
+                self.quotient.pomdp, self.args, pretrain_dqn=True)
+        self.rl_synthesiser.train_with_bc(
+            fsc, sub_method=sub_method, nr_of_iterations=nr_of_iterations)
+        experiment_name = f"{self.args.agent_name}_{sub_method}"
+
+        if save:
+            self.rl_synthesiser.save_to_json(experiment_name=experiment_name,
+                                             model=self.input_rl_settings_dict["model_name"],
+                                             method=f"{self.args.learning_method}")
+
+    def run_rl_synthesis_jumpstarts(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
         if saynt:
             raise NotImplementedError("SAYNT jumpstarts not implemented yet")
-        rl_synthesiser = Synthesizer_RL(
-            self.quotient.pomdp, self.rl_args)
-        rl_synthesiser.train_agent_with_jumpstarts(fsc, 4000)
-        rl_synthesiser.save_to_json(self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
+        if not hasattr(self, "rl_synthesiser"):
+            self.rl_synthesiser = Synthesizer_RL(
+                self.quotient.pomdp, self.args)
+        self.rl_synthesiser.train_agent_with_jumpstarts(fsc, nr_of_iterations)
+        if save:
+            self.rl_synthesiser.save_to_json(
+                self.args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
-    def run_rl_synthesis_shaping (self, fsc, saynt : bool = False):
+    def run_rl_synthesis_shaping(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
         if saynt:
             raise NotImplementedError("SAYNT shaping not implemented yet")
-        rl_synthesiser = Synthesizer_RL(
-            self.quotient.pomdp, self.rl_args)
-        rl_synthesiser.train_agent_with_shaping(fsc, 4000)
-        rl_synthesiser.save_to_json(self.rl_args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.rl_args.learning_method)
+        if not hasattr(self, "rl_synthesiser"):
+
+            self.rl_synthesiser = Synthesizer_RL(
+                self.quotient.pomdp, self.args)
+        self.rl_synthesiser.train_agent_with_shaping(fsc, nr_of_iterations)
+        experiment_name = f"{self.args.agent_name}_longer"
+        if save:
+            self.rl_synthesiser.save_to_json(
+                experiment_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
+        # self.rl_synthesiser.save_to_json(experiment_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     # main SAYNT loop
     def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
@@ -403,9 +408,9 @@ class SynthesizerPomdp:
     def set_rl_setting(self, input_rl_settings_dict):
         self.saynt = False
         if input_rl_settings_dict["rl_method"] == "BC":
-            self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
+            self.combo_mode = RL_SAYNT_Combo_Modes.BEHAVIORAL_CLONING
         elif input_rl_settings_dict["rl_method"] == "Trajectories":
-            self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE 
+            self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
         elif input_rl_settings_dict["rl_method"] == "SAYNT_Trajectories":
             self.combo_mode = RL_SAYNT_Combo_Modes.TRAJECTORY_MODE
             self.saynt = True
@@ -414,7 +419,7 @@ class SynthesizerPomdp:
         elif input_rl_settings_dict["rl_method"] == "R_Shaping":
             self.combo_mode = RL_SAYNT_Combo_Modes.SHAPING_MODE
         else:
-            self.combo_mode = RL_SAYNT_Combo_Modes.DQN_AS_QTABLE
+            self.combo_mode = RL_SAYNT_Combo_Modes.BEHAVIORAL_CLONING
 
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         self.run_rl = False
@@ -422,10 +427,9 @@ class SynthesizerPomdp:
             if self.input_rl_settings_dict["reinforcement_learning"]:
                 self.run_rl = True
                 self.set_rl_setting(self.input_rl_settings_dict)
-                
 
         self.try_faster = False
-        self.rl_args = init_rl_args(mode=self.combo_mode)
+        self.args = init_rl_args(mode=self.combo_mode)
         skip = False
         if self.try_faster and hasattr(self, "input_rl_settings_dict"):
             agent_task = self.input_rl_settings_dict["agent_task"]
@@ -447,24 +451,26 @@ class SynthesizerPomdp:
             fsc_json_dict = {"specification_property": specification_property,
                              "paynt_value": paynt_value, "storm_value": storm_value}
             if self.try_faster and hasattr(self, "input_rl_settings_dict"):
-                
+
                 with open(f"{agent_task}/{fsc_file_name}", "wb") as f:
                     pickle.dump(self.storm_control.latest_paynt_result_fsc, f)
                 with open(f"{agent_task}/{fsc_file_name}_info.json", "w") as f:
                     json.dump(fsc_json_dict, f)
-            
+
         if self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.TRAJECTORY_MODE:
             self.run_rl_trajectories(self.saynt)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_CRITIC_MODE:
             self.run_rl_synthesis_critic()
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.QVALUES_RANDOM_SIM_INIT_MODE:
             self.run_rl_synthesis_q_vals_rand()
-        elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.DQN_AS_QTABLE:
-            self.run_rl_synthesis_dqn_ppo(fsc_json_dict)
+        elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.BEHAVIORAL_CLONING:
+            self.run_rl_synthesis_behavioral_cloning(fsc_json_dict)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
-            self.run_rl_synthesis_jumpstarts(self.storm_control.latest_paynt_result_fsc, False)
+            self.run_rl_synthesis_jumpstarts(
+                self.storm_control.latest_paynt_result_fsc, False)
         elif self.run_rl and self.combo_mode == RL_SAYNT_Combo_Modes.SHAPING_MODE:
-            self.run_rl_synthesis_shaping(self.storm_control.latest_paynt_result_fsc, False)
+            self.run_rl_synthesis_shaping(
+                self.storm_control.latest_paynt_result_fsc, False)
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):
@@ -525,7 +531,7 @@ class SynthesizerPomdp:
                 logger.info(f'Increase memory in all imperfect observation')
             self.quotient.set_memory_from_dict(obs_memory_dict)
 
-    def set_advices_from_rl(self, interpretation_result=None, load_rl_dict=True, rl_dict=False, family=None, rl_load_path=None):
+    def set_advices_from_rl(self, interpretation_result=None, family=None):
         """ Set advices from RL interpretation.
 
         Args:
@@ -534,28 +540,14 @@ class SynthesizerPomdp:
             rl_dict (bool, optional): Whether to use RL interpretation. Defaults to False.
             family (paynt.quotient.quotient.QuotientFamily, optional): Family of the POMDP. Defaults to None.
         """
-        if load_rl_dict:
-            path_obs_act_dict = os.path.join(
-                rl_load_path, "obs_action_dict.pickle")
-            path_labels = os.path.join(rl_load_path, "labels.pickle")
-
-            with open(path_obs_act_dict, "rb") as f:
-                obs_actions = pickle.load(f)
-            with open(path_labels, "rb") as f:
-                action_keywords = pickle.load(f)
-            obs_actions = self.storm_control.convert_rl_dict_to_paynt(
-                family, obs_actions, action_keywords)
-            self.storm_control.result_dict = obs_actions
-            self.storm_control.result_dict_no_cutoffs = obs_actions
-        elif rl_dict:
-            obs_actions = interpretation_result[0]
-            self.memory_dict = interpretation_result[1]
-            action_keywords = interpretation_result[2]
-            self.priority_list = interpretation_result[3]
-            obs_actions = self.storm_control.convert_rl_dict_to_paynt(
-                family, obs_actions, action_keywords)
-            self.storm_control.result_dict = obs_actions
-            self.storm_control.result_dict_no_cutoffs = obs_actions
+        obs_actions = interpretation_result[0]
+        self.memory_dict = interpretation_result[1]
+        action_keywords = interpretation_result[2]
+        self.priority_list = interpretation_result[3]
+        obs_actions = self.storm_control.convert_rl_dict_to_paynt(
+            family, obs_actions, action_keywords)
+        self.storm_control.result_dict = obs_actions
+        self.storm_control.result_dict_no_cutoffs = obs_actions
 
     def set_reinforcement_learning(self, input_rl_settings_dict):
         """ Set RL settings from PAYNT cli.
@@ -565,7 +557,52 @@ class SynthesizerPomdp:
         """
         self.input_rl_settings_dict = input_rl_settings_dict
 
+    def set_input_rl_settings_for_paynt(self, input_rl_settings_dict):
+        self.set_rl_setting(self.input_rl_settings_dict)
+        self.use_rl = True
+        self.loop = self.input_rl_settings_dict["loop"]
+        self.rl_training_iters = self.input_rl_settings_dict['rl_training_iters']
+        self.rl_load_memory_flag = self.input_rl_settings_dict['rl_load_memory_flag']
+        self.greedy = self.input_rl_settings_dict['greedy']
+        self.fsc_synthesis_time_limit = self.input_rl_settings_dict['fsc_time_in_loop']
+        self.time_limit = self.input_rl_settings_dict['time_limit']
+
     # PAYNT POMDP synthesis that uses pre-computed results from Storm as guide
+
+    def get_agent_name(self):
+        agent_name = "PAYNT_w_Advices"
+        if self.loop:
+            agent_name += "_loop_" + self.input_rl_settings_dict["rl_method"]
+        if self.rl_load_memory_flag:
+            agent_name += "_w_Memory"
+        if self.greedy:
+            agent_name += "_greedy"
+        return agent_name
+
+    def genearate_args(self, agent_name) -> ArgsEmulator:
+        return ArgsEmulator(learning_rate=1.6e-4,
+                            restart_weights=0, learning_method="Stochastic_PPO",
+                            nr_runs=201, agent_name=agent_name, load_agent=False,
+                            evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
+                            trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
+                            normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
+                            batch_size=256, vectorized_envs_flag=True, perform_interpretation=True)
+
+    def perform_rl_training_w_fsc(self, fsc):
+        if self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
+            logger.info("Training agent with jumpstarts.")
+            self.run_rl_synthesis_jumpstarts(
+                fsc, False, save=False, nr_of_iterations=self.args.nr_runs)
+        elif self.combo_mode == RL_SAYNT_Combo_Modes.SHAPING_MODE:
+            logger.info("Training agent with shaping.")
+            self.run_rl_synthesis_shaping(
+                fsc, False, save=False, nr_of_iterations=self.args.nr_runs)
+        elif self.combo_mode == RL_SAYNT_Combo_Modes.BEHAVIORAL_CLONING:
+            logger.info("Training agent with behavioral cloning.")
+            self.run_rl_synthesis_behavioral_cloning(
+                fsc, save=False, nr_of_iterations=self.args.nr_runs)
+        else:
+            self.rl_synthesiser.train_agent(self.args.nr_runs)
 
     def strategy_storm(self, unfold_imperfect_only, unfold_storm=True):
         '''
@@ -573,60 +610,40 @@ class SynthesizerPomdp:
         '''
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
         self.synthesizer.storm_control = self.storm_control
-
+        self.use_rl = False
+        self.loop = False
         if hasattr(self, 'input_rl_settings_dict'):
-            rl_dict = True
-            fsc_cycling = self.input_rl_settings_dict['fsc_cycling']
-            fsc_synthesis_time_limit = self.input_rl_settings_dict['fsc_synthesis_time_limit']
-            load_rl_dict = self.input_rl_settings_dict['load_agent']
-            soft_fsc = self.input_rl_settings_dict['soft_fsc']
-            rl_pretrain_iters = self.input_rl_settings_dict['rl_pretrain_iters']
-            rl_training_iters = self.input_rl_settings_dict['rl_training_iters']
-            fsc_training_iterations = self.input_rl_settings_dict['fsc_training_iterations']
-            rl_fsc_multiplier = self.input_rl_settings_dict['fsc_multiplier']
-            rl_load_path = self.input_rl_settings_dict['rl_load_path']
-            rl_load_memory_flag = self.input_rl_settings_dict['rl_load_memory_flag']
-        else:  # Set all reinforcement learning settings to False or 0
-            rl_dict = False
-            fsc_cycling = False
-            fsc_synthesis_time_limit = 0
-            load_rl_dict = False
-            soft_fsc = False
-            rl_pretrain_iters = 0
-            rl_training_iters = 0
-            fsc_training_iterations = 0
-            rl_fsc_multiplier = 0
-            rl_load_path = None
-            rl_load_memory_flag = False
+            self.set_input_rl_settings_for_paynt(self.input_rl_settings_dict)
 
         first_run = True
         current_time = None
-        if fsc_cycling:
-            current_time = fsc_synthesis_time_limit
+        if self.loop:
+            current_time = self.fsc_synthesis_time_limit
         interpretation_result = None
-
-        if rl_dict and not load_rl_dict:
-            args = ArgsEmulator(load_agent=False, learning_method="PPO",
-                                encoding_method="Valuations", max_steps=300, restart_weights=0, agent_name="PAYNT")
-            rl_synthesiser = Synthesizer_RL(
-                self.quotient.pomdp, args, fsc_pre_init=soft_fsc)
-            rl_synthesiser.train_agent(rl_pretrain_iters)
-            interpretation_result = rl_synthesiser.interpret_agent(best=False)
-
+        self.rl_synthesiser = None
+        start_time = time.time()
+        if self.use_rl:
+            agent_name = self.get_agent_name()
+            self.args = self.genearate_args(agent_name)
+            self.rl_synthesiser = Synthesizer_RL(
+                self.quotient.pomdp, self.args)
+        if not self.loop:
+            self.rl_synthesiser.train_agent(self.args.nr_runs)
+            interpretation_result = self.rl_synthesiser.interpret_agent(
+                best=False, greedy=self.greedy)
+        fsc = None
         while True:
-            if rl_dict and fsc_cycling and not first_run:
-                current_time = fsc_synthesis_time_limit
+            if self.use_rl and self.loop and not first_run:
+                current_time = self.fsc_synthesis_time_limit
                 if fsc is not None:
-                    logger.info("Training agent with FSC.")
-                    rl_synthesiser.train_agent_with_fsc_data(
-                        fsc_training_iterations, fsc, soft_decision=soft_fsc)
+                    self.perform_rl_training_w_fsc(fsc)
                 else:
                     logger.info("FSC is None. Training agent without FSC.")
-                logger.info("Training agent for {} iterations.".format(
-                    rl_training_iters))
-                rl_synthesiser.train_agent(rl_training_iters)
-                interpretation_result = rl_synthesiser.interpret_agent(
-                    best=False)
+                    self.rl_synthesiser.train_agent(self.args.nr_runs)
+                logger.info("Interpreting agent ...")
+                interpretation_result = self.rl_synthesiser.interpret_agent(
+                    best=False, randomize_illegal_actions=True, greedy=self.greedy)
+                logger.info("Interpretation finished.")
 
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
@@ -636,20 +653,10 @@ class SynthesizerPomdp:
                 self.memory_dict = interpretation_result[1]
                 self.priority_list = interpretation_result[3]
 
-            if load_rl_dict and rl_load_memory_flag:
-                path_memory_dict = os.path.join(
-                    rl_load_path, "memory_dict.pickle")
-                with open(path_memory_dict, "rb") as f:
-                    obs_memory_dict = pickle.load(f)
-                    for key in obs_memory_dict.keys():
-                        if obs_memory_dict[key] <= 0:
-                            obs_memory_dict[key] = 1
-                    self.quotient.set_memory_from_dict(obs_memory_dict)
-
             # unfold memory according to the best result
-            if (not rl_dict or interpretation_result is None) and unfold_storm:
+            if (not self.use_rl or interpretation_result is None) and unfold_storm:
                 self.set_memory_original(mem_size)
-            elif rl_dict and not first_run:
+            elif self.use_rl and self.rl_load_memory_flag:
                 logger.info("Adding memory nodes based on RL interpretation.")
 
                 priority_list_len = int(
@@ -668,9 +675,9 @@ class SynthesizerPomdp:
 
             family = self.quotient.family
 
-            if load_rl_dict or (rl_dict and interpretation_result is not None):
-                self.set_advices_from_rl(interpretation_result=interpretation_result, load_rl_dict=load_rl_dict, rl_dict=rl_dict,
-                                         family=family, rl_load_path=rl_load_path)
+            if self.use_rl and interpretation_result is not None:
+                self.set_advices_from_rl(interpretation_result=interpretation_result,
+                                         family=family)
 
             # if Storm's result is better, use it to obtain main family that considers only the important actions
             if self.storm_control.is_storm_better:
@@ -702,15 +709,15 @@ class SynthesizerPomdp:
             self.synthesizer.subfamilies_buffer = subfamilies
             self.synthesizer.main_family = main_family
 
-            if fsc_cycling:
+            if self.loop:
+                print("Synthesizing optimal k={} controller ...".format(mem_size))
+                print("Time limit: {}".format(current_time))
                 assignment = self.synthesize(family, timer=current_time)
                 try:
                     fsc = self.quotient.assignment_to_fsc(assignment)
-                    rl_synthesiser.update_fsc_multiplier(rl_fsc_multiplier)
                 except:
                     logger.info(
                         "FSC could not be created from the assignment. Probably no improvement.")
-                    rl_synthesiser.update_fsc_multiplier(1 / rl_fsc_multiplier)
             else:
                 assignment = self.synthesize(family)
 
@@ -719,13 +726,22 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_export = self.quotient.extract_policy(
                     assignment)
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
+                if hasattr(self, "rl_synthesiser"):
+                    self.rl_synthesiser.agent.evaluation_result.add_paynt_bound(
+                        self.storm_control.paynt_bounds)
 
             first_run = False
             self.storm_control.update_data()
 
             mem_size += 1
 
-            # break
+            if mem_size >= 10 or time.time() - start_time > self.time_limit:
+                break
+        end_time = time.time()
+        logger.info(f"Total time: {end_time - start_time}")
+        if hasattr(self, "rl_synthesiser"):
+            self.rl_synthesiser.save_to_json(
+                self.args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method, time=end_time - start_time)
 
     def strategy_iterative(self, unfold_imperfect_only):
         '''

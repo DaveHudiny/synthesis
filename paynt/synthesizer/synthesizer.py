@@ -175,7 +175,11 @@ class Synthesizer:
         self.stat = paynt.synthesizer.statistic.Statistic(self)
         self.explored = 0
         self.stat.start(family)
-        self.synthesize_one(family)
+        try:
+            self.synthesize_one(family, timer=timeout)
+        except Exception as e:
+            logger.error(f"synthesis failed: {e}. Running synthesize without timer.")
+            self.synthesize_one(family)
         if self.best_assignment is not None and self.best_assignment.size > 1 and not return_all:
             self.best_assignment = self.best_assignment.pick_any()
         self.stat.finished_synthesis()

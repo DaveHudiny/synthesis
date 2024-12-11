@@ -87,9 +87,9 @@ class Environment_Wrapper(py_environment.PyEnvironment):
         self.original_init_state = self.stormpy_model.initial_states
         self.q_values_table = q_values_table
 
-    def set_random_starts_simulation(self, flag: bool = True):
-        self.random_start_simulator = flag
-        if not flag:
+    def set_random_starts_simulation(self, randomized_bool: bool = True):
+        self.random_start_simulator = randomized_bool
+        if not randomized_bool:
             nr_states = self.stormpy_model.nr_states
             bitvector = stormpy.BitVector(nr_states, self.original_init_state)
             self.stormpy_model.set_initial_states(bitvector)
@@ -103,6 +103,12 @@ class Environment_Wrapper(py_environment.PyEnvironment):
 
     def create_new_environment(self):
         return Environment_Wrapper(self.stormpy_model, self.args)
+    
+    def set_reward_shaper(self, reward_shaper_function):
+        pass
+
+    def unset_reward_shaper(self):
+        pass
 
     def compute_keywords(self):
         """Computes the keywords for the actions and stores them to self.act_to_keywords and other dictionaries."""

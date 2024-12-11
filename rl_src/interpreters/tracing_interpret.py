@@ -3,6 +3,9 @@ from environment.environment_wrapper import Environment_Wrapper
 from environment import tf_py_environment
 from agents.father_agent import FatherAgent
 
+from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
+from tf_agents.trajectories.trajectory import Trajectory
+
 import numpy as np
 import tensorflow as tf
 
@@ -10,6 +13,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import numpy as np
+from collections import defaultdict
 
 class ResultInfo:
     def __init__(self):
@@ -83,11 +88,11 @@ class TracingInterpret(Interpret):
             obs_variances[obs] += std
         return np.argsort(obs_variances)
 
-    def get_dictionary(self, agent=None, with_refusing=True):
+    def get_dictionary(self, agent=None, with_refusing=True, vectorized=True, randomize_illegal_actions=True):
         """Gets the dictionary of observations to actions, memory dictionary, action keywords and observation prioritizer.
             Used as main interface between RL algorithms and Paynt."""
         obs_act_stats_dict = self.compute_observation_action_dictionary(
-            agent=agent, with_refusing=with_refusing)
+            agent=agent, with_refusing=with_refusing, vectorized=vectorized, randomize_illegal_actions=randomize_illegal_actions)
         obs_act_dict, memory_dict = self.compute_cutted_dictionary(
             obs_act_stats_dict, cut_actions=False, memory_greediness=0.5)
         prioritizer = self.create_observation_prioritizer_by_sorting(
@@ -150,38 +155,41 @@ class TracingInterpret(Interpret):
             if memory_dict[obs] <= 0:
                 memory_dict[obs] = 1
         return obs_act_dict, memory_dict
+    
+    class ObsActUpdater:
+        def __init__(self, randomize_illegal_actions=False):
+            self.obs_act_dict = defaultdict(lambda: defaultdict(int))
+            self.randomize_illegal_actions = randomize_illegal_actions
 
-    def update_obs_act_dict(self, observation, action):
-        if observation not in self.obs_act_dict:
-            self.obs_act_dict[observation] = {}
+        def update_obs_act_dict(self, item: Trajectory):
+            observations = item.observation["integer"].numpy()
+            mask = item.observation["mask"].numpy()
+            actions = item.action.numpy()
+            for obs, act, sub_mask in zip(observations, actions, mask):
+                # if not sub_mask[act] and self.randomize_illegal_actions:
+                #     number_of_legal_actions = np.sum(sub_mask)
+                #     for i in range(len(sub_mask)):
+                #         if sub_mask[i]:
+                #             self.obs_act_dict[obs[0]][i] += 1.0 / float(number_of_legal_actions)
+                if not sub_mask[act]:
+                    continue
+                else:
+                    self.obs_act_dict[obs[0]][act] += 1
+        
+        def get_obs_act_dict(self):
+            return self.obs_act_dict
 
-        if action not in self.obs_act_dict[observation]:
-            self.obs_act_dict[observation][action] = 1
-        else:
-            self.obs_act_dict[observation][action] += 1
+    def init_observation_action_driver(self, vectorized = True, agent : FatherAgent = None, with_refusing=False, randomize_illegal_actions=False):
+        self.obs_act_dict = {}
+        self.aux_obs_act_dict = {}
+        self.obs_act_updater = self.ObsActUpdater(randomize_illegal_actions=randomize_illegal_actions)
+        num_steps = 1 if not vectorized else agent.args.num_environments * agent.args.num_steps
+        # logger.info(f"Number of steps for tracing is {num_steps}")
+        self.obs_act_driver = DynamicStepDriver(
+            self.tf_environment, agent.get_evaluation_policy(), observers=[self.obs_act_updater.update_obs_act_dict], num_steps=num_steps
+        )
 
-    def merge_dicts(self, dict1, dict2):
-        for key in dict2:
-            if key not in dict1:
-                dict1[key] = dict2[key]
-            else:
-                for key2 in dict2[key]:
-                    if key2 not in dict1[key]:
-                        dict1[key][key2] = dict2[key][key2]
-                    else:
-                        dict1[key][key2] += dict2[key][key2]
-        return dict1
-
-    def update_aux_obs_act_dict(self, observation, action):
-        if observation not in self.aux_obs_act_dict:
-            self.aux_obs_act_dict[observation] = {}
-
-        if action not in self.aux_obs_act_dict[observation]:
-            self.aux_obs_act_dict[observation][action] = 1
-        else:
-            self.aux_obs_act_dict[observation][action] += 1
-
-    def compute_observation_action_dictionary(self, num_episodes=50, agent: FatherAgent = None, with_refusing=False):
+    def compute_observation_action_dictionary(self, num_episodes=50, agent: FatherAgent = None, with_refusing=False, vectorized=True, randomize_illegal_actions=True):
         """Computes the dictionary of observations to actions.
 
         Args:
@@ -192,54 +200,7 @@ class TracingInterpret(Interpret):
         Returns:
             dict: The dictionary of observations to actions with counts of each action.
         """
-        if agent is None:
-            raise ValueError("Agent must be provided.")
-        self.obs_act_dict = {}
-        policy = tf.function(agent.get_evaluation_policy().action)
-        result_info = ResultInfo()
-        step_rewards = []
-        final_rewards = []
-        for i in range(num_episodes):
-            time_step = self.tf_environment.reset()
-            policy_state = agent.get_initial_state(None)
-            steps = 0
-            self.aux_obs_act_dict = {}
-            reward = 0
-
-            while not time_step.is_last():
-                action_step = policy(time_step, policy_state)
-                policy_state = action_step.state
-                observation = int(
-                    self.environment.simulator._report_observation())
-                time_step = self.tf_environment.step(action_step.action)
-                action = int(self.environment.last_action)
-                if with_refusing:
-                    self.update_aux_obs_act_dict(observation, action)
-                else:
-                    self.update_obs_act_dict(observation, action)
-                steps += 1
-                reward += time_step.reward
-            labels = self.environment.simulator._report_labels()
-            if self.environment.is_goal_state(labels):
-                if self.environment.normalize_simulator_rewards:
-                    reward -= 1.0
-                else:
-                    reward -= self.environment.goal_value
-            else:
-                reward -= time_step.reward  # Removing the last reward (goal)
-            goal_reward = time_step.reward
-            step_rewards.append(reward.numpy())
-            final_rewards.append(goal_reward.numpy())
-            if with_refusing:
-                if time_step.is_last() and self.environment.is_goal_state(labels):
-                    self.obs_act_dict = self.merge_dicts(
-                        self.obs_act_dict, self.aux_obs_act_dict)
-
-            result_info.update_ending_stats(steps, self.environment._max_steps, time_step.is_last(),
-                                            self.environment.simulator._report_labels(), self.environment.is_goal_state)
-
-        logger.info(f"{result_info}")
-        logger.info(f"Average reward without goal: {np.mean(step_rewards)}")
-        logger.info(f"Average final reward: {np.mean(final_rewards)}")
-
-        return self.obs_act_dict
+        self.init_observation_action_driver(vectorized, with_refusing=with_refusing, agent=agent, randomize_illegal_actions=randomize_illegal_actions)
+        for _ in range(16):
+            self.obs_act_driver.run()
+        return self.obs_act_updater.get_obs_act_dict()

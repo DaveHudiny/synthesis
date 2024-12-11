@@ -307,7 +307,7 @@ class Actor_Value_Pretrainer:
         if self.args.vectorized_envs_flag:
             if not hasattr(self, "vec_driver"):
                 self.init_vectorized_evaluation_driver(
-                    self.tf_environment, self.environment, num_steps=400, actor_net=actor_net)
+                    self.tf_environment, self.environment, num_steps=401, actor_net=actor_net)
             self.vec_driver.run()
             self.trajectory_buffer.final_update_of_results(
                 self.evaluation_result.update)

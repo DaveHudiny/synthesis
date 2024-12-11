@@ -25,7 +25,7 @@ class PreviousStats:
         self.best_reach_probs_paynt = best_reach_probs_paynt
 
 
-dict_of_prev_stats = {
+DICT_OF_PREV_STATS = {
     "evade": PreviousStats(-24.999, 1.0, None, 0.698, None, 1.0),
     "evade-n=5-r=23": PreviousStats(-17.0, 1.0, -20.600, 1.0, -16.095),
     "evade-n6-r2": PreviousStats(-21.0, 1.0, -28.0, 1.0, None, None),
@@ -95,37 +95,37 @@ def plot_single_curve(data, shown_metric, is_trap=False, plot_color='b'):
 
 
 def add_line_to_plot(model, metric):
-    if model in dict_of_prev_stats:
+    if model in DICT_OF_PREV_STATS:
         if metric == "returns":
-            if dict_of_prev_stats[model].best_return_spaynt is not None:
+            if DICT_OF_PREV_STATS[model].best_return_spaynt is not None:
                 plt.axhline(
-                    y=dict_of_prev_stats[model].best_return_spaynt, color='r', linestyle='dashed')
+                    y=DICT_OF_PREV_STATS[model].best_return_spaynt, color='r', linestyle='dashed')
                 plt.plot([], label='Best of (S)PAYNT',
                          color='r', linestyle='dashed')
-            if dict_of_prev_stats[model].best_return_rl is not None:
+            if DICT_OF_PREV_STATS[model].best_return_rl is not None:
                 plt.axhline(
-                    y=dict_of_prev_stats[model].best_return_rl, color='g', linestyle='dashed')
+                    y=DICT_OF_PREV_STATS[model].best_return_rl, color='g', linestyle='dashed')
                 plt.plot([], label='Best of Previous RL',
                          color='g', linestyle='dashed')
-            if dict_of_prev_stats[model].best_return_unstable is not None:
+            if DICT_OF_PREV_STATS[model].best_return_unstable is not None:
                 plt.axhline(
-                    y=dict_of_prev_stats[model].best_return_unstable, color='pink', linestyle='dotted')
+                    y=DICT_OF_PREV_STATS[model].best_return_unstable, color='pink', linestyle='dotted')
                 plt.plot([], label='Best of Somewhere',
                          color='pink', linestyle='dotted')
         elif metric == "reach_probs":
-            if dict_of_prev_stats[model].best_reach_probs_spaynt is not None:
+            if DICT_OF_PREV_STATS[model].best_reach_probs_spaynt is not None:
                 plt.axhline(
-                    y=dict_of_prev_stats[model].best_reach_probs_spaynt, color='r', linestyle='dashed')
+                    y=DICT_OF_PREV_STATS[model].best_reach_probs_spaynt, color='r', linestyle='dashed')
                 plt.plot([], label='Best of (S)PAYNT',
                          color='r', linestyle='dashed')
-            if dict_of_prev_stats[model].best_reach_probs_rl is not None:
+            if DICT_OF_PREV_STATS[model].best_reach_probs_rl is not None:
                 plt.axhline(
-                    y=dict_of_prev_stats[model].best_reach_probs_rl, color='g', linestyle='dashed')
+                    y=DICT_OF_PREV_STATS[model].best_reach_probs_rl, color='g', linestyle='dashed')
                 plt.plot([], label='Best of Previous RL',
                          color='g', linestyle='dashed')
-            if dict_of_prev_stats[model].best_reach_probs_unstable is not None:
+            if DICT_OF_PREV_STATS[model].best_reach_probs_unstable is not None:
                 plt.axhline(
-                    y=dict_of_prev_stats[model].best_reach_probs_unstable, color='pink', linestyle='dotted')
+                    y=DICT_OF_PREV_STATS[model].best_reach_probs_unstable, color='pink', linestyle='dotted')
                 plt.plot([], label='Best of Somewhere',
                          color='pink', linestyle='dotted')
 
@@ -252,11 +252,11 @@ def get_summary_table(jsons, models):
         for model in models:
             summary_table[metric[0]][model] = {}
             summary_table[metric[0]
-                          ][model]["spaynt"] = dict_of_prev_stats[model].best_return_spaynt
+                          ][model]["spaynt"] = DICT_OF_PREV_STATS[model].best_return_spaynt
             summary_table[metric[0]
-                          ][model]["rl"] = dict_of_prev_stats[model].best_return_rl
+                          ][model]["rl"] = DICT_OF_PREV_STATS[model].best_return_rl
             summary_table[metric[0]
-                          ][model]["unstable"] = dict_of_prev_stats[model].best_return_unstable
+                          ][model]["unstable"] = DICT_OF_PREV_STATS[model].best_return_unstable
             for key in jsons:
                 for sub_key in jsons[key]:
                     model_name, _ = get_experiment_setting_from_name(sub_key)

@@ -236,14 +236,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def set_num_envs(self, num_envs: int):
         self.num_envs = num_envs
         self.vectorized_simulator.set_num_envs(num_envs)
-        jax.clear_caches()
         self._reset()
         
 
     def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
-        jax.clear_caches()
-        jax.clear_backends()
         logger.info("Resetting the environment.")
         self.last_observation, self.allowed_actions, self.labels_mask = self._restart_simulator()
         # self.integer_observations = self.vectorized_simulator.observations # TODO: implement it with proposed vectorized simulator

@@ -4,13 +4,13 @@
 # File: interface.py
 import sys
 sys.path.append("../")
-import argparse
-from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
-from rl_src.experimental_interface import ExperimentInterface
-from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
-import os
-import logging
 import time
+import logging
+import os
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
+from rl_src.experimental_interface import ExperimentInterface
+from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
+import argparse
 
 
 
@@ -44,8 +44,9 @@ def save_dictionaries_caller(dicts, name_of_experiment, model, learning_method, 
                     labels = dicts[quality_typ][2]
                     save_dictionaries(name_of_experiment, model, learning_method,
                                       quality_typ, obs_action_dict, memory_dict, labels)
-                except:
+                except Exception as e:
                     logger.error("Storing dictionaries failed!")
+                    logger.error(e)
         else:
             try:
                 obs_action_dict = dicts[0]
@@ -54,12 +55,14 @@ def save_dictionaries_caller(dicts, name_of_experiment, model, learning_method, 
 
                 save_dictionaries(name_of_experiment, model, learning_method,
                                   refusing, obs_action_dict, memory_dict, labels)
-            except:
+            except Exception as e:
+                logger.error("Storing dictionaries failed!")
+                logger.error(e)
                 logger.error("Saving stats failed!")
 
 
 def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_method="PPO", refusing=None,
-                          name_of_experiment="results_of_interpretation", encoding_method="Valuations"):
+                          name_of_experiment="results_of_interpretation", save_statistics : bool =True):
     """ Run a single experiment for Paynt oracle.
     Args:
         args (ArgsEmulator): Arguments for the initialization.
@@ -70,7 +73,6 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
         encoding_method (str, optional): The encoding method. Defaults to "Valuations".
     """
     start_time = time.time()
-    refusing = None
     initializer = ExperimentInterface(args)
     dicts = initializer.perform_experiment(with_refusing=refusing)
     if args.perform_interpretation:
@@ -80,15 +82,16 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
             dicts, name_of_experiment, model, learning_method, refusing)
     end_time = time.time()
     evaluation_time = end_time - start_time
-    save_statistics_to_new_json(name_of_experiment, model, learning_method,
-                                initializer.agent.evaluation_result, evaluation_time=evaluation_time, args=args)
+    if save_statistics:
+        save_statistics_to_new_json(name_of_experiment, model, learning_method,
+                                    initializer.agent.evaluation_result, evaluation_time=evaluation_time, args=args)
 
     # Old way of saving statistics
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256,
-                    random_start_simulator=False, model_condition: str = ""):
+                    random_start_simulator=False, model_condition: str = "", args=None):
     """ Run multiple experiments for PAYNT oracle.
     Args:
         name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
@@ -115,21 +118,24 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
             for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
                 logger.info(
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
-                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
-                                    restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
-                                    nr_runs=4000, encoding_method=encoding_method, agent_name=model, load_agent=False, evaluate_random_policy=False,
-                                    max_steps=400, evaluation_goal=50, evaluation_antigoal=-20, trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
-                                    normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator, replay_buffer_option=replay_buffer_option, batch_size=batch_size,
-                                    vectorized_envs_flag=True, flag_illegal_action_penalty=False)
+                if args is None:
+                    args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
+                                        restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
+                                        nr_runs=51, encoding_method=encoding_method, agent_name=model, load_agent=False, 
+                                        evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20, 
+                                        trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
+                                        normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator, 
+                                        replay_buffer_option=replay_buffer_option, batch_size=batch_size,
+                                        vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=True)
 
                 run_single_experiment(
-                    args, model=model, learning_method=learning_method, refusing=None, name_of_experiment=name_of_experiment)
+                    args, model=model, learning_method=learning_method, refusing=False, name_of_experiment=name_of_experiment)
 
 
 if __name__ == "__main__":
     args_from_cmd = argparse.ArgumentParser()
 
-    args_from_cmd.add_argument("--batch_size", type=int, default=128)
+    args_from_cmd.add_argument("--batch_size", type=int, default=256)
     args_from_cmd.add_argument("--learning_rate", type=float, default=1.6e-4)
     args_from_cmd.add_argument(
         "--path_to_models", type=str, default="./models")
@@ -140,9 +146,9 @@ if __name__ == "__main__":
 
     # Run experiments with the given arguments
     if args.random_start_simulator:
-        name = "experiments_tuning_rnn_random"
+        name = "experiments_interpretation_random"
     else:
-        name = "experiments_tuning_rnn"
+        name = "experiments_interpretation"
     if not os.path.exists(name):
         os.makedirs(name)
 

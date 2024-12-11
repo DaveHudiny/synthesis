@@ -41,17 +41,55 @@ run_saynt_bc(){
 run_paynt_imitation(){
     source prerequisites/venv/bin/activate
     echo "Running PAYNT with imitation learning"
-    methods=("BC" "R_Shaping" "Jumpstarts")
-    for entry in `ls $1`; do
-        if [ -d $1/$entry ]; then
-            echo "Running Paynt on $entry"
-            for method in "${methods[@]}"; do
-                echo "Running Paynt with --imitation-learning=$method on $entry"
-                echo "python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method $1/$entry > $1/$entry/imitation_$method.txt"
-                python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method $1/$entry > $1/$entry/imitation_$method.txt
-            done
-        fi
-    done    
+    # methods=("BC" "R_Shaping" "Jumpstarts")
+    methods=("BC")
+    sub_methods=("longer_trajectories" "continuous_training")
+    num_iterations=10
+    for iteration in $(seq 1 $num_iterations); do
+        echo "Iteration $iteration"
+        for entry in `ls $1`; do
+            if [ -d $1/$entry ]; then
+                # Skip if the model is not refuel-20 or rocks-16
+                if [ "$entry" != "refuel-20" ] && [ "$entry" != "rocks-16" ]; then
+                    continue
+                fi
+                echo "Running Paynt on $entry"
+                for method in "${methods[@]}"; do
+                    # echo "Running Paynt with --imitation-learning=$method on $entry"
+                    # echo "python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method $1/$entry > $1/$entry/imitation_$method.$iteration.txt"
+                    # python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method $1/$entry > $1/$entry/imitation_$method.$iteration.txt
+                    for sub_method in "${sub_methods[@]}"; do
+                        echo "Running Paynt with --imitation-learning=$method --sub_method=$sub_method on $entry"
+                        python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method --sub-method $sub_method $1/$entry > $1/$entry/imitation_$method.$sub_method.$iteration.txt
+                    done
+                done
+            fi
+        done  
+    done  
+}
+
+run_paynt_shaping(){
+    source prerequisites/venv/bin/activate
+    echo "Running PAYNT with shaping"
+    methods=("R_Shaping")
+    num_iterations=10
+    sub_method=("longer_trajectories")
+    for iteration in $(seq 1 $num_iterations); do
+        echo "Iteration $iteration"
+        for entry in `ls $1`; do
+            if [ -d $1/$entry ]; then
+                # Skip if the model is not refuel-20 or rocks-16
+                if [ "$entry" != "refuel-20" ] && [ "$entry" != "rocks-16" ]; then
+                    continue
+                fi
+                echo "Running Paynt on $entry"
+                for method in "${methods[@]}"; do
+                    echo "Running Paynt with --imitation-learning=$method --sub_method=$sub_method on $entry"
+                    python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 10 --reinforcement-learning --model-name $entry --rl-method $method --sub-method $sub_method $1/$entry > $1/$entry/imitation_$method.$sub_method.$iteration.txt
+                done
+            fi
+        done  
+    done  
 }
 
 run_with_dictionary() {
@@ -83,6 +121,55 @@ run_with_dictionary() {
     done
     echo "counter: $counter"
 }
+
+run_paynt_with_rl_hints() {
+    source prerequisites/venv/bin/activate
+    echo "Running Paynt with --rl-hints"
+    sub_methods=("without_memory", "with_memory")
+    for entry in `ls $1`; do
+        if [ -d $1/$entry ]; then
+            echo "Running Paynt on model $entry"
+            echo "Running Paynt with --rl-hints=without_memory on $entry"
+            timeout $2 python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning $1/$entry > $1/$entry/paynt-rl-hints-without-memory.log
+            
+            echo "Running Paynt with --rl-hints=with_memory on $entry"
+            timeout $2 python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning --rl-load-memory-flag $1/$entry > $1/$entry/paynt-rl-hints-with-memory.log
+        fi
+    done
+}
+
+run_paynt_with_stochastic_hints() {
+    source prerequisites/venv/bin/activate
+    echo "Running Paynt with --rl-hints"
+    sub_methods=("without_memory", "with_memory")
+    for entry in `ls $1`; do
+        if [ -d $1/$entry ]; then
+            echo "Running Paynt on model $entry"
+            echo "Running Paynt with --rl-hints=without_memory on $entry"
+            timeout $2 python3 paynt.py --fsc-synthesis --storm-pomdp --greedy --reinforcement-learning --greedy $1/$entry > $1/$entry/paynt-rl-hints-without-memory-stochastic.log 
+            
+            echo "Running Paynt with --rl-hints=with_memory on $entry"
+            timeout $2 python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning --greedy --rl-load-memory-flag --greedy $1/$entry > $1/$entry/paynt-rl-hints-with-memory-stochastic.log
+        fi
+    done
+}
+
+run_paynt_with_pruning_rl_hints(){
+    source prerequisites/venv/bin/activate
+    echo "Running Paynt with --pruning"
+    sub_methods=("without_memory", "with_memory")
+    for entry in `ls $1`; do
+        if [ -d $1/$entry ]; then
+            echo "Running Paynt on model $entry"
+            echo "Running Paynt with --pruning=without_memory on $entry"
+            timeout $2 python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning --prune-storm $1/$entry > $1/$entry/paynt-pruning-rl-hints-without-memory.log
+            
+            echo "Running Paynt with --pruning=with_memory on $entry"
+            timeout $2 python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning --prune-storm --rl-load-memory-flag $1/$entry > $1/$entry/paynt-pruning-rl-hints-with-memory.log
+        fi
+    done
+}
+
 
 if [ ! -d "prerequisites/venv" ]; then
     echo "Virtual environment not found. Please run install.sh first."
@@ -129,6 +216,12 @@ elif [ $1 == "--saynt-bc" ]; then
         exit 1
     fi
     run_saynt_bc $2
+elif [ $1 == "--shaping" ]; then
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: $0 --shaping <path-to-models>"
+        exit 1
+    fi
+    run_paynt_shaping $2 
 elif [ $1 == "--imitation-learning" ]; then
     if [ "$#" -ne 2 ]; then
         echo "Usage: $0 --imitation <path-to-models>"
@@ -141,6 +234,24 @@ elif [ $1 == "--fsc-synthesis" ]; then
         exit 1
     fi
     run_fsc_synthesis $2 $3
+elif [ $1 == "--rl-hints" ]; then
+    if [ "$#" -ne 3 ]; then
+        echo "Usage: $0 --rl-hints <path-to-models> <timeout>"
+        exit 1
+    fi
+    run_paynt_with_rl_hints $2 $3
+elif [ $1 == "--stochastic-hints" ]; then
+    if [ "$#" -ne 3 ]; then
+        echo "Usage: $0 --stochastic-hints <path-to-models> <timeout>"
+        exit 1
+    fi
+    run_paynt_with_stochastic_hints $2 $3
+elif [ $1 == "--pruning-rl-hints" ]; then
+    if [ "$#" -ne 3 ]; then
+        echo "Usage: $0 --pruning-rl-hints <path-to-models> <timeout>"
+        exit 1
+    fi
+    run_paynt_with_pruning_rl_hints $2 $3
 elif [ "$#" -ne 3 ]; then
     echo "Usage: $0 <path-to-models> <path-to-dictionary> <timeout>"
     exit 1

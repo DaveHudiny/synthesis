@@ -523,10 +523,23 @@ class StormPOMDPControl:
         #logger.info("Result dictionary is based on result from PAYNT")
         self.result_dict_paynt = result
 
+    def convert_rl_dict_to_paynt(self, family, result_dict, action_keywords):
+        paynt_dict = {}
+        for obs in result_dict.keys():
+            # print(self.quotient.action_labels_at_observation[obs])
+            suggested_actions = []
+            for action in result_dict[obs]:
+                keyword = action_keywords[action]
+                for label in self.quotient.action_labels_at_observation[obs]:
+                    if keyword in label:
+                        suggested_actions.append(self.quotient.action_labels_at_observation[obs].index(label))
+            if len(suggested_actions) > 0:
+                paynt_dict[obs] = suggested_actions
+        return paynt_dict
+    
     # returns the main family that will be explored first
     # main family contains only the actions considered by respective FSC (most usually Storm result)
     def get_main_restricted_family(self, family, result_dict):
-
         if result_dict == {}:
             return family
 
@@ -534,19 +547,18 @@ class StormPOMDPControl:
         # go through each observation of interest
         for obs in range(self.quotient.observations):
             for hole in self.quotient.observation_action_holes[obs]:
-
                 if obs in result_dict.keys():
                     selected_actions = [action for action in family.hole_options(hole) if action in result_dict[obs]]
                 else:
                     selected_actions = [family.hole_options(hole)[0]]
 
                 if len(selected_actions) == 0:
+                    logger.info("No actions for observation {} in the result dictionary".format(obs))
+                    exit(0)
                     return None
 
                 restricted_family.hole_set_options(hole,selected_actions)
-
         logger.info("Main family based on data from Storm: reduced design space from {} to {}".format(family.size_or_order, restricted_family.size_or_order))
-
         return restricted_family
 
 

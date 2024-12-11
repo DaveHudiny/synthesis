@@ -10,7 +10,7 @@ class RL_SAYNT_Combo_Modes(Enum):
     QVALUES_CRITIC_MODE = 1
     QVALUES_COMBO_CRITIC_MODE = 2
     QVALUES_RANDOM_SIM_INIT_MODE = 3
-    DQN_AS_QTABLE = 4
+    BEHAVIORAL_CLONING = 4
     JUMPSTART_MODE = 5
     SHAPING_MODE = 6
 
@@ -34,7 +34,7 @@ def init_rl_args(mode: RL_SAYNT_Combo_Modes = RL_SAYNT_Combo_Modes.QVALUES_RANDO
                             max_steps=400, restart_weights=0, agent_name="Agent_with_random_starts", learning_rate=1e-4,
                             trajectory_num_steps=25, evaluation_goal=150, evaluation_episodes=40, evaluation_antigoal=-150,
                             discount_factor=0.99, random_start_simulator=True)
-    elif mode == RL_SAYNT_Combo_Modes.DQN_AS_QTABLE:
+    elif mode == RL_SAYNT_Combo_Modes.BEHAVIORAL_CLONING:
         args = ArgsEmulator(load_agent=False, learning_method="Stochastic_PPO", encoding_method="Valuations",
                             max_steps=400, restart_weights=0, agent_name="PAYNT_BehavioralCloning", learning_rate=1.6e-4, num_environments=256,
                             trajectory_num_steps=32, evaluation_goal=50, evaluation_episodes=40, evaluation_antigoal=-20, batch_size=256,
