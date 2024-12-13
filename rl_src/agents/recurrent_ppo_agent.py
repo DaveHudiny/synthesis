@@ -51,12 +51,12 @@ class Recurrent_PPO_agent(FatherAgent):
             self.actor_net = actor_net
         else:
             self.actor_net = create_recurrent_actor_net_demasked(
-                tf_environment, action_spec)
+                tf_environment, action_spec, rnn_less=self.args.use_rnn_less)
         if critic_net is not None:
             self.value_net = critic_net
         else:
             self.value_net = create_recurrent_value_net_demasked(
-                tf_environment)
+                tf_environment, rnn_less=self.args.use_rnn_less) 
 
         time_step_spec = tf_environment.time_step_spec()
         time_step_spec = time_step_spec._replace(
@@ -82,6 +82,7 @@ class Recurrent_PPO_agent(FatherAgent):
             normalize_rewards=True,
         )
         self.agent.initialize()
+        
         logging.info("Agent initialized")
         self.init_replay_buffer()
         logging.info("Replay buffer initialized")

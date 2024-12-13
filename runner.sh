@@ -170,6 +170,41 @@ run_paynt_with_pruning_rl_hints(){
     done
 }
 
+create_save_file(){
+
+    save_file=$1/$2/paynt-$3-$index.log
+    index=1
+    while [ -f $save_file ]; do
+        save_file=$1/$2/paynt-$3-$index.log
+        index=$((index+1))
+    done
+    echo $save_file
+}
+
+run_paynt_loop_rl(){
+    # Example python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning rl_src/models/rocks-16/ --loop --rl-method=R_Shaping --greedy --fsc-time-in-loop 30--fsc-time-in-loop --rl-training-iters 500
+    source prerequisites/venv/bin/activate
+
+    trap "echo 'Terminating script...'; kill 0; exit" SIGINT SIGTERM
+    for entry in `ls $1`; do
+        if [ -d $1/$entry ]; then
+            echo "Running Paynt on model $entry"
+            echo "Running Paynt with --loop-rl on $entry with parameters $2 $3"
+            # create save file
+            # save_file=$( create_save_file $1 $entry "loop-rl" )
+            # echo "save file: $save_file"
+            # python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning $1/$entry --loop --rl-method=R_Shaping --greedy --fsc-time-in-loop $2 --model-name $entry --rl-training-iters $3 > $save_file
+
+            save_file=$( create_save_file $1 $entry "loop-rl-memory" )
+            python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning $1/$entry --loop --rl-method=R_Shaping --greedy --model-name $entry --fsc-time-in-loop $2 --rl-training-iters $3 --rl-load-memory-flag > $save_file
+            # pid2=$!
+            # wait $pid
+            # wait $pid2 
+        fi
+    done
+
+}
+
 
 if [ ! -d "prerequisites/venv" ]; then
     echo "Virtual environment not found. Please run install.sh first."
@@ -252,6 +287,12 @@ elif [ $1 == "--pruning-rl-hints" ]; then
         exit 1
     fi
     run_paynt_with_pruning_rl_hints $2 $3
+elif [ $1 == "--loop-rl" ]; then
+    if [ "$#" -ne 4 ]; then
+        echo "Usage: $0 --loop-rl <path-to-models> <fsc-timeout> <rl-iters>"
+        exit 1
+    fi
+    run_paynt_loop_rl $2 $3 $4
 elif [ "$#" -ne 3 ]; then
     echo "Usage: $0 <path-to-models> <path-to-dictionary> <timeout>"
     exit 1

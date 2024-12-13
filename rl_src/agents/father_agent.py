@@ -580,7 +580,7 @@ class FatherAgent(AbstractAgent):
     def get_demasked_observer(self, vectorized=False):
         """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""
         def _add_batch(item: Trajectory):
-            item.policy_info["dist_params"]["logits"] = item.policy_info["dist_params"]["logits"]
+            # item.policy_info["dist_params"]["logits"] = item.policy_info["dist_params"]["logits"]
             modified_item = Trajectory(
                 step_type=item.step_type,
                 observation=item.observation["observation"],

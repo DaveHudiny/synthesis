@@ -38,7 +38,7 @@ class Policy_Mask_Wrapper(TFPolicy):
                                                   policy_state_spec=policy.policy_state_spec,
                                                   info_spec=policy.info_spec,
                                                   observation_and_action_constraint_splitter=observation_and_action_constraint_splitter)
-
+        
         self._policy = policy
         self._observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         self._time_step_spec = time_step_spec
@@ -66,9 +66,10 @@ class Policy_Mask_Wrapper(TFPolicy):
         time_step = time_step._replace(observation=observation)
         distribution_result = self._policy.distribution(
             time_step, policy_state)
-        logits = distribution_result.action.logits
+        
+        # logits = distribution_result.action.logits
         # print(logits)
-        policy_state = distribution_result.state
+        # policy_state = distribution_result.state
         # Taken from q_policy.py from TensorFlow library
         # almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
         # almost_neg_inf = tf.constant(-1e10, dtype=logits.dtype)
@@ -78,11 +79,12 @@ class Policy_Mask_Wrapper(TFPolicy):
         #     tf.cast(mask, tf.bool), logits, almost_neg_inf
         # )
         # print(logits)
-        distribution = tfp.distributions.Categorical(
-            logits=logits
-        )
-        distribution = tf.nest.pack_sequence_as(
-            self._action_spec, [distribution])
+        # distribution = tfp.distributions.Categorical(
+        #     logits=logits
+        # )
+        # distribution = tf.nest.pack_sequence_as(
+        #     self._action_spec, [distribution])
+        return distribution_result
         return policy_step.PolicyStep(distribution, policy_state, distribution_result.info)
     
     def _get_action_masked(self, distribution, mask):
@@ -101,6 +103,11 @@ class Policy_Mask_Wrapper(TFPolicy):
         return self._policy.get_initial_state(batch_size)
 
     def _action(self, time_step, policy_state, seed) -> PolicyStep:
+        # print(policy_state)
+        observation, mask = self._observation_and_action_constraint_splitter(time_step.observation)
+        time_step = time_step._replace(observation=observation)
+        return self._policy.action(time_step, policy_state, seed)
+
         distribution = self._real_distribution(time_step, policy_state)
 
         if self._is_greedy:

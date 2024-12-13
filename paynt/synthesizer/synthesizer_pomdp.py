@@ -582,7 +582,7 @@ class SynthesizerPomdp:
     def genearate_args(self, agent_name) -> ArgsEmulator:
         return ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO",
-                            nr_runs=201, agent_name=agent_name, load_agent=False,
+                            nr_runs=self.rl_training_iters, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
                             trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
@@ -632,6 +632,7 @@ class SynthesizerPomdp:
             interpretation_result = self.rl_synthesiser.interpret_agent(
                 best=False, greedy=self.greedy)
         fsc = None
+        odd = False
         while True:
             if self.use_rl and self.loop and not first_run:
                 current_time = self.fsc_synthesis_time_limit
@@ -656,15 +657,19 @@ class SynthesizerPomdp:
             # unfold memory according to the best result
             if (not self.use_rl or interpretation_result is None) and unfold_storm:
                 self.set_memory_original(mem_size)
-            elif self.use_rl and self.rl_load_memory_flag:
+            elif self.use_rl and self.rl_load_memory_flag and odd:
                 logger.info("Adding memory nodes based on RL interpretation.")
 
                 priority_list_len = int(
-                    math.ceil(len(self.priority_list) / 10))
+                    math.ceil(len(self.priority_list) / 5))
                 priorities = self.priority_list[:priority_list_len]
                 for i in range(len(priorities)):
                     self.memory_dict[priorities[i]] += 1
                 self.quotient.set_memory_from_dict(self.memory_dict)
+            elif self.use_rl and self.rl_load_memory_flag and not odd:
+                logger.info("Adding memory nodes based to each observation.")
+                for i in self.memory_dict:
+                    self.memory_dict[i] += 1
             else:
                 logger.info(
                     "Synthesizing optimal k={} controller ...".format(mem_size))
@@ -714,7 +719,9 @@ class SynthesizerPomdp:
                 print("Time limit: {}".format(current_time))
                 assignment = self.synthesize(family, timer=current_time)
                 try:
-                    fsc = self.quotient.assignment_to_fsc(assignment)
+                    new_fsc = self.quotient.assignment_to_fsc(assignment)
+                    if new_fsc is not None:
+                        fsc = new_fsc
                 except:
                     logger.info(
                         "FSC could not be created from the assignment. Probably no improvement.")
@@ -734,8 +741,8 @@ class SynthesizerPomdp:
             self.storm_control.update_data()
 
             mem_size += 1
-
-            if mem_size >= 10 or time.time() - start_time > self.time_limit:
+            odd = not odd
+            if mem_size >= 8 or time.time() - start_time > self.time_limit:
                 break
         end_time = time.time()
         logger.info(f"Total time: {end_time - start_time}")
