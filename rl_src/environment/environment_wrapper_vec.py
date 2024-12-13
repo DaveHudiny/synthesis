@@ -73,6 +73,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
         self.state_to_observation_map = tf.constant(stormpy_model.observations)
+        self.observation_valuations = stormpy_model.observation_valuations
         # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
         # TODO: What if we want to minimize the probability of reaching some state or we want to maximize the probability of reaching some other state?
         self.special_labels = np.array(["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
@@ -439,6 +440,20 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                     "integer": self.integers}
         return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
                 "integer": self.integers}
+    
+    def encode_observation(self, integer_observation, memory, state) -> dict[str: tf.Tensor]:
+        """Encodes the observation based on the integer observation and memory."""
+        json_valuation = json.loads(str(self.observation_valuations.get_json(integer_observation)))
+        valuated = np.array(list(json_valuation.values()), dtype=np.float32)
+        allowed_actions = self.vectorized_simulator.simulator.allowed_actions[state]
+        if self.model_memory_size > 0:
+
+            return {"observation": tf.concat([tf.constant(valuated, dtype=tf.float32), tf.constant([memory], dtype=tf.float32)], axis=0),
+                    "mask": tf.constant(allowed_actions, tf.bool),
+                    "integer": tf.constant(integer_observation, dtype=tf.int32)}
+        return {"observation": tf.constant(integer_observation, dtype=tf.float32),
+                "mask": tf.constant(self.allowed_actions, tf.bool),
+                "integer": tf.constant(integer_observation, dtype=tf.int32)}
 
     def get_simulator_observation(self) -> int:
         observation = self.last_observation

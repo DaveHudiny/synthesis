@@ -15,6 +15,9 @@ from agents.recurrent_dqn_agent import Recurrent_DQN_agent
 from agents.ppo_with_qvalues_fsc import PPO_with_QValues_FSC
 from agents.periodic_fsc_neural_ppo import Periodic_FSC_Neural_PPO
 
+from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
+from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
+
 from environment import tf_py_environment
 from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
 from tools.evaluators import *
@@ -196,6 +199,42 @@ class ExperimentInterface:
             else:
                 result = interpret.get_dictionary(self.agent, with_refusing)
         return result
+    
+    def init_vectorized_evaluation_driver_w_buffer(self, tf_environment: tf_py_environment.TFPyEnvironment, 
+                                                   environment: Environment_Wrapper_Vec, 
+                                                   custom_policy : TFPolicy=None, num_steps=400) -> tuple[DynamicStepDriver, TrajectoryBuffer]:
+        """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
+
+        Args:
+            tf_environment: The TensorFlow environment object, used for simulation information.
+            environment: The vectorized environment object, used for simulation information.
+            num_steps: The number of steps for evaluation.
+        """
+        trajectory_buffer = TrajectoryBuffer(environment)
+        eager = PyTFEagerPolicy(
+            policy=custom_policy, use_tf_function=True, batch_time_steps=False)
+        vec_driver = DynamicStepDriver(
+            tf_environment,
+            eager,
+            observers=[trajectory_buffer.add_batched_step],
+            num_steps=(1 + num_steps) * self.args.num_environments
+        )
+        return vec_driver, trajectory_buffer
+    
+    def evaluate_extracted_fsc(self):
+        """Evaluates the extracted FSC. The result is saved to the self.agent.evaluation_result object."""
+        from interpreters.model_memory_interpreter import ExtractedFSCPolicy
+        evaluation_result = EvaluationResults()
+        extracted_fsc_policy = ExtractedFSCPolicy(self.agent.wrapper, self.environment, self.tf_environment)
+        if not hasattr(self, "vec_driver"):
+            driver, buffer = self.init_vectorized_evaluation_driver_w_buffer(
+                self.tf_environment, self.environment, custom_policy=extracted_fsc_policy, num_steps=self.args.max_steps)
+        self.tf_environment.reset()
+        driver.run()
+        buffer.final_update_of_results(
+            evaluation_result.update)
+        log_evaluation_info(evaluation_result)
+        buffer.clear()
 
     def perform_experiment(self, with_refusing=False):
         """Performs the experiment. The experiment is performed based on the arguments in self.args. The result is saved to the self.agent variable.
@@ -226,6 +265,7 @@ class ExperimentInterface:
             else:
                 raise ValueError(
                     "Interpretation method not recognized or implemented yet.")
+        self.evaluate_extracted_fsc()
         return result
 
     def __del__(self):
