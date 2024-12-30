@@ -9,6 +9,7 @@ rl_src/plots/
 rl_src/plots3/
 rl_src/plots2/
 rl_src/plots_*
+rl_src/models_minimal/
 stuff_for_processing/
 measurements/
 models_rl/

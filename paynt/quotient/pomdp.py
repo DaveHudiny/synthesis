@@ -127,15 +127,15 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         # do initial unfolding
         # print(PomdpQuotient.initial_memory_size)
         # self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
-        # self.set_global_memory_size(PomdpQuotient.initial_memory_size)
-        if not mem_dict:
-            self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
-        else:
-            with open("./memory_dict.pickle", "rb") as f:
-                obs_memory_dict = pickle.load(f)
-                for key in obs_memory_dict.keys():
-                    obs_memory_dict[key] += 1
-                self.set_memory_from_dict(obs_memory_dict)
+        self.set_global_memory_size(PomdpQuotient.initial_memory_size)
+        # if not mem_dict:
+        #     self.set_imperfect_memory_size(PomdpQuotient.initial_memory_size)
+        # else:
+        #     with open("./memory_dict.pickle", "rb") as f:
+        #         obs_memory_dict = pickle.load(f)
+        #         for key in obs_memory_dict.keys():
+        #             obs_memory_dict[key] += 1
+        #         self.set_memory_from_dict(obs_memory_dict)
 
     
     @property
@@ -278,6 +278,11 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             if hole != num_holes:
                 hole_options.append( (hole,choice_memory_option[choice]) )
             choice_to_hole_options.append(hole_options)
+
+        # print(family)
+        # print(type(family))
+        # print(dir(family))
+        # exit()
 
         return family, choice_to_hole_options
 

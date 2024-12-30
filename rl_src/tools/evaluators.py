@@ -11,11 +11,15 @@ import numpy as np
 from environment.environment_wrapper import Environment_Wrapper
 from environment.environment_wrapper_vec import Environment_Wrapper_Vec
 from environment import tf_py_environment
+# from agents.father_agent import FatherAgent
 
 from tf_agents.policies import TFPolicy
 
 from tf_agents.trajectories import TimeStep
 from tf_agents.trajectories import Trajectory
+from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
+from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
+from interpreters.model_memory_interpreter import ExtractedFSCPolicy
 
 import logging
 
@@ -43,6 +47,15 @@ class EvaluationResults:
         self.combined_variance = []
         self.num_episodes = []
         self.paynt_bounds = [] # Shape (n, 2), where n is the number of iterations of PAYNT<->RL loop and 2 is the bound and number of iteration of each bound given the current iteration of RL.
+        self.last_from_interpretation = False
+
+        self.extracted_fsc_episode_return = -1.0
+        self.extracted_fsc_return = -1.0
+        self.extracted_fsc_reach_prob = -1.0
+        self.extracted_fsc_variance = -1.0
+        self.extracted_fsc_num_episodes = -1
+        self.extracted_fsc_virtual_variance = -1.0
+        self.extracted_fsc_combined_variance = -1.0
 
     def set_experiment_settings(self, learning_algorithm: str = "", learning_rate: float = float("nan"),
                                 nn_details: dict = {}, max_steps: int = float("nan")):
@@ -304,3 +317,52 @@ def calculate_statistics(total_return, episode_return, goal_visited, traps_visit
     combined_variance = np.var(np.array(returns) + np.array(episode_returns))
     trap_reach_prob = traps_visited / num_episodes
     return avg_return, avg_episode_return, reach_prob, episode_variance, virtual_variance, combined_variance, trap_reach_prob
+
+def set_fsc_values_to_evaluation_result(external_evaluation_result : EvaluationResults, evaluation_result : EvaluationResults):
+    external_evaluation_result.last_from_interpretation = True
+    external_evaluation_result.extracted_fsc_episode_return = evaluation_result.returns_episodic[-1]
+    external_evaluation_result.extracted_fsc_return = evaluation_result.returns[-1]
+    external_evaluation_result.extracted_fsc_reach_prob = evaluation_result.reach_probs[-1]
+    external_evaluation_result.extracted_fsc_num_episodes = evaluation_result.num_episodes[-1]
+    external_evaluation_result.extracted_fsc_variance = evaluation_result.each_episode_variance[-1]
+    external_evaluation_result.extracted_fsc_virtual_variance = evaluation_result.each_episode_virtual_variance[-1]
+    external_evaluation_result.extracted_fsc_combined_variance = evaluation_result.combined_variance[-1]
+
+def get_new_vectorized_evaluation_driver(tf_environment : tf_py_environment.TFPyEnvironment, environment : Environment_Wrapper_Vec, 
+                                         custom_policy=None, num_steps=1000) -> tuple[DynamicStepDriver, TrajectoryBuffer]:
+    """Create a new vectorized evaluation driver and buffer."""
+    trajectory_buffer = TrajectoryBuffer(environment)
+    eager = PyTFEagerPolicy(
+        policy=custom_policy, use_tf_function=True, batch_time_steps=False)
+    vec_driver = DynamicStepDriver(
+        tf_environment,
+        eager,
+        observers=[trajectory_buffer.add_batched_step],
+        num_steps=(1 + num_steps) * tf_environment.batch_size
+    )
+    return vec_driver, trajectory_buffer
+
+
+def evaluate_extracted_fsc(external_evaluation_result : EvaluationResults, model : str = "", agent = None, 
+                           extracted_fsc_policy : ExtractedFSCPolicy = None):
+        """Evaluates the extracted FSC. The result is saved to the external_evaluation_result.
+        
+        Args:
+            external_evaluation_result (EvaluationResults): Evaluation results to be updated.
+            model (str): Path to the model to be evaluated
+            agent (FatherAgent): Agent to be used for evaluation. TODO: Remove cyrcular dependency with some data structure.
+            extracted_fsc_policy (ExtractedFSCPolicy): Extracted FSC policy to be evaluated. If None, the policy is created from the agent.
+        """
+        
+        evaluation_result = EvaluationResults()
+        if extracted_fsc_policy is None:
+            extracted_fsc_policy = ExtractedFSCPolicy(agent.wrapper, agent.environment, agent.tf_environment, agent.args, model = model)
+        driver, buffer = get_new_vectorized_evaluation_driver(
+            agent.tf_environment, agent.environment, custom_policy=extracted_fsc_policy, num_steps=agent.args.max_steps)
+        agent.tf_environment.reset()
+        driver.run()
+        buffer.final_update_of_results(
+            evaluation_result.update)
+        log_evaluation_info(evaluation_result)
+        set_fsc_values_to_evaluation_result(external_evaluation_result, evaluation_result)
+        buffer.clear()

@@ -269,9 +269,6 @@ class SynthesizerPomdp:
                                         model=self.input_rl_settings_dict["model_name"],
                                         method=f"{self.args.learning_method}_{sub_method}")
             return
-        first_time = True
-        repeated_fsc = False
-        soft_decision = False
         logger.info("Training agent with combination of FSC and RL.")
         rl_synthesiser.train_agent_combined_with_fsc_advanced(
             4000, fsc, self.storm_control.paynt_bounds)
@@ -580,13 +577,15 @@ class SynthesizerPomdp:
         return agent_name
 
     def genearate_args(self, agent_name) -> ArgsEmulator:
+        # nr_runs = self.rl_training_iters
+        nr_runs = 2001
         return ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO",
-                            nr_runs=self.rl_training_iters, agent_name=agent_name, load_agent=False,
+                            nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
                             trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
-                            batch_size=256, vectorized_envs_flag=True, perform_interpretation=True)
+                            batch_size=256, vectorized_envs_flag=True, perform_interpretation=True, use_rnn_less=True, model_memory_size=0)
 
     def perform_rl_training_w_fsc(self, fsc):
         if self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
@@ -604,6 +603,82 @@ class SynthesizerPomdp:
         else:
             self.rl_synthesiser.train_agent(self.args.nr_runs)
 
+    def train_and_interpret(self, fsc):
+        if fsc is not None:
+            self.perform_rl_training_w_fsc(fsc)
+        else:
+            logger.info("FSC is None. Training agent without FSC.")
+            self.rl_synthesiser.train_agent(self.args.nr_runs)
+        logger.info("Interpreting agent ...")
+        interpretation_result = self.rl_synthesiser.interpret_agent(
+                best=False, randomize_illegal_actions=True, greedy=self.greedy)
+        logger.info("Interpretation finished.")
+        return interpretation_result
+    
+    def set_memory_rl_loop(self):
+        logger.info("Adding memory nodes based on RL interpretation.")
+        priority_list_len = int(
+                    math.ceil(len(self.priority_list) / 5))
+        priorities = self.priority_list[:priority_list_len]
+        for i in range(len(priorities)):
+            self.memory_dict[priorities[i]] += 1
+        self.quotient.set_memory_from_dict(self.memory_dict)
+
+    def get_vector_and_memory_from_family(self, family, hole):
+        import re
+        name = family.hole_name(hole)
+        vector_match = re.search(r'\[([^\]]+)\]', name)
+        if vector_match:
+            vector_string = vector_match.group(1)
+            vector = []
+            for item in vector_string.split('&'):
+                if "=" not in item:
+                    if "!" in item:
+                        vector.append(float(-1.0))
+                    else:
+                        vector.append(float(1.0)) 
+                else:
+                    _, value = item.split('=')
+                    value = value.strip()
+                    vector.append(float(value)) 
+        last_number_match = re.search(r',(\d+)\)$', name)
+        if last_number_match:
+            last_number = float(last_number_match.group(1))
+        return vector, last_number
+    
+    def get_restricted_family_rl_inference(self, original_family):
+        restricted_family = original_family.copy()
+        pseudo_subfamily = original_family.copy()
+        num_misses = 0
+        logger.info("Building family from FFNN...")
+        for hole in range(restricted_family.num_holes):
+            vector, mem_number = self.get_vector_and_memory_from_family(restricted_family, hole)
+            options = restricted_family.hole_options(hole)
+            labels = [str(restricted_family.hole_to_option_labels[hole][option]) for option in options]
+            fake_time_step = self.rl_synthesiser.agent.environment.create_fake_timestep_from_valuations(vector)
+            i = 0
+            while True:
+                action = self.rl_synthesiser.agent.wrapper.action(fake_time_step)
+                action_label = self.rl_synthesiser.agent.environment.act_to_keywords[action.action.numpy()[0]]
+                if action_label in labels:
+                    index_of_action_label = labels.index(action_label)
+                    restricted_family.hole_set_options(hole, [index_of_action_label])
+                    negated_actions = [action for action in options if action != index_of_action_label]
+                    pseudo_subfamily.hole_set_options(hole, negated_actions)
+                    break
+                if i == 0:
+                    num_misses += 1
+                if i > 10:
+                    selected_action = np.random.choice(options)
+                    restricted_family.hole_set_options(hole, [selected_action])
+                    negated_actions = [action for action in options if action != selected_action]
+                    pseudo_subfamily.hole_set_options(hole, negated_actions)
+                    break
+                i += 1
+        logger.info(f"Number of misses: {num_misses} out of {restricted_family.num_holes}")
+        self.quotient.build(restricted_family)
+        return restricted_family
+    
     def strategy_storm(self, unfold_imperfect_only, unfold_storm=True):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
@@ -627,25 +702,16 @@ class SynthesizerPomdp:
             self.args = self.genearate_args(agent_name)
             self.rl_synthesiser = Synthesizer_RL(
                 self.quotient.pomdp, self.args)
-        if not self.loop:
+        if not self.loop and self.use_rl:
             self.rl_synthesiser.train_agent(self.args.nr_runs)
             interpretation_result = self.rl_synthesiser.interpret_agent(
                 best=False, greedy=self.greedy)
         fsc = None
         odd = False
         while True:
+            current_time = self.fsc_synthesis_time_limit
             if self.use_rl and self.loop and not first_run:
-                current_time = self.fsc_synthesis_time_limit
-                if fsc is not None:
-                    self.perform_rl_training_w_fsc(fsc)
-                else:
-                    logger.info("FSC is None. Training agent without FSC.")
-                    self.rl_synthesiser.train_agent(self.args.nr_runs)
-                logger.info("Interpreting agent ...")
-                interpretation_result = self.rl_synthesiser.interpret_agent(
-                    best=False, randomize_illegal_actions=True, greedy=self.greedy)
-                logger.info("Interpretation finished.")
-
+                interpretation_result = self.train_and_interpret(fsc)
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
 
@@ -658,14 +724,7 @@ class SynthesizerPomdp:
             if (not self.use_rl or interpretation_result is None) and unfold_storm:
                 self.set_memory_original(mem_size)
             elif self.use_rl and self.rl_load_memory_flag and odd:
-                logger.info("Adding memory nodes based on RL interpretation.")
-
-                priority_list_len = int(
-                    math.ceil(len(self.priority_list) / 5))
-                priorities = self.priority_list[:priority_list_len]
-                for i in range(len(priorities)):
-                    self.memory_dict[priorities[i]] += 1
-                self.quotient.set_memory_from_dict(self.memory_dict)
+                self.set_memory_rl_loop()
             elif self.use_rl and self.rl_load_memory_flag and not odd:
                 logger.info("Adding memory nodes based to each observation.")
                 for i in self.memory_dict:
@@ -679,6 +738,10 @@ class SynthesizerPomdp:
                     self.quotient.set_global_memory_size(mem_size)
 
             family = self.quotient.family
+            
+            # print("Family built")
+            # exit()
+
 
             if self.use_rl and interpretation_result is not None:
                 self.set_advices_from_rl(interpretation_result=interpretation_result,
@@ -712,12 +775,13 @@ class SynthesizerPomdp:
                 main_family = family
                 subfamilies = []
             self.synthesizer.subfamilies_buffer = subfamilies
-            self.synthesizer.main_family = main_family
+            self.synthesizer.main_family = pseudo_family # main_family
 
             if self.loop:
                 print("Synthesizing optimal k={} controller ...".format(mem_size))
                 print("Time limit: {}".format(current_time))
                 assignment = self.synthesize(family, timer=current_time)
+                self.quotient.build()
                 try:
                     new_fsc = self.quotient.assignment_to_fsc(assignment)
                     if new_fsc is not None:
@@ -726,7 +790,7 @@ class SynthesizerPomdp:
                     logger.info(
                         "FSC could not be created from the assignment. Probably no improvement.")
             else:
-                assignment = self.synthesize(family)
+                assignment = self.synthesize(family, timer=current_time)
 
             if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment
@@ -739,7 +803,7 @@ class SynthesizerPomdp:
 
             first_run = False
             self.storm_control.update_data()
-
+            break
             mem_size += 1
             odd = not odd
             if mem_size >= 8 or time.time() - start_time > self.time_limit:

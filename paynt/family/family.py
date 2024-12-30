@@ -92,6 +92,7 @@ class Family:
     def hole_options_to_string(self, hole, options):
         name = self.hole_name(hole)
         labels = [str(self.hole_to_option_labels[hole][option]) for option in options]
+        # print(f"labels: {labels}")
         if len(labels) == 1:
             return f"{name}={labels[0]}"
         else:

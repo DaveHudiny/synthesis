@@ -205,6 +205,22 @@ run_paynt_loop_rl(){
 
 }
 
+run_ffnn_rl_hints(){
+    source prerequisites/venv/bin/activate
+    echo "Running Paynt with --rl-ffnn"
+    trap "echo 'Terminating script...'; kill 0; exit" SIGINT SIGTERM
+    num_iterations=10
+    for iteration in $(seq 1 $num_iterations); do
+        for entry in `ls $1`; do
+            if [ -d $1/$entry ]; then
+                echo "Running Paynt on model $entry"
+                timeout $2 python3 paynt.py --fsc-synthesis --storm-pomdp --reinforcement-learning --model-name $entry $1/$entry > $1/$entry/paynt-rl-ffnn.log --fsc-time-in-loop $2 &
+                pid=$!
+                wait $pid
+            fi
+        done
+    done
+}
 
 if [ ! -d "prerequisites/venv" ]; then
     echo "Virtual environment not found. Please run install.sh first."
@@ -293,6 +309,12 @@ elif [ $1 == "--loop-rl" ]; then
         exit 1
     fi
     run_paynt_loop_rl $2 $3 $4
+elif [ $1 == "--ffnn-rl-hints" ]; then
+    if [ "$#" -ne 3 ]; then
+        echo "Usage: $0 --ffnn-rl-hints <path-to-models> <timeout>"
+        exit 1
+    fi
+    run_ffnn_rl_hints $2 $3
 elif [ "$#" -ne 3 ]; then
     echo "Usage: $0 <path-to-models> <path-to-dictionary> <timeout>"
     exit 1

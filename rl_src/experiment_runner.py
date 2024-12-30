@@ -74,7 +74,7 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     """
     start_time = time.time()
     initializer = ExperimentInterface(args)
-    dicts = initializer.perform_experiment(with_refusing=refusing)
+    dicts = initializer.perform_experiment(with_refusing=refusing, model=model)
     if args.perform_interpretation:
         if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
             os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
@@ -91,7 +91,7 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256,
-                    random_start_simulator=False, model_condition: str = "", args=None):
+                    random_start_simulator=False, model_condition: str = "", model_memory_size = 0, use_rnn_less = False):
     """ Run multiple experiments for PAYNT oracle.
     Args:
         name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
@@ -112,22 +112,23 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         prism_properties = f"{path_to_models}/{model}/sketch.props"
         encoding_method = "Valuations"
         refusing = None
+
         for learning_method in ["Stochastic_PPO"]:
             # if not "network" in model:
             #     continue
             for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
                 logger.info(
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
-                if args is None:
-                    args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
+                args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                         restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
-                                        nr_runs=1500, encoding_method=encoding_method, agent_name=model, load_agent=False, 
+                                        nr_runs=2001, encoding_method=encoding_method, agent_name=model, load_agent=False, 
                                         evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20, 
                                         trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
                                         normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator, 
                                         replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                         vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
-                                        use_rnn_less=True, model_memory_size=10)
+                                        use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,
+                                        name_of_experiment=name_of_experiment)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=False, name_of_experiment=name_of_experiment)
@@ -136,25 +137,33 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 if __name__ == "__main__":
     args_from_cmd = argparse.ArgumentParser()
 
-    args_from_cmd.add_argument("--batch_size", type=int, default=256)
-    args_from_cmd.add_argument("--learning_rate", type=float, default=1.6e-4)
+    args_from_cmd.add_argument("--batch-size", type=int, default=256)
+    args_from_cmd.add_argument("--learning-rate", type=float, default=1.6e-4)
     args_from_cmd.add_argument(
-        "--path_to_models", type=str, default="./models")
-    args_from_cmd.add_argument("--random_start_simulator", action="store_true")
-    args_from_cmd.add_argument("--model_condition", type=str, default="")
+        "--path-to-models", type=str, default="./models")
+    args_from_cmd.add_argument("--random-start-simulator", action="store_true")
+    args_from_cmd.add_argument("--model-condition", type=str, default="")
+    args_from_cmd.add_argument("--use-rnn-less", action="store_true", default=False, help="Whether to use neural architecture without LSTM layers.")
+    args_from_cmd.add_argument("--model-memory-size", type=int, default=0, help="The size of the memory in the model. If 0, the memory is not used.")
 
     args = args_from_cmd.parse_args()
 
     # Run experiments with the given arguments
     if args.random_start_simulator:
-        name = "experiments_interpretation_random"
+        name = "experiments_interpretation2_random"
     else:
-        name = "experiments_interpretation"
+        name = "experiments_interpretation2"
+    
+    if args.use_rnn_less:
+        name += "_rnn_less"
+    if args.model_memory_size > 0:
+        name += f"_memory_{args.model_memory_size}"
     if not os.path.exists(name):
         os.makedirs(name)
 
     run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate,
-                    batch_size=args.batch_size, random_start_simulator=args.random_start_simulator, model_condition=args.model_condition)
+                    batch_size=args.batch_size, random_start_simulator=args.random_start_simulator, model_condition=args.model_condition,
+                    model_memory_size=args.model_memory_size, use_rnn_less=args.use_rnn_less)
     # for _ in range(10):
     #     # 0.00001
     #     for learning_rate in [0.00005, 0.0001, 0.0005, 0.001]:

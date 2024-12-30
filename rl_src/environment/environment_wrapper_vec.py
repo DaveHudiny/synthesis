@@ -230,7 +230,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                     shape=(),
                     dtype=tf.int32,
                     minimum=0,
-                    maximum=len(self.action_keywords) - 1,
+                    maximum=self.args.model_memory_size - 1,
                     name="memory_update"
                 )
             }
@@ -451,9 +451,22 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             return {"observation": tf.concat([tf.constant(valuated, dtype=tf.float32), tf.constant([memory], dtype=tf.float32)], axis=0),
                     "mask": tf.constant(allowed_actions, tf.bool),
                     "integer": tf.constant(integer_observation, dtype=tf.int32)}
-        return {"observation": tf.constant(integer_observation, dtype=tf.float32),
-                "mask": tf.constant(self.allowed_actions, tf.bool),
+        return {"observation": tf.constant(valuated, dtype=tf.float32),
+                "mask": tf.constant(allowed_actions, tf.bool),
                 "integer": tf.constant(integer_observation, dtype=tf.int32)}
+    
+    def create_fake_timestep_from_valuations(self, valuations):
+        """Creates a fake TimeStep from the valuations."""
+        observation = tf.constant([valuations], dtype=tf.float32)
+        mask = tf.constant([True] * self.nr_actions, dtype=tf.bool)
+        integer = tf.constant([0], dtype=tf.int32)
+        time_step = ts.TimeStep(
+            observation={"observation": observation, "mask": mask, "integer": integer},
+            reward=tf.constant(0.0, dtype=tf.float32),
+            discount=tf.constant(1.0, dtype=tf.float32),
+            step_type=tf.constant(ts.StepType.MID, dtype=tf.int32)
+        )
+        return time_step
 
     def get_simulator_observation(self) -> int:
         observation = self.last_observation

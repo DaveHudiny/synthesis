@@ -221,11 +221,14 @@ class ExperimentInterface:
         )
         return vec_driver, trajectory_buffer
     
-    def evaluate_extracted_fsc(self):
+    def evaluate_extracted_fsc(self, external_evaluation_result : EvaluationResults, model : str = ""):
         """Evaluates the extracted FSC. The result is saved to the self.agent.evaluation_result object."""
         from interpreters.model_memory_interpreter import ExtractedFSCPolicy
-        evaluation_result = EvaluationResults()
-        extracted_fsc_policy = ExtractedFSCPolicy(self.agent.wrapper, self.environment, self.tf_environment)
+        if external_evaluation_result is None or True:
+            evaluation_result = EvaluationResults()
+        else:
+            evaluation_result = external_evaluation_result
+        extracted_fsc_policy = ExtractedFSCPolicy(self.agent.wrapper, self.environment, self.tf_environment, self.args, model = model)
         if not hasattr(self, "vec_driver"):
             driver, buffer = self.init_vectorized_evaluation_driver_w_buffer(
                 self.tf_environment, self.environment, custom_policy=extracted_fsc_policy, num_steps=self.args.max_steps)
@@ -234,9 +237,18 @@ class ExperimentInterface:
         buffer.final_update_of_results(
             evaluation_result.update)
         log_evaluation_info(evaluation_result)
+        external_evaluation_result.last_from_interpretation = True
+        external_evaluation_result.extracted_fsc_episode_return = evaluation_result.returns_episodic[-1]
+        external_evaluation_result.extracted_fsc_return = evaluation_result.returns[-1]
+        external_evaluation_result.extracted_fsc_reach_prob = evaluation_result.reach_probs[-1]
+        external_evaluation_result.extracted_fsc_num_episodes = evaluation_result.num_episodes[-1]
+        external_evaluation_result.extracted_fsc_variance = evaluation_result.each_episode_variance[-1]
+        external_evaluation_result.extracted_fsc_virtual_variance = evaluation_result.each_episode_virtual_variance[-1]
+        external_evaluation_result.extracted_fsc_combined_variance = evaluation_result.combined_variance[-1]
+        
         buffer.clear()
 
-    def perform_experiment(self, with_refusing=False):
+    def perform_experiment(self, with_refusing=False, model : str = ""):
         """Performs the experiment. The experiment is performed based on the arguments in self.args. The result is saved to the self.agent variable.
         Additional experimental data can be found in the self.agent.evaluation_result variable.
 
@@ -265,7 +277,8 @@ class ExperimentInterface:
             else:
                 raise ValueError(
                     "Interpretation method not recognized or implemented yet.")
-        self.evaluate_extracted_fsc()
+        if self.args.use_rnn_less:
+            evaluate_extracted_fsc(self.agent.evaluation_result, model = model, agent = self.agent)
         return result
 
     def __del__(self):

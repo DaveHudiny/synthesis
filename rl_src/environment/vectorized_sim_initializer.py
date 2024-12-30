@@ -71,4 +71,9 @@ class SimulatorInitializer:
         else:
             logger.info(
                 f"Model {name} found in {path_to_compiled_models}. The model will be loaded")
-            return vec_storm.StormVecEnv.load(f"{path_to_compiled_models}/{name}.pkl")
+            try:
+                return vec_storm.StormVecEnv.load(f"{path_to_compiled_models}/{name}.pkl")
+            except Exception as e:
+                logger.error(
+                    f"Error while loading model {name} from {path_to_compiled_models}: {e}")
+                return None
