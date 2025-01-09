@@ -29,6 +29,8 @@ import json
 
 import jax
 
+import time
+
 
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
@@ -183,23 +185,36 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def create_observation_spec(self) -> tensor_spec:
         """Creates the observation spec based on the encoding method."""
         if self.model_memory_size > 0:
-            action_size_const = 1
+            memory_update_size = 1
         else:
-            action_size_const = 0
+            memory_update_size = 0
         if self.encoding_method == "Valuations":
             try:
                 json_example = self.stormpy_model.observation_valuations.get_json(
                     0)
                 parse_data = json.loads(str(json_example))
                 observation_spec = tensor_spec.TensorSpec(shape=(
-                    len(parse_data) + OBSERVATION_SIZE + action_size_const,), dtype=tf.float32, name="observation"),
+                    len(parse_data) + OBSERVATION_SIZE + memory_update_size,), dtype=tf.float32, name="observation")
+            except:
+                logging.error(
+                    "Valuation encoding not possible, currently not compatible. Probably model issue.")
+                exit(0)
+        elif self.encoding_method == "MaskedValuations":
+            try:
+                action_mask_size = len(self.action_keywords)
+                json_example = self.stormpy_model.observation_valuations.get_json(
+                    0)
+                parse_data = json.loads(str(json_example))
+                observation_spec = tensor_spec.TensorSpec(shape=(
+                    len(parse_data) + OBSERVATION_SIZE + action_mask_size + memory_update_size,), dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
                 exit(0)
         else:
             raise ValueError("Encoding method currently not implemented")
-        return observation_spec[0]
+        print(observation_spec)
+        return observation_spec
 
     def create_specifications(self):
         """Creates the specifications for the environment. Important for TF-Agents."""
@@ -265,6 +280,19 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.vectorized_simulator.set_num_envs(num_envs)
         self._reset()
 
+    def get_observation_tensor(self, observation, mask, integers, memory = None):
+        if self.encoding_method == "MaskedValuations":
+            encoded_observation = tf.concat([observation, tf.cast(mask, dtype=tf.float32)], axis=1)
+
+        elif self.model_memory_size > 0:
+            memory = tf.zeros((self.num_envs, 1), dtype=tf.float32) if memory is None else memory
+            encoded_observation = tf.concat([observation, memory], axis=1)
+        else:
+            encoded_observation = observation
+
+        return {"observation": encoded_observation, "mask": mask, "integer": integers}
+
+
     def _reset(self) -> ts.TimeStep:
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
         logger.info("Resetting the environment.")
@@ -280,16 +308,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             tf.gather(self.state_to_observation_map, hidden_state.vertices),
             (self.num_envs, 1)
         )
-        if self.model_memory_size > 0:
-            default_memory = tf.zeros((self.num_envs, 1), dtype=tf.float32)
-            self.memory_update = default_memory
-            observation_tensor = {"observation": tf.concat([tf.constant(self.last_observation, dtype=tf.float32), default_memory], axis=1),
-                                  "mask": tf.constant(self.allowed_actions, tf.bool),
-                                  "integer": self.integers}
-        else:
-            observation_tensor = {"observation": tf.constant(self.last_observation, tf.float32),
-                                  "mask": tf.constant(self.allowed_actions, tf.bool),
-                                  "integer": self.integers}
+        observation_tensor = self.get_observation_tensor(
+            tf.constant(self.last_observation, dtype=tf.float32),
+            tf.constant(self.allowed_actions, dtype=tf.bool),
+            self.integers
+        )
         self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.truncated = np.array(len(self.last_observation) * [False])
@@ -362,7 +385,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 actions["memory_update"], dtype=tf.float32)
         self.prev_states = np.reshape(
             self.vectorized_simulator.simulator_states.vertices, (self.num_envs, 1))
-
+        
         self.reward_shaping_rewards = self.reward_shaper_function(
             self.prev_states, actions)
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
@@ -405,8 +428,42 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         )
         return new_actions.numpy()
 
+    def change_illegal_actions_to_random_allowed(self, actions, mask):
+        """Changes the illegal actions to random allowed actions given mask with allowed actions."""
+        rows = tf.range(tf.shape(mask)[0])
+        gather_indices = tf.stack([rows, actions], axis=-1)
+        is_action_allowed = tf.gather_nd(mask, gather_indices)
+        masks = self.allowed_actions
+        batch_size = tf.shape(masks)[0]
+        flat_indices = tf.where(masks)
+        legal_counts = tf.reduce_sum(tf.cast(masks, tf.int32), axis=1)
+        batch_offsets = tf.cumsum(tf.concat([[0], legal_counts[:-1]], axis=0))
+        random_offsets = tf.random.uniform(
+            shape=(batch_size,),
+            maxval=tf.reduce_max(legal_counts),
+            dtype=tf.int32
+        ) % legal_counts
+        selected_flat_indices = batch_offsets + random_offsets
+        selected_actions = tf.gather(flat_indices[:, 1], selected_flat_indices)
+        new_actions = tf.where(
+            is_action_allowed,
+            actions,
+            selected_actions
+        )
+        return new_actions.numpy()
+        
+
     def _step(self, action) -> ts.TimeStep:
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
+        # current_time = time.time()
+        if self.model_memory_size > 0:
+            aux_action = self.change_illegal_actions_to_random_allowed(
+                action["simulator_action"], self.allowed_actions)
+            action = {"simulator_action": aux_action, "memory_update": action["memory_update"]}
+        else:
+            action = self.change_illegal_actions_to_random_allowed(
+                action, self.allowed_actions)
+        # after_change_time = time.time()
         self.cumulative_num_steps += self.num_envs
         self.last_action = action
         self._do_step_in_simulator(action)
@@ -414,6 +471,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             self._played_illegal_actions = self.get_mask_of_played_illegal_actions(
                 action)
         evaluated_step = self.evaluate_simulator()
+        # end_time = time.time()
         return evaluated_step
 
     def current_time_step(self) -> ts.TimeStep:
@@ -431,7 +489,14 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def get_observation(self) -> dict[str: tf.Tensor]:
         encoded_observation = self.last_observation
         mask = self.allowed_actions
-        if self.model_memory_size > 0:
+        if self.encoding_method == "MaskedValuations":
+            encoded_observation = tf.concat(
+                [encoded_observation, tf.cast(mask, dtype=tf.float32)], axis=1)
+            return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
+                    "integer": self.integers}
+        
+            
+        elif self.model_memory_size > 0:
             memory_update = tf.reshape(
                 self.memory_update, shape=(self.num_envs, 1))
             encoded_observation = tf.concat(
@@ -467,6 +532,21 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             step_type=tf.constant(ts.StepType.MID, dtype=tf.int32)
         )
         return time_step
+    
+    def create_fake_timestep_from_observation_integer(self, observation_integer):
+        """Creates a fake TimeStep from the observation integer."""
+        observation = create_valuations_encoding(observation_integer, self.stormpy_model)
+        observation = tf.constant([observation], dtype=tf.float32)
+        mask = tf.constant([True] * self.nr_actions, dtype=tf.bool)
+        integer = tf.constant([observation_integer], dtype=tf.int32)
+        time_step = ts.TimeStep(
+            observation={"observation": observation, "mask": mask, "integer": integer},
+            reward=tf.constant(0.0, dtype=tf.float32),
+            discount=tf.constant(1.0, dtype=tf.float32),
+            step_type=tf.constant(ts.StepType.MID, dtype=tf.int32)
+        )
+        return time_step
+
 
     def get_simulator_observation(self) -> int:
         observation = self.last_observation

@@ -87,4 +87,13 @@ module obstacle2
     [o]  true -> 1/4:(o2x'=o2l) + 1/4:(o2x'=o2r) + 1/4:(o2y'=o2u) + 1/4:(o2y'=o2d);
 endmodule
 
+rewards "steps"
+    [l] true : 1;
+    [r] true : 1;
+    [d] true : 1;
+    [u] true : 1;
+    [o] true : 1;
+    [w] true : 1;
+endrewards
+
 formula at2 = (ax=o2x & ay=o2y);

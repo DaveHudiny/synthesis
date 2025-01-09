@@ -223,7 +223,7 @@ class ExperimentInterface:
     
     def evaluate_extracted_fsc(self, external_evaluation_result : EvaluationResults, model : str = ""):
         """Evaluates the extracted FSC. The result is saved to the self.agent.evaluation_result object."""
-        from interpreters.model_memory_interpreter import ExtractedFSCPolicy
+        from interpreters.fsc_based_interpreter import ExtractedFSCPolicy
         if external_evaluation_result is None or True:
             evaluation_result = EvaluationResults()
         else:

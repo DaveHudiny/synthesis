@@ -26,6 +26,7 @@ class PreviousStats:
 
 
 DICT_OF_PREV_STATS = {
+    "drone-2-8-1": PreviousStats(None, 0.40615, None, 0.0),
     "evade": PreviousStats(-24.999, 1.0, None, 0.698, None, 1.0),
     "evade-n=5-r=23": PreviousStats(-17.0, 1.0, -20.600, 1.0, -16.095),
     "evade-n6-r2": PreviousStats(-21.0, 1.0, -28.0, 1.0, None, None),
@@ -49,8 +50,9 @@ DICT_OF_PREV_STATS = {
     "obstacle-large": PreviousStats(25.78, 1.0),
     "intercept-large": PreviousStats(None, 0.78),
     "evade-large": PreviousStats(None, 0.0),
-    "maze-10": PreviousStats(),
-    "avoid": PreviousStats(),
+    "maze-10": PreviousStats(8.5093, 1.0, 4.059, 1.0, 2.30, 1.0),
+    "maze-10_rewarded": PreviousStats(85.093, 1.0, 40.59, 1.0, 23.0, 1.0),
+    "avoid": PreviousStats(), 
 }
 
 METRICS = ["returns", "returns_episodic",

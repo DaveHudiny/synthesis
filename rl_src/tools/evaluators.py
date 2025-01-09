@@ -19,7 +19,9 @@ from tf_agents.trajectories import TimeStep
 from tf_agents.trajectories import Trajectory
 from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
-from interpreters.model_memory_interpreter import ExtractedFSCPolicy
+from interpreters.fsc_based_interpreter import ExtractedFSCPolicy
+
+from tools.args_emulator import ArgsEmulator
 
 import logging
 
@@ -366,3 +368,15 @@ def evaluate_extracted_fsc(external_evaluation_result : EvaluationResults, model
         log_evaluation_info(evaluation_result)
         set_fsc_values_to_evaluation_result(external_evaluation_result, evaluation_result)
         buffer.clear()
+
+def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator, environment, tf_environment) -> EvaluationResults:
+    """Evaluate the policy in the given environment and return the evaluation results."""
+    evaluation_result = EvaluationResults()
+    driver, buffer = get_new_vectorized_evaluation_driver(
+        tf_environment, environment, custom_policy=policy, num_steps=args.max_steps)
+    tf_environment.reset()
+    driver.run()
+    buffer.final_update_of_results(evaluation_result.update)
+    log_evaluation_info(evaluation_result)
+    buffer.clear()
+    return evaluation_result

@@ -32,11 +32,15 @@ class Family:
             self.family = payntbind.synthesis.Family()
             self.hole_to_name = []
             self.hole_to_option_labels = []
+            self.hole_to_observation_index = []
+            
         else:
             self.family = payntbind.synthesis.Family(other.family)
             self.hole_to_name = other.hole_to_name
             self.hole_to_option_labels = other.hole_to_option_labels
+            self.hole_to_observation_index = other.hole_to_observation_index
 
+        
         self.parent_info = None
         self.refinement_depth = 0
         self.constraint_indices = None
@@ -56,10 +60,14 @@ class Family:
     def num_holes(self):
         return self.family.numHoles()
 
-    def add_hole(self, name, option_labels):
+    def add_hole(self, name, option_labels, observation_index = 0):
         self.hole_to_name.append(name)
         self.hole_to_option_labels.append(option_labels)
+        self.hole_to_observation_index.append(observation_index)
         self.family.addHole(len(option_labels))
+
+    def get_hole_observation_index(self, hole):
+        return self.hole_to_observation_index[hole]
 
     def hole_name(self, hole):
         return self.hole_to_name[hole]

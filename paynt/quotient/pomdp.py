@@ -236,7 +236,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         self.is_action_hole = []
 
         for obs in range(self.observations):
-            
             # action holes
             hole_indices = []
             num_actions = self.actions_at_observation[obs]
@@ -245,7 +244,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                 for mem in range(self.observation_memory_size[obs]):
                     hole_indices.append(family.num_holes)
                     name = self.create_hole_name(obs,mem,True)
-                    family.add_hole(name,option_labels)
+                    family.add_hole(name, option_labels, observation_index=obs)
                     self.is_action_hole.append(True)
             self.observation_action_holes.append(hole_indices)
 
@@ -257,7 +256,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                 for mem in range(self.observation_memory_size[obs]):
                     name = self.create_hole_name(obs,mem,False)
                     hole_indices.append(family.num_holes)
-                    family.add_hole(name,option_labels)
+                    family.add_hole(name,option_labels, observation_index=obs)
                     self.is_action_hole.append(False)
             self.observation_memory_holes.append(hole_indices)
 

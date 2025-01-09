@@ -84,8 +84,11 @@ def construct_table_observation_action_memory( agent_policy : TFPolicy, environm
             else:
                 action = played_action.action["simulator_action"]
                 update = played_action.action["memory_update"]
-            if mask[action].numpy():
+            if not mask[action].numpy():
                 number_of_misses += 1
+            if mask.numpy().sum() == 1:
+                # Only a single action is legal -- pick it.
+                action = mask.numpy().argmax()
             observation_to_action_table[memory][integer_observation] = action
             observation_to_update_table[memory][integer_observation] = update
     
@@ -100,8 +103,8 @@ class ExtractedFSCPolicy(TFPolicy):
     def __init__(self, agent_policy : TFPolicy, environment : Environment_Wrapper_Vec, tf_environment : TFPyEnvironment, args, model = ""):
         eager = PyTFEagerPolicy(agent_policy, use_tf_function=True)
         self.observation_to_action_table, self.observation_to_update_table = construct_table_observation_action_memory(eager, environment)
-        self.observation_to_action_table = tf.constant(self.observation_to_action_table, dtype=tf.int32)
-        self.observation_to_update_table = tf.constant(self.observation_to_update_table, dtype=tf.int32)
+        self.tf_observation_to_action_table = tf.constant(self.observation_to_action_table, dtype=tf.int32)
+        self.tf_observation_to_update_table = tf.constant(self.observation_to_update_table, dtype=tf.int32)
         self.action_labels = environment.act_to_keywords
         self.memory_size = environment.model_memory_size
 
@@ -112,16 +115,33 @@ class ExtractedFSCPolicy(TFPolicy):
     def _get_initial_state(self, batch_size):
         return ()
     
+    def get_single_action(self, observation, memory):
+        return self.observation_to_action_table[memory, observation]
+    
+    def get_single_update(self, observation, memory):
+        return self.observation_to_update_table[memory, observation]
+    
+    def set_single_action(self, observation, memory, action):
+        self.observation_to_action_table[memory, observation] = action
+
+    def set_single_update(self, observation, memory, update):
+        self.observation_to_update_table[memory, observation] = update
+
+    def recompile_tf_tables(self):
+        self.tf_observation_to_action_table = tf.constant(self.observation_to_action_table, dtype=tf.int32)
+        self.tf_observation_to_update_table = tf.constant(self.observation_to_update_table, dtype=tf.int32)
+    
     def _action(self, time_step : TimeStep, policy_state : PolicyStep, seed):
         observation = time_step.observation["integer"]
         if self.memory_size == 0:
             memory = tf.zeros(shape=(time_step.observation["observation"].shape[0], 1), dtype=tf.int32)
         else:
             memory = tf.cast(time_step.observation["observation"][:, -1], dtype=tf.int32)
+            memory = tf.reshape(memory, (-1, 1))
         
         indices = tf.concat([memory, observation], axis=1)
-        action = tf.gather_nd(self.observation_to_action_table, indices)
-        update = tf.gather_nd(self.observation_to_update_table, indices)
+        action = tf.gather_nd(self.tf_observation_to_action_table, indices)
+        update = tf.gather_nd(self.tf_observation_to_update_table, indices)
         # action = self.observation_to_action_table[memory, observation]
         # update = self.observation_to_update_table[memory, observation]
         if self.memory_size == 0:

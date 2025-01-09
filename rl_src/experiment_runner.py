@@ -102,8 +102,8 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         model_condition (str, optional): The condition of the model (rule condition is in the name of the model, e.g. "network"). Defaults to "".
     """
     for model in os.listdir(f"{path_to_models}"):
-        if "drone" in model:  # Currently not supported model
-            continue
+        # if "drone" in model:  # Currently not supported model
+        #     continue
         if model_condition not in model:
             continue
         # if "network" not in model:
@@ -122,7 +122,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                         restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                         nr_runs=2001, encoding_method=encoding_method, agent_name=model, load_agent=False, 
-                                        evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20, 
+                                        evaluate_random_policy=False, max_steps=400, evaluation_goal=1000, evaluation_antigoal=-5, 
                                         trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
                                         normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator, 
                                         replay_buffer_option=replay_buffer_option, batch_size=batch_size,
@@ -150,9 +150,9 @@ if __name__ == "__main__":
 
     # Run experiments with the given arguments
     if args.random_start_simulator:
-        name = "experiments_interpretation2_random"
+        name = "experiments_fixed_simulator_random"
     else:
-        name = "experiments_interpretation2"
+        name = "experiments_fixed_simulator"
     
     if args.use_rnn_less:
         name += "_rnn_less"
