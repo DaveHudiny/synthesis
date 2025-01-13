@@ -24,6 +24,10 @@ class RLFamilyExtractor:
             self.options = options
             self.option_labels = option_labels
 
+        def __str__(self):
+            as_dict = self.__dict__
+            return str(as_dict)
+
     @staticmethod
     def parse_hole_observation_info(family: Family, hole: int):
 
@@ -59,9 +63,9 @@ class RLFamilyExtractor:
         labels = [str(restricted_family.hole_to_option_labels[hole][option])
                   for option in options]
         return RLFamilyExtractor.HoleInfo(hole, vector, last_number, is_update,
-                                                    restricted_family.get_hole_observation_index(
-                                                        hole),
-                                                    options, labels)
+                                          restricted_family.get_hole_observation_index(
+                                              hole),
+                                          options, labels)
 
     @staticmethod
     def get_extracted_fsc_policy(rl_synthesizer: Synthesizer_RL, args: ArgsEmulator):
@@ -74,12 +78,25 @@ class RLFamilyExtractor:
 
     @staticmethod
     def basic_initial_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict]):
-        if hole_info.is_update or hole_info.mem_number == 0:
+        if hole_info.is_update:
             restricted_family.hole_set_options(hole_info.hole, [0])
             restriction = {"hole": hole_info.hole, "restriction": [0]}
             subfamily_restrictions.append(restriction)
             return True
         elif hole_info.mem_number > 0:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def fill_all_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict]):
+        if hole_info.is_update:
+            options = hole_info.options
+            random_option = np.random.choice(options)
+            subfamily_restrictions.append(
+                {"hole": hole_info.hole, "restriction": [random_option]})
+            
+            restricted_family.hole_set_options(hole_info.hole, [random_option])
             return True
         else:
             return False
@@ -100,65 +117,75 @@ class RLFamilyExtractor:
 
     @staticmethod
     def generate_fake_timestep(rl_synthesizer: Synthesizer_RL, hole_info: 'RLFamilyExtractor.HoleInfo'):
-        return rl_synthesizer.agent.environment.create_fake_timestep_from_observation_integer(hole_info)
+        return rl_synthesizer.agent.environment.create_fake_timestep_from_observation_integer(hole_info.observation_integer)
 
     @staticmethod
-    def generate_rl_action(rl_synthesizer: Synthesizer_RL, fake_time_step, extracted_fsc_policy : ExtractedFSCPolicy,
-                           hole_info: 'RLFamilyExtractor.HoleInfo', is_first=False):
-        if is_first:
+    def generate_rl_action(rl_synthesizer: Synthesizer_RL, fake_time_step, extracted_fsc_policy: ExtractedFSCPolicy,
+                           hole_info: 'RLFamilyExtractor.HoleInfo', is_first=False, memory_less=True):
+        if is_first and hole_info.mem_number == 0:
             action = extracted_fsc_policy.get_single_action(
                 hole_info.observation_integer, hole_info.mem_number)
-            action_label = RLFamilyExtractor.get_rl_action_label(rl_synthesizer, action)
+            action_label = RLFamilyExtractor.get_rl_action_label(
+                rl_synthesizer, action)
         else:
-            action = rl_synthesizer.agent.wrapper.action(fake_time_step)
-            extracted_fsc_policy.set_single_action(
-                hole_info.observation_integer, hole_info.mem_number, action.action.numpy()[0])
-            action_label = RLFamilyExtractor.get_rl_action_label(rl_synthesizer, action.action.numpy()[0])
+            # mem_number = hole_info.mem_number if not memory_less else 0
+            initial_state = rl_synthesizer.agent.wrapper.get_initial_state(1)
+            action = rl_synthesizer.agent.wrapper.action(fake_time_step, initial_state)
+            if not memory_less or hole_info.mem_number == 0:
+                extracted_fsc_policy.set_single_action(
+                    hole_info.observation_integer, hole_info.mem_number, action.action.numpy()[0])
+            action_label = RLFamilyExtractor.get_rl_action_label(
+                rl_synthesizer, action.action.numpy()[0])
         return action_label
-    
+
     @staticmethod
-    def apply_family_action_restriction(hole_info: 'RLFamilyExtractor.HoleInfo', action_label : str, restricted_family: Family,
-                                  subfamily_restrictions: list[dict]):
-                index_of_action_label = hole_info.option_labels.index(
-                    action_label)
-                restricted_family.hole_set_options(
-                    hole_info.hole, [index_of_action_label])
-                restriction = {"hole": hole_info.hole,
-                               "restriction": [index_of_action_label]}
-                subfamily_restrictions.append(restriction)
-        
-    
+    def apply_family_action_restriction(hole_info: 'RLFamilyExtractor.HoleInfo', action_label: str, restricted_family: Family,
+                                        subfamily_restrictions: list[dict]):
+        index_of_action_label = hole_info.option_labels.index(
+            action_label)
+        restricted_family.hole_set_options(
+            hole_info.hole, [index_of_action_label])
+        restriction = {"hole": hole_info.hole,
+                       "restriction": [index_of_action_label]}
+        subfamily_restrictions.append(restriction)
+
     @staticmethod
     def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', rl_synthesizer: Synthesizer_RL,
                                      extracted_fsc_policy: ExtractedFSCPolicy, restricted_family: Family,
                                      subfamily_restrictions: list[dict]):
         selected_action = np.random.choice(hole_info.options)
         rl_action = RLFamilyExtractor.convert_hole_option_to_rl_action(
-            hole_info, selected_action, rl_synthesizer.agent.environment.act_to_keywords)
-        extracted_fsc_policy.set_single_action(
-            hole_info.observation_integer, hole_info.mem_number, rl_action)
+            hole_info, selected_action, rl_synthesizer.agent.environment.action_keywords)
+        if hole_info.mem_number == 0:
+            extracted_fsc_policy.set_single_action(
+                hole_info.observation_integer, hole_info.mem_number, rl_action)
         restricted_family.hole_set_options(hole_info.hole, [selected_action])
-        restriction = {"hole": hole_info.hole, "restriction": [selected_action]}
+        restriction = {"hole": hole_info.hole,
+                       "restriction": [selected_action]}
         subfamily_restrictions.append(restriction)
 
     @staticmethod
     def hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], rl_synthesizer: Synthesizer_RL,
-                       extracted_fsc_policy: ExtractedFSCPolicy, mem_check: callable = basic_initial_mem_check) -> tuple[int, int]:
+                       extracted_fsc_policy: ExtractedFSCPolicy, mem_check: callable = basic_initial_mem_check,
+                       memory_less: bool = True) -> tuple[int, int]:
         hole_info = RLFamilyExtractor.get_hole_info(
             restricted_family, hole)
         if mem_check(hole_info, restricted_family, subfamily_restrictions):
             return 0, 0
-        fake_time_step = RLFamilyExtractor.generate_fake_timestep(hole_info)
+        # print(f"Processing hole {hole_info}")
+        fake_time_step = RLFamilyExtractor.generate_fake_timestep(
+            rl_synthesizer, hole_info)
         i = 0
         miss = 0
         complete_miss = 0
         while True:
 
             action_label = RLFamilyExtractor.generate_rl_action(
-                rl_synthesizer, fake_time_step, 
-                extracted_fsc_policy, hole_info, 
-                is_first = (i == 0))
-            
+                rl_synthesizer, fake_time_step,
+                extracted_fsc_policy, hole_info,
+                is_first=(i == 0),
+                memory_less=memory_less)
+
             if action_label in hole_info.option_labels:
                 RLFamilyExtractor.apply_family_action_restriction(
                     hole_info, action_label, restricted_family, subfamily_restrictions)
@@ -174,7 +201,8 @@ class RLFamilyExtractor:
         return miss, complete_miss
 
     @staticmethod
-    def get_restricted_family_rl_inference(original_family: Family, rl_synthesizer: Synthesizer_RL, args: ArgsEmulator):
+    def get_restricted_family_rl_inference(original_family: Family, rl_synthesizer: Synthesizer_RL, args:
+                                           ArgsEmulator, fill_all_memory: bool = False, memoryless_rl = True) -> tuple[Family, list[dict]]:
         # Copy of the original family, because PAYNT uses the original family to other purposes
         restricted_family = original_family.copy()
 
@@ -187,13 +215,18 @@ class RLFamilyExtractor:
 
         logger.info("Building family from FFNN...")
 
+        if not memoryless_rl:
+            pass  # TODO: Implement memory version of RLFamilyExtractor
+
         # Extraction and evaluation of original policy
         extracted_fsc_policy = RLFamilyExtractor.get_extracted_fsc_policy(
             rl_synthesizer, args)
-
+        if fill_all_memory:
+            mem_check = RLFamilyExtractor.fill_all_mem_check
         for hole in range(restricted_family.num_holes):
             miss, complete_miss = RLFamilyExtractor.hole_loop_body(
-                hole, restricted_family, subfamily_restrictions, rl_synthesizer, extracted_fsc_policy)
+                hole, restricted_family, subfamily_restrictions, rl_synthesizer, extracted_fsc_policy,
+                mem_check=mem_check, memory_less=memoryless_rl)
             num_misses += miss
             num_misses_complete += complete_miss
 

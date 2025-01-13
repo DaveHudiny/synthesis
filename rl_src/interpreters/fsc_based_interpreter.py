@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 
 def create_fake_timestep(observation_triplet):
     return TimeStep(
-        step_type=tf.constant([0], dtype=tf.int32),
-        reward=tf.constant([0], dtype=tf.float32),
-        discount=tf.constant([1], dtype=tf.float32),
+        step_type=tf.constant(0, dtype=tf.int32),
+        reward=tf.constant(0, dtype=tf.float32),
+        discount=tf.constant(1, dtype=tf.float32),
         observation=observation_triplet
     )
 
@@ -77,7 +77,8 @@ def construct_table_observation_action_memory( agent_policy : TFPolicy, environm
             observation_triplet = environment.encode_observation(integer_observation, memory, state)
             mask = observation_triplet["mask"]
             time_step = create_fake_timestep(observation_triplet)
-            played_action = agent_policy.action(time_step=time_step)
+            fake_policy_state = agent_policy.get_initial_state(1)
+            played_action = agent_policy.action(time_step=time_step, policy_state=fake_policy_state)
             if no_memory:
                 action = played_action.action
                 update = 0

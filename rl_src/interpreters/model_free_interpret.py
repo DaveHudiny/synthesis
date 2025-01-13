@@ -35,6 +35,7 @@ class ModelFreeInterpret(Interpret):
         self.nr_episodes = nr_episodes
         self.model_info = model_info
         self.file = None
+        
 
     def get_dictionary(self, agent):
         self.agent = agent

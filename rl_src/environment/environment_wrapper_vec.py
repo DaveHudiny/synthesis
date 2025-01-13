@@ -515,10 +515,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
             return {"observation": tf.concat([tf.constant(valuated, dtype=tf.float32), tf.constant([memory], dtype=tf.float32)], axis=0),
                     "mask": tf.constant(allowed_actions, tf.bool),
-                    "integer": tf.constant(integer_observation, dtype=tf.int32)}
+                    "integer": tf.constant([integer_observation], dtype=tf.int32)}
         return {"observation": tf.constant(valuated, dtype=tf.float32),
                 "mask": tf.constant(allowed_actions, tf.bool),
-                "integer": tf.constant(integer_observation, dtype=tf.int32)}
+                "integer": tf.constant([integer_observation], dtype=tf.int32)}
     
     def create_fake_timestep_from_valuations(self, valuations):
         """Creates a fake TimeStep from the valuations."""
@@ -526,10 +526,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         mask = tf.constant([True] * self.nr_actions, dtype=tf.bool)
         integer = tf.constant([0], dtype=tf.int32)
         time_step = ts.TimeStep(
-            observation={"observation": observation, "mask": mask, "integer": integer},
-            reward=tf.constant(0.0, dtype=tf.float32),
-            discount=tf.constant(1.0, dtype=tf.float32),
-            step_type=tf.constant(ts.StepType.MID, dtype=tf.int32)
+            observation={"observation": [observation], "mask": [mask], "integer": [integer]},
+            reward=tf.constant([0.0], dtype=tf.float32),
+            discount=tf.constant([1.0], dtype=tf.float32),
+            step_type=tf.constant([ts.StepType.MID], dtype=tf.int32)
         )
         return time_step
     
@@ -537,13 +537,13 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         """Creates a fake TimeStep from the observation integer."""
         observation = create_valuations_encoding(observation_integer, self.stormpy_model)
         observation = tf.constant([observation], dtype=tf.float32)
-        mask = tf.constant([True] * self.nr_actions, dtype=tf.bool)
-        integer = tf.constant([observation_integer], dtype=tf.int32)
+        mask = tf.constant([[True] * self.nr_actions], dtype=tf.bool)
+        integer = tf.constant([[observation_integer]], dtype=tf.int32)
         time_step = ts.TimeStep(
             observation={"observation": observation, "mask": mask, "integer": integer},
-            reward=tf.constant(0.0, dtype=tf.float32),
-            discount=tf.constant(1.0, dtype=tf.float32),
-            step_type=tf.constant(ts.StepType.MID, dtype=tf.int32)
+            reward=tf.constant([0.0], dtype=tf.float32),
+            discount=tf.constant([1.0], dtype=tf.float32),
+            step_type=tf.constant([ts.StepType.MID], dtype=tf.int32)
         )
         return time_step
 

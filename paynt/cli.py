@@ -153,7 +153,7 @@ def setup_logger(log_path = None):
                 help="Number of training iterations with FSC oracle. Default is 100.")
 @click.option("--rl-pretrain-iters", type=click.INT, default=51,
                 help="Number of pretraining iterations with RL oracle. Default is 500.")
-@click.option("--rl-training-iters", type=click.INT, default=300,
+@click.option("--rl-training-iters", type=click.INT, default=2001,
                 help="Number of training iterations with RL oracle. Default is 300.")
 @click.option("--fsc-multiplier", type=click.FLOAT, default=2.0,
                 help="Multiplier for the FSC cycling oracle. Default is 2.0.")
@@ -175,8 +175,10 @@ def setup_logger(log_path = None):
               help="Use loop policy for RL oracle. Default is False.")
 @click.option("--fsc-time-in-loop", default=60, type=click.INT,
                 help="Time in loop policy for FSC oracle. Default is 60.")
-@click.option("--time-limit", default=3600, type=click.INT,
-                help="Time limit for RL oracle. Default is 60.")
+@click.option("--time-limit", default=1800, type=click.INT,
+                help="Time limit for RL oracle. Default is 1800.")
+@click.option("--fsc-size", default=1, type=click.INT, help="Size of the FSC to be used with the memoryless RL oracle. Default is 1.")
+@click.option("--rnn-less", is_flag=True, default=False, help="Use RNN-less (memoryless) version of the RL oracle.")
 
 
 
@@ -199,7 +201,8 @@ def paynt_run(
     profiling,
     reinforcement_learning, load_agent,
     fsc_training_iterations, rl_pretrain_iters, rl_training_iters, fsc_multiplier, rl_load_path,
-    rl_load_memory_flag, agent_task, model_name, sub_method, rl_method, greedy, loop, fsc_time_in_loop, time_limit):
+    rl_load_memory_flag, agent_task, model_name, sub_method, rl_method, greedy, loop, fsc_time_in_loop, time_limit,
+    fsc_size, rnn_less):
 
     if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
         logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
@@ -221,7 +224,10 @@ def paynt_run(
             "greedy": greedy,
             "loop": loop,
             "fsc_time_in_loop": fsc_time_in_loop,
-            "time_limit" : time_limit
+            "time_limit" : time_limit,
+            "fsc_size": fsc_size,
+            "rnn_less": rnn_less
+
         }
     profiler = None
     if profiling:
