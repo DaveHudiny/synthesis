@@ -2,6 +2,7 @@ import json
 import numpy as np
 from time import sleep
 import os
+from paynt.rl_extension.family_extractors.external_family_wrapper import ExtractedFamilyWrapper
 from rl_src.experimental_interface import ArgsEmulator
 import pickle
 import stormpy
@@ -11,7 +12,7 @@ import paynt.synthesizer.synthesizer_ar
 from .synthesizer_ar_storm import SynthesizerARStorm
 from .synthesizer_hybrid import SynthesizerHybrid
 from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
-from .synthesizer_rl import Synthesizer_RL
+from .synthesizer_agents import Synthesizer_Agents
 
 from paynt.rl_extension.saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
 from ..rl_extension.saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
@@ -133,13 +134,17 @@ class SynthesizerPomdp:
 
     # iterative strategy using Storm analysis to enhance the synthesis
 
-    def strategy_iterative_storm(self, unfold_imperfect_only, unfold_storm=True, qvalues_flag: bool = False):
+    def strategy_iterative_storm(self, unfold_imperfect_only, unfold_storm=True, qvalues_flag: bool = False, external_family : ExtractedFamilyWrapper = None):
         '''
         @param unfold_imperfect_only if True, only imperfect observations will be unfolded
         '''
-        mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
+        if external_family is not None:
+            mem_size = external_family.get_memory_size()
+        else:
+            mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
 
         self.synthesizer.storm_control = self.storm_control
+        first = True
 
         while True:
             # for x in range(2):
@@ -147,7 +152,7 @@ class SynthesizerPomdp:
             paynt.quotient.pomdp.PomdpQuotient.current_family_index = mem_size
 
             # unfold memory according to the best result
-            if unfold_storm:
+            if unfold_storm and external_family is None:
                 if mem_size > 1:
                     obs_memory_dict = {}
                     if self.storm_control.is_storm_better:
@@ -182,16 +187,21 @@ class SynthesizerPomdp:
                         logger.info(
                             f'Increase memory in all imperfect observation')
                     self.quotient.set_memory_from_dict(obs_memory_dict)
-            else:
+            elif external_family is None or not first:
                 logger.info(
                     "Synthesizing optimal k={} controller ...".format(mem_size))
                 if unfold_imperfect_only:
                     self.quotient.set_imperfect_memory_size(mem_size)
                 else:
                     self.quotient.set_global_memory_size(mem_size)
+            else:
+                pass
+                
+                
 
             family = self.quotient.family
-
+            if external_family is not None:
+                pseudo_family = external_family.get_family()
             # if Storm's result is better, use it to obtain main family that considers only the important actions
             if self.storm_control.is_storm_better:
                 # consider the cut-off schedulers actions
@@ -212,7 +222,8 @@ class SynthesizerPomdp:
                     else:
                         subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(
                             family, self.storm_control.result_dict_no_cutoffs)
-
+                if external_family is not None and not first:
+                    subfamily_restrictions = external_family.get_subfamily_restrictions()
                 subfamilies = self.storm_control.get_subfamilies(
                     subfamily_restrictions, family)
             # if PAYNT is better continue normally
@@ -221,8 +232,11 @@ class SynthesizerPomdp:
                 subfamilies = []
 
             self.synthesizer.subfamilies_buffer = subfamilies
-            self.synthesizer.main_family = main_family
-
+            if external_family is not None and not first:
+                self.synthesizer.main_family = pseudo_family
+            else:
+                self.synthesizer.main_family = main_family
+            first = False
             assignment = self.synthesize(family)
 
             if assignment is not None:
@@ -248,11 +262,17 @@ class SynthesizerPomdp:
 
             # break
 
+    def get_rl_synthesiser(self) -> Synthesizer_Agents:
+        if not hasattr(self, "rl_synthesiser") or self.rl_synthesiser is None:
+            self.rl_synthesiser = Synthesizer_Agents(
+                self.quotient.pomdp, self.args)
+        return self.rl_synthesiser
+
     def run_rl_trajectories(self, saynt: bool = True):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
         fsc = self.storm_control.latest_paynt_result_fsc
-        rl_synthesiser = Synthesizer_RL(self.quotient.pomdp, self.args)
+        rl_synthesiser = self.get_rl_synthesiser()
         if saynt:
             original_property = self.quotient.get_property()
             original_property_str = original_property.__str__()
@@ -280,7 +300,7 @@ class SynthesizerPomdp:
 
     def run_rl_synthesis_critic(self):
         qvalues = self.storm_control.qvalues
-        rl_synthesiser = Synthesizer_RL(
+        rl_synthesiser = Synthesizer_Agents(
             self.quotient.pomdp, self.args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation)
         rl_synthesiser.train_agent(2000)
@@ -289,7 +309,7 @@ class SynthesizerPomdp:
 
     def run_rl_synthesis_q_vals_rand(self):
         qvalues = self.storm_control.qvalues
-        rl_synthesizer = Synthesizer_RL(
+        rl_synthesizer = Synthesizer_Agents(
             self.quotient.pomdp, self.args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation,
             random_init_starts_q_vals=True
@@ -306,10 +326,8 @@ class SynthesizerPomdp:
 
     def run_rl_synthesis_behavioral_cloning(self, fsc, save=True, nr_of_iterations=4000):
         sub_method = self.input_rl_settings_dict["sub_method"]
-        if not hasattr(self, "rl_synthesiser"):
-            self.rl_synthesiser = Synthesizer_RL(
-                self.quotient.pomdp, self.args, pretrain_dqn=True)
-        self.rl_synthesiser.train_with_bc(
+        rl_synthesiser = self.get_rl_synthesiser()
+        rl_synthesiser.train_with_bc(
             fsc, sub_method=sub_method, nr_of_iterations=nr_of_iterations)
         experiment_name = f"{self.args.agent_name}_{sub_method}"
 
@@ -321,36 +339,43 @@ class SynthesizerPomdp:
     def run_rl_synthesis_jumpstarts(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
         if saynt:
             raise NotImplementedError("SAYNT jumpstarts not implemented yet")
-        if not hasattr(self, "rl_synthesiser"):
-            self.rl_synthesiser = Synthesizer_RL(
-                self.quotient.pomdp, self.args)
-        self.rl_synthesiser.train_agent_with_jumpstarts(fsc, nr_of_iterations)
+        rl_synthesiser = self.get_rl_synthesiser()
+        rl_synthesiser.train_agent_with_jumpstarts(fsc, nr_of_iterations)
         if save:
-            self.rl_synthesiser.save_to_json(
+            rl_synthesiser.save_to_json(
                 self.args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def run_rl_synthesis_shaping(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
         if saynt:
             raise NotImplementedError("SAYNT shaping not implemented yet")
-        if not hasattr(self, "rl_synthesiser"):
-
-            self.rl_synthesiser = Synthesizer_RL(
-                self.quotient.pomdp, self.args)
-        self.rl_synthesiser.train_agent_with_shaping(fsc, nr_of_iterations)
+        rl_synthesiser = self.get_rl_synthesiser()
+        rl_synthesiser.train_agent_with_shaping(fsc, nr_of_iterations)
         experiment_name = f"{self.args.agent_name}_longer"
         if save:
-            self.rl_synthesiser.save_to_json(
+            rl_synthesiser.save_to_json(
                 experiment_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
         # self.rl_synthesiser.save_to_json(experiment_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     # main SAYNT loop
-    def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
+    def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0, rl_family_extraction : bool = False):
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
         self.storm_control.interactive_storm_setup()
         iteration = 1
+        if rl_family_extraction:
+            rl_synthesiser = self.get_rl_synthesiser()
+            rl_synthesiser.train_agent(1500)
+            if hasattr(self, "input_rl_settings_dict"):
+                fsc_size = self.input_rl_settings_dict["fsc_size"]
+            else:
+                fsc_size = 1
+            self.quotient.set_global_memory_size(fsc_size)
+            external_family = ExtractedFamilyWrapper(self.quotient.family, fsc_size, rl_synthesiser)
+        else:
+            external_family = None
+
         paynt_thread = Thread(target=self.strategy_iterative_storm, args=(
-            True, self.storm_control.unfold_storm))
+            True, self.storm_control.unfold_storm, external_family))
 
         iteration_timeout = time.time() + timeout
 
@@ -428,6 +453,7 @@ class SynthesizerPomdp:
                 self.run_rl = True
                 self.set_rl_setting(self.input_rl_settings_dict)
                 self.args = init_rl_args(mode=self.combo_mode)
+        
 
         self.try_faster = False
         
@@ -444,8 +470,9 @@ class SynthesizerPomdp:
                 self.storm_control.latest_paynt_result_fsc = fsc
                 skip = True
         if not skip:
+
             self.iterative_storm_loop_body(
-                timeout, paynt_timeout, storm_timeout, iteration_limit)
+                timeout, paynt_timeout, storm_timeout, iteration_limit, rl_family_extraction=True)
             specification_property = self.quotient.get_property().__str__()
             paynt_value = self.storm_control.paynt_bounds
             storm_value = self.storm_control.storm_bounds
@@ -655,7 +682,7 @@ class SynthesizerPomdp:
         if use_rl:
             agent_name = self.get_agent_name()
             self.args = self.genearate_args(agent_name, self.rnn_less, self.rl_training_iters)
-            self.rl_synthesiser = Synthesizer_RL(
+            self.rl_synthesiser = Synthesizer_Agents(
                 self.quotient.pomdp, self.args)
     
     def train_agent(self, nr_runs):
@@ -694,7 +721,7 @@ class SynthesizerPomdp:
         fsc = None
         odd = False
         while True:
-            self.quotient.set_global_memory_size(mem_size)
+            
             if self.use_rl:
                 current_time = self.fsc_synthesis_time_limit
             if self.use_rl and self.loop and not first_run:
@@ -707,7 +734,10 @@ class SynthesizerPomdp:
                 self.memory_dict = interpretation_result[1]
                 self.priority_list = interpretation_result[3]
 
-            self.set_memory_storm(mem_size, unfold_storm, interpretation_result, odd, unfold_imperfect_only)
+            if self.use_rl:
+                self.quotient.set_global_memory_size(mem_size)
+            else:
+                self.set_memory_storm(mem_size, unfold_storm, interpretation_result, odd, unfold_imperfect_only)
 
 
             family = self.quotient.family
@@ -755,6 +785,8 @@ class SynthesizerPomdp:
 
             if self.use_rl:
                 self.synthesizer.main_family = pseudo_family # main_family
+            else:
+                self.synthesizer.main_family = main_family
 
             if self.loop:
                 print("Synthesizing optimal k={} controller ...".format(mem_size))

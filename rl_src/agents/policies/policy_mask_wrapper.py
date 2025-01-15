@@ -60,7 +60,7 @@ class Policy_Mask_Wrapper(TFPolicy):
         # print("Getting initial state", batch_size)
         return self._policy.get_initial_state(batch_size)    
 
-    def _distribution(self, time_step, policy_state):
+    def _distribution(self, time_step, policy_state) -> PolicyStep:
         observation, mask = self._observation_and_action_constraint_splitter(
             time_step.observation)
         time_step = time_step._replace(observation=observation)
@@ -119,6 +119,14 @@ class Policy_Mask_Wrapper(TFPolicy):
             
         policy_step = PolicyStep(action=action, state=distribution.state, info=distribution.info)
         return policy_step
+    
+    def _get_action_entropy(self, time_step, policy_state):
+        observation, mask = self._observation_and_action_constraint_splitter(time_step.observation)
+        time_step = time_step._replace(observation=observation)
+        distribution = self._real_distribution(time_step, policy_state)
+        logits = tf.nn.softmax(distribution.action.logits)
+        entropy = -tf.reduce_sum(logits * tf.math.log(logits), axis=-1)
+        return entropy
 
     def _randomized_action(self, time_step, policy_state, seed):
         policy_step = self._action_original(time_step, policy_state, seed) 

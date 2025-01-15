@@ -1,4 +1,4 @@
-from paynt.synthesizer.synthesizer_rl import Synthesizer_RL
+from paynt.synthesizer.synthesizer_agents import Synthesizer_Agents
 import numpy as np
 from rl_src.tools.args_emulator import ArgsEmulator
 from rl_src.tools.evaluators import evaluate_extracted_fsc
@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class RLFamilyExtractor:
+
+    def __init__(self):
+        pass
 
     class HoleInfo:
         def __init__(self, hole: int, vector: list[float], mem_number: int, is_update: bool, observation_integer: int,
@@ -68,7 +71,7 @@ class RLFamilyExtractor:
                                           options, labels)
 
     @staticmethod
-    def get_extracted_fsc_policy(rl_synthesizer: Synthesizer_RL, args: ArgsEmulator):
+    def get_extracted_fsc_policy(rl_synthesizer: Synthesizer_Agents, args: ArgsEmulator):
         extracted_fsc_policy = ExtractedFSCPolicy(rl_synthesizer.agent.wrapper, rl_synthesizer.agent.environment,
                                                   tf_environment=rl_synthesizer.agent.tf_environment, args=args)
         evaluate_extracted_fsc(external_evaluation_result=rl_synthesizer.agent.evaluation_result,
@@ -112,15 +115,15 @@ class RLFamilyExtractor:
         return act_keywords.index(action_label)
 
     @staticmethod
-    def get_rl_action_label(rl_synthesizer: Synthesizer_RL, rl_action):
+    def get_rl_action_label(rl_synthesizer: Synthesizer_Agents, rl_action):
         return rl_synthesizer.agent.environment.act_to_keywords[rl_action]
 
     @staticmethod
-    def generate_fake_timestep(rl_synthesizer: Synthesizer_RL, hole_info: 'RLFamilyExtractor.HoleInfo'):
+    def generate_fake_timestep(rl_synthesizer: Synthesizer_Agents, hole_info: 'RLFamilyExtractor.HoleInfo'):
         return rl_synthesizer.agent.environment.create_fake_timestep_from_observation_integer(hole_info.observation_integer)
 
     @staticmethod
-    def generate_rl_action(rl_synthesizer: Synthesizer_RL, fake_time_step, extracted_fsc_policy: ExtractedFSCPolicy,
+    def generate_rl_action(rl_synthesizer: Synthesizer_Agents, fake_time_step, extracted_fsc_policy: ExtractedFSCPolicy,
                            hole_info: 'RLFamilyExtractor.HoleInfo', is_first=False, memory_less=True):
         if is_first and hole_info.mem_number == 0:
             action = extracted_fsc_policy.get_single_action(
@@ -150,7 +153,7 @@ class RLFamilyExtractor:
         subfamily_restrictions.append(restriction)
 
     @staticmethod
-    def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', rl_synthesizer: Synthesizer_RL,
+    def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', rl_synthesizer: Synthesizer_Agents,
                                      extracted_fsc_policy: ExtractedFSCPolicy, restricted_family: Family,
                                      subfamily_restrictions: list[dict]):
         selected_action = np.random.choice(hole_info.options)
@@ -165,7 +168,7 @@ class RLFamilyExtractor:
         subfamily_restrictions.append(restriction)
 
     @staticmethod
-    def hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], rl_synthesizer: Synthesizer_RL,
+    def hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], rl_synthesizer: Synthesizer_Agents,
                        extracted_fsc_policy: ExtractedFSCPolicy, mem_check: callable = basic_initial_mem_check,
                        memory_less: bool = True) -> tuple[int, int]:
         hole_info = RLFamilyExtractor.get_hole_info(
@@ -200,8 +203,8 @@ class RLFamilyExtractor:
             i += 1
         return miss, complete_miss
 
-    @staticmethod
-    def get_restricted_family_rl_inference(original_family: Family, rl_synthesizer: Synthesizer_RL, args:
+    
+    def get_restricted_family_rl_inference(self, original_family: Family, rl_synthesizer: Synthesizer_Agents, args:
                                            ArgsEmulator, fill_all_memory: bool = False, memoryless_rl = True) -> tuple[Family, list[dict]]:
         # Copy of the original family, because PAYNT uses the original family to other purposes
         restricted_family = original_family.copy()
@@ -219,6 +222,7 @@ class RLFamilyExtractor:
             pass  # TODO: Implement memory version of RLFamilyExtractor
 
         # Extraction and evaluation of original policy
+
         extracted_fsc_policy = RLFamilyExtractor.get_extracted_fsc_policy(
             rl_synthesizer, args)
         if fill_all_memory:

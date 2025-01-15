@@ -1,0 +1,78 @@
+import json
+import numpy as np
+from time import sleep
+import os
+from paynt.rl_extension.family_extractors.external_family_wrapper import ExtractedFamilyWrapper
+from rl_src.experimental_interface import ArgsEmulator
+import pickle
+import stormpy
+
+from .statistic import Statistic
+import paynt.synthesizer.synthesizer_ar
+from .synthesizer_ar_storm import SynthesizerARStorm
+from .synthesizer_hybrid import SynthesizerHybrid
+from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
+from .synthesizer_agents import Synthesizer_Agents
+
+from paynt.rl_extension.saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
+from ..rl_extension.saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
+
+from paynt.rl_extension.saynt_rl_tools.regex_patterns import RegexPatterns
+from paynt.parser.prism_parser import PrismParser
+
+import paynt.quotient.quotient
+import paynt.quotient.pomdp
+import paynt.utils.timer
+
+import paynt.verification.property
+
+import math
+from collections import defaultdict
+
+from threading import Thread
+from queue import Queue
+import time
+
+import logging
+logger = logging.getLogger(__name__)
+
+from rl_src.interpreters.fsc_based_interpreter import ExtractedFSCPolicy
+from rl_src.tools.evaluators import evaluate_extracted_fsc
+
+class SynthesizerRL:
+    def __init__(self, quotient, method, storm_control):
+        self.quotient = quotient
+        self.use_storm = False
+        self.synthesizer = None
+        if method == "ar":
+            self.synthesizer = paynt.synthesizer.synthesizer_ar.SynthesizerAR
+        elif method == "ar_multicore":
+            self.synthesizer = SynthesizerMultiCoreAR
+        elif method == "hybrid":
+            self.synthesizer = SynthesizerHybrid
+        self.total_iters = 0
+
+        if storm_control is not None:
+            self.use_storm = True
+            self.storm_control = storm_control
+            self.storm_control.quotient = self.quotient
+            self.storm_control.pomdp = self.quotient.pomdp
+            self.storm_control.spec_formulas = self.quotient.specification.stormpy_formulae()
+            self.synthesis_terminate = False
+            # SAYNT only works with abstraction refinement
+            self.synthesizer = SynthesizerARStorm
+            if self.storm_control.iteration_timeout is not None:
+                self.saynt_timer = paynt.utils.timer.Timer()
+                self.synthesizer.saynt_timer = self.saynt_timer
+                self.storm_control.saynt_timer = self.saynt_timer
+
+    def synthesize(self, family=None, print_stats=True, timer=None):
+        if family is None:
+            family = self.quotient.family
+        synthesizer = self.synthesizer(self.quotient)
+        family.constraint_indices = self.quotient.family.constraint_indices
+        assignment = synthesizer.synthesize(
+            family, keep_optimum=True, print_stats=print_stats, timeout=timer)
+        iters_mdp = synthesizer.stat.iterations_mdp if synthesizer.stat.iterations_mdp is not None else 0
+        self.total_iters += iters_mdp
+        return assignment
