@@ -7,6 +7,8 @@ from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 
 from rl_src.environment.environment_wrapper_vec import Environment_Wrapper_Vec
 
+from rl_src.agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
+
 import numpy as np
 import tensorflow as tf
 
@@ -53,7 +55,7 @@ def save_extracted_fsc(observation_to_action_table, observation_to_update_table,
         logger.info("Saving extracted FSC to %s", name)
         pkl.dump(saved_dict, f)
 
-def construct_table_observation_action_memory( agent_policy : TFPolicy, environment : Environment_Wrapper_Vec):
+def construct_table_observation_action_memory(agent_policy : TFPolicy, environment : Environment_Wrapper_Vec):
     """Constructs a table with observations, actions and memory values.
 
     Args:
@@ -100,15 +102,43 @@ def construct_table_observation_action_memory( agent_policy : TFPolicy, environm
     
     return observation_to_action_table, observation_to_update_table
 
+def construct_memoryless_table_w_entropy(agent_policy : Policy_Mask_Wrapper, 
+                                         environment : Environment_Wrapper_Vec
+                                        ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Constructs a table with observations and actions for memoryless policies with additional list of entropy values."""
+    state_to_observations = np.array(environment.stormpy_model.observations)
+    all_observations = range(np.unique(state_to_observations).shape[0])
+    observation_to_action_table = np.zeros((len(all_observations), ))
+    observation_to_entropy_table = np.zeros((len(all_observations), ))
+    observation_to_update_table = np.zeros((len(all_observations), ))
+
+    for integer_observation in all_observations:
+        state = np.where(state_to_observations == integer_observation)[0][0]
+        observation_triplet = environment.encode_observation(integer_observation, 0, state)
+        time_step = create_fake_timestep(observation_triplet)
+        fake_policy_state = agent_policy.get_initial_state(1)
+        played_action = agent_policy.action(time_step=time_step, policy_state=fake_policy_state)
+        action = played_action.action
+        observation_to_action_table[integer_observation] = action
+        logits = played_action.info["dist_params"]["logits"]
+        entropy = -tf.reduce_sum(tf.nn.softmax(logits) * tf.nn.log_softmax(logits))
+        observation_to_entropy_table[integer_observation] = entropy
+    return observation_to_action_table, observation_to_entropy_table, observation_to_update_table
+
 class ExtractedFSCPolicy(TFPolicy):
-    def __init__(self, agent_policy : TFPolicy, environment : Environment_Wrapper_Vec, tf_environment : TFPyEnvironment, args, model = ""):
+    def __init__(self, agent_policy : TFPolicy, environment : Environment_Wrapper_Vec, tf_environment : TFPyEnvironment, args, model = "", entropy_extraction = False):
         eager = PyTFEagerPolicy(agent_policy, use_tf_function=True)
-        self.observation_to_action_table, self.observation_to_update_table = construct_table_observation_action_memory(eager, environment)
+
+        if not entropy_extraction:
+            self.observation_to_action_table, self.observation_to_update_table = construct_table_observation_action_memory(eager, environment)
+        else:
+            self.observation_to_action_table, self.observation_to_entropy_table, self.observation_to_update_table = construct_memoryless_table_w_entropy(eager, environment)
         self.tf_observation_to_action_table = tf.constant(self.observation_to_action_table, dtype=tf.int32)
         self.tf_observation_to_update_table = tf.constant(self.observation_to_update_table, dtype=tf.int32)
+        if entropy_extraction:
+            self.tf_observation_to_entropy_table = tf.constant(self.observation_to_entropy_table, dtype=tf.float32)
         self.action_labels = environment.act_to_keywords
         self.memory_size = environment.model_memory_size
-
         self.observation_size = len(environment.stormpy_model.observations)
         self.args = args
         super(ExtractedFSCPolicy, self).__init__(tf_environment.time_step_spec(), tf_environment.action_spec())

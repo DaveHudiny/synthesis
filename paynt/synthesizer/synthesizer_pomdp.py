@@ -12,7 +12,7 @@ import paynt.synthesizer.synthesizer_ar
 from .synthesizer_ar_storm import SynthesizerARStorm
 from .synthesizer_hybrid import SynthesizerHybrid
 from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
-from .synthesizer_agents import Synthesizer_Agents
+from ..rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
 
 from paynt.rl_extension.saynt_rl_tools.q_values_correction import make_qvalues_table_tensorable
 from ..rl_extension.saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
@@ -39,6 +39,8 @@ logger = logging.getLogger(__name__)
 from rl_src.interpreters.fsc_based_interpreter import ExtractedFSCPolicy
 from rl_src.tools.evaluators import evaluate_extracted_fsc
 
+from paynt.synthesizer.synthesizer_rl_storm_paynt import SynthesizerRL
+
 
 class SynthesizerPomdp:
 
@@ -49,6 +51,7 @@ class SynthesizerPomdp:
         self.quotient = quotient
         self.use_storm = False
         self.synthesizer = None
+        self.method = method
         if method == "ar":
             self.synthesizer = paynt.synthesizer.synthesizer_ar.SynthesizerAR
         elif method == "ar_multicore":
@@ -262,17 +265,17 @@ class SynthesizerPomdp:
 
             # break
 
-    def get_rl_synthesiser(self) -> Synthesizer_Agents:
-        if not hasattr(self, "rl_synthesiser") or self.rl_synthesiser is None:
-            self.rl_synthesiser = Synthesizer_Agents(
+    def get_agents_wrapper(self) -> AgentsWrapper:
+        if not hasattr(self, "agents_wrapper") or self.agents_wrapper is None:
+            self.agents_wrapper = AgentsWrapper(
                 self.quotient.pomdp, self.args)
-        return self.rl_synthesiser
+        return self.agents_wrapper
 
     def run_rl_trajectories(self, saynt: bool = True):
         # assignment = self.storm_control.latest_paynt_result
         # qvalues = self.storm_control.qvalues
         fsc = self.storm_control.latest_paynt_result_fsc
-        rl_synthesiser = self.get_rl_synthesiser()
+        agents_wrapper = self.get_agents_wrapper()
         if saynt:
             original_property = self.quotient.get_property()
             original_property_str = original_property.__str__()
@@ -285,37 +288,37 @@ class SynthesizerPomdp:
             else:
                 q_values = None
             # q_values = None
-            rl_synthesiser.get_saynt_trajectories(
+            agents_wrapper.get_saynt_trajectories(
                 self.storm_control, self.quotient, fsc, q_values, model_reward_multiplier)
             sub_method = self.input_rl_settings_dict["sub_method"]
-            rl_synthesiser.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
+            agents_wrapper.save_to_json(experiment_name=self.input_rl_settings_dict["agent_task"],
                                         model=self.input_rl_settings_dict["model_name"],
                                         method=f"{self.args.learning_method}_{sub_method}")
             return
         logger.info("Training agent with combination of FSC and RL.")
-        rl_synthesiser.train_agent_combined_with_fsc_advanced(
+        agents_wrapper.train_agent_combined_with_fsc_advanced(
             4000, fsc, self.storm_control.paynt_bounds)
-        rl_synthesiser.save_to_json(experiment_name=self.args.agent_name,
+        agents_wrapper.save_to_json(experiment_name=self.args.agent_name,
                                     model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def run_rl_synthesis_critic(self):
         qvalues = self.storm_control.qvalues
-        rl_synthesiser = Synthesizer_Agents(
+        agents_wrapper = AgentsWrapper(
             self.quotient.pomdp, self.args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation)
-        rl_synthesiser.train_agent(2000)
-        rl_synthesiser.save_to_json(experiment_name=self.args.agent_name,
+        agents_wrapper.train_agent(2000)
+        agents_wrapper.save_to_json(experiment_name=self.args.agent_name,
                                     model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def run_rl_synthesis_q_vals_rand(self):
         qvalues = self.storm_control.qvalues
-        rl_synthesizer = Synthesizer_Agents(
+        agents_wrapper = AgentsWrapper(
             self.quotient.pomdp, self.args, qvalues=qvalues,
             action_labels_at_observation=self.quotient.action_labels_at_observation,
             random_init_starts_q_vals=True
         )
-        rl_synthesizer.train_agent_qval_randomization(2000, qvalues)
-        rl_synthesizer.save_to_json(experiment_name=self.args.agent_name,
+        agents_wrapper.train_agent_qval_randomization(2000, qvalues)
+        agents_wrapper.save_to_json(experiment_name=self.args.agent_name,
                                     model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def property_is_reachability(self, property: str):
@@ -326,35 +329,35 @@ class SynthesizerPomdp:
 
     def run_rl_synthesis_behavioral_cloning(self, fsc, save=True, nr_of_iterations=4000):
         sub_method = self.input_rl_settings_dict["sub_method"]
-        rl_synthesiser = self.get_rl_synthesiser()
-        rl_synthesiser.train_with_bc(
+        agents_wrapper = self.get_agents_wrapper()
+        agents_wrapper.train_with_bc(
             fsc, sub_method=sub_method, nr_of_iterations=nr_of_iterations)
         experiment_name = f"{self.args.agent_name}_{sub_method}"
 
         if save:
-            self.rl_synthesiser.save_to_json(experiment_name=experiment_name,
+            self.agents_wrapper.save_to_json(experiment_name=experiment_name,
                                              model=self.input_rl_settings_dict["model_name"],
                                              method=f"{self.args.learning_method}")
 
     def run_rl_synthesis_jumpstarts(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
         if saynt:
             raise NotImplementedError("SAYNT jumpstarts not implemented yet")
-        rl_synthesiser = self.get_rl_synthesiser()
-        rl_synthesiser.train_agent_with_jumpstarts(fsc, nr_of_iterations)
+        agents_wrapper = self.get_agents_wrapper()
+        agents_wrapper.train_agent_with_jumpstarts(fsc, nr_of_iterations)
         if save:
-            rl_synthesiser.save_to_json(
+            agents_wrapper.save_to_json(
                 self.args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     def run_rl_synthesis_shaping(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
         if saynt:
             raise NotImplementedError("SAYNT shaping not implemented yet")
-        rl_synthesiser = self.get_rl_synthesiser()
-        rl_synthesiser.train_agent_with_shaping(fsc, nr_of_iterations)
+        agents_wrapper = self.get_agents_wrapper()
+        agents_wrapper.train_agent_with_shaping(fsc, nr_of_iterations)
         experiment_name = f"{self.args.agent_name}_longer"
         if save:
-            rl_synthesiser.save_to_json(
+            agents_wrapper.save_to_json(
                 experiment_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
-        # self.rl_synthesiser.save_to_json(experiment_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
+        # self.agents_wrapper.save_to_json(experiment_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method)
 
     # main SAYNT loop
     def iterative_storm_loop_body(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0, rl_family_extraction : bool = False):
@@ -363,14 +366,14 @@ class SynthesizerPomdp:
         self.storm_control.interactive_storm_setup()
         iteration = 1
         if rl_family_extraction:
-            rl_synthesiser = self.get_rl_synthesiser()
-            rl_synthesiser.train_agent(1500)
+            agents_wrapper = self.get_agents_wrapper()
+            agents_wrapper.train_agent(1500)
             if hasattr(self, "input_rl_settings_dict"):
                 fsc_size = self.input_rl_settings_dict["fsc_size"]
             else:
                 fsc_size = 1
             self.quotient.set_global_memory_size(fsc_size)
-            external_family = ExtractedFamilyWrapper(self.quotient.family, fsc_size, rl_synthesiser)
+            external_family = ExtractedFamilyWrapper(self.quotient.family, fsc_size, agents_wrapper)
         else:
             external_family = None
 
@@ -579,7 +582,6 @@ class SynthesizerPomdp:
 
     def set_reinforcement_learning(self, input_rl_settings_dict):
         """ Set RL settings from PAYNT cli.
-
         Args:
             input_rl_settings_dict (dict): Dictionary with RL settings from PAYNT cli.
         """
@@ -637,16 +639,16 @@ class SynthesizerPomdp:
             self.run_rl_synthesis_behavioral_cloning(
                 fsc, save=False, nr_of_iterations=self.args.nr_runs)
         else:
-            self.rl_synthesiser.train_agent(self.args.nr_runs)
+            self.agents_wrapper.train_agent(self.args.nr_runs)
 
     def train_and_interpret(self, fsc):
         if fsc is not None:
             self.perform_rl_training_w_fsc(fsc)
         else:
             logger.info("FSC is None. Training agent without FSC.")
-            self.rl_synthesiser.train_agent(self.args.nr_runs)
+            self.agents_wrapper.train_agent(self.args.nr_runs)
         logger.info("Interpreting agent ...")
-        interpretation_result = self.rl_synthesiser.interpret_agent(
+        interpretation_result = self.agents_wrapper.interpret_agent(
                 best=False, randomize_illegal_actions=True, greedy=self.greedy)
         logger.info("Interpretation finished.")
         return interpretation_result
@@ -682,12 +684,12 @@ class SynthesizerPomdp:
         if use_rl:
             agent_name = self.get_agent_name()
             self.args = self.genearate_args(agent_name, self.rnn_less, self.rl_training_iters)
-            self.rl_synthesiser = Synthesizer_Agents(
+            self.agents_wrapper = AgentsWrapper(
                 self.quotient.pomdp, self.args)
     
     def train_agent(self, nr_runs):
-        self.rl_synthesiser.train_agent(nr_runs)
-        interpretation_result = self.rl_synthesiser.interpret_agent(
+        self.agents_wrapper.train_agent(nr_runs)
+        interpretation_result = self.agents_wrapper.interpret_agent(
             best=False, greedy=self.greedy)
         return interpretation_result
     
@@ -711,7 +713,7 @@ class SynthesizerPomdp:
         if self.loop:
             current_time = self.fsc_synthesis_time_limit
         interpretation_result = None
-        self.rl_synthesiser = None
+        self.agents_wrapper = None
         start_time = time.time()
         self.initialize_rl_storm(self.use_rl)
         if not self.loop and self.use_rl:
@@ -746,7 +748,7 @@ class SynthesizerPomdp:
             from paynt.rl_extension.family_extractors.rl_family_extractor import RLFamilyExtractor
             if self.use_rl:
                 # pseudo_family, pseudo_subfamily_restrictions = self.get_restricted_family_rl_inference(family)
-                pseudo_family, pseudo_subfamily_restrictions = RLFamilyExtractor.get_restricted_family_rl_inference(family, self.rl_synthesiser, self.args, fill_all_memory=True)
+                pseudo_family, pseudo_subfamily_restrictions = RLFamilyExtractor.get_restricted_family_rl_inference(family, self.agents_wrapper, self.args, fill_all_memory=True)
 
 
             if self.use_rl and interpretation_result is not None:
@@ -808,8 +810,8 @@ class SynthesizerPomdp:
                 self.storm_control.paynt_export = self.quotient.extract_policy(
                     assignment)
                 self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
-                if hasattr(self, "rl_synthesiser"):
-                    self.rl_synthesiser.agent.evaluation_result.add_paynt_bound(
+                if hasattr(self, "agents_wrapper"):
+                    self.agents_wrapper.agent.evaluation_result.add_paynt_bound(
                         self.storm_control.paynt_bounds)
 
             first_run = False
@@ -825,8 +827,8 @@ class SynthesizerPomdp:
         end_time = time.time()
         logger.info(f"Total time: {end_time - start_time}")
 
-        if hasattr(self, "rl_synthesiser"):
-            self.rl_synthesiser.save_to_json(
+        if hasattr(self, "agents_wrapper"):
+            self.agents_wrapper.save_to_json(
                 self.args.agent_name, model=self.input_rl_settings_dict["model_name"], method=self.args.learning_method, time=end_time - start_time)
 
     def strategy_iterative(self, unfold_imperfect_only):
@@ -864,6 +866,10 @@ class SynthesizerPomdp:
 
     def run(self, optimum_threshold=None):
         # choose the synthesis strategy:
+        if hasattr(self, "input_rl_settings_dict"):
+            synthesizer_rl = SynthesizerRL(self.quotient, self.method, self.storm_control, self.input_rl_settings_dict)
+            result = synthesizer_rl.run()
+            return result
         if self.use_storm:
             logger.info("Storm POMDP option enabled")
             logger.info("Storm settings: iterative - {}, get_storm_result - {}, storm_options - {}, prune_storm - {}, unfold_strategy - {}, use_storm_cutoffs - {}".format(
@@ -873,6 +879,7 @@ class SynthesizerPomdp:
                             self.storm_control.unfold_storm, self.storm_control.unfold_cutoff), self.storm_control.use_cutoffs
                         ))
             # start SAYNT
+            
             if self.storm_control.iteration_timeout is not None:
                 self.iterative_storm_loop(timeout=self.storm_control.iteration_timeout,
                                           paynt_timeout=self.storm_control.paynt_timeout,

@@ -1,4 +1,4 @@
-from paynt.synthesizer.synthesizer_agents import Synthesizer_Agents
+from paynt.rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
 import numpy as np
 from rl_src.tools.args_emulator import ArgsEmulator
 from rl_src.tools.evaluators import evaluate_extracted_fsc
@@ -71,11 +71,11 @@ class RLFamilyExtractor:
                                           options, labels)
 
     @staticmethod
-    def get_extracted_fsc_policy(rl_synthesizer: Synthesizer_Agents, args: ArgsEmulator):
-        extracted_fsc_policy = ExtractedFSCPolicy(rl_synthesizer.agent.wrapper, rl_synthesizer.agent.environment,
-                                                  tf_environment=rl_synthesizer.agent.tf_environment, args=args)
-        evaluate_extracted_fsc(external_evaluation_result=rl_synthesizer.agent.evaluation_result,
-                               agent=rl_synthesizer.agent,
+    def get_extracted_fsc_policy(agents_wrapper: AgentsWrapper, args: ArgsEmulator):
+        extracted_fsc_policy = ExtractedFSCPolicy(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
+                                                  tf_environment=agents_wrapper.agent.tf_environment, args=args)
+        evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
+                               agent=agents_wrapper.agent,
                                extracted_fsc_policy=extracted_fsc_policy)
         return extracted_fsc_policy
 
@@ -115,30 +115,30 @@ class RLFamilyExtractor:
         return act_keywords.index(action_label)
 
     @staticmethod
-    def get_rl_action_label(rl_synthesizer: Synthesizer_Agents, rl_action):
-        return rl_synthesizer.agent.environment.act_to_keywords[rl_action]
+    def get_rl_action_label(agents_wrapper: AgentsWrapper, rl_action):
+        return agents_wrapper.agent.environment.act_to_keywords[rl_action]
 
     @staticmethod
-    def generate_fake_timestep(rl_synthesizer: Synthesizer_Agents, hole_info: 'RLFamilyExtractor.HoleInfo'):
-        return rl_synthesizer.agent.environment.create_fake_timestep_from_observation_integer(hole_info.observation_integer)
+    def generate_fake_timestep(agents_wrapper: AgentsWrapper, hole_info: 'RLFamilyExtractor.HoleInfo'):
+        return agents_wrapper.agent.environment.create_fake_timestep_from_observation_integer(hole_info.observation_integer)
 
     @staticmethod
-    def generate_rl_action(rl_synthesizer: Synthesizer_Agents, fake_time_step, extracted_fsc_policy: ExtractedFSCPolicy,
+    def generate_rl_action(agents_wrapper: AgentsWrapper, fake_time_step, extracted_fsc_policy: ExtractedFSCPolicy,
                            hole_info: 'RLFamilyExtractor.HoleInfo', is_first=False, memory_less=True):
         if is_first and hole_info.mem_number == 0:
             action = extracted_fsc_policy.get_single_action(
                 hole_info.observation_integer, hole_info.mem_number)
             action_label = RLFamilyExtractor.get_rl_action_label(
-                rl_synthesizer, action)
+                agents_wrapper, action)
         else:
             # mem_number = hole_info.mem_number if not memory_less else 0
-            initial_state = rl_synthesizer.agent.wrapper.get_initial_state(1)
-            action = rl_synthesizer.agent.wrapper.action(fake_time_step, initial_state)
+            initial_state = agents_wrapper.agent.wrapper.get_initial_state(1)
+            action = agents_wrapper.agent.wrapper.action(fake_time_step, initial_state)
             if not memory_less or hole_info.mem_number == 0:
                 extracted_fsc_policy.set_single_action(
                     hole_info.observation_integer, hole_info.mem_number, action.action.numpy()[0])
             action_label = RLFamilyExtractor.get_rl_action_label(
-                rl_synthesizer, action.action.numpy()[0])
+                agents_wrapper, action.action.numpy()[0])
         return action_label
 
     @staticmethod
@@ -153,12 +153,12 @@ class RLFamilyExtractor:
         subfamily_restrictions.append(restriction)
 
     @staticmethod
-    def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', rl_synthesizer: Synthesizer_Agents,
+    def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', agents_wrapper: AgentsWrapper,
                                      extracted_fsc_policy: ExtractedFSCPolicy, restricted_family: Family,
                                      subfamily_restrictions: list[dict]):
         selected_action = np.random.choice(hole_info.options)
         rl_action = RLFamilyExtractor.convert_hole_option_to_rl_action(
-            hole_info, selected_action, rl_synthesizer.agent.environment.action_keywords)
+            hole_info, selected_action, agents_wrapper.agent.environment.action_keywords)
         if hole_info.mem_number == 0:
             extracted_fsc_policy.set_single_action(
                 hole_info.observation_integer, hole_info.mem_number, rl_action)
@@ -168,7 +168,7 @@ class RLFamilyExtractor:
         subfamily_restrictions.append(restriction)
 
     @staticmethod
-    def hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], rl_synthesizer: Synthesizer_Agents,
+    def hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], agents_wrapper: AgentsWrapper,
                        extracted_fsc_policy: ExtractedFSCPolicy, mem_check: callable = basic_initial_mem_check,
                        memory_less: bool = True) -> tuple[int, int]:
         hole_info = RLFamilyExtractor.get_hole_info(
@@ -177,14 +177,14 @@ class RLFamilyExtractor:
             return 0, 0
         # print(f"Processing hole {hole_info}")
         fake_time_step = RLFamilyExtractor.generate_fake_timestep(
-            rl_synthesizer, hole_info)
+            agents_wrapper, hole_info)
         i = 0
         miss = 0
         complete_miss = 0
         while True:
 
             action_label = RLFamilyExtractor.generate_rl_action(
-                rl_synthesizer, fake_time_step,
+                agents_wrapper, fake_time_step,
                 extracted_fsc_policy, hole_info,
                 is_first=(i == 0),
                 memory_less=memory_less)
@@ -197,14 +197,14 @@ class RLFamilyExtractor:
                 miss = 1
             elif i > 10:
                 RLFamilyExtractor.set_action_for_complete_miss(
-                    hole_info, rl_synthesizer, extracted_fsc_policy, restricted_family, subfamily_restrictions)
+                    hole_info, agents_wrapper, extracted_fsc_policy, restricted_family, subfamily_restrictions)
                 complete_miss = 1
                 break
             i += 1
         return miss, complete_miss
 
-    
-    def get_restricted_family_rl_inference(self, original_family: Family, rl_synthesizer: Synthesizer_Agents, args:
+    @staticmethod
+    def get_restricted_family_rl_inference(original_family: Family, agents_wrapper: AgentsWrapper, args:
                                            ArgsEmulator, fill_all_memory: bool = False, memoryless_rl = True) -> tuple[Family, list[dict]]:
         # Copy of the original family, because PAYNT uses the original family to other purposes
         restricted_family = original_family.copy()
@@ -224,19 +224,19 @@ class RLFamilyExtractor:
         # Extraction and evaluation of original policy
 
         extracted_fsc_policy = RLFamilyExtractor.get_extracted_fsc_policy(
-            rl_synthesizer, args)
+            agents_wrapper, args)
         if fill_all_memory:
             mem_check = RLFamilyExtractor.fill_all_mem_check
         for hole in range(restricted_family.num_holes):
             miss, complete_miss = RLFamilyExtractor.hole_loop_body(
-                hole, restricted_family, subfamily_restrictions, rl_synthesizer, extracted_fsc_policy,
+                hole, restricted_family, subfamily_restrictions, agents_wrapper, extracted_fsc_policy,
                 mem_check=mem_check, memory_less=memoryless_rl)
             num_misses += miss
             num_misses_complete += complete_miss
 
         extracted_fsc_policy.recompile_tf_tables()
-        evaluate_extracted_fsc(external_evaluation_result=rl_synthesizer.agent.evaluation_result,
-                               agent=rl_synthesizer.agent, extracted_fsc_policy=extracted_fsc_policy)
+        evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
+                               agent=agents_wrapper.agent, extracted_fsc_policy=extracted_fsc_policy)
         logger.info(
             f"Number of misses: {num_misses} out of {restricted_family.num_holes}")
         logger.info(

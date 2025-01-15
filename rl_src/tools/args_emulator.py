@@ -13,15 +13,15 @@ class ArgsEmulator:
 
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 8.6e-4, max_steps: int = 400, evaluation_episodes: int = 20,
-                 batch_size: int = 32, trajectory_num_steps: int = 32, nr_runs: int = 4001, evaluation_goal: int = 50,
-                 interpretation_method: str = "Tracing", learning_method: str = "DQN",
-                 save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -20, experiment_directory: str = "experiments",
-                 buffer_size: int = 50000, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0,
+                 batch_size: int = 256, trajectory_num_steps: int = 32, nr_runs: int = 4001, evaluation_goal: int = 50,
+                 interpretation_method: str = "Tracing", learning_method: str = "Stochastic_PPO",
+                 save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -20, experiment_directory: str = "experiments",                                                                                                                                                                                                                                                           
+                 buffer_size: int = 500, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0,
                  agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None,
                  replay_buffer_option=ReplayBufferOptions.ON_POLICY,
-                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = False,
-                 random_start_simulator=False, num_environments: int = 32, perform_interpretation: bool = False, vectorized_envs_flag: bool = True,
+                 evaluate_random_policy: bool = False, prefer_stochastic: bool = True, normalize_simulator_rewards: bool = True,
+                 random_start_simulator=False, num_environments: int = 256, perform_interpretation: bool = False, vectorized_envs_flag: bool = True,
                  illegal_action_penalty_per_step=-0.02, flag_illegal_action_penalty=False, use_rnn_less=False, model_memory_size = 0,
                  name_of_experiment="results_of_interpretation"):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.

@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Synthesizer_Agents:
+class AgentsWrapper:
     """Class for the interface between RL and PAYNT.
     """
 
