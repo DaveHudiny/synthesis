@@ -475,7 +475,7 @@ class SynthesizerPomdp:
         if not skip:
 
             self.iterative_storm_loop_body(
-                timeout, paynt_timeout, storm_timeout, iteration_limit, rl_family_extraction=True)
+                timeout, paynt_timeout, storm_timeout, iteration_limit, rl_family_extraction=False)
             specification_property = self.quotient.get_property().__str__()
             paynt_value = self.storm_control.paynt_bounds
             storm_value = self.storm_control.storm_bounds

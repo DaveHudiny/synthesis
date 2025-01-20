@@ -213,7 +213,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 exit(0)
         else:
             raise ValueError("Encoding method currently not implemented")
-        print(observation_spec)
         return observation_spec
 
     def create_specifications(self):
@@ -537,7 +536,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         """Creates a fake TimeStep from the observation integer."""
         observation = create_valuations_encoding(observation_integer, self.stormpy_model)
         observation = tf.constant([observation], dtype=tf.float32)
-        mask = tf.constant([[True] * self.nr_actions], dtype=tf.bool)
+        state = np.where(self.state_to_observation_map.numpy() ==
+                             observation_integer)[0][0]
+        mask = tf.constant([self.vectorized_simulator.simulator.allowed_actions[state].tolist()], dtype=tf.bool)
         integer = tf.constant([[observation_integer]], dtype=tf.int32)
         time_step = ts.TimeStep(
             observation={"observation": observation, "mask": mask, "integer": integer},

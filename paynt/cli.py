@@ -153,8 +153,8 @@ def setup_logger(log_path = None):
                 help="Number of training iterations with FSC oracle. Default is 100.")
 @click.option("--rl-pretrain-iters", type=click.INT, default=51,
                 help="Number of pretraining iterations with RL oracle. Default is 500.")
-@click.option("--rl-training-iters", type=click.INT, default=301,
-                help="Number of training iterations with RL oracle. Default is 300.")
+@click.option("--rl-training-iters", type=click.INT, default=2001,
+                help="Number of training iterations with RL oracle. Default is 2001.")
 @click.option("--fsc-multiplier", type=click.FLOAT, default=2.0,
                 help="Multiplier for the FSC cycling oracle. Default is 2.0.")
 @click.option("--rl-load-path", type=click.Path(), default="./",
@@ -167,7 +167,7 @@ def setup_logger(log_path = None):
                 help="Name of the model to be used with output json file.")
 @click.option("--sub-method", type=click.Path(), default="random",
                 help="Name of the submethod to use with dqn critic.")
-@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="BC",
+@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="R_Shaping",
                 help="Name of the method to process FSC/SAYNT controller to RL.")
 @click.option("--greedy", is_flag=True, default=False,
               help="Use greedy policy for RL oracle. Default is False.")

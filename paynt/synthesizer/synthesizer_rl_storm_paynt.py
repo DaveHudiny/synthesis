@@ -100,15 +100,15 @@ class SynthesizerRL:
             self.combo_mode = RL_SAYNT_Combo_Modes.BEHAVIORAL_CLONING
     
     def create_rl_args(self, input_rl_settings_dict: dict):
-        nr_runs = 4001
+        nr_runs = self.rl_training_iters
         agent_name = "RevisitedLoop"
-        rnn_less = True
+        rnn_less = self.rnn_less
         args = ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
                             trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
-                            normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=True,
+                            normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=True, use_rnn_less=rnn_less, model_memory_size=0)
         return args
 
@@ -122,12 +122,18 @@ class SynthesizerRL:
         self.greedy = input_rl_settings_dict['greedy']
         if self.loop:
             self.fsc_synthesis_time_limit = input_rl_settings_dict['fsc_time_in_loop']
+            self.time_limit = input_rl_settings_dict['time_limit']
         else:
             self.fsc_synthesis_time_limit = input_rl_settings_dict['time_limit']
+            self.time_limit = input_rl_settings_dict['time_limit']
+
         # if self.loop:
         self.time_limit = input_rl_settings_dict['time_limit']
         self.rnn_less = input_rl_settings_dict['rnn_less']
         self.args = self.create_rl_args(input_rl_settings_dict)
+        self.model_name = input_rl_settings_dict["model_name"]
+        self.memory_only_subfamilies = False
+
 
     # SAYNT reimplementation with RL. Returns the extracted main family and subfamilies.
     def process_rl_hint(self, rl_agent) -> tuple[Family, list[Family]]:
@@ -140,19 +146,21 @@ class SynthesizerRL:
         subfamily_restrictions = []
         return restricted_main_family, subfamily_restrictions
 
-    def extract_one_fsc_w_entropy(self, agents_wrapper: AgentsWrapper) -> ExtractedFSCPolicy:
+    def extract_one_fsc_w_entropy(self, agents_wrapper: AgentsWrapper, greedy : bool = False) -> ExtractedFSCPolicy:
         extracted_fsc = ExtractedFSCPolicy(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
-                                           agents_wrapper.agent.tf_environment, self.args, entropy_extraction=True)
+                                           agents_wrapper.agent.tf_environment, self.args, entropy_extraction=True,
+                                           greedy=greedy)
         return extracted_fsc
     
-    def set_memory_w_extracted_fsc_entropy(self, extracted_fsc : ExtractedFSCPolicy, ceil=True):
+    def set_memory_w_extracted_fsc_entropy(self, extracted_fsc : ExtractedFSCPolicy, ceil=False):
         obs_memory_dict = {}
         bit_entropies = extracted_fsc.observation_to_entropy_table
         memory_entropies = tf.pow(2.0, bit_entropies)
+        cutted_memory_entropies = tf.clip_by_value(memory_entropies, 0, 5)
         if ceil:
-            memory_entropies = tf.math.ceil(memory_entropies).numpy()
+            memory_entropies = tf.math.ceil(cutted_memory_entropies).numpy()
         else:
-            memory_entropies = tf.math.floor(memory_entropies).numpy()
+            memory_entropies = tf.math.floor(cutted_memory_entropies).numpy()
         memory_entropies = memory_entropies.astype(int)
         for observation in range(self.quotient.pomdp.nr_observations):
             obs_memory_dict[observation] = memory_entropies[observation]
@@ -165,23 +173,77 @@ class SynthesizerRL:
     def iterative_storm_rl_paynt(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         pass
 
-    def run(self):
-        agents_wrapper = AgentsWrapper(self.quotient.pomdp, self.args)
-        agents_wrapper.train_agent(1000)
-        extracted_fsc = self.extract_one_fsc_w_entropy(agents_wrapper)
+    def run_rl_synthesis_jumpstarts(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
+        if saynt:
+            raise NotImplementedError("SAYNT jumpstarts not implemented yet")
+        agents_wrapper = self.get_agents_wrapper()
+        agents_wrapper.train_agent_with_jumpstarts(fsc, nr_of_iterations)
+        if save:
+            agents_wrapper.save_to_json(
+                self.args.agent_name, model=self.model_name, method=self.args.learning_method)
+
+    def run_rl_synthesis_shaping(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
+        if saynt:
+            raise NotImplementedError("SAYNT shaping not implemented yet")
+        agents_wrapper = self.get_agents_wrapper()
+        agents_wrapper.train_agent_with_shaping(fsc, nr_of_iterations)
+        experiment_name = f"{self.args.agent_name}_longer"
+        if save:
+            agents_wrapper.save_to_json(
+                experiment_name, model=self.model_name, method=self.args.learning_method)
+
+    def single_shot_synthesis(self, agents_wrapper : AgentsWrapper, nr_rl_iterations : int, paynt_timeout : int, fsc = None):
+        if fsc is not None:
+            if self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
+                self.run_rl_synthesis_jumpstarts(fsc, saynt=self.saynt, save=False, nr_of_iterations=nr_rl_iterations)
+            elif self.combo_mode == RL_SAYNT_Combo_Modes.SHAPING_MODE:
+                self.run_rl_synthesis_shaping(fsc, saynt=self.saynt, save=False, nr_of_iterations=nr_rl_iterations)
+            else:
+                logger.error("Not implemented combo mode, running baseline training.")
+                agents_wrapper.train_agent(nr_rl_iterations)
+        else:
+            agents_wrapper.train_agent(nr_rl_iterations)
+        extracted_fsc = self.extract_one_fsc_w_entropy(agents_wrapper, greedy=self.greedy)
         self.set_memory_w_extracted_fsc_entropy(extracted_fsc)
 
         family = self.quotient.family
 
-        initialized_extraction = ExtractedFamilyWrapper(family, 0, agents_wrapper)
+        initialized_extraction = ExtractedFamilyWrapper(family, 0, agents_wrapper, greedy = self.greedy, memory_only = self.memory_only_subfamilies)
         subfamily_restrictions = initialized_extraction.get_subfamily_restrictions()
         subfamilies = self.storm_control.get_subfamilies(
             subfamily_restrictions, family)
-        self.synthesizer.subfamilies_buffer = subfamilies
-        self.synthesizer.main_family = initialized_extraction.get_family()
-        assignment = self.synthesize(family, timer=600)
-        self.finalize_synthesis(assignment)
         
+        self.synthesizer.main_family = initialized_extraction.get_family()
+        # synthesizer = self.synthesizer(self.quotient)
+        # synthesizer.stat = paynt.synthesizer.statistic.Statistic(self)
+        # self.subfamilies_buffer = []
+        # assignment = self.synthesize(family, timer=paynt_timeout)
+        self.synthesizer.subfamilies_buffer = subfamilies
+        assignment = self.synthesize(family, timer=paynt_timeout)
+        self.finalize_synthesis(assignment)
+        return assignment
+            
+
+    def run(self):
+        agents_wrapper = AgentsWrapper(self.quotient.pomdp, self.args)
+        self.set_agents_wrapper(agents_wrapper)
+        start_time = time.time()
+        fsc = None
+        while True:
+            assignment = self.single_shot_synthesis(agents_wrapper, self.rl_training_iters, self.fsc_synthesis_time_limit, fsc)
+            if assignment is not None:
+                agents_wrapper.agent.evaluation_result.add_paynt_bound(
+                    self.storm_control.paynt_bounds)
+                fsc = self.quotient.assignment_to_fsc(assignment)
+            if not self.loop:
+                break
+            if time.time() - start_time > self.time_limit:
+                break
+        
+        # Save the final json file
+        agents_wrapper.save_to_json(
+            self.args.agent_name, model=self.model_name, method=self.args.learning_method)
+
     def finalize_synthesis(self, assignment):
         if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment
@@ -198,3 +260,9 @@ class SynthesizerRL:
                 logging.info("Assignment is None")
 
         self.storm_control.update_data()
+
+    def set_agents_wrapper(self, agents_wrapper : AgentsWrapper):
+        self.agents_wrapper = agents_wrapper
+
+    def get_agents_wrapper(self) -> AgentsWrapper:
+        return self.agents_wrapper

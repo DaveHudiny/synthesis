@@ -8,6 +8,9 @@ from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 from rl_src.environment.environment_wrapper_vec import Environment_Wrapper_Vec
 
 from rl_src.agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
+# from rl_src.agents.father_agent import FatherAgent
+
+# from rl_src.interpreters.tracing_interpret import TracingInterpret
 
 import numpy as np
 import tensorflow as tf
@@ -21,6 +24,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
+
 def create_fake_timestep(observation_triplet):
     return TimeStep(
         step_type=tf.constant(0, dtype=tf.int32),
@@ -29,7 +33,8 @@ def create_fake_timestep(observation_triplet):
         observation=observation_triplet
     )
 
-def save_extracted_fsc(observation_to_action_table, observation_to_update_table, action_labels, memory_size, observation_size, args : ArgsEmulator, model_name,
+
+def save_extracted_fsc(observation_to_action_table, observation_to_update_table, action_labels, memory_size, observation_size, args: ArgsEmulator, model_name,
                        percentage_of_misses=None):
     saved_dict = {
         "observation_to_action_table": observation_to_action_table,
@@ -39,7 +44,8 @@ def save_extracted_fsc(observation_to_action_table, observation_to_update_table,
         "observation_size": observation_size,
         "percentage_of_misses": percentage_of_misses
     }
-    name = args.name_of_experiment + "/" + args.agent_name + "_" + "_extracted_fsc.pkl"
+    name = args.name_of_experiment + "/" + \
+        args.agent_name + "_" + "_extracted_fsc.pkl"
     # Check if the folder exists
     if not os.path.exists(args.name_of_experiment):
         os.makedirs(args.name_of_experiment)
@@ -48,14 +54,16 @@ def save_extracted_fsc(observation_to_action_table, observation_to_update_table,
         logger.info("File %s already exists. Finding a new index.", name)
         index = 1
         while os.path.exists(name):
-            name = args.name_of_experiment + "/" + args.agent_name + "_" + "_extracted_fsc_" + str(index) + ".pkl"
+            name = args.name_of_experiment + "/" + args.agent_name + \
+                "_" + "_extracted_fsc_" + str(index) + ".pkl"
             index += 1
 
     with open(name, "wb") as f:
         logger.info("Saving extracted FSC to %s", name)
         pkl.dump(saved_dict, f)
 
-def construct_table_observation_action_memory(agent_policy : TFPolicy, environment : Environment_Wrapper_Vec):
+
+def construct_table_observation_action_memory(agent_policy: TFPolicy, environment: Environment_Wrapper_Vec):
     """Constructs a table with observations, actions and memory values.
 
     Args:
@@ -68,19 +76,24 @@ def construct_table_observation_action_memory(agent_policy : TFPolicy, environme
     all_observations = range(np.unique(state_to_observations).shape[0])
     model_memory_size = environment.model_memory_size if environment.model_memory_size > 0 else 1
     no_memory = True if environment.model_memory_size == 0 else False
-    observation_to_action_table = np.zeros((model_memory_size, len(all_observations), )) 
-    observation_to_update_table = np.zeros((model_memory_size, len(all_observations), ))
+    observation_to_action_table = np.zeros(
+        (model_memory_size, len(all_observations), ))
+    observation_to_update_table = np.zeros(
+        (model_memory_size, len(all_observations), ))
     number_of_misses = 0
 
     for integer_observation in all_observations:
         for memory in range(model_memory_size):
             # Find some of the states that correspond to the integer observation
-            state = np.where(state_to_observations == integer_observation)[0][0]
-            observation_triplet = environment.encode_observation(integer_observation, memory, state)
+            state = np.where(state_to_observations ==
+                             integer_observation)[0][0]
+            observation_triplet = environment.encode_observation(
+                integer_observation, memory, state)
             mask = observation_triplet["mask"]
             time_step = create_fake_timestep(observation_triplet)
             fake_policy_state = agent_policy.get_initial_state(1)
-            played_action = agent_policy.action(time_step=time_step, policy_state=fake_policy_state)
+            played_action = agent_policy.action(
+                time_step=time_step, policy_state=fake_policy_state)
             if no_memory:
                 action = played_action.action
                 update = 0
@@ -94,17 +107,20 @@ def construct_table_observation_action_memory(agent_policy : TFPolicy, environme
                 action = mask.numpy().argmax()
             observation_to_action_table[memory][integer_observation] = action
             observation_to_update_table[memory][integer_observation] = update
-    
+
     logger.info("Number of misses: %d", number_of_misses)
-    logger.info("Percentage of misses: %f", number_of_misses / (len(all_observations) * model_memory_size))
-    save_extracted_fsc(observation_to_action_table, observation_to_update_table, environment.act_to_keywords, model_memory_size, len(all_observations), environment.args, environment.args.agent_name,
-                       percentage_of_misses=number_of_misses / (len(all_observations) * model_memory_size))
-    
+    logger.info("Percentage of misses: %f", number_of_misses /
+                (len(all_observations) * model_memory_size))
+    # save_extracted_fsc(observation_to_action_table, observation_to_update_table, environment.act_to_keywords, 
+    #                    model_memory_size, len(all_observations), environment.args, environment.args.agent_name,
+    #                    percentage_of_misses=number_of_misses / (len(all_observations) * model_memory_size))
+
     return observation_to_action_table, observation_to_update_table
 
-def construct_memoryless_table_w_entropy(agent_policy : Policy_Mask_Wrapper, 
-                                         environment : Environment_Wrapper_Vec
-                                        ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+def construct_memoryless_table_w_entropy(agent_policy: Policy_Mask_Wrapper,
+                                         environment: Environment_Wrapper_Vec,
+                                         greedy: bool = False) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Constructs a table with observations and actions for memoryless policies with additional list of entropy values."""
     state_to_observations = np.array(environment.stormpy_model.observations)
     all_observations = range(np.unique(state_to_observations).shape[0])
@@ -114,44 +130,64 @@ def construct_memoryless_table_w_entropy(agent_policy : Policy_Mask_Wrapper,
 
     for integer_observation in all_observations:
         state = np.where(state_to_observations == integer_observation)[0][0]
-        observation_triplet = environment.encode_observation(integer_observation, 0, state)
+        observation_triplet = environment.encode_observation(
+            integer_observation, 0, state)
         time_step = create_fake_timestep(observation_triplet)
         fake_policy_state = agent_policy.get_initial_state(1)
-        played_action = agent_policy.action(time_step=time_step, policy_state=fake_policy_state)
-        action = played_action.action
+
+        played_action = agent_policy.action(
+            time_step=time_step, policy_state=fake_policy_state)
+        logits = played_action.info["dist_params"]["logits"]
+        logits = tf.where(observation_triplet["mask"], logits, -np.inf)
+        if not greedy:
+            action = played_action.action
+        else:
+            action = tf.argmax(logits)
         observation_to_action_table[integer_observation] = action
         logits = played_action.info["dist_params"]["logits"]
-        entropy = -tf.reduce_sum(tf.nn.softmax(logits) * tf.nn.log_softmax(logits))
+        entropy = -tf.reduce_sum(tf.nn.softmax(logits)
+                                 * (tf.nn.log_softmax(logits) / tf.math.log(2.0)), axis=-1)
         observation_to_entropy_table[integer_observation] = entropy
     return observation_to_action_table, observation_to_entropy_table, observation_to_update_table
 
+
 class ExtractedFSCPolicy(TFPolicy):
-    def __init__(self, agent_policy : TFPolicy, environment : Environment_Wrapper_Vec, tf_environment : TFPyEnvironment, args, model = "", entropy_extraction = False):
+    def __init__(self, agent_policy: TFPolicy, environment: Environment_Wrapper_Vec, 
+                 tf_environment: TFPyEnvironment, args, model="", entropy_extraction=False,
+                 greedy: bool = False):
         eager = PyTFEagerPolicy(agent_policy, use_tf_function=True)
 
         if not entropy_extraction:
-            self.observation_to_action_table, self.observation_to_update_table = construct_table_observation_action_memory(eager, environment)
+            self.observation_to_action_table, self.observation_to_update_table = construct_table_observation_action_memory(
+                eager, environment)
         else:
-            self.observation_to_action_table, self.observation_to_entropy_table, self.observation_to_update_table = construct_memoryless_table_w_entropy(eager, environment)
-        self.tf_observation_to_action_table = tf.constant(self.observation_to_action_table, dtype=tf.int32)
-        self.tf_observation_to_update_table = tf.constant(self.observation_to_update_table, dtype=tf.int32)
+            self.observation_to_action_table, self.observation_to_entropy_table, self.observation_to_update_table = construct_memoryless_table_w_entropy(
+                eager, environment, greedy=greedy)
+        self.tf_observation_to_action_table = tf.constant(
+            self.observation_to_action_table, dtype=tf.int32)
+        self.tf_observation_to_update_table = tf.constant(
+            self.observation_to_update_table, dtype=tf.int32)
         if entropy_extraction:
-            self.tf_observation_to_entropy_table = tf.constant(self.observation_to_entropy_table, dtype=tf.float32)
+            self.tf_observation_to_entropy_table = tf.constant(
+                self.observation_to_entropy_table, dtype=tf.float32)
         self.action_labels = environment.act_to_keywords
         self.memory_size = environment.model_memory_size
         self.observation_size = len(environment.stormpy_model.observations)
         self.args = args
-        super(ExtractedFSCPolicy, self).__init__(tf_environment.time_step_spec(), tf_environment.action_spec())
+        super(ExtractedFSCPolicy, self).__init__(
+            tf_environment.time_step_spec(), tf_environment.action_spec())
+        
+    
 
     def _get_initial_state(self, batch_size):
         return ()
-    
+
     def get_single_action(self, observation, memory):
         return self.observation_to_action_table[memory, observation]
-    
+
     def get_single_update(self, observation, memory):
         return self.observation_to_update_table[memory, observation]
-    
+
     def set_single_action(self, observation, memory, action):
         self.observation_to_action_table[memory, observation] = action
 
@@ -159,17 +195,21 @@ class ExtractedFSCPolicy(TFPolicy):
         self.observation_to_update_table[memory, observation] = update
 
     def recompile_tf_tables(self):
-        self.tf_observation_to_action_table = tf.constant(self.observation_to_action_table, dtype=tf.int32)
-        self.tf_observation_to_update_table = tf.constant(self.observation_to_update_table, dtype=tf.int32)
-    
-    def _action(self, time_step : TimeStep, policy_state : PolicyStep, seed):
+        self.tf_observation_to_action_table = tf.constant(
+            self.observation_to_action_table, dtype=tf.int32)
+        self.tf_observation_to_update_table = tf.constant(
+            self.observation_to_update_table, dtype=tf.int32)
+
+    def _action(self, time_step: TimeStep, policy_state: PolicyStep, seed):
         observation = time_step.observation["integer"]
         if self.memory_size == 0:
-            memory = tf.zeros(shape=(time_step.observation["observation"].shape[0], 1), dtype=tf.int32)
+            memory = tf.zeros(
+                shape=(time_step.observation["observation"].shape[0], 1), dtype=tf.int32)
         else:
-            memory = tf.cast(time_step.observation["observation"][:, -1], dtype=tf.int32)
+            memory = tf.cast(
+                time_step.observation["observation"][:, -1], dtype=tf.int32)
             memory = tf.reshape(memory, (-1, 1))
-        
+
         indices = tf.concat([memory, observation], axis=1)
         action = tf.gather_nd(self.tf_observation_to_action_table, indices)
         update = tf.gather_nd(self.tf_observation_to_update_table, indices)
@@ -184,7 +224,24 @@ class ExtractedFSCPolicy(TFPolicy):
             }
 
         return PolicyStep(action_dict, policy_state)
-
-
-
     
+
+# class ExtractedFSCPolicySimulation(TFPolicy):
+
+#     def __init__(self, agent_policy : TFPolicy, environment: Environment_Wrapper_Vec, 
+#                  tf_environment: TFPyEnvironment, args : ArgsEmulator, model="", entropy_extraction=False,
+#                  greedy: bool = False, agent = None):
+#         eager = PyTFEagerPolicy(agent_policy, use_tf_function=True)
+#         tracing_interpret = TracingInterpret(environment, tf_environment, args.encoding_method)
+#         obs_act_dict = tracing_interpret.compute_observation_action_dictionary(50, agent, vectorized=True)
+#         obs_to_entropy = np.zeros((environment.stormpy_model.nr_observations,))
+
+#         for key in obs_act_dict.keys():
+#             counts = obs_act_dict[key].values()
+#             suma = np.sum(counts)
+#             probs = [count/suma for count in counts]
+#             obs_to_entropy[key] = -np.sum([prob*np.log2(prob) for prob in probs])
+
+
+#     def _get_initial_state(self, batch_size):
+#         return ()

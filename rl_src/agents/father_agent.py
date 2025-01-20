@@ -333,7 +333,7 @@ class FatherAgent(AbstractAgent):
 
     def init_demonstration_shaper(self, fsc: FSC):
         self.shaper = SparseRewardShaper(RewardShaperMethods.DEMONSTRATION, ObservationLevel.STATE_ACTION, maximum_reward=1.9,
-                                         batch_size=self.args.batch_size, buffer_length=100, cyclic_buffer=False, observation_length=1, action_length=1)
+                                         batch_size=self.args.batch_size, buffer_length=100, cyclic_buffer=True, observation_length=1, action_length=1)
 
         def _add_batch(item: Trajectory):
             observation = item.observation["integer"]
@@ -402,20 +402,6 @@ class FatherAgent(AbstractAgent):
         logger.info("Training finished.")
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(vectorized=vectorized, last=True)
-
-    def _check_condition(self, evaluation_result: EvaluationResults, performance_condition: float):
-        import math
-        if performance_condition is None or math.isnan(performance_condition):
-            return False
-        # TODO: Find better way, how to check conditions.
-        if performance_condition > 1.001:
-            if evaluation_result.best_return <= performance_condition * 1.25:
-                return True
-            return False
-        else:  # Reachability condition
-            if evaluation_result.best_reach_prob >= performance_condition * 0.75:
-                return True
-            return False
 
     def get_throw_away_driver(self, fsc: FSC):
 

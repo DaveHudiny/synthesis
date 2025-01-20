@@ -6,6 +6,8 @@ from rl_src.interpreters.fsc_based_interpreter import ExtractedFSCPolicy
 import logging
 import re
 
+from tf_agents.trajectories.time_step import TimeStep
+
 from paynt.family.family import Family
 
 logger = logging.getLogger(__name__)
@@ -95,7 +97,12 @@ class RLFamilyExtractor:
     def fill_all_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict]):
         if hole_info.is_update:
             options = hole_info.options
-            random_option = np.random.choice(options)
+            # random_option = np.random.choice(options)
+            # Generate single optinon from geometric distribution -- the first option should have probability 1/2, second 1/4, third 1/8, etc.
+            options_range = np.arange(len(options)) + 1.0
+            options_prob = 1.0 / (2.0 ** options_range)
+            normalized_options_prob = options_prob / np.sum(options_prob)
+            random_option = np.random.choice(options, p=normalized_options_prob) 
             subfamily_restrictions.append(
                 {"hole": hole_info.hole, "restriction": [random_option]})
             
@@ -143,19 +150,25 @@ class RLFamilyExtractor:
 
     @staticmethod
     def apply_family_action_restriction(hole_info: 'RLFamilyExtractor.HoleInfo', action_label: str, restricted_family: Family,
-                                        subfamily_restrictions: list[dict]):
+                                        subfamily_restrictions: list[dict], memory_only : bool = False):
         index_of_action_label = hole_info.option_labels.index(
             action_label)
         restricted_family.hole_set_options(
             hole_info.hole, [index_of_action_label])
-        restriction = {"hole": hole_info.hole,
-                       "restriction": [index_of_action_label]}
-        subfamily_restrictions.append(restriction)
+        if not memory_only:
+            restriction = {"hole": hole_info.hole,
+                           "restriction": [index_of_action_label]}
+            subfamily_restrictions.append(restriction)
+        else:
+            restriction = {"hole": hole_info.hole,
+                           "restriction": hole_info.options}
+            subfamily_restrictions.append(restriction)
+            pass
 
     @staticmethod
     def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', agents_wrapper: AgentsWrapper,
                                      extracted_fsc_policy: ExtractedFSCPolicy, restricted_family: Family,
-                                     subfamily_restrictions: list[dict]):
+                                     subfamily_restrictions: list[dict], memory_only : bool = False):
         selected_action = np.random.choice(hole_info.options)
         rl_action = RLFamilyExtractor.convert_hole_option_to_rl_action(
             hole_info, selected_action, agents_wrapper.agent.environment.action_keywords)
@@ -163,14 +176,36 @@ class RLFamilyExtractor:
             extracted_fsc_policy.set_single_action(
                 hole_info.observation_integer, hole_info.mem_number, rl_action)
         restricted_family.hole_set_options(hole_info.hole, [selected_action])
-        restriction = {"hole": hole_info.hole,
-                       "restriction": [selected_action]}
-        subfamily_restrictions.append(restriction)
+        if memory_only:
+            restriction = {"hole": hole_info.hole,
+                        "restriction": [selected_action]}
+            subfamily_restrictions.append(restriction)
+
+    @classmethod
+    def get_action_greedily(cls, restricted_family: Family, hole_info : HoleInfo, agent_wrapper : AgentsWrapper, fake_timestep : TimeStep):
+        reversed_index = -(hole_info.mem_number + 1)
+        if not hasattr(cls, "observation_to_logits"):
+            cls.observation_to_logits = {}
+        if hole_info.observation_integer in cls.observation_to_logits:
+            action = np.argsort(cls.observation_to_logits[hole_info.observation_integer])[reversed_index]
+            if cls.observation_to_logits[hole_info.observation_integer][action] == -np.inf:
+                # pick random action, which is not -np.inf
+                action = np.random.choice(np.argwhere(cls.observation_to_logits[hole_info.observation_integer] > -np.inf)[0])
+                
+        else:
+            played_action = agent_wrapper.agent.wrapper.action(fake_timestep, agent_wrapper.agent.wrapper.get_initial_state(1))
+            logits = played_action.info["dist_params"]["logits"].numpy()[0]
+            allowed_actions = fake_timestep.observation["mask"].numpy()[0]
+            logits = np.where(allowed_actions == False, -np.inf, logits)
+            cls.observation_to_logits[hole_info.observation_integer] = logits
+            action = np.argsort(logits)[reversed_index]
+        return action, RLFamilyExtractor.get_rl_action_label(agent_wrapper, action)
+
 
     @staticmethod
     def hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], agents_wrapper: AgentsWrapper,
                        extracted_fsc_policy: ExtractedFSCPolicy, mem_check: callable = basic_initial_mem_check,
-                       memory_less: bool = True) -> tuple[int, int]:
+                       memory_less: bool = True, greedy : bool = False, memory_only : bool = False) -> tuple[int, int]:
         hole_info = RLFamilyExtractor.get_hole_info(
             restricted_family, hole)
         if mem_check(hole_info, restricted_family, subfamily_restrictions):
@@ -181,31 +216,38 @@ class RLFamilyExtractor:
         i = 0
         miss = 0
         complete_miss = 0
-        while True:
+        if greedy:
+            action, action_label = RLFamilyExtractor.get_action_greedily(restricted_family, hole_info, agents_wrapper, fake_time_step)
+            RLFamilyExtractor.apply_family_action_restriction(
+                hole_info, action_label, restricted_family, subfamily_restrictions, memory_only)
+            return miss, complete_miss
+        else:
+            while True:
 
-            action_label = RLFamilyExtractor.generate_rl_action(
-                agents_wrapper, fake_time_step,
-                extracted_fsc_policy, hole_info,
-                is_first=(i == 0),
-                memory_less=memory_less)
+                action_label = RLFamilyExtractor.generate_rl_action(
+                    agents_wrapper, fake_time_step,
+                    extracted_fsc_policy, hole_info,
+                    is_first=(i == 0),
+                    memory_less=memory_less)
 
-            if action_label in hole_info.option_labels:
-                RLFamilyExtractor.apply_family_action_restriction(
-                    hole_info, action_label, restricted_family, subfamily_restrictions)
-                break
-            elif i == 0:
-                miss = 1
-            elif i > 10:
-                RLFamilyExtractor.set_action_for_complete_miss(
-                    hole_info, agents_wrapper, extracted_fsc_policy, restricted_family, subfamily_restrictions)
-                complete_miss = 1
-                break
-            i += 1
-        return miss, complete_miss
+                if action_label in hole_info.option_labels:
+                    RLFamilyExtractor.apply_family_action_restriction(
+                        hole_info, action_label, restricted_family, subfamily_restrictions, memory_only)
+                    break
+                elif i == 0:
+                    miss = 1
+                elif i > 10:
+                    RLFamilyExtractor.set_action_for_complete_miss(
+                        hole_info, agents_wrapper, extracted_fsc_policy, restricted_family, subfamily_restrictions, memory_only)
+                    complete_miss = 1
+                    break
+                i += 1
+            return miss, complete_miss
 
     @staticmethod
     def get_restricted_family_rl_inference(original_family: Family, agents_wrapper: AgentsWrapper, args:
-                                           ArgsEmulator, fill_all_memory: bool = False, memoryless_rl = True) -> tuple[Family, list[dict]]:
+                                           ArgsEmulator, fill_all_memory: bool = False, memoryless_rl = True,
+                                           greedy : bool = False, memory_only : bool = False) -> tuple[Family, list[dict]]:
         # Copy of the original family, because PAYNT uses the original family to other purposes
         restricted_family = original_family.copy()
 
@@ -230,7 +272,7 @@ class RLFamilyExtractor:
         for hole in range(restricted_family.num_holes):
             miss, complete_miss = RLFamilyExtractor.hole_loop_body(
                 hole, restricted_family, subfamily_restrictions, agents_wrapper, extracted_fsc_policy,
-                mem_check=mem_check, memory_less=memoryless_rl)
+                mem_check=mem_check, memory_less=memoryless_rl, greedy=greedy, memory_only=memory_only)
             num_misses += miss
             num_misses_complete += complete_miss
 

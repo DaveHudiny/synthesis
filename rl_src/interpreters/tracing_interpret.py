@@ -159,6 +159,7 @@ class TracingInterpret(Interpret):
     class ObsActUpdater:
         def __init__(self, randomize_illegal_actions=False):
             self.obs_act_dict = defaultdict(lambda: defaultdict(int))
+            self.illegal_obs_act_dict = defaultdict(lambda: defaultdict(int))
             self.randomize_illegal_actions = randomize_illegal_actions
 
         def update_obs_act_dict(self, item: Trajectory):
@@ -172,7 +173,7 @@ class TracingInterpret(Interpret):
                 #         if sub_mask[i]:
                 #             self.obs_act_dict[obs[0]][i] += 1.0 / float(number_of_legal_actions)
                 if not sub_mask[act]:
-                    continue
+                    self.illegal_obs_act_dict[obs[0]][act] += 1
                 else:
                     self.obs_act_dict[obs[0]][act] += 1
         

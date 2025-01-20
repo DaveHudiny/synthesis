@@ -49,8 +49,6 @@ class FSC_Policy(TFPolicy):
             info_mem_node (bool, optional): If True, the policy will return memory node in info. Defaults to False.
             independent_switches (bool, optional): If True, the policy will switch independently for each thread in batch. Defaults to False.
         """
-        print("FSC Policy init")
-        exit(0)
         self._info_spec = info_spec
         self.duplex_buffering = False
 
