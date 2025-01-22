@@ -449,6 +449,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             actions,
             selected_actions
         )
+        self._played_illegal_actions = tf.logical_not(is_action_allowed)
         return new_actions.numpy()
         
 

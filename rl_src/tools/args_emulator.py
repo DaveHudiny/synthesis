@@ -22,7 +22,7 @@ class ArgsEmulator:
                  replay_buffer_option=ReplayBufferOptions.ON_POLICY,
                  evaluate_random_policy: bool = False, prefer_stochastic: bool = True, normalize_simulator_rewards: bool = True,
                  random_start_simulator=False, num_environments: int = 256, perform_interpretation: bool = False, vectorized_envs_flag: bool = True,
-                 illegal_action_penalty_per_step=-0.02, flag_illegal_action_penalty=False, use_rnn_less=False, model_memory_size = 0,
+                 illegal_action_penalty_per_step=-0.02, flag_illegal_action_penalty=True, use_rnn_less=False, model_memory_size = 0,
                  name_of_experiment="results_of_interpretation"):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:

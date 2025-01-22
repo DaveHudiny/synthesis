@@ -1,6 +1,21 @@
 import numpy as np
 from rl_src.environment.pomdp_builder import *
 
+from rl_src.environment.environment_wrapper_vec import Environment_Wrapper_Vec
+from rl_src.tools.args_emulator import ArgsEmulator
+from rl_src.environment.tf_py_environment import TFPyEnvironment
+
+
+def init_environment(args : ArgsEmulator) -> tuple[Environment_Wrapper_Vec, TFPyEnvironment]:
+    prism_model = initialize_prism_model(args.prism_model, args.prism_properties, args.constants)
+    env = Environment_Wrapper_Vec(prism_model, args, num_envs=args.num_environments)
+    tf_env = TFPyEnvironment(env)
+    return env, tf_env
+
+def init_args(prism_path, properties_path) -> ArgsEmulator:
+    args = ArgsEmulator(prism_model=prism_path, prism_properties=properties_path, num_environments=16, batch_size=4)
+    return args
+
 
 def get_scalarized_reward(rewards, rewards_types):
     last_reward = rewards_types[-1]

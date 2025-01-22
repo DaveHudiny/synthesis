@@ -75,14 +75,16 @@ class RLFamilyExtractor:
     @staticmethod
     def get_extracted_fsc_policy(agents_wrapper: AgentsWrapper, args: ArgsEmulator):
         extracted_fsc_policy = ExtractedFSCPolicy(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
-                                                  tf_environment=agents_wrapper.agent.tf_environment, args=args)
+                                                  tf_environment=agents_wrapper.agent.tf_environment, args=args,
+                                                  max_memory_size=4)
         evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
                                agent=agents_wrapper.agent,
                                extracted_fsc_policy=extracted_fsc_policy)
         return extracted_fsc_policy
 
     @staticmethod
-    def basic_initial_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict]):
+    def basic_initial_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict],
+                                extracted_fsc_policy: ExtractedFSCPolicy):
         if hole_info.is_update:
             restricted_family.hole_set_options(hole_info.hole, [0])
             restriction = {"hole": hole_info.hole, "restriction": [0]}
@@ -92,9 +94,18 @@ class RLFamilyExtractor:
             return True
         else:
             return False
+        
+    def geometric_legal_selection(options, multiplier = 2.0):
+        options_range = np.arange(len(options)) + 1.0
+        options_prob = 1.0 / (multiplier ** options_range)
+        normalized_options_prob = options_prob / np.sum(options_prob)
+        random_option = np.random.choice(options, p=normalized_options_prob) 
+        return random_option
+
 
     @staticmethod
-    def fill_all_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict]):
+    def fill_all_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, 
+                           subfamily_restrictions: list[dict], extracted_fsc_policy: ExtractedFSCPolicy):
         if hole_info.is_update:
             options = hole_info.options
             # random_option = np.random.choice(options)
@@ -107,6 +118,26 @@ class RLFamilyExtractor:
                 {"hole": hole_info.hole, "restriction": [random_option]})
             
             restricted_family.hole_set_options(hole_info.hole, [random_option])
+            return True
+        else:
+            return False
+        
+    @staticmethod
+    def extracted_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict],
+                            extracted_fsc_policy: ExtractedFSCPolicy):
+        if hole_info.is_update:
+            # options = hole_info.options
+            current_memory = hole_info.mem_number
+            # mem_update = RLFamilyExtractor.geometric_legal_selection(options)
+            # extracted_fsc_policy.set_single_update(
+            #     hole_info.observation_integer, current_memory, mem_update)
+            mem_update = extracted_fsc_policy.get_single_update(
+                hole_info.observation_integer, current_memory)
+            if mem_update not in hole_info.options:
+                mem_update = np.random.choice(hole_info.options)
+            restricted_family.hole_set_options(hole_info.hole, [mem_update])
+            restriction = {"hole": hole_info.hole, "restriction": [mem_update]}
+            subfamily_restrictions.append(restriction)
             return True
         else:
             return False
@@ -163,7 +194,6 @@ class RLFamilyExtractor:
             restriction = {"hole": hole_info.hole,
                            "restriction": hole_info.options}
             subfamily_restrictions.append(restriction)
-            pass
 
     @staticmethod
     def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', agents_wrapper: AgentsWrapper,
@@ -208,7 +238,7 @@ class RLFamilyExtractor:
                        memory_less: bool = True, greedy : bool = False, memory_only : bool = False) -> tuple[int, int]:
         hole_info = RLFamilyExtractor.get_hole_info(
             restricted_family, hole)
-        if mem_check(hole_info, restricted_family, subfamily_restrictions):
+        if mem_check(hole_info, restricted_family, subfamily_restrictions, extracted_fsc_policy):
             return 0, 0
         # print(f"Processing hole {hole_info}")
         fake_time_step = RLFamilyExtractor.generate_fake_timestep(
@@ -216,11 +246,18 @@ class RLFamilyExtractor:
         i = 0
         miss = 0
         complete_miss = 0
-        if greedy:
+        if True:
+            action = extracted_fsc_policy.get_single_action(
+                hole_info.observation_integer, hole_info.mem_number)
+            action_label = RLFamilyExtractor.get_rl_action_label(
+                agents_wrapper, action)
+            RLFamilyExtractor.apply_family_action_restriction(
+                hole_info, action_label, restricted_family, subfamily_restrictions, memory_only)
+            
+        elif greedy:
             action, action_label = RLFamilyExtractor.get_action_greedily(restricted_family, hole_info, agents_wrapper, fake_time_step)
             RLFamilyExtractor.apply_family_action_restriction(
                 hole_info, action_label, restricted_family, subfamily_restrictions, memory_only)
-            return miss, complete_miss
         else:
             while True:
 
@@ -242,12 +279,13 @@ class RLFamilyExtractor:
                     complete_miss = 1
                     break
                 i += 1
-            return miss, complete_miss
+        return miss, complete_miss
 
     @staticmethod
     def get_restricted_family_rl_inference(original_family: Family, agents_wrapper: AgentsWrapper, args:
                                            ArgsEmulator, fill_all_memory: bool = False, memoryless_rl = True,
-                                           greedy : bool = False, memory_only : bool = False) -> tuple[Family, list[dict]]:
+                                           greedy : bool = False, memory_only : bool = False,
+                                           extracted_fsc = None) -> tuple[Family, list[dict]]:
         # Copy of the original family, because PAYNT uses the original family to other purposes
         restricted_family = original_family.copy()
 
@@ -264,21 +302,23 @@ class RLFamilyExtractor:
             pass  # TODO: Implement memory version of RLFamilyExtractor
 
         # Extraction and evaluation of original policy
-
-        extracted_fsc_policy = RLFamilyExtractor.get_extracted_fsc_policy(
+        if extracted_fsc is None:
+            extracted_fsc = RLFamilyExtractor.get_extracted_fsc_policy(
             agents_wrapper, args)
+        # shuffle extracted_fsc memory setting
+        # extracted_fsc.shuffle_memory()
         if fill_all_memory:
-            mem_check = RLFamilyExtractor.fill_all_mem_check
+            mem_check = RLFamilyExtractor.extracted_mem_check
         for hole in range(restricted_family.num_holes):
             miss, complete_miss = RLFamilyExtractor.hole_loop_body(
-                hole, restricted_family, subfamily_restrictions, agents_wrapper, extracted_fsc_policy,
+                hole, restricted_family, subfamily_restrictions, agents_wrapper, extracted_fsc,
                 mem_check=mem_check, memory_less=memoryless_rl, greedy=greedy, memory_only=memory_only)
             num_misses += miss
             num_misses_complete += complete_miss
 
-        extracted_fsc_policy.recompile_tf_tables()
+        extracted_fsc.recompile_tf_tables()
         evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
-                               agent=agents_wrapper.agent, extracted_fsc_policy=extracted_fsc_policy)
+                               agent=agents_wrapper.agent, extracted_fsc_policy=extracted_fsc)
         logger.info(
             f"Number of misses: {num_misses} out of {restricted_family.num_holes}")
         logger.info(
