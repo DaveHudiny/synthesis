@@ -153,9 +153,53 @@ def construct_memoryless_table_w_entropy(agent_policy: Policy_Mask_Wrapper,
     return observation_to_action_table, observation_to_entropy_table, observation_to_update_table
 
 
-
-
 class ExtractedFSCPolicy(TFPolicy):
+    def __init__(self, time_step_spec, action_spec, policy_state_spec, observation_to_action_table = None, observation_to_update_table = None, labels = None, memory_size = 1, observation_size = 1):
+        super(ExtractedFSCPolicy, self).__init__(
+            time_step_spec, action_spec, policy_state_spec)
+        if observation_to_action_table is not None:
+            self.observation_to_action_table = tf.constant(observation_to_action_table, dtype=tf.int32)
+        else:
+            self.tf_observation_to_action_table = tf.zeros(
+                shape=(memory_size, observation_size), dtype=tf.int32)
+        if observation_to_update_table is not None:
+            self.observation_to_update_table = tf.constant(observation_to_update_table, dtype=tf.int32)
+        else:
+            self.tf_observation_to_update_table = tf.zeros(
+                shape=(memory_size, observation_size), dtype=tf.int32)
+        self.model_memory_size = 0
+        self.action_labels = labels
+
+    def _action(self, time_step: TimeStep, policy_state: PolicyStep, seed):
+        observation = time_step.observation["integer"]
+        # if self.model_memory_size == 0:
+        #     memory = policy_state
+        # else:
+        #     memory = tf.cast(
+        #         time_step.observation["observation"][:, -1], dtype=tf.int32)
+        #     memory = tf.reshape(memory, (-1, 1))
+        memory = policy_state
+        indices = tf.concat([memory, observation], axis=1)
+        action = tf.gather_nd(self.tf_observation_to_action_table, indices)
+        update = tf.gather_nd(self.tf_observation_to_update_table, indices)
+        update = tf.reshape(update, (-1, 1))
+        # action = self.observation_to_action_table[memory, observation]
+        # update = self.observation_to_update_table[memory, observation]
+        if self.model_memory_size == 0:
+            action_dict = action
+            policy_state = update
+        else:
+            action_dict = {
+                "simulator_action": action,
+                "memory_update": update
+            }
+
+        return PolicyStep(action_dict, policy_state)
+    
+    def _get_initial_state(self, batch_size):
+        return tf.zeros((batch_size, 1), dtype=tf.int32)
+
+class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
     def __init__(self, agent_policy: TFPolicy, environment: Environment_Wrapper_Vec, 
                  tf_environment: TFPyEnvironment, args, model="", entropy_extraction=False,
                  greedy: bool = False, max_memory_size = 10):
@@ -193,7 +237,7 @@ class ExtractedFSCPolicy(TFPolicy):
             policy_state_spec = TensorSpec(shape=(), dtype=tf.int32)
         else:
             policy_state_spec = ()
-        super(ExtractedFSCPolicy, self).__init__(
+        super(NaiveFSCPolicyExtraction, self).__init__(
             tf_environment.time_step_spec(), tf_environment.action_spec(), policy_state_spec=policy_state_spec)
         
     def _init_action_and_memory_tables(self, agent_policy: TFPolicy, environment: Environment_Wrapper_Vec):
@@ -327,33 +371,6 @@ class ExtractedFSCPolicy(TFPolicy):
             for mem in range(self.memory_size):
                 self.observation_to_update_table[mem, obs] = self.geometric_legal_selection(options)
                 options = np.delete(options, np.where(options == self.observation_to_update_table[mem, obs]))
-
-
-    def _action(self, time_step: TimeStep, policy_state: PolicyStep, seed):
-        observation = time_step.observation["integer"]
-        # if self.model_memory_size == 0:
-        #     memory = policy_state
-        # else:
-        #     memory = tf.cast(
-        #         time_step.observation["observation"][:, -1], dtype=tf.int32)
-        #     memory = tf.reshape(memory, (-1, 1))
-        memory = policy_state
-        indices = tf.concat([memory, observation], axis=1)
-        action = tf.gather_nd(self.tf_observation_to_action_table, indices)
-        update = tf.gather_nd(self.tf_observation_to_update_table, indices)
-        update = tf.reshape(update, (-1, 1))
-        # action = self.observation_to_action_table[memory, observation]
-        # update = self.observation_to_update_table[memory, observation]
-        if self.model_memory_size == 0:
-            action_dict = action
-            policy_state = update
-        else:
-            action_dict = {
-                "simulator_action": action,
-                "memory_update": update
-            }
-
-        return PolicyStep(action_dict, policy_state)
     
 
 if __name__ == '__main__':
@@ -365,4 +382,4 @@ if __name__ == '__main__':
     args = init_args(prism_path=prism_path, properties_path=properties_path)
     env, tf_env = init_environment(args)
     agent_policy = Recurrent_PPO_agent(env, tf_env, args).wrapper
-    extracted_fsc_policy = ExtractedFSCPolicy(agent_policy, env, tf_env, args, entropy_extraction=True, greedy=True)
+    extracted_fsc_policy = NaiveFSCPolicyExtraction(agent_policy, env, tf_env, args, entropy_extraction=True, greedy=True)

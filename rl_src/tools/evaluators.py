@@ -19,7 +19,7 @@ from tf_agents.trajectories import TimeStep
 from tf_agents.trajectories import Trajectory
 from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
-from interpreters.fsc_based_interpreter import ExtractedFSCPolicy
+from interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 
 from tools.args_emulator import ArgsEmulator
 
@@ -346,7 +346,7 @@ def get_new_vectorized_evaluation_driver(tf_environment : tf_py_environment.TFPy
 
 
 def evaluate_extracted_fsc(external_evaluation_result : EvaluationResults, model : str = "", agent = None, 
-                           extracted_fsc_policy : ExtractedFSCPolicy = None):
+                           extracted_fsc_policy : NaiveFSCPolicyExtraction = None):
         """Evaluates the extracted FSC. The result is saved to the external_evaluation_result.
         
         Args:
@@ -358,7 +358,7 @@ def evaluate_extracted_fsc(external_evaluation_result : EvaluationResults, model
         
         evaluation_result = EvaluationResults()
         if extracted_fsc_policy is None:
-            extracted_fsc_policy = ExtractedFSCPolicy(agent.wrapper, agent.environment, agent.tf_environment, agent.args, model = model)
+            extracted_fsc_policy = NaiveFSCPolicyExtraction(agent.wrapper, agent.environment, agent.tf_environment, agent.args, model = model)
         driver, buffer = get_new_vectorized_evaluation_driver(
             agent.tf_environment, agent.environment, custom_policy=extracted_fsc_policy, num_steps=agent.args.max_steps)
         agent.tf_environment.reset()

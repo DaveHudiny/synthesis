@@ -1,5 +1,5 @@
 from rl_src.tools.evaluators import evaluate_extracted_fsc
-from rl_src.interpreters.fsc_based_interpreter import ExtractedFSCPolicy
+from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 from paynt.family.family import Family
 import json
 import numpy as np
@@ -146,14 +146,14 @@ class SynthesizerRL:
         subfamily_restrictions = []
         return restricted_main_family, subfamily_restrictions
 
-    def extract_one_fsc_w_entropy(self, agents_wrapper: AgentsWrapper, greedy: bool = False) -> ExtractedFSCPolicy:
-        self.extracted_fsc = ExtractedFSCPolicy(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
+    def extract_one_fsc_w_entropy(self, agents_wrapper: AgentsWrapper, greedy: bool = False) -> NaiveFSCPolicyExtraction:
+        self.extracted_fsc = NaiveFSCPolicyExtraction(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
                                            agents_wrapper.agent.tf_environment, self.args, entropy_extraction=True,
                                            greedy=greedy, max_memory_size=4)
         
         return self.extracted_fsc
 
-    def set_memory_w_extracted_fsc_entropy(self, extracted_fsc: ExtractedFSCPolicy, ceil=True):
+    def set_memory_w_extracted_fsc_entropy(self, extracted_fsc: NaiveFSCPolicyExtraction, ceil=True):
         obs_memory_dict = {}
         bit_entropies = extracted_fsc.observation_to_entropy_table
         memory_entropies = tf.pow(2.0, bit_entropies)

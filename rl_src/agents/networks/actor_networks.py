@@ -38,7 +38,7 @@ def create_recurrent_actor_net_demasked(tf_environment: tf_py_environment.TFPyEn
             # conv_layer_params=None
         )
     else:
-        lstm_size = (64, )
+        lstm_size = (32, )
         actor_net = actor_distribution_rnn_network.ActorDistributionRnnNetwork(
             tf_environment.observation_spec()["observation"],
             action_spec,

@@ -5,7 +5,7 @@ import numpy as np
 class Encoder(tf.keras.Model):
         def __init__(self, latent_dim, num_bins):
             super(Encoder, self).__init__()
-            self.dense1 = layers.Dense(128, activation='relu')
+            self.dense1 = layers.Dense(64, activation='relu')
             self.dense2 = layers.Dense(latent_dim, activation=None)
             self.num_bins = num_bins
 
@@ -22,7 +22,7 @@ class Encoder(tf.keras.Model):
 class Decoder(tf.keras.Model):
         def __init__(self, output_dim):
             super(Decoder, self).__init__()
-            self.dense1 = layers.Dense(128, activation='relu')
+            self.dense1 = layers.Dense(64, activation='relu')
             self.dense2 = layers.Dense(output_dim, activation=None)
 
         def call(self, inputs):
@@ -43,8 +43,13 @@ class Autoencoder(tf.keras.Model):
         return reconstructed
     
     def get_discrete_state(self, inputs):
-         
         discrete_latent = self.encoder(inputs)
         return discrete_latent
+    
+    def encode(self, inputs) -> tf.Tensor:
+        return self.encoder(inputs)
+    
+    def decode(self, inputs) -> tf.Tensor:
+        return self.decoder(inputs)
     
     

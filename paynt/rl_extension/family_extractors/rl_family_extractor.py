@@ -2,7 +2,7 @@ from paynt.rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
 import numpy as np
 from rl_src.tools.args_emulator import ArgsEmulator
 from rl_src.tools.evaluators import evaluate_extracted_fsc
-from rl_src.interpreters.fsc_based_interpreter import ExtractedFSCPolicy
+from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 import logging
 import re
 
@@ -74,7 +74,7 @@ class RLFamilyExtractor:
 
     @staticmethod
     def get_extracted_fsc_policy(agents_wrapper: AgentsWrapper, args: ArgsEmulator):
-        extracted_fsc_policy = ExtractedFSCPolicy(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
+        extracted_fsc_policy = NaiveFSCPolicyExtraction(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
                                                   tf_environment=agents_wrapper.agent.tf_environment, args=args,
                                                   max_memory_size=4)
         evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
@@ -84,7 +84,7 @@ class RLFamilyExtractor:
 
     @staticmethod
     def basic_initial_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict],
-                                extracted_fsc_policy: ExtractedFSCPolicy):
+                                extracted_fsc_policy: NaiveFSCPolicyExtraction):
         if hole_info.is_update:
             restricted_family.hole_set_options(hole_info.hole, [0])
             restriction = {"hole": hole_info.hole, "restriction": [0]}
@@ -105,7 +105,7 @@ class RLFamilyExtractor:
 
     @staticmethod
     def fill_all_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, 
-                           subfamily_restrictions: list[dict], extracted_fsc_policy: ExtractedFSCPolicy):
+                           subfamily_restrictions: list[dict], extracted_fsc_policy: NaiveFSCPolicyExtraction):
         if hole_info.is_update:
             options = hole_info.options
             # random_option = np.random.choice(options)
@@ -124,7 +124,7 @@ class RLFamilyExtractor:
         
     @staticmethod
     def extracted_mem_check(hole_info: 'RLFamilyExtractor.HoleInfo', restricted_family: Family, subfamily_restrictions: list[dict],
-                            extracted_fsc_policy: ExtractedFSCPolicy):
+                            extracted_fsc_policy: NaiveFSCPolicyExtraction):
         if hole_info.is_update:
             # options = hole_info.options
             current_memory = hole_info.mem_number
@@ -161,7 +161,7 @@ class RLFamilyExtractor:
         return agents_wrapper.agent.environment.create_fake_timestep_from_observation_integer(hole_info.observation_integer)
 
     @staticmethod
-    def generate_rl_action(agents_wrapper: AgentsWrapper, fake_time_step, extracted_fsc_policy: ExtractedFSCPolicy,
+    def generate_rl_action(agents_wrapper: AgentsWrapper, fake_time_step, extracted_fsc_policy: NaiveFSCPolicyExtraction,
                            hole_info: 'RLFamilyExtractor.HoleInfo', is_first=False, memory_less=True):
         if is_first and hole_info.mem_number == 0:
             action = extracted_fsc_policy.get_single_action(
@@ -197,7 +197,7 @@ class RLFamilyExtractor:
 
     @staticmethod
     def set_action_for_complete_miss(hole_info: 'RLFamilyExtractor.HoleInfo', agents_wrapper: AgentsWrapper,
-                                     extracted_fsc_policy: ExtractedFSCPolicy, restricted_family: Family,
+                                     extracted_fsc_policy: NaiveFSCPolicyExtraction, restricted_family: Family,
                                      subfamily_restrictions: list[dict], memory_only : bool = False):
         selected_action = np.random.choice(hole_info.options)
         rl_action = RLFamilyExtractor.convert_hole_option_to_rl_action(
@@ -234,7 +234,7 @@ class RLFamilyExtractor:
 
     @staticmethod
     def hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], agents_wrapper: AgentsWrapper,
-                       extracted_fsc_policy: ExtractedFSCPolicy, mem_check: callable = basic_initial_mem_check,
+                       extracted_fsc_policy: NaiveFSCPolicyExtraction, mem_check: callable = basic_initial_mem_check,
                        memory_less: bool = True, greedy : bool = False, memory_only : bool = False) -> tuple[int, int]:
         hole_info = RLFamilyExtractor.get_hole_info(
             restricted_family, hole)

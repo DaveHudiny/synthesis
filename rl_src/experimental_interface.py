@@ -223,12 +223,12 @@ class ExperimentInterface:
     
     def evaluate_extracted_fsc(self, external_evaluation_result : EvaluationResults, model : str = ""):
         """Evaluates the extracted FSC. The result is saved to the self.agent.evaluation_result object."""
-        from interpreters.fsc_based_interpreter import ExtractedFSCPolicy
+        from interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
         if external_evaluation_result is None or True:
             evaluation_result = EvaluationResults()
         else:
             evaluation_result = external_evaluation_result
-        extracted_fsc_policy = ExtractedFSCPolicy(self.agent.wrapper, self.environment, self.tf_environment, self.args, model = model)
+        extracted_fsc_policy = NaiveFSCPolicyExtraction(self.agent.wrapper, self.environment, self.tf_environment, self.args, model = model)
         if not hasattr(self, "vec_driver"):
             driver, buffer = self.init_vectorized_evaluation_driver_w_buffer(
                 self.tf_environment, self.environment, custom_policy=extracted_fsc_policy, num_steps=self.args.max_steps)

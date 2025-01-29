@@ -36,7 +36,7 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 
-from rl_src.interpreters.fsc_based_interpreter import ExtractedFSCPolicy
+from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 from rl_src.tools.evaluators import evaluate_extracted_fsc
 
 from paynt.synthesizer.synthesizer_rl_storm_paynt import SynthesizerRL
