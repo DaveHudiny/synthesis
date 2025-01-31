@@ -3,6 +3,7 @@ import numpy as np
 from rl_src.tools.args_emulator import ArgsEmulator
 from rl_src.tools.evaluators import evaluate_extracted_fsc
 from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
+from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import TableBasedPolicy
 import logging
 import re
 
@@ -280,12 +281,41 @@ class RLFamilyExtractor:
                     break
                 i += 1
         return miss, complete_miss
+    
+    def bottlenecked_hole_loop_body(hole, restricted_family: Family, subfamily_restrictions: list[dict], agents_wrapper: AgentsWrapper,
+                                    extracted_bottlnecked_fsc : TableBasedPolicy) -> tuple[int, int]:
+        hole_info = RLFamilyExtractor.get_hole_info(
+            restricted_family, hole)
+        if hole_info.is_update:
+            update = extracted_bottlnecked_fsc.tf_observation_to_update_table[hole_info.mem_number, hole_info.observation_integer].numpy()
+            restricted_family.hole_set_options(hole_info.hole, [update])
+            restriction = {"hole": hole_info.hole, "restriction": [update]}
+            subfamily_restrictions.append(restriction)
+            return 0, 0
+        else:
+            action = extracted_bottlnecked_fsc.tf_observation_to_action_table[hole_info.mem_number, hole_info.observation_integer].numpy()
+            action_label = RLFamilyExtractor.get_rl_action_label(
+                agents_wrapper, action)
+            if action_label in hole_info.option_labels:
+                RLFamilyExtractor.apply_family_action_restriction(
+                    hole_info, action_label, restricted_family, subfamily_restrictions)
+                return 0, 0
+            else:
+                # Dont prune family
+                return 1, 1
+                selected_action = np.random.choice(hole_info.options)
+                label = hole_info.option_labels[selected_action]
+                RLFamilyExtractor.apply_family_action_restriction(
+                    hole_info, label, restricted_family, subfamily_restrictions)
+                return 1, 1
+        raise ValueError("Should not reach this point")
 
     @staticmethod
     def get_restricted_family_rl_inference(original_family: Family, agents_wrapper: AgentsWrapper, args:
                                            ArgsEmulator, fill_all_memory: bool = False, memoryless_rl = True,
                                            greedy : bool = False, memory_only : bool = False,
-                                           extracted_fsc = None) -> tuple[Family, list[dict]]:
+                                           extracted_fsc = None, extracted_bottlenecked_fsc : TableBasedPolicy = None
+                                            ) -> tuple[Family, list[dict]]:
         # Copy of the original family, because PAYNT uses the original family to other purposes
         restricted_family = original_family.copy()
 
@@ -300,24 +330,29 @@ class RLFamilyExtractor:
 
         if not memoryless_rl:
             pass  # TODO: Implement memory version of RLFamilyExtractor
+        if extracted_bottlenecked_fsc is not None:
+            for hole in range(restricted_family.num_holes):
+                miss, complete_miss = RLFamilyExtractor.bottlenecked_hole_loop_body(
+                    hole, restricted_family, subfamily_restrictions, agents_wrapper, extracted_bottlenecked_fsc)
+                num_misses += miss
+                num_misses_complete += complete_miss
+        else: # Extraction and evaluation of original policy
+            if extracted_fsc is None:
+                extracted_fsc = RLFamilyExtractor.get_extracted_fsc_policy(
+                agents_wrapper, args)
+            # shuffle extracted_fsc memory setting
+            # extracted_fsc.shuffle_memory()
+            if fill_all_memory:
+                mem_check = RLFamilyExtractor.extracted_mem_check
+            for hole in range(restricted_family.num_holes):
+                miss, complete_miss = RLFamilyExtractor.hole_loop_body(
+                    hole, restricted_family, subfamily_restrictions, agents_wrapper, extracted_fsc,
+                    mem_check=mem_check, memory_less=memoryless_rl, greedy=greedy, memory_only=memory_only)
+                num_misses += miss
+                num_misses_complete += complete_miss
 
-        # Extraction and evaluation of original policy
-        if extracted_fsc is None:
-            extracted_fsc = RLFamilyExtractor.get_extracted_fsc_policy(
-            agents_wrapper, args)
-        # shuffle extracted_fsc memory setting
-        # extracted_fsc.shuffle_memory()
-        if fill_all_memory:
-            mem_check = RLFamilyExtractor.extracted_mem_check
-        for hole in range(restricted_family.num_holes):
-            miss, complete_miss = RLFamilyExtractor.hole_loop_body(
-                hole, restricted_family, subfamily_restrictions, agents_wrapper, extracted_fsc,
-                mem_check=mem_check, memory_less=memoryless_rl, greedy=greedy, memory_only=memory_only)
-            num_misses += miss
-            num_misses_complete += complete_miss
-
-        extracted_fsc.recompile_tf_tables()
-        evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
+            extracted_fsc.recompile_tf_tables()
+            evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
                                agent=agents_wrapper.agent, extracted_fsc_policy=extracted_fsc)
         logger.info(
             f"Number of misses: {num_misses} out of {restricted_family.num_holes}")

@@ -35,7 +35,8 @@ class AgentsWrapper:
                  initial_fsc_multiplier: float = 1.0,
                  qvalues: list = None, action_labels_at_observation: dict = None,
                  random_init_starts_q_vals: bool = False,
-                 pretrain_dqn = False):
+                 pretrain_dqn = False,
+                 agent_folder = "model_x"):
         """Initialization of the interface.
         Args:
             stormpy_model: Model of the environment.
@@ -45,15 +46,17 @@ class AgentsWrapper:
 
         self.interface = ExperimentInterface(args, stormpy_model)
         self.random_initi_starts_q_vals = random_init_starts_q_vals
-
+        self.interface.args.agent_name += agent_folder
         self.interface.environment, self.interface.tf_environment = self.interface.initialize_environment(self.interface.args, self.interface.pomdp_model)
         logger.info("RL Environment initialized")
         self.agent = self.interface.initialize_agent(
             qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
         
+        self.fsc_multiplier = initial_fsc_multiplier
+
+    def initialize_tracing_interpret(self):
         self.interpret = TracingInterpret(self.interface.environment, self.interface.tf_environment,
                                           self.interface.args.encoding_method)
-        self.fsc_multiplier = initial_fsc_multiplier
 
     def train_agent(self, iterations: int):
         """Train the agent.

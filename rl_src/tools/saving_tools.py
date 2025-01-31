@@ -33,7 +33,8 @@ def save_dictionaries(name_of_experiment, model, learning_method, refusing_typ, 
         pickle.dump(labels, f)
 
 
-def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result: EvaluationResults, args: dict = None, evaluation_time: float = float("nan")):
+def save_statistics_to_new_json(name_of_experiment, model, learning_method, evaluation_result: EvaluationResults, args: dict = None, evaluation_time: float = float("nan"),
+                                split_iteration: int = -1):
     """ Save statistics to a new JSON file.
     Args:
         name_of_experiment (str): Name of the experiment.

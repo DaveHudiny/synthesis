@@ -6,7 +6,11 @@ import numpy as np
 from time import sleep
 import os
 from paynt.rl_extension.family_extractors.external_family_wrapper import ExtractedFamilyWrapper
+
 from rl_src.experimental_interface import ArgsEmulator
+from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import BottleneckExtractor, TableBasedPolicy
+from rl_src.tools.evaluators import evaluate_policy_in_model
+
 import pickle
 import stormpy
 
@@ -15,9 +19,10 @@ import paynt.synthesizer.synthesizer_ar
 from .synthesizer_ar_storm import SynthesizerARStorm
 from .synthesizer_hybrid import SynthesizerHybrid
 from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
-from ..rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
+from .synthesizer_onebyone import SynthesizerOneByOne
+from paynt.rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
 
-from ..rl_extension.saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
+from paynt.rl_extension.saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
 
 from paynt.rl_extension.saynt_rl_tools.regex_patterns import RegexPatterns
 from paynt.rl_extension.family_extractors.external_family_wrapper import RLFamilyExtractor
@@ -66,7 +71,7 @@ class SynthesizerRL:
             self.storm_control.spec_formulas = self.quotient.specification.stormpy_formulae()
             self.synthesis_terminate = False
             # SAYNT only works with abstraction refinement
-            self.synthesizer = SynthesizerARStorm
+            self.synthesizer = SynthesizerOneByOne
             if self.storm_control.iteration_timeout is not None:
                 self.saynt_timer = paynt.utils.timer.Timer()
                 self.synthesizer.saynt_timer = self.saynt_timer
@@ -206,31 +211,61 @@ class SynthesizerRL:
                 agents_wrapper.train_agent(nr_rl_iterations)
         else:
             agents_wrapper.train_agent(nr_rl_iterations)
-        extracted_fsc = self.extract_one_fsc_w_entropy(
-            agents_wrapper, greedy=self.greedy)
-        self.set_memory_w_extracted_fsc_entropy(extracted_fsc)
+        agents_wrapper.agent.load_agent(True)
+        if True: # Extract FSC via bottleneck extraction
+            input_dim = 64
+            latent_dim = 1
+            best_bottleneck_extractor = None
+            best_evaluation_result = None
+            for i in range(5):
+                bottleneck_extractor = BottleneckExtractor(agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
+                bottleneck_extractor.train_autoencoder(agents_wrapper.agent.wrapper, num_epochs=50, num_data_steps=1000)
+                evaluation_result = bottleneck_extractor.evaluate_bottlenecking(agents_wrapper.agent)
+                if best_bottleneck_extractor is None or evaluation_result.best_reach_prob > best_evaluation_result.best_reach_prob:
+                    best_bottleneck_extractor = bottleneck_extractor
+                    best_evaluation_result = evaluation_result
+            bottleneck_extractor = best_bottleneck_extractor
+            extracted_fsc = bottleneck_extractor.extract_fsc(policy = agents_wrapper.agent.wrapper, environment = agents_wrapper.agent.environment)
+            evaluation_result = evaluate_policy_in_model(extracted_fsc, agents_wrapper.agent.args, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment)
+            print(f"Extracted FSC evaluation result: {evaluation_result}")
+            self.quotient.set_global_memory_size(3 ** latent_dim)
+        else:
+            extracted_fsc = self.extract_one_fsc_w_entropy(
+                agents_wrapper, greedy=self.greedy)
+            self.set_memory_w_extracted_fsc_entropy(extracted_fsc)
 
         family = self.quotient.family
+        
+        if True:
+            initialized_extraction = ExtractedFamilyWrapper(
+                family, 0, agents_wrapper, greedy=self.greedy, memory_only=self.memory_only_subfamilies,
+                extracted_bottlenecked_fsc=extracted_fsc)
+        else:
+            initialized_extraction = ExtractedFamilyWrapper(
+                family, 0, agents_wrapper, greedy=self.greedy, memory_only=self.memory_only_subfamilies,
+                extracted_fsc=self.extracted_fsc)
+        # subfamily_restrictions = initialized_extraction.get_subfamily_restrictions()
+        # subfamilies = self.storm_control.get_subfamilies(
+        #     subfamily_restrictions, family)
 
-        initialized_extraction = ExtractedFamilyWrapper(
-            family, 0, agents_wrapper, greedy=self.greedy, memory_only=self.memory_only_subfamilies,
-            extracted_fsc=self.extracted_fsc)
-        subfamily_restrictions = initialized_extraction.get_subfamily_restrictions()
-        subfamilies = self.storm_control.get_subfamilies(
-            subfamily_restrictions, family)
-
-        self.synthesizer.main_family = initialized_extraction.get_family()
+        main_family = initialized_extraction.get_family()
+        self.synthesizer.main_family = main_family
+        del bottleneck_extractor
+        del extracted_fsc
         # synthesizer = self.synthesizer(self.quotient)
         # synthesizer.stat = paynt.synthesizer.statistic.Statistic(self)
         # self.subfamilies_buffer = []
         # assignment = self.synthesize(family, timer=paynt_timeout)
-        self.synthesizer.subfamilies_buffer = subfamilies
-        assignment = self.synthesize(family, timer=paynt_timeout)
+        # self.synthesizer.subfamilies_buffer = subfamilies
+        assignment = self.synthesize(main_family, timer=paynt_timeout)
+        better_assignment = self.synthesize(self.quotient.family, timer=paynt_timeout)
+        if better_assignment is not None:
+            assignment = better_assignment
         self.finalize_synthesis(assignment)
         return assignment
 
     def run(self):
-        agents_wrapper = AgentsWrapper(self.quotient.pomdp, self.args)
+        agents_wrapper = AgentsWrapper(self.quotient.pomdp, self.args, agent_folder=self.model_name)
         self.set_agents_wrapper(agents_wrapper)
         start_time = time.time()
         fsc = None

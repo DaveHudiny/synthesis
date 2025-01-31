@@ -261,9 +261,9 @@ class FatherAgent(AbstractAgent):
         if train_iteration % 10 == 0:
             logger.info(
                 f"Step: {train_iteration}, Training loss: {train_loss}")
-        if train_iteration % 50 == 0:
+        if train_iteration % 100 == 0:
             self.environment.set_random_starts_simulation(False)
-            self.evaluate_agent(vectorized=vectorized)
+            self.evaluate_agent(vectorized=vectorized, max_steps = self.args.max_steps * 2)
             self.environment.set_random_starts_simulation(randomized)
         return train_loss
 
@@ -401,7 +401,7 @@ class FatherAgent(AbstractAgent):
             self.train_body_on_policy(iterations, vectorized)
         logger.info("Training finished.")
         self.environment.set_random_starts_simulation(False)
-        self.evaluate_agent(vectorized=vectorized, last=True)
+        self.evaluate_agent(vectorized=vectorized, last=True, max_steps = self.args.max_steps * 2) 
 
     def get_throw_away_driver(self, fsc: FSC):
 
@@ -442,12 +442,14 @@ class FatherAgent(AbstractAgent):
                 return True
             return False
 
-    def evaluate_agent(self, last=False, vectorized=False):
+    def evaluate_agent(self, last=False, vectorized=False, max_steps : int = None):
         """Evaluate the agent. Used for evaluation of the agent during training.
 
         Args:
             last: Whether this is the last evaluation of the agent.
         """
+        if max_steps is None:
+            max_steps = self.args.max_steps
         if self.args.prefer_stochastic:
             self.set_agent_stochastic()
         else:
@@ -462,7 +464,7 @@ class FatherAgent(AbstractAgent):
         else:
             if not hasattr(self, "vec_driver"):
                 self.init_vec_evaluation_driver(
-                    self.tf_environment, self.environment, num_steps=self.args.max_steps)
+                    self.tf_environment, self.environment, num_steps=max_steps)
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(
                     self.args.batch_size)

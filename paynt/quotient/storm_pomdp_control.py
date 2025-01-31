@@ -554,7 +554,7 @@ class StormPOMDPControl:
 
                 if len(selected_actions) == 0:
                     logger.info("No actions for observation {} in the result dictionary".format(obs))
-                    exit(0)
+                    # exit(0)
                     return None
                 restricted_family.hole_set_options(hole,selected_actions)
         logger.info("Main family based on data from Storm: reduced design space from {} to {}".format(family.size_or_order, restricted_family.size_or_order))

@@ -1,5 +1,7 @@
 import paynt.synthesizer.synthesizer
 
+import time
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -9,10 +11,14 @@ class SynthesizerOneByOne(paynt.synthesizer.synthesizer.Synthesizer):
     def method_name(self):
         return "1-by-1"
 
-    def synthesize_one(self, family):
+    def synthesize_one(self, family, timer = None):
+
+        start_time = time.time()
         
         for hole_combination in family.all_combinations():
-            
+            if timer is not None and time.time() - start_time > timer:
+                logger.info("Time limit reached")
+                return self.best_assignment
             assignment = family.construct_assignment(hole_combination)
             dtmc = self.quotient.build_assignment(assignment)
             self.stat.iteration(dtmc)

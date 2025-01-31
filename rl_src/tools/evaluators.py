@@ -70,7 +70,7 @@ class EvaluationResults:
         number_of_iterations = len(self.returns)
         self.paynt_bounds.append([bound, number_of_iterations])
 
-    def save_to_json(self, filename, evaluation_time: float = float("nan")):
+    def save_to_json(self, filename, evaluation_time: float = float("nan"), split_iteration = -1):
         import json
         with open(filename, "w") as file:
             _dict_ = self.__dict__.copy()
@@ -78,6 +78,7 @@ class EvaluationResults:
             for key in _dict_:
                 _dict_[key] = str(_dict_[key])
             _dict_["evaluation_time"] = evaluation_time
+            _dict_["split_iteration"] = split_iteration
             json.dump(_dict_, file)
 
     def load_from_json(self, filename):
@@ -369,11 +370,13 @@ def evaluate_extracted_fsc(external_evaluation_result : EvaluationResults, model
         set_fsc_values_to_evaluation_result(external_evaluation_result, evaluation_result)
         buffer.clear()
 
-def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator, environment, tf_environment) -> EvaluationResults:
+def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator, environment, tf_environment, max_steps = None) -> EvaluationResults:
     """Evaluate the policy in the given environment and return the evaluation results."""
+    if max_steps is None:
+        max_steps = args.max_steps
     evaluation_result = EvaluationResults()
     driver, buffer = get_new_vectorized_evaluation_driver(
-        tf_environment, environment, custom_policy=policy, num_steps=args.max_steps)
+        tf_environment, environment, custom_policy=policy, num_steps=max_steps)
     tf_environment.reset()
     driver.run()
     buffer.final_update_of_results(evaluation_result.update)

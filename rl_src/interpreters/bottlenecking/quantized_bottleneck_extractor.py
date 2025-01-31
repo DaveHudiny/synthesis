@@ -14,6 +14,7 @@ from environment.tf_py_environment import TFPyEnvironment
 from agents.father_agent import FatherAgent
 
 from tools.evaluators import *
+from tools.saving_tools import *
 
 from rl_src.tests.general_test_tools import *
 from agents.recurrent_ppo_agent import Recurrent_PPO_agent
@@ -221,32 +222,33 @@ def store_results_in_file(model_name, memory_width, agent_evaluation_result: Eva
             f"Average bottlenecked reachability: {bottlenecked_result.reach_probs[-1]}\n")
 
 
-def run_experiment(prism_path, properties_path, latent_memory_width, nr_epochs=1, num_data_steps=100, num_training_steps=700, evaluate_fsc = False):
+def run_experiment(prism_path, properties_path, latent_memory_width, nr_epochs=1, num_data_steps=100, num_training_steps=50, evaluate_fsc = False):
     args = init_args(prism_path=prism_path, properties_path=properties_path)
     env, tf_env = init_environment(args)
     agent = Recurrent_PPO_agent(env, tf_env, args)
     agent.train_agent(num_training_steps)
+    split_path = prism_path.split("/")
+    model_name = split_path[-2]
     for size in range(2, latent_memory_width + 1): 
-        for eval_fsc in [True, False]:
-            extractor = BottleneckExtractor(tf_env, 64, size)
-            extractor.train_autoencoder(agent.wrapper, nr_epochs, num_data_steps)
-            # if eval_fsc:
-            #     evaluation_result = extractor.evaluate_extracted_fsc(agent)
-            # else:
-            #     evaluation_result = extractor.evaluate_bottlenecking(agent)
+        if evaluate_fsc:
+            for eval_fsc in [True, False]:
+                extractor = BottleneckExtractor(tf_env, 64, size)
+                extractor.train_autoencoder(agent.wrapper, nr_epochs, num_data_steps)
+                if eval_fsc:
+                    evaluation_result = extractor.evaluate_extracted_fsc(agent)
+                else:
+                    evaluation_result = extractor.evaluate_bottlenecking(agent)
+                # evaluation_result = extractor.evaluate_extracted_fsc(agent)
+                store_results_in_file(model_name, size,
+                                    agent.evaluation_result, evaluation_result, eval_fsc)
+        else:
             bottlenecked_actor = BottleneckedActor(agent.agent.actor_net, extractor.autoencoder)
-            with open("netwrok_before_training.txt", "w") as f:
-                f.write(str(bottlenecked_actor.bottleneck_autoencoder.encoder.dense1.get_weights()))
             bottlenecked_ppo = Recurrent_PPO_agent(env, tf_env, args, actor_net=bottlenecked_actor, critic_net=agent.agent._value_net)
             bottlenecked_ppo.train_agent(num_training_steps)
-            bottlenecked_ppo.evaluate_agent(vectorized = True)
-            with open("netwrok_after_training.txt", "w") as f:
-                f.write(str(bottlenecked_actor.bottleneck_autoencoder.encoder.dense1.get_weights()))
-            # evaluation_result = extractor.evaluate_extracted_fsc(agent)
-            split_path = prism_path.split("/")
-            model_name = split_path[-2]
-            # store_results_in_file(model_name, size,
-            #                     agent.evaluation_result, evaluation_result, eval_fsc)
+            bottlenecked_ppo.evaluate_agent(vectorized = True, max_steps = bottlenecked_ppo.args.max_steps * 2)
+            save_statistics_to_new_json("experiments_finetunning", model_name, "bottlenecked_ppo", bottlenecked_ppo.evaluation_result, args, split_iteration = num_training_steps)
+
+
 
 
 if __name__ == '__main__':

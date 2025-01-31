@@ -70,7 +70,7 @@ class Recurrent_PPO_agent(FatherAgent):
             value_net=self.value_net,
             num_epochs=3,
             train_step_counter=train_step_counter,
-            greedy_eval=True,
+            greedy_eval=False,
             discount_factor=0.98,
             use_gae=True,
             lambda_value=0.95,
