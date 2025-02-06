@@ -2,12 +2,15 @@
 
 #include "src/synthesis/translation/componentTranslations.h"
 
-#include <storm/exceptions/InvalidModelException.h>
-#include <storm/exceptions/UnexpectedException.h>
+#include <storm/adapters/RationalNumberAdapter.h>
 #include <storm/exceptions/InvalidArgumentException.h>
+#include <storm/exceptions/InvalidModelException.h>
+#include <storm/exceptions/NotSupportedException.h>
+#include <storm/exceptions/UnexpectedException.h>
 #include <storm/models/sparse/Pomdp.h>
-#include <storm/utility/builder.h>
 #include <storm/transformer/SubsystemBuilder.h>
+#include <storm/utility/builder.h>
+
 
 namespace synthesis {
 
@@ -38,19 +41,27 @@ void addMissingChoiceLabelsLabeling(
         return;
     }
     STORM_LOG_THROW(not choice_labeling.containsLabel(NO_ACTION_LABEL), storm::exceptions::InvalidModelException, "model already has the '" << NO_ACTION_LABEL << "' label");
-    choice_labeling.addLabel(NO_ACTION_LABEL, choice_has_no_label);    
+    choice_labeling.addLabel(NO_ACTION_LABEL, choice_has_no_label);
 }
 
 template<typename ValueType>
 std::shared_ptr<storm::models::sparse::Model<ValueType>> addMissingChoiceLabelsModel(
     storm::models::sparse::Model<ValueType> const& model
 ) {
-    storm::storage::sparse::ModelComponents<ValueType> components = componentsFromModel(model);
-    addMissingChoiceLabelsLabeling(model,components.choiceLabeling.value());
-    if(not components.choiceLabeling.value().containsLabel(NO_ACTION_LABEL)) {
+    try
+    {
+        storm::storage::sparse::ModelComponents<ValueType> components = componentsFromModel(model);
+        addMissingChoiceLabelsLabeling(model,components.choiceLabeling.value());
+        if(not components.choiceLabeling.value().containsLabel(NO_ACTION_LABEL)) {
+            return NULL;
+        }
+        return storm::utility::builder::buildModelFromComponents<ValueType>(model.getType(),std::move(components));
+    }
+    catch(const std::exception& e)
+    {
+        // e.g if model is POSMG. Todo add support for POSMG
         return NULL;
     }
-    return storm::utility::builder::buildModelFromComponents<ValueType>(model.getType(),std::move(components));
 }
 
 bool assertChoiceLabelingIsCanonic(
@@ -58,26 +69,52 @@ bool assertChoiceLabelingIsCanonic(
     storm::models::sparse::ChoiceLabeling const& choice_labeling,
     bool throw_on_fail
 ) {
-    std::set<std::string> state_labels;
+    // collect action labels
+    std::set<std::string> action_labels_set = choice_labeling.getLabels();
+    std::vector<std::string> action_labels;
+    action_labels.assign(action_labels_set.begin(), action_labels_set.end());
+    uint64_t num_actions = action_labels.size();
+
+    // associate choices with actions, check uniqueness for a choice
+    std::vector<uint64_t> choice_to_action(row_groups.back(), num_actions);
+    for(uint64_t action = 0; action < action_labels.size(); ++action) {
+        std::string const& action_label = action_labels[action];
+        for(uint64_t choice: choice_labeling.getChoices(action_label)) {
+            if(choice_to_action[choice] != num_actions) {
+                if(throw_on_fail) {
+                    STORM_LOG_THROW(false, storm::exceptions::InvalidModelException, "multiple labels for choice " << choice);
+                } else {
+                    return false;
+                }
+            }
+            choice_to_action[choice] = action;
+        }
+    }
+
+    // check existence for a choice
+    for(uint64_t action: choice_to_action) {
+        if(action == num_actions) {
+            if(throw_on_fail) {
+                STORM_LOG_THROW(false, storm::exceptions::InvalidModelException, "a choice has no labels");
+            } else {
+                return false;
+            }
+        }
+    }
+
+    // check uniqueness for a state
+    storm::storage::BitVector state_labels(num_actions, false);
     for(uint64_t state = 0; state < row_groups.size()-1; ++state) {
         for(uint64_t choice = row_groups[state]; choice < row_groups[state+1]; ++choice) {
-            auto const& labels = choice_labeling.getLabelsOfChoice(choice);
-            if(labels.size() != 1) {
+            uint64_t action = choice_to_action[choice];
+            if(state_labels[action]) {
                 if(throw_on_fail) {
-                    STORM_LOG_THROW(false, storm::exceptions::InvalidModelException, "expected exactly 1 label for choice " << choice);
+                    STORM_LOG_THROW(false, storm::exceptions::InvalidModelException, "a label is used twice for choices in state " << state);
                 } else {
                     return false;
                 }
             }
-            std::string const& label = *(labels.begin());
-            if(state_labels.find(label) != state_labels.end()) {
-                if(throw_on_fail) {
-                    STORM_LOG_THROW(false, storm::exceptions::InvalidModelException, "label " << label << " is used twice for choices in state " << state);
-                } else {
-                    return false;
-                }
-            }
-            state_labels.insert(label);
+            state_labels.set(action,true);
         }
         state_labels.clear();
     }
@@ -121,34 +158,22 @@ std::pair<std::vector<std::string>,std::vector<uint64_t>> extractActionLabels(
 ) {
     // collect action labels
     storm::models::sparse::ChoiceLabeling const& choice_labeling = model.getChoiceLabeling();
-    std::set<std::string> action_labels_set;
-    for(uint64_t choice = 0; choice < model.getNumberOfChoices(); ++choice) {
-        for(std::string const& label: choice_labeling.getLabelsOfChoice(choice)) {
-            action_labels_set.insert(label);
+    std::set<std::string> action_labels_set = choice_labeling.getLabels();
+    std::vector<std::string> action_labels;
+    action_labels.assign(action_labels_set.begin(), action_labels_set.end());
+    // sort action labels to ensure order determinism (why did we think this was necessary?)
+    std::sort(action_labels.begin(),action_labels.end());
+
+    assertChoiceLabelingIsCanonic(model.getTransitionMatrix().getRowGroupIndices(), choice_labeling, false);
+
+    std::vector<uint64_t> choice_to_action(model.getNumberOfChoices());
+    for(uint64_t action = 0; action < action_labels.size(); ++action) {
+        std::string const& action_label = action_labels[action];
+        for(uint64_t choice: choice_labeling.getChoices(action_label)) {
+            choice_to_action[choice] = action;
         }
     }
 
-    // sort action labels to ensure order determinism
-    std::vector<std::string> action_labels;
-    for(std::string const& label: action_labels_set) {
-        action_labels.push_back(label);
-    }
-    std::sort(action_labels.begin(),action_labels.end());
-
-    // map action labels to actions
-    std::map<std::string,uint64_t> action_label_to_action;
-    for(uint64_t action = 0; action < action_labels.size(); ++action) {
-        action_label_to_action[action_labels[action]] = action;
-    }
-
-    assertChoiceLabelingIsCanonic(model.getTransitionMatrix().getRowGroupIndices(), choice_labeling, false);
-    std::vector<uint64_t> choice_to_action(model.getNumberOfChoices());
-    for(uint64_t choice = 0; choice < model.getNumberOfChoices(); ++choice) {
-        auto const& labels = choice_labeling.getLabelsOfChoice(choice);
-        std::string const& label = *(labels.begin());
-        uint64_t action = action_label_to_action[label];
-        choice_to_action[choice] = action;
-    }
     return std::make_pair(action_labels,choice_to_action);
 }
 
@@ -191,7 +216,7 @@ std::pair<std::shared_ptr<storm::models::sparse::Model<ValueType>>,std::vector<u
     std::vector<uint64_t> translated_to_original_choice;
     std::vector<uint64_t> translated_to_original_choice_label;
     std::vector<uint64_t> row_groups_new;
-    storm::storage::BitVector action_exists(num_actions,false);
+    std::vector<uint64_t> action_to_choice(num_actions);
     for(uint64_t state = 0; state < num_states; ++state) {
         row_groups_new.push_back(translated_to_original_choice.size());
         if(not state_mask[state]) {
@@ -204,23 +229,27 @@ std::pair<std::shared_ptr<storm::models::sparse::Model<ValueType>>,std::vector<u
             continue;
         }
         // identify existing actions, identify the fallback choice
-        action_exists.clear();
         uint64_t fallback_choice = row_groups_old[state];
+        std::fill(action_to_choice.begin(),action_to_choice.end(),num_choices);
         for(uint64_t choice: model.getTransitionMatrix().getRowGroupIndices(state)) {
             uint64_t action = choice_to_action[choice];
             if(action == dont_care_action) {
                 fallback_choice = choice;
             }
-            action_exists.set(action,true);
-            translated_to_original_choice.push_back(choice);
-            translated_to_original_choice_label.push_back(choice);
-            translated_to_true_action.push_back(action);
+            action_to_choice[action] = choice;
         }
-        // add missing actions
-        for(uint64_t action: ~action_exists) {
-            translated_to_original_choice.push_back(fallback_choice);
+        uint64_t fallback_action = choice_to_action[fallback_choice];
+        // add new choices in the order of actions
+        for(uint64_t action = 0; action < num_actions; ++action) {
+            uint64_t choice = action_to_choice[action];
+            if(choice < num_choices) {
+                translated_to_original_choice.push_back(choice);
+                translated_to_true_action.push_back(action);
+            } else {
+                translated_to_original_choice.push_back(fallback_choice);
+                translated_to_true_action.push_back(fallback_action);
+            }
             translated_to_original_choice_label.push_back(action_reference_choice[action]);
-            translated_to_true_action.push_back(choice_to_action[fallback_choice]);
         }
     }
     row_groups_new.push_back(translated_to_original_choice.size());
@@ -337,7 +366,8 @@ std::shared_ptr<storm::models::sparse::Model<ValueType>> restoreActionsInAbsorbi
 
 template<typename ValueType>
 std::shared_ptr<storm::models::sparse::Model<ValueType>> addDontCareAction(
-    storm::models::sparse::Model<ValueType> const& model
+    storm::models::sparse::Model<ValueType> const& model,
+    storm::storage::BitVector const& state_mask
 ) {
     auto [action_labels,choice_to_action] = synthesis::extractActionLabels<ValueType>(model);
     auto it = std::find(action_labels.begin(),action_labels.end(),DONT_CARE_ACTION_LABEL);
@@ -357,14 +387,17 @@ std::shared_ptr<storm::models::sparse::Model<ValueType>> addDontCareAction(
     // translate choices
     std::vector<uint64_t> translated_to_original_choice;
     std::vector<uint64_t> row_groups_new;
+    std::vector<uint64_t> const& row_groups = model.getTransitionMatrix().getRowGroupIndices();
     for(uint64_t state = 0; state < num_states; ++state) {
         row_groups_new.push_back(translated_to_original_choice.size());
         // copy existing choices
-        for(uint64_t choice: model.getTransitionMatrix().getRowGroupIndices(state)) {
+        for(uint64_t choice = row_groups[state]; choice < row_groups[state+1]; ++choice) {
             translated_to_original_choice.push_back(choice);
         }
-        // add don't care action
-        translated_to_original_choice.push_back(num_choices);
+        if(state_mask[state]) {
+            // add don't care action
+            translated_to_original_choice.push_back(num_choices);
+        }
     }
     row_groups_new.push_back(translated_to_original_choice.size());
     uint64_t num_translated_choices = translated_to_original_choice.size();
@@ -382,22 +415,24 @@ std::shared_ptr<storm::models::sparse::Model<ValueType>> addDontCareAction(
     storm::storage::SparseMatrixBuilder<ValueType> builder(num_translated_choices, num_states, 0, true, true, num_states);
     for(uint64_t state = 0; state < num_states; ++state) {
         builder.newRowGroup(row_groups_new[state]);
+        uint64_t state_num_choices = row_groups[state+1]-row_groups[state]; // the original number of choices
         // copy existing choices
         std::map<uint64_t,ValueType> dont_care_transitions;
-        uint64_t new_translated_choice = row_groups_new[state+1]-1;
-        uint64_t state_num_choices = new_translated_choice-row_groups_new[state];
-        for(uint64_t translated_choice = row_groups_new[state]; translated_choice < new_translated_choice; ++translated_choice) {
-            uint64_t choice = translated_to_original_choice[translated_choice];
+        uint64_t translated_choice = row_groups_new[state];
+        for(uint64_t choice = row_groups[state]; choice < row_groups[state+1]; ++choice) {
             for(auto entry: model.getTransitionMatrix().getRow(choice)) {
                 uint64_t dst = entry.getColumn();
                 ValueType prob = entry.getValue();
                 builder.addNextValue(translated_choice, dst, prob);
                 dont_care_transitions[dst] += prob/state_num_choices;
             }
+            ++translated_choice;
         }
-        // add don't care action
-        for(auto [dst,prob]: dont_care_transitions) {
-            builder.addNextValue(new_translated_choice,dst,prob);
+        if(state_mask[state]) {
+            // add don't care action
+            for(auto [dst,prob]: dont_care_transitions) {
+                builder.addNextValue(translated_choice,dst,prob);
+            }
         }
     }
     components.transitionMatrix =  builder.build();
@@ -405,18 +440,155 @@ std::shared_ptr<storm::models::sparse::Model<ValueType>> addDontCareAction(
     for(auto & [name,reward_model]: rewardModels) {
         std::vector<ValueType> & choice_reward = reward_model.getStateActionRewardVector();
         for(uint64_t state = 0; state < num_states; ++state) {
+            if(not state_mask[state]) {
+                continue;
+            }
             ValueType reward_sum = 0;
-            uint64_t new_translated_choice = row_groups_new[state+1]-1;
-            uint64_t state_num_choices = new_translated_choice-row_groups_new[state];
-            for(uint64_t translated_choice = row_groups_new[state]; translated_choice < new_translated_choice; ++translated_choice) {
+            uint64_t dont_care_translated_choice = row_groups_new[state+1]-1;
+            uint64_t state_num_choices = dont_care_translated_choice-row_groups_new[state];
+            for(uint64_t translated_choice = row_groups_new[state]; translated_choice < dont_care_translated_choice; ++translated_choice) {
                 reward_sum += choice_reward[translated_choice];
             }
-            choice_reward[new_translated_choice] = reward_sum / state_num_choices;
+            choice_reward[dont_care_translated_choice] = reward_sum / state_num_choices;
         }
     }
     components.rewardModels = rewardModels;
     return storm::utility::builder::buildModelFromComponents<ValueType,storm::models::sparse::StandardRewardModel<ValueType>>(model.getType(),std::move(components));
 }
+
+
+
+template<typename ValueType>
+std::shared_ptr<storm::models::sparse::Model<ValueType>> createModelUnion(
+    std::vector<std::shared_ptr<storm::models::sparse::Model<ValueType>>> const& models
+) {
+    uint64_t num_models = models.size();
+    STORM_LOG_THROW(num_models > 0, storm::exceptions::InvalidArgumentException, "the list of models is empty");
+
+    uint64_t union_initial_state = 0;
+    uint64_t union_num_states = 1;
+    uint64_t union_num_choices = 1;
+    std::vector<uint64_t> state_offset;
+    std::vector<uint64_t> choice_offset;
+    for(uint64_t model_index = 0; model_index < num_models; ++model_index) {
+        state_offset.push_back(union_num_states);
+        choice_offset.push_back(union_num_choices);
+        auto model = models[model_index];
+        union_num_states += model->getNumberOfStates();
+        union_num_choices += model->getNumberOfChoices();
+    }
+
+    storm::storage::sparse::ModelComponents<ValueType> components;
+    storm::models::sparse::StateLabeling union_state_labeling(union_num_states);
+    union_state_labeling.addLabel("init");
+    union_state_labeling.addLabelToState("init",union_initial_state);
+    for(uint64_t model_index = 0; model_index < num_models; ++model_index) {
+        auto model = models[model_index];
+        storm::models::sparse::StateLabeling const& state_labeling = model->getStateLabeling();
+        for (auto const& label : state_labeling.getLabels()) {
+            if(not union_state_labeling.containsLabel(label)) {
+                union_state_labeling.addLabel(label);
+            }
+        }
+        for(uint64_t state = 0; state < model->getNumberOfStates(); ++state) {
+            uint64_t union_state = state_offset[model_index] + state;
+            for(std::string const& label: state_labeling.getLabelsOfState(state)) {
+                if(label == "init") {
+                    continue;
+                }
+                union_state_labeling.addLabelToState(label,union_state);
+            }
+        }
+    }
+    components.stateLabeling = union_state_labeling;
+
+    if(models[0]->getType() == storm::models::ModelType::Pomdp) {
+        std::vector<uint32_t> state_observation(union_num_states);
+        uint64_t num_observations = 0;
+        for(uint64_t model_index = 0; model_index < num_models; ++model_index) {
+            auto model = models[model_index];
+            auto pomdp = static_cast<storm::models::sparse::Pomdp<ValueType> const&>(*model);
+            if(pomdp.getNrObservations() > num_observations) {
+                num_observations = pomdp.getNrObservations();
+            }
+            for(uint64_t state = 0; state < pomdp.getNumberOfStates(); ++state) {
+                uint64_t union_state = state_offset[model_index] + state;
+                state_observation[union_state] = pomdp.getObservation(state);
+            }
+        }
+        state_observation[union_initial_state] = num_observations;
+        components.observabilityClasses = state_observation;
+    }
+
+    // skipping state and observation valuations
+
+    storm::models::sparse::ChoiceLabeling union_choice_labeling(union_num_choices);
+    union_choice_labeling.addLabel(NO_ACTION_LABEL);
+    union_choice_labeling.addLabelToChoice(NO_ACTION_LABEL,0);
+    storm::storage::SparseMatrixBuilder<ValueType> builder(
+        union_num_choices, union_num_states, 0, false, true, union_num_states
+    );
+    ValueType belief_uniform_prob = 1.0/num_models;
+    builder.newRowGroup(union_initial_state);
+    for(uint64_t model_index = 0; model_index < num_models; ++model_index) {
+        auto model = models[model_index];
+        uint64_t initial_state = state_offset[model_index] + *(model->getInitialStates().begin());
+        builder.addNextValue(union_initial_state, initial_state, belief_uniform_prob);
+    }
+    for(uint64_t model_index = 0; model_index < num_models; ++model_index) {
+        auto model = models[model_index];
+        storm::models::sparse::ChoiceLabeling const& choice_labeling = model->getChoiceLabeling();
+        for (auto const& label : choice_labeling.getLabels()) {
+            if(not union_choice_labeling.containsLabel(label)) {
+                union_choice_labeling.addLabel(label);
+            }
+        }
+
+        auto const& row_groups = model->getTransitionMatrix().getRowGroupIndices();
+        for(uint64_t state = 0; state < model->getNumberOfStates(); ++state) {
+            builder.newRowGroup(choice_offset[model_index]+row_groups[state]);
+            for(uint64_t choice = row_groups[state]; choice < row_groups[state+1]; ++choice) {
+                uint64_t union_choice = choice_offset[model_index]+choice;
+                for(auto entry: model->getTransitionMatrix().getRow(choice)) {
+                    builder.addNextValue(union_choice, state_offset[model_index]+entry.getColumn(), entry.getValue());
+                }
+                for(std::string const& label: choice_labeling.getLabelsOfChoice(choice)) {
+                    union_choice_labeling.addLabelToChoice(label,union_choice);
+                }
+            }
+        }
+    }
+    components.transitionMatrix =  builder.build();
+    components.choiceLabeling = union_choice_labeling;
+    // skipping choice origins
+
+    std::map<std::string,std::vector<ValueType>> reward_models;
+    for(uint64_t model_index = 0; model_index < num_models; ++model_index) {
+        auto model = models[model_index];
+        for(auto const& [reward_name,reward_model] : model->getRewardModels()) {
+            STORM_LOG_THROW(!reward_model.hasStateRewards() and !reward_model.hasTransitionRewards() and reward_model.hasStateActionRewards(),
+                storm::exceptions::NotSupportedException, "expected state-action rewards");
+            if(reward_models.count(reward_name) == 0) {
+                reward_models.emplace(reward_name,std::vector<ValueType>(union_num_choices,0));
+            }
+
+            for(uint64_t choice = 0; choice < model->getNumberOfChoices(); ++choice) {
+                uint64_t union_choice = choice_offset[model_index] + choice;
+                reward_models[reward_name][union_choice] = reward_model.getStateActionReward(choice);
+            }
+        }
+    }
+
+    for(auto &[reward_name,action_rewards]: reward_models) {
+        std::optional<std::vector<ValueType>> state_rewards;
+        components.rewardModels.emplace(
+            reward_name, storm::models::sparse::StandardRewardModel<ValueType>(std::move(state_rewards), std::move(action_rewards))
+        );
+    }
+
+    return storm::utility::builder::buildModelFromComponents<ValueType>(models[0]->getType(),std::move(components));
+}
+
 
 template std::vector<std::vector<uint64_t>> computeChoiceDestinations<double>(
     storm::models::sparse::Model<double> const& model);
@@ -439,6 +611,37 @@ template std::shared_ptr<storm::models::sparse::Model<double>> removeAction<doub
 template std::shared_ptr<storm::models::sparse::Model<double>> restoreActionsInAbsorbingStates<double>(
     storm::models::sparse::Model<double> const& model);
 template std::shared_ptr<storm::models::sparse::Model<double>> addDontCareAction<double>(
-    storm::models::sparse::Model<double> const& model);
+    storm::models::sparse::Model<double> const& model,
+    storm::storage::BitVector const& state_mask);
+template std::shared_ptr<storm::models::sparse::Model<double>> createModelUnion(
+    std::vector<std::shared_ptr<storm::models::sparse::Model<double>>> const&
+);
+
+template std::vector<std::vector<uint64_t>> computeChoiceDestinations<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model);
+template std::pair<std::vector<std::string>,std::vector<uint64_t>> extractActionLabels<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model);
+template void addMissingChoiceLabelsLabeling<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model,
+    storm::models::sparse::ChoiceLabeling& choice_labeling);
+template std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>> addMissingChoiceLabelsModel<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model);
+template std::pair<std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>>,std::vector<uint64_t>> enableAllActions(
+    storm::models::sparse::Model<storm::RationalNumber> const& model);
+template std::pair<std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>>,std::vector<uint64_t>> enableAllActions<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model,
+    storm::storage::BitVector const& state_mask);
+template std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>> removeAction<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model,
+    std::string const& action_to_remove_label,
+    storm::storage::BitVector const& state_mask);
+template std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>> restoreActionsInAbsorbingStates<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model);
+template std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>> addDontCareAction<storm::RationalNumber>(
+    storm::models::sparse::Model<storm::RationalNumber> const& model,
+    storm::storage::BitVector const& state_mask);
+template std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>> createModelUnion(
+    std::vector<std::shared_ptr<storm::models::sparse::Model<storm::RationalNumber>>> const&
+);
 
 }

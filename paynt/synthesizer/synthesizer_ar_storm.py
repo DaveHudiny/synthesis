@@ -42,21 +42,16 @@ class SynthesizerARStorm(paynt.synthesizer.synthesizer_ar.SynthesizerAR):
         # split each family in the current buffer to main family and corresponding subfamilies
         for family in families:
             if self.storm_control.use_cutoffs:
-                main_p = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict)
+                result_dict = self.storm_control.result_dict
             else:
-                main_p = self.storm_control.get_main_restricted_family(family, self.storm_control.result_dict_no_cutoffs)
-
+                result_dict = self.storm_control.result_dict_no_cutoffs
+            main_p = self.storm_control.get_main_restricted_family(family, result_dict)
             if main_p is None:
                 subfamilies.append(family)
                 continue
 
             main_families.append(main_p)
-
-            if self.storm_control.use_cutoffs:
-                subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict)
-            else:
-                subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, self.storm_control.result_dict_no_cutoffs)
-
+            subfamily_restrictions = self.storm_control.get_subfamilies_restrictions(family, result_dict)
             subfamilies_p = self.storm_control.get_subfamilies(subfamily_restrictions, family)
             subfamilies.extend(subfamilies_p)
 
@@ -74,7 +69,7 @@ class SynthesizerARStorm(paynt.synthesizer.synthesizer_ar.SynthesizerAR):
 
     def verify_family(self, family):
         self.quotient.build(family)
-        self.check_specification_for_mdp(family)
+        self.check_specification(family)
 
         if family.analysis_result.improving_value is not None:
             if self.saynt_timer is not None:
@@ -110,7 +105,7 @@ class SynthesizerARStorm(paynt.synthesizer.synthesizer_ar.SynthesizerAR):
 
     def synthesize_one(self, family, timer = None):
         self.best_assignment = None
-        
+
         if self.main_family is not None:
             family = self.main_family
 

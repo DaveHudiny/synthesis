@@ -1,6 +1,5 @@
 import stormpy
 import payntbind
-
 import math
 import operator
 
@@ -8,15 +7,43 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def construct_property(prop, relative_error):
+def construct_property(prop, relative_error, use_exact=False):
     rf = prop.raw_formula
+    player_index = None
+    if rf.is_reward_operator and use_exact:
+        raise ValueError("exact synthesis is not supported for reward properties")
+    
+    if not (rf.is_reward_operator or rf.is_probability_operator) and rf.is_game_formula:
+        if use_exact:
+            raise ValueError("exact synthesis is not supported for game properties")
+        
+        player_index = extract_player_index(rf)
+        game_rf = rf
+        rf = rf.subformula
+        prop = stormpy.core.Property("", rf)
     assert rf.has_bound != rf.has_optimality_type, \
         "optimizing formula contains a bound or a comparison formula does not"
     if rf.has_bound:
-        prop = Property(prop)
+        prop = Property(prop, use_exact)
     else:
-        prop = OptimalityProperty(prop, relative_error)
+        prop = OptimalityProperty(prop, relative_error, use_exact)
+
+    if player_index is not None:
+        prop.game_optimizing_player = player_index
+        prop.game_formula = game_rf
+        alt_formula_str = f"<<{prop.game_optimizing_player}>> " + prop.formula_alt.__str__()
+        formulas = stormpy.parse_properties(alt_formula_str)
+        prop.game_formula_alt = formulas[0].raw_formula
+
     return prop
+
+def extract_player_index(formula):
+    # TODO add support for multiple players in coalition
+    string = formula.__str__()
+    l_idx = string.index('<<')
+    r_idx = string.index('>>')
+    player_num = string[l_idx + len('<<') : r_idx]
+    return int(player_num)
 
 def construct_reward_property(reward_name, minimizing, target_label):
     direction = "min" if minimizing else "max"
@@ -27,12 +54,12 @@ def construct_reward_property(reward_name, minimizing, target_label):
 
 class Property:
     ''' Wrapper over a stormpy property. '''
-    
+
     # model checking environment (method & precision)
     environment = None
     # model checking precision
     model_checking_precision = 1e-4
-    
+
     @classmethod
     def set_model_checking_precision(cls, precision):
         cls.model_checking_precision = precision
@@ -40,21 +67,19 @@ class Property:
         payntbind.synthesis.set_precision_minmax(cls.environment.solver_environment.minmax_solver_environment, precision)
 
     @classmethod
-    def initialize(cls):
+    def initialize(cls, use_exact=False):
         cls.environment = stormpy.Environment()
         cls.set_model_checking_precision(cls.model_checking_precision)
 
         se = cls.environment.solver_environment
-        se.set_linear_equation_solver_type(stormpy.EquationSolverType.native)
+        # se.set_linear_equation_solver_type(stormpy.EquationSolverType.native)
         # se.set_linear_equation_solver_type(stormpy.EquationSolverType.gmmxx)
-        # se.set_linear_equation_solver_type(stormpy.EquationSolverType.eigen)
+        se.set_linear_equation_solver_type(stormpy.EquationSolverType.eigen)
 
-        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.policy_iteration
-        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.value_iteration
-        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.sound_value_iteration
-        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.interval_iteration
-        se.minmax_solver_environment.method = stormpy.MinMaxMethod.optimistic_value_iteration
-        # se.minmax_solver_environment.method = stormpy.MinMaxMethod.topological
+        if use_exact:
+            se.minmax_solver_environment.method = stormpy.MinMaxMethod.policy_iteration
+        else:
+            se.minmax_solver_environment.method = stormpy.MinMaxMethod.optimistic_value_iteration
 
     @classmethod
     def model_check(cls, model, formula):
@@ -68,13 +93,19 @@ class Property:
 
     @staticmethod
     def above_model_checking_precision(a, b):
+        if isinstance(a, stormpy.Rational):
+            return True
         return abs(a-b) > Property.model_checking_precision
 
-    
-    def __init__(self, prop):
+
+    def __init__(self, prop, use_exact=False):
         self.property = prop
-        self.name = prop.name
         rf = prop.raw_formula
+
+        self.game_optimizing_player = None # player index for game properties
+        self.game_formula = None
+
+        self.use_exact = use_exact
         # use comparison type to deduce optimizing direction
         comparison_type = rf.comparison_type
         self.minimizing = comparison_type in [stormpy.ComparisonType.LESS, stormpy.ComparisonType.LEQ]
@@ -86,11 +117,15 @@ class Property:
         }[comparison_type]
 
         # set threshold
-        self.threshold = rf.threshold_expr.evaluate_as_double()
-        if self.minimizing:
-            self.threshold_plus_precision = self.threshold + Property.model_checking_precision
+        if use_exact:
+            self.threshold = rf.threshold_expr.evaluate_as_rational()
+            self.threshold_plus_precision = self.threshold
         else:
-            self.threshold_plus_precision = self.threshold - Property.model_checking_precision
+            self.threshold = rf.threshold_expr.evaluate_as_double()
+            if self.minimizing:
+                self.threshold_plus_precision = self.threshold + Property.model_checking_precision
+            else:
+                self.threshold_plus_precision = self.threshold - Property.model_checking_precision
 
         # construct quantitative formula (without bound) for explicit model checking
         # set optimality type
@@ -101,7 +136,7 @@ class Property:
         else:
             self.formula.set_optimality_type(stormpy.OptimizationDirection.Maximize)
         self.formula_alt = Property.alt_formula(self.formula)
-        
+
     @staticmethod
     def alt_formula(formula):
         '''
@@ -115,7 +150,7 @@ class Property:
             optimality_type = stormpy.OptimizationDirection.Minimize
         formula_alt.set_optimality_type(optimality_type)
         return formula_alt
-    
+
     def __str__(self):
         return str(self.property.raw_formula)
 
@@ -125,7 +160,9 @@ class Property:
 
     @property
     def is_discounted_reward(self):
-        return self.formula.is_reward_operator and self.formula.subformula.is_discounted_total_reward_formula
+        # TODO add discounted reward as a type to Stormpy formula
+        # return self.formula.is_reward_operator and self.formula.subformula.is_discounted_total_reward_formula
+        return self.formula.is_reward_operator and "discount" in str(self.formula.subformula)
 
     @property
     def maximizing(self):
@@ -135,16 +172,20 @@ class Property:
     def is_until(self):
         return self.formula.subformula.is_until_formula
 
+    @property
+    def has_game_formula(self):
+        return self.game_formula is not None
+
     def transform_until_to_eventually(self):
         if not self.is_until:
             return
         logger.info("converting until formula to eventually...")
-        formula = payntbind.synthesis.transform_until_to_eventually(self.formula)
+        formula = payntbind.synthesis.transform_until_to_eventually(self.property.raw_formula)
         prop = stormpy.core.Property("", formula)
-        self.__init__(prop)
+        self.__init__(prop, self.use_exact)
 
     def property_copy(self):
-        return stormpy.core.Property(self.name, self.property.raw_formula.clone())
+        return stormpy.core.Property("", self.property.raw_formula.clone())
 
     def copy(self):
         return Property(self.property_copy())
@@ -170,7 +211,7 @@ class Property:
             stormpy.ComparisonType.GREATER: stormpy.ComparisonType.LEQ,
             stormpy.ComparisonType.GEQ:     stormpy.ComparisonType.LESS
         }[negated_formula.comparison_type]
-        stormpy_property_negated = stormpy.core.Property(self.name, negated_formula)
+        stormpy_property_negated = stormpy.core.Property("", negated_formula)
         property_negated = Property(stormpy_property_negated)
         return property_negated
 
@@ -187,7 +228,7 @@ class Property:
     def get_reward_name(self):
         assert self.reward
         return self.formula.reward_name
-    
+
     def transform_to_optimality_formula(self, prism):
         direction = "min" if self.minimizing else "max"
         if self.reward:
@@ -210,10 +251,14 @@ class OptimalityProperty(Property):
     Optimality property can remember current optimal value and adapt the
     corresponding threshold wrt epsilon.
     '''
-    def __init__(self, prop, epsilon=0):
+    def __init__(self, prop, epsilon=0, use_exact=False):
         self.property = prop
-        self.name = prop.name
         rf = prop.raw_formula
+
+        self.game_optimizing_player = None # player index for game properties
+        self.game_formula = None
+
+        self.use_exact = use_exact
 
         # use comparison type to deduce optimizing direction
         if rf.optimality_type == stormpy.OptimizationDirection.Minimize:
@@ -229,7 +274,10 @@ class OptimalityProperty(Property):
 
         # additional optimality stuff
         self.optimum = None
-        self.epsilon = epsilon
+        if use_exact:
+            self.epsilon = stormpy.Rational(epsilon)
+        else:
+            self.epsilon = epsilon
 
         self.reset()
 
@@ -244,9 +292,15 @@ class OptimalityProperty(Property):
     def reset(self):
         self.optimum = None
         if self.minimizing:
-            self.threshold = math.inf
+            if self.use_exact:
+                self.threshold = stormpy.Rational(2) # TODO: does not work for rewards
+            else:
+                self.threshold = math.inf
         else:
-            self.threshold = -math.inf
+            if self.use_exact:
+                self.threshold = stormpy.Rational(-1) # TODO: does not work for rewards
+            else:
+                self.threshold = -math.inf
 
     def meets_op(self, a, b):
         ''' For optimality objective, we want to accept improvements above model checking precision. '''
@@ -276,9 +330,9 @@ class OptimalityProperty(Property):
         if not self.is_until:
             return
         logger.info("converting until formula to eventually...")
-        formula = payntbind.synthesis.transform_until_to_eventually(self.formula)
+        formula = payntbind.synthesis.transform_until_to_eventually(self.property.raw_formula)
         prop = stormpy.core.Property("", formula)
-        self.__init__(prop, self.epsilon)
+        self.__init__(prop, self.epsilon, self.use_exact)
 
     @property
     def can_be_improved(self):
@@ -291,17 +345,17 @@ class OptimalityProperty(Property):
             stormpy.OptimizationDirection.Maximize:    stormpy.OptimizationDirection.Minimize
         }[negated_formula.optimality_type]
         negated_formula.set_optimality_type(negate_optimality_type)
-        stormpy_property_negated = stormpy.core.Property(self.name, negated_formula)
+        stormpy_property_negated = stormpy.core.Property("", negated_formula)
         property_negated = OptimalityProperty(stormpy_property_negated,self.epsilon)
         return property_negated
 
 
 class Specification:
-    
+
     def __init__(self, properties):
         self.constraints = []
         self.optimality = None
-        
+
         # sort the properties
         optimalities = []
         for p in properties:
@@ -328,7 +382,7 @@ class Specification:
     def reset(self):
         if self.optimality is not None:
             self.optimality.reset()
-        
+
     @property
     def has_optimality(self):
         return self.optimality is not None
@@ -360,10 +414,10 @@ class Specification:
         return any([p.is_until for p in self.all_properties()])
 
     def transform_until_to_eventually(self):
-        for p in self.all_properties(): 
+        for p in self.all_properties():
             p.transform_until_to_eventually()
 
-    
+
     def check(self):
         # TODO
         pass

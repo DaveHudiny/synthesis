@@ -3,9 +3,10 @@ from . import version
 import paynt.utils.timer
 import paynt.parser.sketch
 
-import paynt.quotient
+import paynt.quotient.quotient
 import paynt.quotient.pomdp
 import paynt.quotient.decpomdp
+import paynt.quotient.posmg
 import paynt.quotient.storm_pomdp_control
 import paynt.quotient.mdp
 
@@ -28,13 +29,13 @@ logger = logging.getLogger(__name__)
 
 def setup_logger(log_path = None):
     ''' Setup routine for logging. '''
-    
+
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     # root.setLevel(logging.INFO)
 
     # formatter = logging.Formatter('%(asctime)s %(threadName)s - %(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s')
 
     handlers = []
     if log_path is not None:
@@ -63,6 +64,8 @@ def setup_logger(log_path = None):
     help="known optimum bound")
 @click.option("--precision", type=click.FLOAT, default=1e-4,
     help="model checking precision")
+@click.option("--exact", is_flag=True, default=False,
+    help="use exact synthesis (very limited at the moment)")
 @click.option("--timeout", type=int,
     help="timeout (s)")
 
@@ -116,14 +119,8 @@ def setup_logger(log_path = None):
 @click.option("--export-synthesis", type=click.Path(), default=None,
     help="base filename to output synthesis result")
 
-@click.option("--mdp-split-wrt-mdp", is_flag=True, default=False,
-    help="if set, MDP abstraction scheduler will be used for splitting, otherwise game abstraction scheduler will be used")
 @click.option("--mdp-discard-unreachable-choices", is_flag=True, default=False,
     help="if set, unreachable choices will be discarded from the splitting scheduler")
-@click.option("--mdp-use-randomized-abstraction", is_flag=True, default=False,
-    help="if set, randomized abstraction guess-and-verify will be used instead of game abstraction;" +
-    " MDP abstraction scheduler will be used for splitting"
-)
 
 @click.option("--tree-depth", default=0, type=int,
     help="decision tree synthesis: tree depth")
@@ -186,7 +183,7 @@ def setup_logger(log_path = None):
 
 
 def paynt_run(
-    project, sketch, props, relative_error, optimum_threshold, precision, timeout,
+    project, sketch, props, relative_error, optimum_threshold, precision, exact, timeout,
     export,
     method,
     disable_expected_visits,
@@ -194,7 +191,7 @@ def paynt_run(
     storm_pomdp, iterative_storm, get_storm_result, storm_options, prune_storm,
     use_storm_cutoffs, unfold_strategy_storm,
     export_fsc_storm, export_fsc_paynt, export_synthesis,
-    mdp_split_wrt_mdp, mdp_discard_unreachable_choices, mdp_use_randomized_abstraction,
+    mdp_discard_unreachable_choices,
     tree_depth, tree_enumeration, tree_map_scheduler, add_dont_care_action,
     constraint_bound,
     ce_generator,
@@ -244,10 +241,9 @@ def paynt_run(
     paynt.quotient.pomdp.PomdpQuotient.initial_memory_size = fsc_memory_size
     paynt.quotient.pomdp.PomdpQuotient.posterior_aware = posterior_aware
     paynt.quotient.decpomdp.DecPomdpQuotient.initial_memory_size = fsc_memory_size
+    paynt.quotient.posmg.PosmgQuotient.initial_memory_size = fsc_memory_size
 
-    paynt.synthesizer.policy_tree.SynthesizerPolicyTree.split_wrt_mdp_scheduler = mdp_split_wrt_mdp
     paynt.synthesizer.policy_tree.SynthesizerPolicyTree.discard_unreachable_choices = mdp_discard_unreachable_choices
-    paynt.synthesizer.policy_tree.SynthesizerPolicyTree.use_randomized_abstraction = mdp_use_randomized_abstraction
 
     paynt.synthesizer.decision_tree.SynthesizerDecisionTree.tree_depth = tree_depth
     paynt.synthesizer.decision_tree.SynthesizerDecisionTree.tree_enumeration = tree_enumeration
@@ -264,7 +260,7 @@ def paynt_run(
 
     sketch_path = os.path.join(project, sketch)
     properties_path = os.path.join(project, props)
-    quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound)
+    quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound, exact)
     synthesizer = paynt.synthesizer.synthesizer.Synthesizer.choose_synthesizer(quotient, method, fsc_synthesis, storm_control)
     if reinforcement_learning:
         synthesizer.set_reinforcement_learning(rl_input_dictionary)
