@@ -37,7 +37,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
-OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 4
+OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 500
 
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -184,7 +184,7 @@ class FatherAgent(AbstractAgent):
             # TODO: Compare it with self.args.max_steps
             num_steps = self.args.num_environments * self.args.num_steps
         elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
-            num_steps = self.args.num_environments
+            num_steps = self.args.num_environments * (self.args.num_steps // 2)
         elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
             num_steps = self.args.num_steps
         else:

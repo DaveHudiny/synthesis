@@ -117,12 +117,12 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
         # Initialization of the reward multiplier for different tasks.
         if len(list(stormpy_model.reward_models.keys())) == 0:
-            self.reward_multiplier = -1.0
+            self.reward_multiplier = -0.01
         elif list(stormpy_model.reward_models.keys())[-1] in "rewards":
-            self.reward_multiplier = 1.0
+            self.reward_multiplier = 0.01
         # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
         else:
-            self.reward_multiplier = -1.0
+            self.reward_multiplier = -0.01
 
         self._current_time_step = None
 
@@ -299,7 +299,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # self.integer_observations = self.vectorized_simulator.observations # TODO: implement it with proposed vectorized simulator
         self.virtual_reward = tf.zeros((self.num_envs,), dtype=tf.float32)
         self.dones = np.array(len(self.last_observation) * [False])
-
         self.reward = tf.constant(
             np.array(len(self.last_observation) * [0.0]), dtype=tf.float32)
         hidden_state = self.vectorized_simulator.simulator_states
@@ -332,9 +331,13 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.default_rewards = tf.constant(self.reward, dtype=tf.float32)
         antigoal_values_vector = self.antigoal_values_vector + self.default_rewards
         goal_values_vector = self.goal_values_vector + self.default_rewards
+        # self.dones = self.dones | self.truncated | labels_mask
         self.goal_state_mask = labels_mask & self.dones
         self.anti_goal_state_mask = ~labels_mask & self.dones & ~self.truncated
+        # print(self.labels_mask)
+        # print(self.dones)
         still_running_mask = ~self.dones
+        # print(still_running_mask)
 
         self.reward = tf.where(
             self.goal_state_mask,
@@ -372,6 +375,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
         self.prev_dones = self.dones
         self.virtual_reward = self.reward - self.default_rewards
+
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -389,6 +393,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             self.prev_states, actions)
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
+        # if there any truncated episodes, we should set the done flag to True
+
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions

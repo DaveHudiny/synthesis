@@ -111,8 +111,8 @@ class SynthesizerRL:
         args = ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
-                            evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
-                            trajectory_num_steps=30, discount_factor=0.99, num_environments=256,
+                            evaluate_random_policy=False, max_steps=400, evaluation_goal=1, evaluation_antigoal=-1,
+                            trajectory_num_steps=16, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=True, use_rnn_less=rnn_less, model_memory_size=0)
         return args
@@ -198,6 +198,7 @@ class SynthesizerRL:
                 experiment_name, model=self.model_name, method=self.args.learning_method)
 
     def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None):
+
         if fsc is not None:
             if self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
                 self.run_rl_synthesis_jumpstarts(
@@ -211,13 +212,13 @@ class SynthesizerRL:
                 agents_wrapper.train_agent(nr_rl_iterations)
         else:
             agents_wrapper.train_agent(nr_rl_iterations)
-        agents_wrapper.agent.load_agent(True)
+        # agents_wrapper.agent.load_agent(True)
         if True: # Extract FSC via bottleneck extraction
             input_dim = 64
             latent_dim = 1
             best_bottleneck_extractor = None
             best_evaluation_result = None
-            for i in range(5):
+            for i in range(3):
                 bottleneck_extractor = BottleneckExtractor(agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
                 bottleneck_extractor.train_autoencoder(agents_wrapper.agent.wrapper, num_epochs=50, num_data_steps=1000)
                 evaluation_result = bottleneck_extractor.evaluate_bottlenecking(agents_wrapper.agent)

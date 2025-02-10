@@ -122,9 +122,9 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                         restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                         nr_runs=30000, encoding_method=encoding_method, agent_name=model, load_agent=False, 
-                                        evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20, 
-                                        trajectory_num_steps=16, discount_factor=0.99, num_environments=batch_size,
-                                        normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator, 
+                                        evaluate_random_policy=False, max_steps=400, evaluation_goal=1, evaluation_antigoal=-1, 
+                                        trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
+                                        normalize_simulator_rewards=False, buffer_size=5000, random_start_simulator=random_start_simulator, 
                                         replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                         vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
                                         use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,
@@ -137,7 +137,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 if __name__ == "__main__":
     args_from_cmd = argparse.ArgumentParser()
 
-    args_from_cmd.add_argument("--batch-size", type=int, default=256)
+    args_from_cmd.add_argument("--batch-size", type=int, default=2048)
     args_from_cmd.add_argument("--learning-rate", type=float, default=1.6e-4)
     args_from_cmd.add_argument(
         "--path-to-models", type=str, default="./models")

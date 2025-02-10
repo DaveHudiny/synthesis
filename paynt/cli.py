@@ -150,7 +150,7 @@ def setup_logger(log_path = None):
                 help="Number of training iterations with FSC oracle. Default is 100.")
 @click.option("--rl-pretrain-iters", type=click.INT, default=51,
                 help="Number of pretraining iterations with RL oracle. Default is 500.")
-@click.option("--rl-training-iters", type=click.INT, default=2001,
+@click.option("--rl-training-iters", type=click.INT, default=1001,
                 help="Number of training iterations with RL oracle. Default is 2001.")
 @click.option("--fsc-multiplier", type=click.FLOAT, default=2.0,
                 help="Multiplier for the FSC cycling oracle. Default is 2.0.")

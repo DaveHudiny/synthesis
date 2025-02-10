@@ -70,7 +70,7 @@ class Recurrent_PPO_agent(FatherAgent):
             value_net=self.value_net,
             num_epochs=3,
             train_step_counter=train_step_counter,
-            greedy_eval=False,
+            greedy_eval=True,
             discount_factor=0.98,
             use_gae=True,
             lambda_value=0.95,
@@ -78,7 +78,7 @@ class Recurrent_PPO_agent(FatherAgent):
             policy_l2_reg=0.0001,
             value_function_l2_reg=0.0001,
             value_pred_loss_coef=0.45,
-            entropy_regularization=0.02,
+            entropy_regularization=0.015,
             normalize_rewards=True,
         )
         self.agent.initialize()

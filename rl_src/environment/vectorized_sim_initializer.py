@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 
 class SimulatorInitializer:
     @staticmethod
-    def load_and_store_simulator(stormpy_model, get_scalarized_reward, num_envs, max_steps, metalabels, model_path, compiled_models_path="compiled_models_vec_storm"):
+    def load_and_store_simulator(stormpy_model = None, 
+                                 get_scalarized_reward : callable = None, 
+                                 num_envs : int = 1, max_steps : int = 400, 
+                                 metalabels : dict = {"goals": "goal"}, 
+                                 model_path : str = ".models/mba/", 
+                                 compiled_models_path : str ="compiled_models_vec_storm") -> vec_storm.StormVecEnv:
         """ Load the simulator for the environment. If the model was not compiled previously, the model is compiled from scratch and saved. Otherwise, the model is loaded from the file.
 
         Args:

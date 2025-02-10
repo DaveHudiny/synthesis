@@ -3,9 +3,8 @@ import paynt.synthesizer.synthesizer_ar
 from ..quotient.storm_pomdp_control import StormPOMDPControl
 from os import makedirs
 
-
+import tqdm
 from time import sleep
-import time
 
 import logging
 logger = logging.getLogger(__name__)
@@ -64,9 +63,6 @@ class SynthesizerARStorm(paynt.synthesizer.synthesizer_ar.SynthesizerAR):
 
         return main_families, subfamilies
 
-
-
-
     def verify_family(self, family):
         self.quotient.build(family)
         self.check_specification(family)
@@ -103,19 +99,23 @@ class SynthesizerARStorm(paynt.synthesizer.synthesizer_ar.SynthesizerAR):
                     logger.info(f"Used Storm result to prune a family with Storm value: {storm_res.upper_bound} compared to current optimum {self.quotient.specification.optimality.optimum}. Quotient MDP value: {res.optimality_result.primary.value}")
 
 
-    def synthesize_one(self, family, timer = None):
+
+    def synthesize_one(self, family):
         self.best_assignment = None
 
         if self.main_family is not None:
             family = self.main_family
-
+        tqdm.tqdm.write(f"Synthesizing family with")
+        
         families = [family]
-        start_time = time.time()
+        bar = tqdm.tqdm(len(families))
+        i = 50000
         while families:
-            if timer is not None and time.time() - start_time > timer:
-                logger.info("Time limit reached")
+            # print("Cykl cykl cykl")
+            bar.update(1)
+            i -= 1
+            if i <= 0:
                 return self.best_assignment
-            
             # check whether PAYNT should be paused
             if self.s_queue is not None:
                 # if the queue is non empty, pause for PAYNT was requested
@@ -152,6 +152,7 @@ class SynthesizerARStorm(paynt.synthesizer.synthesizer_ar.SynthesizerAR):
                     elif status == "terminate":
                         logger.info("Terminating controller synthesis")
                         return self.best_assignment
+            
 
             if SynthesizerARStorm.exploration_order_dfs:
                 family = families.pop(-1)
@@ -180,4 +181,3 @@ class SynthesizerARStorm(paynt.synthesizer.synthesizer_ar.SynthesizerAR):
             families = families + subfamilies
 
         return self.best_assignment
-

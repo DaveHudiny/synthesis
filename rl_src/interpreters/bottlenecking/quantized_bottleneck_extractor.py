@@ -134,6 +134,8 @@ class BottleneckExtractor:
         generator = self.create_generator(policy)
 
         self.autoencoder.compile(optimizer='adam', loss='mse')
+        print("Training autoencoder")
+        # print sample of data
         self.autoencoder.fit(generator, epochs=num_epochs, steps_per_epoch=500)
 
     @staticmethod
