@@ -8,7 +8,7 @@ from environment.environment_wrapper import Environment_Wrapper
 
 from agents.networks.value_networks import Periodic_FSC_Neural_Critic
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
-from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
+from agents.policies.policy_mask_wrapper import PolicyMaskWrapper
 
 from tools.encoding_methods import observation_and_action_constraint_splitter
 
@@ -75,7 +75,7 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
         self.init_replay_buffer(tf_environment)
         logging.info("Replay buffer initialized")
         self.init_collector_driver_ppo(self.tf_environment)
-        self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
+        self.wrapper = PolicyMaskWrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
         # self.wrapper = self.agent.policy
         self.custom_pseudo_driver_run(tf_environment, steps=10)
@@ -83,7 +83,7 @@ class Periodic_FSC_Neural_PPO(FatherAgent):
             self.load_agent()
 
     def init_collector_driver_ppo(self, tf_environment: tf_py_environment.TFPyEnvironment):
-        self.collect_policy_wrapper = Policy_Mask_Wrapper(
+        self.collect_policy_wrapper = PolicyMaskWrapper(
             self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
         # self.collect_policy_wrapper = self.agent.collect_policy
         eager = py_tf_eager_policy.PyTFEagerPolicy(

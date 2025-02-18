@@ -7,9 +7,9 @@ from tf_agents.specs.tensor_spec import TensorSpec
 
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 
-from rl_src.environment.environment_wrapper_vec import Environment_Wrapper_Vec
+from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
 
-from rl_src.agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
+from rl_src.agents.policies.policy_mask_wrapper import PolicyMaskWrapper
 # from rl_src.agents.father_agent import FatherAgent
 
 # from rl_src.interpreters.tracing_interpret import TracingInterpret
@@ -65,7 +65,7 @@ def save_extracted_fsc(observation_to_action_table, observation_to_update_table,
         pkl.dump(saved_dict, f)
 
 
-def construct_table_observation_action_memory(agent_policy: TFPolicy, environment: Environment_Wrapper_Vec, memory_size=0) -> tuple[np.ndarray, np.ndarray]:
+def construct_table_observation_action_memory(agent_policy: TFPolicy, environment: EnvironmentWrapperVec, memory_size=0) -> tuple[np.ndarray, np.ndarray]:
     """Constructs a table with observations, actions and memory values.
 
     Args:
@@ -120,8 +120,8 @@ def construct_table_observation_action_memory(agent_policy: TFPolicy, environmen
     return observation_to_action_table, observation_to_update_table
 
 
-def construct_memoryless_table_w_entropy(agent_policy: Policy_Mask_Wrapper,
-                                         environment: Environment_Wrapper_Vec,
+def construct_memoryless_table_w_entropy(agent_policy: PolicyMaskWrapper,
+                                         environment: EnvironmentWrapperVec,
                                          greedy: bool = False) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Constructs a table with observations and actions for memoryless policies with additional list of entropy values."""
     state_to_observations = np.array(environment.stormpy_model.observations)
@@ -200,7 +200,7 @@ class ExtractedFSCPolicy(TFPolicy):
         return tf.zeros((batch_size, 1), dtype=tf.int32)
 
 class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
-    def __init__(self, agent_policy: TFPolicy, environment: Environment_Wrapper_Vec, 
+    def __init__(self, agent_policy: TFPolicy, environment: EnvironmentWrapperVec, 
                  tf_environment: TFPyEnvironment, args, model="", entropy_extraction=False,
                  greedy: bool = False, max_memory_size = 10):
         eager = PyTFEagerPolicy(agent_policy, use_tf_function=True)
@@ -240,13 +240,13 @@ class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
         super(NaiveFSCPolicyExtraction, self).__init__(
             tf_environment.time_step_spec(), tf_environment.action_spec(), policy_state_spec=policy_state_spec)
         
-    def _init_action_and_memory_tables(self, agent_policy: TFPolicy, environment: Environment_Wrapper_Vec):
+    def _init_action_and_memory_tables(self, agent_policy: TFPolicy, environment: EnvironmentWrapperVec):
         self.observation_to_action_table = np.zeros(
             (self.memory_size, len(self.all_observations), ))
         self.observation_to_update_table = np.zeros(
             (self.memory_size, len(self.all_observations), ))
 
-    def entropy_only_pass(self, agent_policy: Policy_Mask_Wrapper, environment: Environment_Wrapper_Vec):
+    def entropy_only_pass(self, agent_policy: PolicyMaskWrapper, environment: EnvironmentWrapperVec):
         observation_to_entropy_table = np.zeros((len(self.all_observations), ))
         self.pre_computed_logits = {}
         for integer_observation in self.all_observations:
@@ -265,7 +265,7 @@ class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
             observation_to_entropy_table[integer_observation] = entropy
         return observation_to_entropy_table
     
-    def compute_logits_for_observation(self, observation, agent_policy: Policy_Mask_Wrapper, environment: Environment_Wrapper_Vec):
+    def compute_logits_for_observation(self, observation, agent_policy: PolicyMaskWrapper, environment: EnvironmentWrapperVec):
         state = np.where(self.state_to_observations == observation)[0][0]
         observation_triplet = environment.encode_observation(
             observation, 0, state)
@@ -277,7 +277,7 @@ class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
         logits = tf.where(observation_triplet["mask"], logits, self.minimum_logit)
         return logits
 
-    def fill_tables(self, policy: Policy_Mask_Wrapper, environment: Environment_Wrapper_Vec):
+    def fill_tables(self, policy: PolicyMaskWrapper, environment: EnvironmentWrapperVec):
         obs_shape = self.observation_to_action_table.shape[1]
         mem_shape = self.observation_to_action_table.shape[0]
         for obs in range(obs_shape):

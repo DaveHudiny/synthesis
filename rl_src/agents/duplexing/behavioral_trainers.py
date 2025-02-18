@@ -16,7 +16,7 @@ from tf_agents.networks.value_rnn_network import ValueRnnNetwork
 from rl_src.tools.args_emulator import ArgsEmulator
 from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
 from rl_src.agents.policies.simple_fsc_policy import SimpleFSCPolicy, fsc_action_constraint_splitter
-from rl_src.agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
+from rl_src.agents.policies.policy_mask_wrapper import PolicyMaskWrapper
 from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.tools.encoding_methods import observation_and_action_constraint_splitter, observation_and_action_constraint_splitter_no_mask
 from rl_src.tools.evaluators import *
@@ -33,7 +33,7 @@ from agents.policies.fsc_copy import FSC
 
 
 class Actor_Value_Pretrainer:
-    def __init__(self, environment: Environment_Wrapper_Vec, tf_environment: TFPyEnvironment, args: ArgsEmulator, collect_data_spec=None):
+    def __init__(self, environment: EnvironmentWrapperVec, tf_environment: TFPyEnvironment, args: ArgsEmulator, collect_data_spec=None):
         self.args = args
 
         self.environment = environment
@@ -91,7 +91,7 @@ class Actor_Value_Pretrainer:
             tf_environment,
             eager,
             observers=observers,
-            num_steps=self.args.num_environments * self.args.num_steps
+            num_steps=self.args.num_environments * self.args.trajectory_num_steps
         )
 
     def get_demasked_observer(self):
@@ -244,7 +244,7 @@ class Actor_Value_Pretrainer:
         return runner
 
     def get_duplex_driver(self, fsc: FSC, rl_agent: TFAgent, replay_buffer_fsc: TFUniformReplayBuffer, replay_buffer_rl: TFUniformReplayBuffer,
-                          parallel_policy: Policy_Mask_Wrapper):
+                          parallel_policy: PolicyMaskWrapper):
         observer = self.get_duplex_observer(
             replay_buffer_fsc=replay_buffer_fsc, replay_buffer_rl=replay_buffer_rl)
         fsc_policy = FSC_Policy(tf_environment=self.tf_environment, fsc=fsc,
@@ -282,7 +282,7 @@ class Actor_Value_Pretrainer:
 
         return runner
     
-    def init_vectorized_evaluation_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps=400, actor_net = None):
+    def init_vectorized_evaluation_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, environment: EnvironmentWrapperVec, num_steps=400, actor_net = None):
         """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
 
         Args:

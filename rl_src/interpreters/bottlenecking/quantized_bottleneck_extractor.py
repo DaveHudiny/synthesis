@@ -18,7 +18,7 @@ from tools.saving_tools import *
 
 from rl_src.tests.general_test_tools import *
 from agents.recurrent_ppo_agent import Recurrent_PPO_agent
-from environment.environment_wrapper_vec import Environment_Wrapper_Vec
+from environment.environment_wrapper_vec import EnvironmentWrapperVec
 from interpreters.fsc_based_interpreter import ExtractedFSCPolicy
 
 from interpreters.bottlenecking.bottlenecked_actor_network import BottleneckedActor
@@ -156,7 +156,7 @@ class BottleneckExtractor:
             memory_number += (memory_vector[i] + 1) * (base ** i)
         return memory_number
 
-    def extract_fsc(self, policy: TFPolicy, environment: Environment_Wrapper_Vec):
+    def extract_fsc(self, policy: TFPolicy, environment: EnvironmentWrapperVec):
         # Computes the number of potential combinations of latent memory (3 possible values for each latent memory cell, {-1, 0, 1})
         memory_size = 3 ** self.latent_dim
         nr_observations = environment.stormpy_model.nr_observations

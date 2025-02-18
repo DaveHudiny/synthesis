@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../")
 
-from rl_src.environment.environment_wrapper_vec import Environment_Wrapper_Vec
+from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
 
 from tf_agents.environments import tf_py_environment
 
@@ -12,7 +12,7 @@ from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
 
 def init_environment(args : ArgsEmulator):
     prism_model = initialize_prism_model(args.prism_model, args.prism_properties, args.constants)
-    env = Environment_Wrapper_Vec(prism_model, args, num_envs=args.num_environments)
+    env = EnvironmentWrapperVec(prism_model, args, num_envs=args.num_environments)
     tf_env = tf_py_environment.TFPyEnvironment(env)
     return env, tf_env
 

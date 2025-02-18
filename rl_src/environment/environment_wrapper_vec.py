@@ -24,6 +24,7 @@ from tools.encoding_methods import *
 from tools.args_emulator import ArgsEmulator
 from environment.vectorized_sim_initializer import SimulatorInitializer
 
+from vec_storm.storm_vec_env import StormVecEnv
 
 import json
 
@@ -31,6 +32,7 @@ import jax
 
 import time
 
+import tf_agents.policies.tf_policy as TFPolicy
 
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
@@ -57,23 +59,28 @@ def generate_reward_selection_function(rewards, labels):
     return rewards[last_reward]
 
 
-class Environment_Wrapper_Vec(py_environment.PyEnvironment):
+class EnvironmentWrapperVec(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
 
-    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table: list[list] = None, num_envs: int = 1):
+    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table: list[list] = None, num_envs: int = 1,
+                 state_based_oracle : TFPolicy = None, state_based_sim : StormVecEnv = None, num_of_expansion_features : int = 0):
         """Initializes the environment wrapper.
 
         Args:
             stormpy_model: The Storm model to be used.
             args: The arguments from the command line or ArgsSimulator.
+            q_values_table: The Q-values table for the Q-learning agent.
+            num_envs: The number of environments for vectorization.
+            state_based_oracle: The state-based oracle for the environment, expecting some memoryless MDP controller.
         """
         self.args = args
-        super(Environment_Wrapper_Vec, self).__init__()
+        super(EnvironmentWrapperVec, self).__init__()
         # self.batched = True
         # self.batch_size = num_envs
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
+        print(stormpy_model)
         self.state_to_observation_map = tf.constant(stormpy_model.observations)
         self.observation_valuations = stormpy_model.observation_valuations
         # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
@@ -89,10 +96,32 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs,
-            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
+            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=self.args.continuous_enlargement)
+        
+        if state_based_oracle is not None and state_based_sim is not None:
+            self.state_based_oracle = state_based_oracle
+            self.state_based_sim = state_based_sim
+
+        
+        self.indices_of_expansion_features = []
+
+        if state_based_sim is not None and state_based_oracle is None:
+            self.state_based_sim = state_based_sim
+            self.num_of_expansion_features = self.get_num_of_expansion_features(self.vectorized_simulator, self.state_based_sim)
+            self.indices_of_expansion_features = self.get_indices_of_expansion_features(self.vectorized_simulator, self.state_based_sim)
+            self.noise_stddev = 0.5
+            self.nullify_expansion_features_flag = False
+            self.dummy_expansion_features_flag = False
+        elif num_of_expansion_features > 0:
+            self.num_of_expansion_features = num_of_expansion_features
+            self.dummy_expansion_features_flag = True
+        else:
+            self.num_of_expansion_features = 0
+        
+
         self.vectorized_simulator.set_num_envs(num_envs)
         self.vectorized_simulator.reset()
-
+        print("Simulator initialized.")
         # Default labels mask for the environment given that the number of metalabels is 1 ("goals").
         self.labels_mask = list([False] * self.num_envs)
         self.encoding_method = args.encoding_method
@@ -123,6 +152,13 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
         else:
             self.reward_multiplier = -0.01
+        if "network" in args.prism_model or "rocks" in args.prism_model:
+            self.reward_multiplier *= 100
+        if "fuel" in args.prism_model or "drone" in args.prism_model or "geo" in args.prism_model:
+            self.reward_multiplier = -1.0
+
+        if "evade" in args.prism_model:
+            self.reward_multiplier = -0.0
 
         self._current_time_step = None
 
@@ -158,6 +194,29 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # Add reward shaping
         self.reward_shaper_function = lambda observation, _: tf.zeros(
             (observation.shape[0],), dtype=tf.float32)
+        
+    def get_num_of_expansion_features(self, vectorized_simulator : StormVecEnv, state_based_sim : StormVecEnv):
+        original_labels = vectorized_simulator.get_observation_labels()
+        state_based_labels = state_based_sim.get_observation_labels()
+        return len(state_based_labels) - len(original_labels)
+    
+    def get_indices_of_expansion_features(self, vectorized_simulator : StormVecEnv, state_based_sim : StormVecEnv):
+        original_labels = vectorized_simulator.get_observation_labels()
+        state_based_labels = state_based_sim.get_observation_labels()
+        return [state_based_labels.index(label) for label in state_based_labels if label not in original_labels]
+        
+    def set_state_based_oracle(self, state_based_oracle : TFPolicy, state_based_sim : StormVecEnv):
+        self.state_based_oracle = state_based_oracle
+        self.state_based_sim = state_based_sim
+        # self.reward_multiplier = -1.0
+        # self.antigoal_values_vector = tf.constant(
+        #     [-400.0] * self.num_envs, dtype=tf.float32)
+        self.oracle_reward = 50
+
+    def unset_state_based_oracle(self):
+        self.state_based_oracle = None
+        # self.state_based_sim = None
+        self.oracle_reward = 0.0
 
     def set_reward_shaper(self, reward_shaper_function):
         self.reward_shaper_function = reward_shaper_function
@@ -194,7 +253,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                     0)
                 parse_data = json.loads(str(json_example))
                 observation_spec = tensor_spec.TensorSpec(shape=(
-                    len(parse_data) + OBSERVATION_SIZE + memory_update_size,), dtype=tf.float32, name="observation")
+                    len(parse_data) + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features,), dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
@@ -205,8 +264,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 json_example = self.stormpy_model.observation_valuations.get_json(
                     0)
                 parse_data = json.loads(str(json_example))
-                observation_spec = tensor_spec.TensorSpec(shape=(
-                    len(parse_data) + OBSERVATION_SIZE + action_mask_size + memory_update_size,), dtype=tf.float32, name="observation")
+                observation_spec = tensor_spec.TensorSpec(
+                    shape=(len(parse_data) + OBSERVATION_SIZE + action_mask_size + memory_update_size + self.num_of_expansion_features,),
+                    dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
@@ -306,11 +366,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             tf.gather(self.state_to_observation_map, hidden_state.vertices),
             (self.num_envs, 1)
         )
-        observation_tensor = self.get_observation_tensor(
-            tf.constant(self.last_observation, dtype=tf.float32),
-            tf.constant(self.allowed_actions, dtype=tf.bool),
-            self.integers
-        )
+        observation_tensor = self.get_observation()
         self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.truncated = np.array(len(self.last_observation) * [False])
@@ -322,6 +378,31 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.prev_dones = np.array(len(self.last_observation) * [False])
 
         return self._current_time_step
+    
+    def get_oracle_based_reward(self, action, sim_state):
+        # Compute observations
+        vertices = tf.reshape(sim_state.vertices, (-1, 1))
+        vertices = tf.cast(vertices, dtype=tf.int32)
+        
+        observations = tf.gather_nd(self.state_based_sim.simulator.observations, vertices)
+        # Predict actions by the oracle
+        fake_time_step = ts.TimeStep(
+            step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32),
+            reward=tf.zeros((self.num_envs,), dtype=tf.float32),
+            discount=tf.ones((self.num_envs,), dtype=tf.float32),
+            observation=observations
+        )
+        oracle_actions = self.state_based_oracle(fake_time_step).action
+        oracle_actions = tf.cast(oracle_actions, dtype=tf.int32)
+        oracle_actions = self.change_illegal_actions_to_random_allowed(oracle_actions, self.allowed_actions)
+        # Compute the reward
+        oracle_reward = tf.where(
+            tf.equal(oracle_actions, action),
+            tf.constant(self.oracle_reward, dtype=tf.float32),
+            tf.constant(-self.oracle_reward, dtype=tf.float32)
+        )
+        # self.oracle_reward *= self.args.discount_factor
+        return oracle_reward
 
     def evaluate_simulator(self) -> ts.TimeStep:
         """Evaluates the simulator and returns the current time step. Primarily used to determine, whether the state is the last one or not."""
@@ -331,13 +412,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         self.default_rewards = tf.constant(self.reward, dtype=tf.float32)
         antigoal_values_vector = self.antigoal_values_vector + self.default_rewards
         goal_values_vector = self.goal_values_vector + self.default_rewards
-        # self.dones = self.dones | self.truncated | labels_mask
         self.goal_state_mask = labels_mask & self.dones
         self.anti_goal_state_mask = ~labels_mask & self.dones & ~self.truncated
-        # print(self.labels_mask)
-        # print(self.dones)
         still_running_mask = ~self.dones
-        # print(still_running_mask)
 
         self.reward = tf.where(
             self.goal_state_mask,
@@ -348,8 +425,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
-        self.reward += self.reward_shaping_rewards
+        self.reward += tf.abs(self.reward_multiplier) * self.reward_shaping_rewards
+        if hasattr(self, "state_based_oracle") and hasattr(self, "state_based_sim") and self.state_based_oracle is not None:
 
+            self.reward += self.get_oracle_based_reward(self.last_action, self.current_state())
         if self.flag_penalty:
             illegal_action_penalties = tf.where(
                 self._played_illegal_actions,
@@ -372,10 +451,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             discount=self.discount,
             observation=self.get_observation()
         )
-
+        
         self.prev_dones = self.dones
         self.virtual_reward = self.reward - self.default_rewards
-
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -388,7 +466,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 actions["memory_update"], dtype=tf.float32)
         self.prev_states = np.reshape(
             self.vectorized_simulator.simulator_states.vertices, (self.num_envs, 1))
-        
         self.reward_shaping_rewards = self.reward_shaper_function(
             self.prev_states, actions)
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
@@ -450,6 +527,7 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         ) % legal_counts
         selected_flat_indices = batch_offsets + random_offsets
         selected_actions = tf.gather(flat_indices[:, 1], selected_flat_indices)
+        selected_actions = tf.cast(selected_actions, tf.int32)
         new_actions = tf.where(
             is_action_allowed,
             actions,
@@ -495,22 +573,29 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def get_observation(self) -> dict[str: tf.Tensor]:
         encoded_observation = self.last_observation
         mask = self.allowed_actions
+        integers = self.integers
         if self.encoding_method == "MaskedValuations":
             encoded_observation = tf.concat(
                 [encoded_observation, tf.cast(mask, dtype=tf.float32)], axis=1)
-            return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                    "integer": self.integers}
-        
-            
-        elif self.model_memory_size > 0:
+        if self.model_memory_size > 0:
             memory_update = tf.reshape(
                 self.memory_update, shape=(self.num_envs, 1))
             encoded_observation = tf.concat(
                 [encoded_observation, memory_update], axis=1)
-            return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                    "integer": self.integers}
+        if self.num_of_expansion_features > 0:
+            if self.dummy_expansion_features_flag:
+                expansion_features = tf.zeros((self.num_envs, self.num_of_expansion_features), dtype=tf.float32)
+            else:
+                vertices = tf.reshape(self.vectorized_simulator.simulator_states.vertices, (-1, 1))
+                vertices = tf.cast(vertices, dtype=tf.int32)
+                observations = tf.gather_nd(self.state_based_sim.simulator.observations, vertices)
+                expansion_features = tf.gather(observations, self.indices_of_expansion_features, axis=1)
+                # Add noise to the expansion features
+                expansion_features = tf.random.normal(tf.shape(expansion_features), mean=0, stddev=self.noise_stddev, dtype=tf.float32) + expansion_features
+                expansion_features = expansion_features if not self.nullify_expansion_features_flag else tf.zeros_like(expansion_features)
+            encoded_observation = tf.concat([encoded_observation, expansion_features], axis=1)
         return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                "integer": self.integers}
+                "integer": integers}
     
     def encode_observation(self, integer_observation, memory, state) -> dict[str: tf.Tensor]:
         """Encodes the observation based on the integer observation and memory."""
@@ -518,7 +603,6 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         valuated = np.array(list(json_valuation.values()), dtype=np.float32)
         allowed_actions = self.vectorized_simulator.simulator.allowed_actions[state]
         if self.model_memory_size > 0:
-
             return {"observation": tf.concat([tf.constant(valuated, dtype=tf.float32), tf.constant([memory], dtype=tf.float32)], axis=0),
                     "mask": tf.constant(allowed_actions, tf.bool),
                     "integer": tf.constant([integer_observation], dtype=tf.int32)}

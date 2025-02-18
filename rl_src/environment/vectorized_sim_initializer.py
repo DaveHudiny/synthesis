@@ -17,7 +17,8 @@ class SimulatorInitializer:
                                  num_envs : int = 1, max_steps : int = 400, 
                                  metalabels : dict = {"goals": "goal"}, 
                                  model_path : str = ".models/mba/", 
-                                 compiled_models_path : str ="compiled_models_vec_storm") -> vec_storm.StormVecEnv:
+                                 compiled_models_path : str ="compiled_models_vec_storm",
+                                 enforce_recompilation : bool = False) -> vec_storm.StormVecEnv:
         """ Load the simulator for the environment. If the model was not compiled previously, the model is compiled from scratch and saved. Otherwise, the model is loaded from the file.
 
         Args:
@@ -35,6 +36,13 @@ class SimulatorInitializer:
         if not os.path.exists(compiled_models_path):
             os.makedirs(compiled_models_path)
         name = SimulatorInitializer.get_name_from_path(model_path)
+
+        if enforce_recompilation:
+            logger.info(f"Compiling model {name}...")
+            simulator = vec_storm.StormVecEnv(
+                stormpy_model, get_scalarized_reward, num_envs=num_envs, max_steps=max_steps, metalabels=metalabels)
+            return simulator
+        
         simulator = SimulatorInitializer.try_load_simulator_by_name_from_pickle(
             name, compiled_models_path)
         if simulator is None:

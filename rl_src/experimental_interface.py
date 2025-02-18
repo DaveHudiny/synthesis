@@ -27,6 +27,8 @@ from environment.pomdp_builder import *
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 from tools.weight_initialization import WeightInitializationMethods
 
+
+
 import tensorflow as tf
 import sys
 import os
@@ -65,10 +67,11 @@ class ExperimentInterface:
             raise ValueError(
                 "Paynt imitation is set but there is not selected any JSON FSC file.")
 
-    def initialize_prism_model(self):
-        properties = parse_properties(self.args.prism_properties)
+    @staticmethod
+    def initialize_prism_model(args : ArgsEmulator):
+        properties = parse_properties(args.prism_properties)
         pomdp_args = POMDP_arguments(
-            self.args.prism_model, properties, self.args.constants)
+            args.prism_model, properties, args.constants)
         return POMDP_builder.build_model(pomdp_args)
 
     def run_agent(self):
@@ -82,28 +85,34 @@ class ExperimentInterface:
                 time_step = next_time_step
                 is_last = time_step.is_last()
 
-    def initialize_environment(self, args: ArgsEmulator = None, pomdp_model=None):
+    @staticmethod
+    def initialize_environment(args: ArgsEmulator = None, 
+                               pomdp_model=None, 
+                               state_based_oracle=None, 
+                               state_based_sim=None,
+                               num_of_expansion_fatures = 0) -> tuple[EnvironmentWrapperVec | Environment_Wrapper, tf_py_environment.TFPyEnvironment, object]:
         if pomdp_model is None:
-            self.pomdp_model = self.initialize_prism_model()
-        else:
-            self.pomdp_model = pomdp_model
+            pomdp_model = ExperimentInterface.initialize_prism_model(args)
         logger.info("Model initialized")
-        if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or not self.args.vectorized_envs_flag:
+        if args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or not args.vectorized_envs_flag:
             num_envs = 1
-            self.args.num_environments = 1
+            args.num_environments = 1
         else:
-            num_envs = self.args.num_environments
-        if self.args.vectorized_envs_flag:
-            environment = Environment_Wrapper_Vec(
-                self.pomdp_model, args, num_envs=num_envs)
+            num_envs = args.num_environments
+        if args.vectorized_envs_flag:
+            environment = EnvironmentWrapperVec(
+                pomdp_model, args, num_envs=num_envs, 
+                state_based_oracle=state_based_oracle, 
+                state_based_sim=state_based_sim, 
+                num_of_expansion_features=num_of_expansion_fatures)
         else:
-            environment = Environment_Wrapper(self.pomdp_model, args)
+            environment = Environment_Wrapper(pomdp_model, args)
         # self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
         tf_environment = tf_py_environment.TFPyEnvironment(
             environment, check_dims=True)
         # self.tf_environment_orig = tf_py_environment.TFPyEnvironment(self.environment_orig)
         logger.info("Environment initialized")
-        return environment, tf_environment
+        return environment, tf_environment, pomdp_model
 
     def select_agent_type(self, learning_method=None, qvalues_table=None, action_labels_at_observation=None,
                           pre_training_dqn: bool = False) -> FatherAgent:
@@ -201,7 +210,7 @@ class ExperimentInterface:
         return result
     
     def init_vectorized_evaluation_driver_w_buffer(self, tf_environment: tf_py_environment.TFPyEnvironment, 
-                                                   environment: Environment_Wrapper_Vec, 
+                                                   environment: EnvironmentWrapperVec, 
                                                    custom_policy : TFPolicy=None, num_steps=400) -> tuple[DynamicStepDriver, TrajectoryBuffer]:
         """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
 
@@ -248,7 +257,7 @@ class ExperimentInterface:
         
         buffer.clear()
 
-    def perform_experiment(self, with_refusing=False, model : str = ""):
+    def perform_experiment(self, with_refusing=False, model : str = "", state_based_agent : FatherAgent = None, state_based_sim : StormVecEnv= None):
         """Performs the experiment. The experiment is performed based on the arguments in self.args. The result is saved to the self.agent variable.
         Additional experimental data can be found in the self.agent.evaluation_result variable.
 
@@ -260,12 +269,28 @@ class ExperimentInterface:
         except ValueError as e:
             logger.error(e)
             return
-        self.environment, self.tf_environment = self.initialize_environment(
-            self.args)
+        self.environment, self.tf_environment, stormpy_model = self.initialize_environment(
+            self.args, state_based_sim=state_based_sim)
         if self.args.evaluate_random_policy:  # Evaluate random policy
             return self.evaluate_random_policy()
-
+        
         self.agent = self.initialize_agent()
+        batch_tf_environments = []
+        if self.args.continuous_enlargement:
+            original_args = self.args
+            i = self.args.init_size
+            while i < 21:
+                self.args.constants= f"N={i}"
+                num_of_expansion_features = self.environment.num_of_expansion_features
+                _, tf_environment, _ = self.initialize_environment(self.args, num_of_expansion_fatures=num_of_expansion_features)
+                # batch_environments.append(environment)
+                batch_tf_environments.append(tf_environment)
+                i += self.args.continuous_enlargement_step
+            self.args = original_args
+
+        self.agent.init_collector_driver(self.tf_environment, demasked=True, batch_tf_environments=batch_tf_environments)
+        if state_based_agent is not None:
+            self.environment.set_state_based_oracle(state_based_agent.policy, state_based_sim=state_based_sim)
         self.agent.train_agent(self.args.nr_runs, vectorized=self.args.vectorized_envs_flag,
                                replay_buffer_option=self.args.replay_buffer_option)
         self.agent.save_agent()
@@ -277,8 +302,8 @@ class ExperimentInterface:
             else:
                 raise ValueError(
                     "Interpretation method not recognized or implemented yet.")
-        if self.args.use_rnn_less:
-            evaluate_extracted_fsc(self.agent.evaluation_result, model = model, agent = self.agent)
+        # if self.args.use_rnn_less:
+        #     evaluate_extracted_fsc(self.agent.evaluation_result, model = model, agent = self.agent)
         return result
 
     def __del__(self):

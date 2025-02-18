@@ -9,7 +9,7 @@ import tensorflow as tf
 import numpy as np
 
 from environment.environment_wrapper import Environment_Wrapper
-from environment.environment_wrapper_vec import Environment_Wrapper_Vec
+from environment.environment_wrapper_vec import EnvironmentWrapperVec
 from environment import tf_py_environment
 # from agents.father_agent import FatherAgent
 
@@ -163,7 +163,7 @@ class TrajectoryBuffer:
             self.goals_achieved = []
             self.traps_achieved = []
 
-    def __init__(self, environment: Environment_Wrapper_Vec = None):
+    def __init__(self, environment: EnvironmentWrapperVec = None):
         self.virtual_rewards = []
         self.real_rewards = []
         self.finished = []
@@ -331,7 +331,7 @@ def set_fsc_values_to_evaluation_result(external_evaluation_result : EvaluationR
     external_evaluation_result.extracted_fsc_virtual_variance = evaluation_result.each_episode_virtual_variance[-1]
     external_evaluation_result.extracted_fsc_combined_variance = evaluation_result.combined_variance[-1]
 
-def get_new_vectorized_evaluation_driver(tf_environment : tf_py_environment.TFPyEnvironment, environment : Environment_Wrapper_Vec, 
+def get_new_vectorized_evaluation_driver(tf_environment : tf_py_environment.TFPyEnvironment, environment : EnvironmentWrapperVec, 
                                          custom_policy=None, num_steps=1000) -> tuple[DynamicStepDriver, TrajectoryBuffer]:
     """Create a new vectorized evaluation driver and buffer."""
     trajectory_buffer = TrajectoryBuffer(environment)

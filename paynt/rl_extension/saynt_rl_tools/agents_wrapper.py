@@ -47,7 +47,7 @@ class AgentsWrapper:
         self.interface = ExperimentInterface(args, stormpy_model)
         self.random_initi_starts_q_vals = random_init_starts_q_vals
         self.interface.args.agent_name += agent_folder
-        self.interface.environment, self.interface.tf_environment = self.interface.initialize_environment(self.interface.args, self.interface.pomdp_model)
+        self.interface.environment, self.interface.tf_environment, _ = ExperimentInterface.initialize_environment(self.interface.args, self.interface.pomdp_model)
         logger.info("RL Environment initialized")
         self.agent = self.interface.initialize_agent(
             qvalues_table=qvalues, action_labels_at_observation=action_labels_at_observation)
@@ -65,6 +65,29 @@ class AgentsWrapper:
         """
         self.agent.train_agent(iterations)
         self.agent.save_agent()
+
+    def get_model_desc_from_name(self, name: str):
+        """Get the model description from the name.
+        Args:
+            name (str): The name of the model.
+        Returns:
+            tuple[str, str]: Tuple of the path to model template and props.
+        """
+        model_dict = {
+            "refuel": ("./rl_src/models/refuel-n/sketch.templ", "./rl_src/models/refuel-n/sketch.props")
+        }
+        return model_dict[name]
+
+    def train_agent_coninously(self, target_n = 20, model_name = "refuel-20", iterations_per_k = 500, k_step = 1, start_k = 6):
+        model_name_without_n = model_name.split("-")[0] 
+        model_templ, model_props = self.get_model_desc_from_name(model_name_without_n)
+        self.interface.args.prism_model = model_templ
+        self.interface.args.prism_properties = model_props
+        for k in range(start_k, target_n + 1, k_step):
+            constant = f"N={k}"
+            self.interface.args.constants = constant
+            self.interface.environment, self.interface.tf_environment, _ = ExperimentInterface.initialize_environment(self.interface.args)
+            
 
     def train_agent_qval_randomization(self, iterations: int, qvalues: list):
         self.interface.environment.set_new_qvalues_table(
@@ -218,7 +241,7 @@ class AgentsWrapper:
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.interface.args
         if sub_method == "longer_trajectories":
-            args.num_steps = args.num_steps * 4
+            args.trajectory_num_steps = args.trajectory_num_steps * 4
         if not hasattr(self, "pre_trainer"):
             logger.info("Creating pretrainer")
             self.pre_trainer = Actor_Value_Pretrainer(self.interface.environment, self.interface.tf_environment,

@@ -109,7 +109,7 @@ class SynthesizerRL:
         agent_name = "RevisitedLoop"
         rnn_less = self.rnn_less
         args = ArgsEmulator(learning_rate=1.6e-4,
-                            restart_weights=0, learning_method="Stochastic_PPO",
+                            restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=400, evaluation_goal=1, evaluation_antigoal=-1,
                             trajectory_num_steps=16, discount_factor=0.99, num_environments=256,
@@ -135,8 +135,8 @@ class SynthesizerRL:
         # if self.loop:
         self.time_limit = input_rl_settings_dict['time_limit']
         self.rnn_less = input_rl_settings_dict['rnn_less']
-        self.args = self.create_rl_args(input_rl_settings_dict)
         self.model_name = input_rl_settings_dict["model_name"]
+        self.args = self.create_rl_args(input_rl_settings_dict)
         self.memory_only_subfamilies = False
 
     # SAYNT reimplementation with RL. Returns the extracted main family and subfamilies.

@@ -2,16 +2,17 @@
 # Author: David Hudák
 # Login: xhudak03
 # File: interface.py
+from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
+import copy
+import argparse
+from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
+from rl_src.experimental_interface import ExperimentInterface
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
+import os
+import logging
+import time
 import sys
 sys.path.append("../")
-import time
-import logging
-import os
-from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
-from rl_src.experimental_interface import ExperimentInterface
-from rl_src.tools.saving_tools import save_dictionaries, save_statistics_to_new_json
-import argparse
-
 
 
 logger = logging.getLogger(__name__)
@@ -61,8 +62,33 @@ def save_dictionaries_caller(dicts, name_of_experiment, model, learning_method, 
                 logger.error("Saving stats failed!")
 
 
+MODEL_TO_OBSERMODEL = {
+    "geo-2-8": "models_large/obsergeo-2-8",
+    "drone-2-8-1": "models_large/obserdrone-2-8-1",
+    "refuel-n": "models/obserfuel-n"
+}
+
+
+def get_fully_observable_environment(args: ArgsEmulator, model="refuel-n") -> EnvironmentWrapperVec:
+    """ Get the fully observable environment for the given model.
+    Args:
+        args (ArgsEmulator): Arguments for the initialization.
+        model (str, optional): The name of the model. Defaults to "refuel-n".
+
+    Returns:
+        EnvironmentWrapperVec: The environment.
+    """
+    modified_args = copy.deepcopy(args)
+    modified_args.prism_model = f"{MODEL_TO_OBSERMODEL[model]}/sketch.templ"
+    modified_args.prism_properties = f"{MODEL_TO_OBSERMODEL[model]}/sketch.props"
+    if "-n" in model:
+        modified_args.constants = "N=20"
+    env, _, _ = ExperimentInterface.initialize_environment(modified_args)
+    return env
+
+
 def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_method="PPO", refusing=None,
-                          name_of_experiment="results_of_interpretation", save_statistics : bool =True):
+                          name_of_experiment="results_of_interpretation", save_statistics: bool = True):
     """ Run a single experiment for Paynt oracle.
     Args:
         args (ArgsEmulator): Arguments for the initialization.
@@ -73,8 +99,14 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
         encoding_method (str, optional): The encoding method. Defaults to "Valuations".
     """
     start_time = time.time()
-    initializer = ExperimentInterface(args)
-    dicts = initializer.perform_experiment(with_refusing=refusing, model=model)
+
+    if args.state_supporting:
+        vec_sim = get_fully_observable_environment(args, model=model).vectorized_simulator
+    else:
+        vec_sim = None
+    interface = ExperimentInterface(args)
+    dicts = interface.perform_experiment(with_refusing=refusing, model=model,
+                                         state_based_sim=vec_sim)
     if args.perform_interpretation:
         if not os.path.exists(f"{name_of_experiment}/{model}_{learning_method}"):
             os.makedirs(f"{name_of_experiment}/{model}_{learning_method}")
@@ -83,15 +115,19 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
     end_time = time.time()
     evaluation_time = end_time - start_time
     if save_statistics:
-        save_statistics_to_new_json(name_of_experiment, model, learning_method,
-                                    initializer.agent.evaluation_result, evaluation_time=evaluation_time, args=args)
+        save_statistics_to_new_json(name_of_experiment,
+                                    model,
+                                    learning_method,
+                                    interface.agent.evaluation_result,
+                                    evaluation_time=evaluation_time,
+                                    args=args)
 
     # Old way of saving statistics
     # save_statistics(name_of_experiment, model, learning_method, initializer.agent.evaluation_result, args.evaluation_goal)
 
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256,
-                    random_start_simulator=False, model_condition: str = "", model_memory_size = 0, use_rnn_less = False):
+                    random_start_simulator=False, model_condition: str = "", model_memory_size=0, use_rnn_less=False):
     """ Run multiple experiments for PAYNT oracle.
     Args:
         name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
@@ -120,15 +156,22 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 logger.info(
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
-                                        restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
-                                        nr_runs=30000, encoding_method=encoding_method, agent_name=model, load_agent=False, 
-                                        evaluate_random_policy=False, max_steps=400, evaluation_goal=1, evaluation_antigoal=-1, 
-                                        trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
-                                        normalize_simulator_rewards=False, buffer_size=5000, random_start_simulator=random_start_simulator, 
-                                        replay_buffer_option=replay_buffer_option, batch_size=batch_size,
-                                        vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
-                                        use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,
-                                        name_of_experiment=name_of_experiment)
+                                    restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
+                                    nr_runs=3000, encoding_method=encoding_method, agent_name=model, load_agent=False,
+                                    evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-100,
+                                    trajectory_num_steps=25, discount_factor=0.98, num_environments=batch_size,
+                                    normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator,
+                                    replay_buffer_option=replay_buffer_option, batch_size=batch_size,
+                                    vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
+                                    use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,
+                                    name_of_experiment=name_of_experiment, continuous_enlargement=False, continuous_enlargement_step=3,
+                                    constants="", state_supporting=False)
+                if "-n" in model:
+                    args.continuous_enlargement = True
+                    args.constants = "N=20"
+                if "network" in model:
+                    args.evaluation_antigoal = -0.0
+                    args.evaluation_goal = 0.0
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=False, name_of_experiment=name_of_experiment)
@@ -137,14 +180,16 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 if __name__ == "__main__":
     args_from_cmd = argparse.ArgumentParser()
 
-    args_from_cmd.add_argument("--batch-size", type=int, default=2048)
-    args_from_cmd.add_argument("--learning-rate", type=float, default=1.6e-4)
+    args_from_cmd.add_argument("--batch-size", type=int, default=256)
+    args_from_cmd.add_argument("--learning-rate", type=float, default=1e-4)
     args_from_cmd.add_argument(
         "--path-to-models", type=str, default="./models")
     args_from_cmd.add_argument("--random-start-simulator", action="store_true")
     args_from_cmd.add_argument("--model-condition", type=str, default="")
-    args_from_cmd.add_argument("--use-rnn-less", action="store_true", default=False, help="Whether to use neural architecture without LSTM layers.")
-    args_from_cmd.add_argument("--model-memory-size", type=int, default=0, help="The size of the memory in the model. If 0, the memory is not used.")
+    args_from_cmd.add_argument("--use-rnn-less", action="store_true", default=False,
+                               help="Whether to use neural architecture without LSTM layers.")
+    args_from_cmd.add_argument("--model-memory-size", type=int, default=0,
+                               help="The size of the memory in the model. If 0, the memory is not used.")
 
     args = args_from_cmd.parse_args()
 
@@ -153,13 +198,16 @@ if __name__ == "__main__":
         name = "experiments_fixed_simulator_random"
     else:
         name = "experiments_fixed_simulator"
-    
+
     if args.use_rnn_less:
         name += "_rnn_less"
     if args.model_memory_size > 0:
         name += f"_memory_{args.model_memory_size}"
     if not os.path.exists(name):
         os.makedirs(name)
+
+    args.use_rnn_less = False
+    args.random_start_simulator = False
 
     run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate,
                     batch_size=args.batch_size, random_start_simulator=args.random_start_simulator, model_condition=args.model_condition,

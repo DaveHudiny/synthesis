@@ -19,7 +19,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Policy_Mask_Wrapper(TFPolicy):
+class PolicyMaskWrapper(TFPolicy):
     """Wrapper for stochastic policies that allows to use observation and action constraint splitters"""
 
     def __init__(self, policy: TFPolicy, observation_and_action_constraint_splitter=observation_and_action_constraint_splitter, 
@@ -33,7 +33,7 @@ class Policy_Mask_Wrapper(TFPolicy):
             time_step_spec (TimeStepSpec, optional): Time Step specification with mask. Defaults to None.
             is_greedy (bool, optional): Whether the policy should be greedy or not. Defaults to False.
         """
-        super(Policy_Mask_Wrapper, self).__init__(time_step_spec=time_step_spec,
+        super(PolicyMaskWrapper, self).__init__(time_step_spec=time_step_spec,
                                                   action_spec=policy.action_spec,
                                                   policy_state_spec=policy.policy_state_spec,
                                                   info_spec=policy.info_spec,

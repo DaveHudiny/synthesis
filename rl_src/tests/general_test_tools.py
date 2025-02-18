@@ -1,14 +1,14 @@
 import numpy as np
 from rl_src.environment.pomdp_builder import *
 
-from rl_src.environment.environment_wrapper_vec import Environment_Wrapper_Vec
+from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
 from rl_src.tools.args_emulator import ArgsEmulator
 from rl_src.environment.tf_py_environment import TFPyEnvironment
 
 
-def init_environment(args : ArgsEmulator) -> tuple[Environment_Wrapper_Vec, TFPyEnvironment]:
+def init_environment(args : ArgsEmulator) -> tuple[EnvironmentWrapperVec, TFPyEnvironment]:
     prism_model = initialize_prism_model(args.prism_model, args.prism_properties, args.constants)
-    env = Environment_Wrapper_Vec(prism_model, args, num_envs=args.num_environments)
+    env = EnvironmentWrapperVec(prism_model, args, num_envs=args.num_environments)
     tf_env = TFPyEnvironment(env)
     return env, tf_env
 
