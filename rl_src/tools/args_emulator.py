@@ -24,7 +24,7 @@ class ArgsEmulator:
                  random_start_simulator=False, num_environments: int = 256, perform_interpretation: bool = False, vectorized_envs_flag: bool = True,
                  illegal_action_penalty_per_step=-0.0002, flag_illegal_action_penalty=True, use_rnn_less=False, model_memory_size=0,
                  name_of_experiment="results_of_interpretation", continuous_enlargement=False, continuous_enlargement_step=1, init_size=6,
-                 state_supporting: bool = False):
+                 state_supporting: bool = False, train_state_estimator_continuously=False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -73,7 +73,8 @@ class ArgsEmulator:
             continuous_enlargement (bool, optional): Whether to use continuous enlargement. Defaults to False.
             continuous_enlargement_step (int, optional): The step for continuous enlargement. Defaults to 1.
             init_size (int, optional): The initial size. Defaults to 6.
-            state_supporting (bool, optional): Whether the learning is supported via continuous fully observable state features removal. Defaults to False. 
+            state_supporting (bool, optional): Whether the learning is supported via continuous fully observable state features removal. Defaults to False.
+            train_state_estimator_continuously (bool, optional): Whether to train state estimator continuously with trained policy. Defaults to False. 
         """
         self.prism_model = prism_model
         self.prism_properties = prism_properties
@@ -121,3 +122,4 @@ class ArgsEmulator:
         self.continuous_enlargement_step = continuous_enlargement_step
         self.init_size = init_size
         self.state_supporting = state_supporting
+        self.train_state_estimator_continuously = train_state_estimator_continuously

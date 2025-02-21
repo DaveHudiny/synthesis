@@ -310,6 +310,10 @@ class FatherAgent(AbstractAgent):
             self.evaluate_agent(vectorized=vectorized, max_steps = self.args.max_steps * 2)
             self.environment.set_random_starts_simulation(randomized)
             self.tf_environment.reset()
+        if train_iteration % 500 == 0 and self.args.train_state_estimator_continuously:
+            self.environment.state_estimator.collect_and_train(
+                self.args.max_steps + 1, external_policy=self.agent.policy, epochs=25)
+            self.tf_environment.reset()
         return train_loss
 
     def train_body_off_policy(self, num_iterations, vectorized: bool = True, randomized=False):
