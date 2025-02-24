@@ -10,6 +10,7 @@ import paynt.quotient.pomdp
 import paynt.utils.timer
 
 import paynt.verification.property
+from paynt.synthesizer.synthesizer_rl_storm_paynt import SynthesizerRL
 
 from threading import Thread
 from queue import Queue
@@ -129,7 +130,18 @@ class SynthesizerPomdp:
         mem_size = paynt.quotient.pomdp.PomdpQuotient.initial_memory_size
         self.synthesizer.storm_control = self.storm_control
 
+        first = True
+
         while True:
+            if first and self.storm_control.rl_oracle_result is not None:
+                self.storm_control.latest_paynt_result = self.storm_control.rl_oracle_result
+                self.storm_control.paynt_export = self.quotient.extract_policy(self.storm_control.latest_paynt_result)
+                self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
+                self.storm_control.paynt_fsc_size = self.quotient.policy_size(self.storm_control.latest_paynt_result)
+                self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(self.storm_control.latest_paynt_result)
+                self.storm_control.update_data()
+                first = False
+                continue
             assignment = self.unfold_and_synthesize(mem_size,unfold_storm)
             if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment
@@ -163,6 +175,12 @@ class SynthesizerPomdp:
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
         self.storm_control.interactive_storm_setup()
+        if hasattr(self, "input_rl_settings_dict"):
+            rl_synthesizer = SynthesizerRL(self.quotient, self.method, self.storm_control, self.input_rl_settings_dict)
+            assignment = rl_synthesizer.run()
+            self.storm_control.rl_oracle_result = assignment
+        else:
+            self.storm_control.rl_oracle_result = None
         iteration = 1
         paynt_thread = Thread(target=self.strategy_iterative_storm, args=(True, self.storm_control.unfold_storm))
 
@@ -237,8 +255,7 @@ class SynthesizerPomdp:
         while True:
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
-
-            assignment = self.unfold_and_synthesize(mem_size,unfold_storm, unfold_imperfect_only)
+                assignment = self.unfold_and_synthesize(mem_size,unfold_storm, unfold_imperfect_only)
             if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment
                 self.storm_control.paynt_export = self.quotient.extract_policy(assignment)
@@ -281,8 +298,8 @@ class SynthesizerPomdp:
         self.input_rl_settings_dict = input_rl_settings_dict
 
     def run(self, optimum_threshold=None):
-        if hasattr(self, "input_rl_settings_dict"):
-            from paynt.synthesizer.synthesizer_rl_storm_paynt import SynthesizerRL
+        if self.storm_control.iteration_timeout is None and hasattr(self, "input_rl_settings_dict"):
+            
             synthesizer_rl = SynthesizerRL(self.quotient, self.method, self.storm_control, self.input_rl_settings_dict)
             result = synthesizer_rl.run()
             return result

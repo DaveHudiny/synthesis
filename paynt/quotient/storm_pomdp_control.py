@@ -12,8 +12,6 @@ from time import sleep
 import logging
 logger = logging.getLogger(__name__)
 
-import numpy as np
-
 
 # class implementing the main components of the Storm integration for FSC synthesis for POMDPs
 class StormPOMDPControl:
@@ -136,6 +134,7 @@ class StormPOMDPControl:
             exit()
 
         belmc = stormpy.pomdp.BeliefExplorationModelCheckerDouble(self.pomdp, options)
+
         logger.info("starting Storm POMDP analysis")
         storm_timer = paynt.utils.timer.Timer()
         storm_timer.start()
@@ -168,7 +167,6 @@ class StormPOMDPControl:
     def interactive_storm_setup(self):
         global belmc    # needs to be global for threading to work correctly
         options = self.get_interactive_options()
-        # options.set_build_all_reward_models()
         belmc = stormpy.pomdp.BeliefExplorationModelCheckerDouble(self.pomdp, options)
 
     # start interactive belief model checker, this function is called only once to start the storm thread. To resume Storm computation 'interactive_storm_resume' is used
@@ -181,8 +179,6 @@ class StormPOMDPControl:
         self.storm_thread.start()
 
         control_thread.join()
-        self.belief_explorer = belmc.get_interactive_belief_explorer()
-
 
     # resume interactive belief model checker, should be called only after belief model checker was previously started
     def interactive_storm_resume(self, storm_timeout):
@@ -377,12 +373,13 @@ class StormPOMDPControl:
     def parse_storm_result(self, quotient):
         # to make the code cleaner
         get_choice_label = self.latest_storm_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice
-        cutoff_epxloration = [x for x in range(len(self.latest_storm_result.cutoff_schedulers))]
 
         cutoff_epxloration = list(range(len(self.latest_storm_result.cutoff_schedulers)))
         finite_mem = False
+
         result = {x:[] for x in range(quotient.observations)}
         result_no_cutoffs = {x:[] for x in range(quotient.observations)}
+        
         for state in self.latest_storm_result.induced_mc_from_scheduler.states:
             # TODO what if there were no labels in the model?
             if get_choice_label(state.id) == set():
@@ -396,8 +393,6 @@ class StormPOMDPControl:
                         # observation based on prism observables
                         observation = self.quotient.observation_labels.index(label)
                     elif 'obs_' in label:
-                        _, observation = label.split('_')
-                        index = -1
                         # explicit observation index
                         _,observation = label.split('_')
                     if observation is not None:
@@ -430,10 +425,12 @@ class StormPOMDPControl:
                     # obtain what cut-off scheduler was used
                     if 'sched_' in list(get_choice_label(state.id))[0]:
                         _, scheduler_index = list(get_choice_label(state.id))[0].split('_')
+    
                         if int(scheduler_index) not in cutoff_epxloration:
                             continue
     
                         scheduler = self.latest_storm_result.cutoff_schedulers[int(scheduler_index)]
+    
                         for state in range(quotient.pomdp.nr_states):
     
                             choice_string = str(scheduler.get_choice(state).get_choice())
@@ -456,7 +453,8 @@ class StormPOMDPControl:
                 del result_no_cutoffs[obs]
 
         self.result_dict = result    
-        self.result_dict_no_cutoffs = result_no_cutoffs
+        self.result_dict_no_cutoffs = result_no_cutoffs       
+            
 
     # help function for cut-off parsing, returns list of actions for given choice_string
     # TODO bound to restrict some action if needed
@@ -501,23 +499,10 @@ class StormPOMDPControl:
         #logger.info("Result dictionary is based on result from PAYNT")
         self.result_dict_paynt = result
 
-    def convert_rl_dict_to_paynt(self, family, result_dict, action_keywords):
-        paynt_dict = {}
-        for obs in result_dict.keys():
-            # print(self.quotient.action_labels_at_observation[obs])
-            suggested_actions = []
-            for action in result_dict[obs]:
-                keyword = action_keywords[action]
-                for label in self.quotient.action_labels_at_observation[obs]:
-                    if keyword in label:
-                        suggested_actions.append(self.quotient.action_labels_at_observation[obs].index(label))
-            if len(suggested_actions) > 0:
-                paynt_dict[obs] = suggested_actions
-        return paynt_dict
-    
     # returns the main family that will be explored first
     # main family contains only the actions considered by respective FSC (most usually Storm result)
     def get_main_restricted_family(self, family, result_dict):
+
         if result_dict == {}:
             return family
 
@@ -525,17 +510,19 @@ class StormPOMDPControl:
         # go through each observation of interest
         for obs in range(self.quotient.observations):
             for hole in self.quotient.observation_action_holes[obs]:
+
                 if obs in result_dict.keys():
                     selected_actions = [action for action in family.hole_options(hole) if action in result_dict[obs]]
                 else:
                     selected_actions = [family.hole_options(hole)[0]]
 
                 if len(selected_actions) == 0:
-                    logger.info("No actions for observation {} in the result dictionary".format(obs))
-                    # exit(0)
                     return None
+
                 restricted_family.hole_set_options(hole,selected_actions)
+
         logger.info("Main family based on data from Storm: reduced design space from {} to {}".format(family.size_or_order, restricted_family.size_or_order))
+
         return restricted_family
 
 

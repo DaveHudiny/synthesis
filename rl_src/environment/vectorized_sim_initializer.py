@@ -37,7 +37,7 @@ class SimulatorInitializer:
             os.makedirs(compiled_models_path)
         name = SimulatorInitializer.get_name_from_path(model_path)
 
-        if enforce_recompilation:
+        if enforce_recompilation or "unknown" in name:
             logger.info(f"Compiling model {name}...")
             simulator = vec_storm.StormVecEnv(
                 stormpy_model, get_scalarized_reward, num_envs=num_envs, max_steps=max_steps, metalabels=metalabels)

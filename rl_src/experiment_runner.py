@@ -154,7 +154,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                     nr_runs=3000, encoding_method=encoding_method, agent_name=model, load_agent=False,
-                                    evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
+                                    evaluate_random_policy=False, max_steps=400, evaluation_goal=50.0, evaluation_antigoal=-20.0,
                                     trajectory_num_steps=25, discount_factor=0.98, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator,
                                     replay_buffer_option=replay_buffer_option, batch_size=batch_size,
@@ -205,10 +205,11 @@ if __name__ == "__main__":
         name += f"_memory_{args.model_memory_size}"
     if args.without_state_estimation:
         name += "_without_state_est"
-    if not os.path.exists(name):
-        os.makedirs(name)
     if args.train_state_estimator_continuously:
         name += "_train_state_estimator_continuously"
+    if not os.path.exists(name):
+        os.makedirs(name)
+    
 
     run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate,
                     batch_size=args.batch_size, random_start_simulator=args.random_start_simulator, model_condition=args.model_condition,

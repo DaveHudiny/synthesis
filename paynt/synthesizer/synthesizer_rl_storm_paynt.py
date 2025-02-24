@@ -111,10 +111,12 @@ class SynthesizerRL:
         args = ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
-                            evaluate_random_policy=False, max_steps=400, evaluation_goal=1, evaluation_antigoal=-1,
-                            trajectory_num_steps=16, discount_factor=0.99, num_environments=256,
+                            evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
+                            trajectory_num_steps=20, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
-                            batch_size=256, vectorized_envs_flag=True, perform_interpretation=True, use_rnn_less=rnn_less, model_memory_size=0)
+                            batch_size=256, vectorized_envs_flag=True, perform_interpretation=False, 
+                            use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
+                            completely_greedy=False)
         return args
 
     def set_input_rl_settings_for_paynt(self, input_rl_settings_dict):
@@ -213,21 +215,25 @@ class SynthesizerRL:
         else:
             agents_wrapper.train_agent(nr_rl_iterations)
         # agents_wrapper.agent.load_agent(True)
-        if True: # Extract FSC via bottleneck extraction
+        if False: # Extract FSC via bottleneck extraction
             input_dim = 64
             latent_dim = 1
             best_bottleneck_extractor = None
             best_evaluation_result = None
-            for i in range(3):
+            for i in range(5):
                 bottleneck_extractor = BottleneckExtractor(agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
-                bottleneck_extractor.train_autoencoder(agents_wrapper.agent.wrapper, num_epochs=50, num_data_steps=1000)
+                bottleneck_extractor.train_autoencoder(agents_wrapper.agent.wrapper, num_epochs=20, num_data_steps=1000)
                 evaluation_result = bottleneck_extractor.evaluate_bottlenecking(agents_wrapper.agent)
                 if best_bottleneck_extractor is None or evaluation_result.best_reach_prob > best_evaluation_result.best_reach_prob:
+                    best_bottleneck_extractor = bottleneck_extractor
+                    best_evaluation_result = evaluation_result
+                elif evaluation_result.best_reach_prob == best_evaluation_result.best_reach_prob and evaluation_result.best_return > best_evaluation_result.best_return:
                     best_bottleneck_extractor = bottleneck_extractor
                     best_evaluation_result = evaluation_result
             bottleneck_extractor = best_bottleneck_extractor
             extracted_fsc = bottleneck_extractor.extract_fsc(policy = agents_wrapper.agent.wrapper, environment = agents_wrapper.agent.environment)
             evaluation_result = evaluate_policy_in_model(extracted_fsc, agents_wrapper.agent.args, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment)
+
             print(f"Extracted FSC evaluation result: {evaluation_result}")
             self.quotient.set_global_memory_size(3 ** latent_dim)
         else:
@@ -258,11 +264,13 @@ class SynthesizerRL:
         # self.subfamilies_buffer = []
         # assignment = self.synthesize(family, timer=paynt_timeout)
         # self.synthesizer.subfamilies_buffer = subfamilies
+        print("Hola hej")
         assignment = self.synthesize(main_family, timer=paynt_timeout)
-        better_assignment = self.synthesize(self.quotient.family, timer=paynt_timeout)
-        if better_assignment is not None:
-            assignment = better_assignment
+        # better_assignment = self.synthesize(self.quotient.family, timer=paynt_timeout)
+        # if better_assignment is not None:
+        #     assignment = better_assignment
         self.finalize_synthesis(assignment)
+        print("hej hola")
         return assignment
 
     def run(self):
@@ -281,21 +289,22 @@ class SynthesizerRL:
                 break
             if time.time() - start_time > self.time_limit:
                 break
-
         # Save the final json file
         agents_wrapper.save_to_json(
             self.args.agent_name, model=self.model_name, method=self.args.learning_method)
+        return assignment
 
     def finalize_synthesis(self, assignment):
         if assignment is not None:
             self.storm_control.latest_paynt_result = assignment
+            # print(assignment)
             self.storm_control.paynt_export = self.quotient.extract_policy(
                 assignment)
             self.storm_control.paynt_bounds = self.quotient.specification.optimality.optimum
             self.storm_control.paynt_fsc_size = self.quotient.policy_size(
                 self.storm_control.latest_paynt_result)
-            self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(
-                self.storm_control.latest_paynt_result)
+            # self.storm_control.latest_paynt_result_fsc = self.quotient.assignment_to_fsc(
+            #     self.storm_control.latest_paynt_result)
             # self.storm_control.qvalues = self.compute_qvalues_for_rl(
             #     assignment=assignment)
         else:
