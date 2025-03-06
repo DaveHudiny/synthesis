@@ -101,11 +101,13 @@ class BottleneckExtractor:
         self.dataset = np.array(self.dataset)
         self.dataset = np.concatenate(self.dataset, axis=0)
 
-    def evaluate_bottlenecking(self, agent: FatherAgent) -> EvaluationResults:
+    def evaluate_bottlenecking(self, agent: FatherAgent, max_steps : int = None) -> EvaluationResults:
         bottlenecked_policy = AutoencodedPolicy(
             agent.wrapper, self.autoencoder)
+        if max_steps is None:
+            max_steps = agent.args.max_steps + 1 
         evaluation_result = evaluate_policy_in_model(
-            bottlenecked_policy, agent.args, agent.environment, agent.tf_environment)
+            bottlenecked_policy, agent.args, agent.environment, agent.tf_environment, max_steps = max_steps)
 
         return evaluation_result
         eager = PyTFEagerPolicy(

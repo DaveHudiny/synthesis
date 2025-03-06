@@ -97,7 +97,9 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
 
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs,
-            max_steps=args.max_steps * 2, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=self.args.continuous_enlargement)
+            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=self.args.continuous_enlargement)
+        
+        self.vectorized_simulator.simulator.set_max_steps(args.max_steps)
         
         if args.state_supporting:
             self.state_estimator = LSTMStateEstimator(self.vectorized_simulator)
@@ -115,11 +117,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.labels_mask = list([False] * self.num_envs)
         self.encoding_method = args.encoding_method
 
-        # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
-        self.goal_values_vector = tf.constant(
-            [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
-        self.antigoal_values_vector = tf.constant(
-            [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+        
 
         # Initialization of the penalty for illegal actions.
         self.flag_penalty = args.flag_illegal_action_penalty
@@ -134,13 +132,23 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.reward = tf.constant(0.0, dtype=tf.float32)
 
         # Initialization of the reward multiplier for different tasks.
-        if len(list(stormpy_model.reward_models.keys())) == 0:
+        rew_list = list(stormpy_model.reward_models.keys())
+        if rew_list == 0:
             self.reward_multiplier = -1.0
-        elif list(stormpy_model.reward_models.keys())[-1] in "rewards":
-            self.reward_multiplier = 1.0
+        elif "rew" in rew_list[-1]:
+            self.reward_multiplier = 10.0
         # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
         else:
             self.reward_multiplier = -1.0
+
+        # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
+        args.evaluation_goal = args.evaluation_goal if "rew" not in rew_list[-1] else 3.0
+        self.goal_values_vector = tf.constant(
+            [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
+        self.antigoal_values_vector = tf.constant(
+            [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+        
+        # print(f"List of reward models: {list(stormpy_model.reward_models.keys())}", file=sys.stderr)
 
         self._current_time_step = None
 
@@ -152,7 +160,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.create_specifications()
 
         # Normalization of the rewards. Useless for PPO with its own normalization.
-        self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32)
+        self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32) if "rew" not in rew_list[-1] else tf.constant(3.0, dtype=tf.float32)
         self.normalize_simulator_rewards = self.args.normalize_simulator_rewards
         if self.normalize_simulator_rewards:
             self.normalizer = 1.0/tf.abs(self.goal_value)

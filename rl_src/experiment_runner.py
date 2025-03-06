@@ -154,7 +154,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                     nr_runs=3000, encoding_method=encoding_method, agent_name=model, load_agent=False,
-                                    evaluate_random_policy=False, max_steps=400, evaluation_goal=50.0, evaluation_antigoal=-20.0,
+                                    evaluate_random_policy=False, max_steps=800, evaluation_goal=0.0, evaluation_antigoal=-0.0,
                                     trajectory_num_steps=25, discount_factor=0.98, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator,
                                     replay_buffer_option=replay_buffer_option, batch_size=batch_size,
@@ -195,9 +195,9 @@ if __name__ == "__main__":
 
     # Run experiments with the given arguments
     if args.random_start_simulator:
-        name = "experiments_memory_estimator_random"
+        name = "experiments_martin_tappler_random"
     else:
-        name = "experiments_memory_estimator"
+        name = "experiments_martin_tappler"
 
     if args.use_rnn_less:
         name += "_rnn_less"

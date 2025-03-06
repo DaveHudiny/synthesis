@@ -64,7 +64,7 @@ class SAYNT_Simulation_Controller:
         self.goal_reward = goal_reward
         self.cutoff_simulator = None  # Simulator will be initialized in cutoff states
         self.fsc = fsc
-        self.q_values = np.array(paynt_q_values)
+        self.q_values = np.array(paynt_q_values) if paynt_q_values is not None else None
 
         self.num_observations = quotient.pomdp.nr_observations
         self.get_choice_label_dtmc = self.storm_control_result.induced_mc_from_scheduler.choice_labeling.get_labels_of_choice

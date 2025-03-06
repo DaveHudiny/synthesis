@@ -19,7 +19,9 @@ from rl_src.environment import tf_py_environment
 from paynt.quotient.fsc import FSC
 from paynt.rl_extension.saynt_controller.saynt_driver import SAYNT_Driver
 
-from rl_src.agents.duplexing.behavioral_trainers import Actor_Value_Pretrainer
+from rl_src.agents.duplexing.behavioral_trainers import ActorValuePretrainer
+
+from rl_src.agents.father_agent import FatherAgent
 
 
 import logging
@@ -197,7 +199,7 @@ class AgentsWrapper:
     def get_saynt_trajectories(self, storm_control, quotient, fsc: FSC = None, q_values=None, model_reward_multiplier=-1.0):
         
         args = self.interface.get_args()
-        pre_trainer = Actor_Value_Pretrainer(self.interface.environment, self.interface.tf_environment,
+        pre_trainer = ActorValuePretrainer(self.interface.environment, self.interface.tf_environment,
                                              args, self.agent.agent.collect_data_spec)
         agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
         actor = pre_trainer.actor_net
@@ -219,7 +221,19 @@ class AgentsWrapper:
             self.saynt_driver.episodic_run(30)
             pre_trainer.train_both_networks(200, fsc=fsc, use_best_traj_only=False, offline_data=True)
         # TODO: self.agent.train_agent_off_policy(2000, random_init=False, probab_random_init_state=0.1)
-            
+
+    def generate_saynt_trajectories(self, storm_control, quotient, fsc: FSC = None, 
+                                    model_reward_multiplier = -1.0, tf_action_labels = None,
+                                    num_episodes : int = 256*2):
+        trajectories = []
+        observer = lambda x: trajectories.append(x)
+        encoding_method = self.get_encoding_method(
+            self.interface.args.encoding_method)
+        self.saynt_driver = SAYNT_Driver([observer], storm_control, quotient,
+                                            tf_action_labels, encoding_method, self.interface.args.discount_factor,
+                                            fsc=fsc, model_reward_multiplier=model_reward_multiplier)
+        self.saynt_driver.episodic_run(num_episodes)
+        return trajectories
 
 
     def check_four_phase_condition(self, fsc_quality : float, maximizing_value : bool, probability_cond : bool, evaluation_result : EvaluationResults):
@@ -233,31 +247,37 @@ class AgentsWrapper:
             return fsc_quality > best_value
         else:
             return fsc_quality < best_value
+        
+    def initialize_pre_trainer(self, args: ArgsEmulator):
+        logger.info("Creating pretrainer")
+        self.pre_trainer = ActorValuePretrainer(self.interface.environment, self.interface.tf_environment,
+                                                     args, self.agent.agent.collect_data_spec)
+        actor = self.pre_trainer.actor_net
+        critic = self.pre_trainer.critic_net
+        agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
+        self.agent = Recurrent_PPO_agent(self.interface.environment, self.interface.tf_environment, 
+                                         args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
+        self.pre_trainer.set_normalizer(self.agent.agent._observation_normalizer.normalize, self.agent.agent._observation_normalizer)
 
     # "only_pretrained", "only_duplex", "only_duplex_critic", "complete", "four_phase"
     # fsc_quality is either minimized or maximized. Condition given quality of FSC is currently used only in the four_phase implementation.
     # Condition can optimize probability (e.g. maximize probability of reaching the goal state) or reward (e.g. minimize number of steps to reach the goal state)
-    def train_with_bc(self, fsc : FSC = None, sub_method = "only_pretrained", nr_of_iterations : int = 1000):
+    def train_with_bc(self, fsc : FSC = None, sub_method = "only_pretrained", nr_of_iterations : int = 1000, trajectories : list = None):
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
         args = self.interface.args
         if sub_method == "longer_trajectories":
             args.trajectory_num_steps = args.trajectory_num_steps * 4
         if not hasattr(self, "pre_trainer"):
-            logger.info("Creating pretrainer")
-            self.pre_trainer = Actor_Value_Pretrainer(self.interface.environment, self.interface.tf_environment,
-                                                     args, self.agent.agent.collect_data_spec)
-            actor = self.pre_trainer.actor_net
-            critic = self.pre_trainer.critic_net
-            agent_folder = f"./trained_agents/{args.agent_name}_{args.learning_method}_{args.encoding_method}"
-            self.agent = Recurrent_PPO_agent(self.interface.environment, self.interface.tf_environment, 
-                                             args, args.load_agent, agent_folder, actor_net=actor, critic_net=critic)
+            self.initialize_pre_trainer(args)
         self.agent.evaluate_agent(vectorized=args.vectorized_envs_flag)
-        if sub_method == "continuous_training":
+        if trajectories is not None:
+            self.pre_trainer.train_with_external_trajectories(trajectories, nr_of_iterations)
+        elif sub_method == "continuous_training":
             for _ in range(8):
                 self.pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
                 self.agent.train_agent(500, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
         else:
-            self.pre_trainer.train_both_networks(nr_of_iterations // 4, fsc=fsc, use_best_traj_only=False)
+            self.pre_trainer.train_both_networks(nr_of_iterations // 6, fsc=fsc, use_best_traj_only=False)
             self.agent.train_agent(nr_of_iterations, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
 
         # TODO: Other methods of training with FSC or SAYNT controller.

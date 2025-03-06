@@ -164,7 +164,7 @@ def setup_logger(log_path = None):
                 help="Name of the model to be used with output json file.")
 @click.option("--sub-method", type=click.Path(), default="random",
                 help="Name of the submethod to use with dqn critic.")
-@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="R_Shaping",
+@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="BC",
                 help="Name of the method to process FSC/SAYNT controller to RL.")
 @click.option("--greedy", is_flag=True, default=False,
               help="Use greedy policy for RL oracle. Default is False.")
@@ -261,9 +261,11 @@ def paynt_run(
     sketch_path = os.path.join(project, sketch)
     properties_path = os.path.join(project, props)
     quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound, exact)
+    second_quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound, exact)
     synthesizer = paynt.synthesizer.synthesizer.Synthesizer.choose_synthesizer(quotient, method, fsc_synthesis, storm_control)
     if reinforcement_learning:
         synthesizer.set_reinforcement_learning(rl_input_dictionary)
+        synthesizer.set_second_quotient(second_quotient)
     synthesizer.run(optimum_threshold)
 
     if profiling:

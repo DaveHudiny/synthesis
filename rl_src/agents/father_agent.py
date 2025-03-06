@@ -383,7 +383,7 @@ class FatherAgent(AbstractAgent):
 
     def init_demonstration_shaper(self, fsc: FSC):
         self.shaper = SparseRewardShaper(RewardShaperMethods.DEMONSTRATION, ObservationLevel.STATE_ACTION, maximum_reward=1.9,
-                                         batch_size=self.args.batch_size, buffer_length=100, cyclic_buffer=True, observation_length=1, action_length=1)
+                                         batch_size=self.args.batch_size, buffer_length=101, cyclic_buffer=True, observation_length=1, action_length=1)
 
         def _add_batch(item: Trajectory):
             observation = item.observation["integer"]
@@ -398,7 +398,7 @@ class FatherAgent(AbstractAgent):
         fsc_policy = py_tf_eager_policy.PyTFEagerPolicy(
             fsc_policy, use_tf_function=True, batch_time_steps=False)
         demonstration_driver = DynamicStepDriver(
-            self.tf_environment, fsc_policy, observers=[_add_batch], num_steps=self.args.num_environments * 100)
+            self.tf_environment, fsc_policy, observers=[_add_batch], num_steps=self.args.batch_size * 100)
         demonstration_driver.run()
 
     def init_reward_shaping(self, fsc: FSC):
@@ -424,7 +424,6 @@ class FatherAgent(AbstractAgent):
             self.evaluate_fsc(fsc)
         # print("during training:", self.environment.vectorized_simulator.simulator.transitions.nr_states)
         # self.evaluate_agent(vectorized=vectorized)
-        
         if fsc is not None and shaping:
             self.init_reward_shaping(fsc)
         if fsc is not None and not shaping:
@@ -445,6 +444,8 @@ class FatherAgent(AbstractAgent):
 
         logger.info("Training agent with replay buffer option: {0}".format(
             replay_buffer_option))
+        logger.info("Before training evaluation.")
+        self.evaluate_agent(vectorized=vectorized, max_steps = self.args.max_steps * 2)
         if replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
             self.train_body_off_policy(iterations, vectorized)
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:

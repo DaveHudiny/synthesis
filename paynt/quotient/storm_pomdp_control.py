@@ -22,8 +22,15 @@ class StormPOMDPControl:
     # PAYNT data and FSC export
     latest_paynt_result = None      # holds the synthesised assignment
     latest_paynt_result_fsc = None  # holds the FSC built from assignment
+
+    latest_rl_result = None
+    latest_rl_result_fsc = None
+
     paynt_bounds = None
     paynt_export = []
+
+    rl_bounds = None
+    rl_export = []
 
     # parsed best result data dictionary (Starting with data from Storm)
     result_dict = {}
@@ -34,11 +41,13 @@ class StormPOMDPControl:
     # controller sizes
     belief_controller_size = None
     paynt_fsc_size = None
+    rl_fsc_size = None
 
     is_storm_better = False
 
     pomdp = None                    # The original POMDP model
     quotient = None
+    second_quotient = None          # The quotient model for reinforcement learning oracle
     spec_formulas = None            # The specification to be checked
     storm_options = None
     get_result = None
@@ -179,6 +188,7 @@ class StormPOMDPControl:
         self.storm_thread.start()
 
         control_thread.join()
+        self.belief_explorer = belmc.get_interactive_belief_explorer()
 
     # resume interactive belief model checker, should be called only after belief model checker was previously started
     def interactive_storm_resume(self, storm_timeout):
@@ -269,7 +279,7 @@ class StormPOMDPControl:
                 text_file.close()
 
         self.store_storm_result(result)
-        self.parse_results(self.quotient)
+        self.parse_results(self.quotient, self.second_quotient)
         self.update_data()
 
     ########
@@ -357,7 +367,7 @@ class StormPOMDPControl:
         return result
     
     # parse the current Storm and PAYNT results if they are available
-    def parse_results(self, quotient):
+    def parse_results(self, quotient, second_quotient = None):
         if self.latest_storm_result is not None:
             self.parse_storm_result(quotient)
         else:
@@ -365,7 +375,7 @@ class StormPOMDPControl:
             self.result_dict_no_cutoffs = {}
 
         if self.latest_paynt_result is not None:
-            self.parse_paynt_result(quotient)
+            self.parse_paynt_result(quotient, second_quotient)
         else:
             self.result_dict_paynt = {}    
 
@@ -474,20 +484,27 @@ class StormPOMDPControl:
 
         return result
 
-    # parse PAYNT result to a dictionart
-    def parse_paynt_result(self, quotient):
+    # parse PAYNT/RL result to a dictionart
+    def parse_paynt_result(self, quotient, second_quotient=None):
 
-        result = {x:[] for x in range(quotient.observations)}
         
-        for hole in range(self.latest_paynt_result.num_holes):
-            name = self.latest_paynt_result.hole_name(hole)
+        if second_quotient and self.rl_bounds is not None and self.rl_bounds <= self.paynt_bounds:
+            latest_result = self.latest_rl_result
+            used_quotient = second_quotient
+        else:
+            latest_result = self.latest_paynt_result
+            used_quotient = quotient
+        result = {x:[] for x in range(used_quotient.observations)}
+
+        for hole in range(latest_result.num_holes):
+            name = latest_result.hole_name(hole)
             if name.startswith('M'):
                 continue
             name = name.strip('A()')
             obs = name.split(',')[0]
-            observation = self.quotient.observation_labels.index(obs)
+            observation = used_quotient.observation_labels.index(obs)
 
-            option = self.latest_paynt_result.hole_options(hole)[0]
+            option = latest_result.hole_options(hole)[0]
             if option not in result[observation]:
                 result[observation].append(option)
 
@@ -603,16 +620,17 @@ class StormPOMDPControl:
 
         if self.paynt_bounds is None:
             self.is_storm_better = True
+            self.is_rl_better = self.rl_bounds is not None
         elif self.storm_bounds is None:
             self.is_storm_better = False
         else:
             if self.quotient.specification.optimality.minimizing:
-                if self.paynt_bounds <= self.storm_bounds:
+                if self.paynt_bounds <= self.storm_bounds or (self.rl_bounds is not None and self.rl_bounds <= self.storm_bounds):
                     self.is_storm_better = False
                 else:
                     self.is_storm_better = True
             else:
-                if self.paynt_bounds >= self.storm_bounds:
+                if self.paynt_bounds >= self.storm_bounds or (self.rl_bounds is not None and self.rl_bounds >= self.storm_bounds):
                     self.is_storm_better = False
                 else:
                     self.is_storm_better = True

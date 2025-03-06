@@ -1,9 +1,0 @@
- 
-Indices Tensor("stack:0", shape=(256, 2), dtype=int32)
-Action function tf.Tensor(
-[[1 1 5 5 0 4 3 2]
- [3 1 5 0 0 4 3 2]
- [3 1 5 5 0 4 3 2]], shape=(3, 8), dtype=int32)
-
-action_number Tensor("map/while/TensorArrayV2Read/TensorListGetItem:0", shape=(), dtype=int32)
-original_action_labels ['down', 'right', 'up', 'place', '__no_label__', 'left']

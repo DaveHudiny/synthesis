@@ -25,6 +25,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import tqdm
+
 class SAYNT_Driver:
     def __init__(self, observers: list = [], storm_control: Storm_POMDP_Control.StormPOMDPControl = None,
                  quotient: POMDP.PomdpQuotient = None, tf_action_labels: list = None,
@@ -79,13 +81,16 @@ class SAYNT_Driver:
             fsc_memory = tf.reshape(saynt_step.fsc_memory, (1,))
         action = tf.cast(action, tf.int32)
         fsc_memory = tf.cast(fsc_memory, tf.int32)
-        return Trajectories.PolicyStep(action, state=(), info={"mem_node": fsc_memory})
+        return Trajectories.PolicyStep(action, state=(), info=()) # TODO: info={"mem_node": fsc_memory}
 
     def episodic_run(self, episodes=5):
         cumulative_rewards = []
         episodes_finished_well = 0
+        # Initialize TQDM progress bar
+        tqdm_bar = tqdm.tqdm(total=episodes, desc="Episodic run")
         for _ in range(episodes):
             # saynt_step = self.saynt_simulator.reset()
+            tqdm_bar.update(1)
             saynt_step = self.saynt_simulator.reset_belief_mdp()
             tf_saynt_step = self.create_tf_time_step(saynt_step)
             cumulative_reward = 0

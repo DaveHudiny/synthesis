@@ -2,10 +2,10 @@ source prerequisites/venv/bin/activate
 
 run_loop(){
     # Go through all models in the folder and runs paynt on the model
-    folders=("rl_src/models_minimal/")
+    folders=("rl_src/models_paynt_experiments/")
     # already_performed_experiments=("evade" "grid-large-10-5" "grid-large-30-5" "intercept" "intercept-n7-r1" "mba" "mba-small")
-    already_performed_experiments=("evade")
-    experiment_folder="experiments_entropy"
+    already_performed_experiments=("evade-n12" "drone-2-6-1" "geo-2-8" "maze-10")
+    experiment_folder="experiments_bc_loop"
     if ! [ -d $experiment_folder ]; then
         mkdir $experiment_folder
     fi
@@ -32,7 +32,7 @@ run_loop(){
                 log_file_name="./$experiment_folder/$model_name.log"
                 err_log_file_name="./$experiment_folder/$model_name.err.log"
             fi
-            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 400 30 30 --reinforcement-learning --model-name $model_name $model_path > $log_file_name 2> $err_log_file_name
+            python3 paynt.py --fsc-synthesis --storm-pomdp --iterative-storm 600 30 30 --reinforcement-learning --model-name $model_name --loop --rl-method BC $model_path > $log_file_name 2> $err_log_file_name
 
         done
 

@@ -80,6 +80,7 @@ class Recurrent_PPO_agent(FatherAgent):
             value_pred_loss_coef=0.45,
             entropy_regularization=0.01,
             normalize_rewards=True,
+            normalize_observations=True
         )
         self.agent.initialize()
         
