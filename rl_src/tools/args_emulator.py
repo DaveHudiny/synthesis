@@ -20,7 +20,7 @@ class ArgsEmulator:
                  agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
                  interpretation_folder="interpretation", experiment_name="experiment", with_refusing=None,
                  replay_buffer_option=ReplayBufferOptions.ON_POLICY,
-                 evaluate_random_policy: bool = False, prefer_stochastic: bool = True, normalize_simulator_rewards: bool = True,
+                 evaluate_random_policy: bool = False, prefer_stochastic: bool = False, normalize_simulator_rewards: bool = True,
                  random_start_simulator=False, num_environments: int = 256, perform_interpretation: bool = False, vectorized_envs_flag: bool = True,
                  illegal_action_penalty_per_step=-0.0002, flag_illegal_action_penalty=False, use_rnn_less=False, model_memory_size=0,
                  name_of_experiment="results_of_interpretation", continuous_enlargement=False, continuous_enlargement_step=1, init_size=6,

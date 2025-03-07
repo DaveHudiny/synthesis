@@ -251,8 +251,10 @@ class SynthesizerPomdp:
                 storm_control = self.storm_control if self.storm_control.latest_storm_result is not None else None
                 if storm_control is not None:
                     fsc = self.get_better_fsc()
+                fsc = None
+                storm_control = None
                 agent_wrapper = rl_synthesizer.get_agents_wrapper()
-                assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=3000,
+                assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=2000,
                                                                   paynt_timeout=paynt_timeout,
                                                                   fsc=fsc,
                                                                   storm_control=storm_control)
