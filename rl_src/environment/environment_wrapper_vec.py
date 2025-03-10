@@ -538,9 +538,11 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self._played_illegal_actions = illegals
             action = {"simulator_action": aux_action, "memory_update": action["memory_update"]}
         else:
-            action, illegals = self.change_illegal_actions_to_random_allowed(
+            _, illegals = self.change_illegal_actions_to_random_allowed(
                 action, self.allowed_actions)
             self._played_illegal_actions = illegals
+            if True in self._played_illegal_actions:
+                logging.error("Illegal action played.")
         # after_change_time = time.time()
         self.cumulative_num_steps += self.num_envs
         self.last_action = action

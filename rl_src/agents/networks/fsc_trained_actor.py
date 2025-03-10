@@ -231,8 +231,10 @@ def behavioral_clone_original_policy_to_fsc(buffer: TFUniformReplayBuffer, num_e
             avg_loss = loss_metric.result()
             logger.info(f"Epoch {i}, Loss: {avg_loss:.4f}")
             loss_metric.reset_states()
+        if i % 5000 == 0:
             evaluation_result = evaluate_policy_in_model(
                 cloned_actor, agent.args, agent.environment, agent.tf_environment, 401, evaluation_result)
+            
     return cloned_actor
 
 
@@ -261,5 +263,5 @@ def run_experiment(prism_path, properties_path, memory_size, num_data_steps=100,
 
 
 if __name__ == "__main__":
-    run_experiment("models/evade/sketch.templ",
-                   "models/evade/sketch.props", 1, 5000, 500)
+    run_experiment("models_paynt_experiments/drone-2-6-1/sketch.templ",
+                   "models_paynt_experiments/drone-2-6-1/sketch.props", 1, 5000, 500)

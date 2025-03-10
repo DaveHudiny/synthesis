@@ -707,7 +707,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         return pomdp
 
 
-    def assignment_to_fsc(self, assignment):
+    def assignment_to_fsc(self, assignment) -> paynt.quotient.fsc.FSC:
         assert assignment.size == 1, "expected family of size 1"
         num_nodes = max(self.observation_memory_size)
         fsc = paynt.quotient.fsc.FSC(num_nodes, self.observations, is_deterministic=True)

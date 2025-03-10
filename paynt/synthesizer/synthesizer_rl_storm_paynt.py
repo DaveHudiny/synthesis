@@ -67,16 +67,6 @@ class SynthesizerRL:
         if storm_control is not None:
             self.use_storm = True
             self.storm_control = storm_control
-            self.storm_control.quotient = self.quotient
-            self.storm_control.pomdp = self.quotient.pomdp
-            self.storm_control.spec_formulas = self.quotient.specification.stormpy_formulae()
-            self.synthesis_terminate = False
-            # SAYNT only works with abstraction refinement
-            self.synthesizer = SynthesizerOneByOne
-            if self.storm_control.iteration_timeout is not None:
-                self.saynt_timer = paynt.utils.timer.Timer()
-                self.synthesizer.saynt_timer = self.saynt_timer
-                self.storm_control.saynt_timer = self.saynt_timer
 
     def synthesize(self, family=None, print_stats=True, timer=None):
         if family is None:
@@ -284,8 +274,9 @@ class SynthesizerRL:
                 agents_wrapper, self.rl_training_iters, self.fsc_synthesis_time_limit, fsc)
             if assignment is not None:
                 agents_wrapper.agent.evaluation_result.add_paynt_bound(
-                    self.storm_control.paynt_bounds)
+                    self.quotient.specification.optimality.optimum)
                 fsc = self.quotient.assignment_to_fsc(assignment)
+
             if not self.loop:
                 break
             if time.time() - start_time > self.time_limit:

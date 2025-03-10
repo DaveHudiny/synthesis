@@ -691,7 +691,7 @@ class StormPOMDPControl:
                 else:
                     self.memory_vector[obs] = 1
 
-    def belief_controller_to_fsc(self, storm_result, paynt_fsc=None):
+    def belief_controller_to_fsc(self, storm_result, paynt_fsc=None) -> paynt.quotient.fsc.FSC:
 
         belief_mc = storm_result.induced_mc_from_scheduler
 
@@ -729,6 +729,7 @@ class StormPOMDPControl:
         if uses_fsc:
             fsc_nodes += paynt_fsc.num_nodes
             first_fsc_node = belief_mc.nr_states - paynt_cutoff_states + 1
+        
 
         result_fsc = paynt.quotient.fsc.FSC(fsc_nodes, self.quotient.observations, is_deterministic=False)
 

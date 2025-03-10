@@ -19,6 +19,9 @@ from paynt.family.family import Family
 import paynt.verification.property
 from paynt.synthesizer.synthesizer_rl_storm_paynt import SynthesizerRL
 
+from rl_src.agents.policies.simple_fsc_policy import SimpleFSCPolicy
+from rl_src.tools.evaluators import evaluate_policy_in_model
+
 from threading import Thread
 from queue import Queue
 import time
@@ -216,6 +219,7 @@ class SynthesizerPomdp:
                 self.second_quotient, self.method, self.storm_control, self.input_rl_settings_dict)
             self.loop = self.input_rl_settings_dict["loop"]
             self.rl_oracle = True
+            agent_wrapper = rl_synthesizer.get_agents_wrapper()
         else:
             self.rl_oracle = False
         iteration = 1
@@ -226,6 +230,7 @@ class SynthesizerPomdp:
         timeout_bonus = 0
         self.saynt_timer.start()
         skip_first = False
+        
         while True:
             if iteration == 1:
                 paynt_thread.start()
@@ -241,7 +246,7 @@ class SynthesizerPomdp:
                 time.sleep(0.1)
 
             pre_rl_time = time.time()
-            if not skip_first and self.rl_oracle and (self.loop or iteration == 1):
+            if False and not skip_first and self.rl_oracle and (self.loop or iteration == 1):
                 if hasattr(self.storm_control, "latest_paynt_result_fsc") and self.storm_control.latest_paynt_result_fsc is not None:
                     fsc = self.storm_control.latest_paynt_result_fsc
                 else:
@@ -253,7 +258,7 @@ class SynthesizerPomdp:
                     fsc = self.get_better_fsc()
                 fsc = None
                 storm_control = None
-                agent_wrapper = rl_synthesizer.get_agents_wrapper()
+                
                 assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=2000,
                                                                   paynt_timeout=paynt_timeout,
                                                                   fsc=fsc,
@@ -279,7 +284,25 @@ class SynthesizerPomdp:
 
             if time.time() > iteration_timeout + timeout_bonus or iteration == iteration_limit:
                 break
-
+            
+            if self.rl_oracle:
+                print("Unpacking storm result")
+                # storm_fsc = self.storm_control.belief_controller_to_fsc(self.storm_control.latest_storm_result, 
+                #                                                         self.storm_control.latest_paynt_result_fsc)
+                print("Unpacking FSC to Tensorflow")
+                simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_paynt_result_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
+                                            time_step_spec=agent_wrapper.agent.wrapper.time_step_spec, 
+                                            action_spec=agent_wrapper.agent.wrapper.action_spec,
+                                            is_stochastic = False)
+                print("Evaluation started")
+                eval_result = evaluate_policy_in_model(simple_fsc, 
+                                                    agent_wrapper.agent.args, 
+                                                    agent_wrapper.agent.environment, 
+                                                    agent_wrapper.agent.tf_environment,
+                                                    2001, None)
+                exit(0)
+            # print(eval_result.__dict__)
+            
             iteration += 1
 
         self.interactive_queue.put("terminate")

@@ -7,6 +7,8 @@ from tf_agents.specs.tensor_spec import TensorSpec
 
 import tensorflow as tf
 
+import numpy as np
+
 
 def convert_to_tf_action_number(action_numbers, original_action_labels, tf_action_labels):
     @tf.function
@@ -29,53 +31,193 @@ def fsc_action_constraint_splitter(observation):
 
 class SimpleFSCPolicy(TFPolicy):
     def __init__(self, fsc: FSC, tf_action_keywords, time_step_spec, action_spec, policy_state_spec=(), info_spec=(), name=None,
-                 observation_and_action_constraint_splitter=None):
+                 observation_and_action_constraint_splitter=None, is_stochastic = False):
 
         if policy_state_spec != ():
             raise NotImplementedError(
                 "PAYNT currently only supports FSC policies with a single integer state")
         policy_state_spec = TensorSpec(shape=(), dtype=tf.int32)
-
-        self.init_fsc_to_tf(fsc, tf_action_keywords)
+        self.is_stochastic = is_stochastic
+        
         super(SimpleFSCPolicy, self).__init__(time_step_spec, action_spec, policy_state_spec=policy_state_spec, info_spec=info_spec, name=name,
                                               observation_and_action_constraint_splitter=observation_and_action_constraint_splitter)
+        self.init_fsc_to_tf(fsc, tf_action_keywords, is_stochastic)
+        
+    def convert_to_sparse_tf(self, table_function) -> tf.SparseTensor:
+        max_action = 0
+        actions = []
+        indices = []
+        
+        for memory_int, memory in enumerate(table_function):
+            for observation_int, observation in enumerate(memory):
+                if observation is not None:
+                    for action in observation:
+                        prob = observation[action]
+                        actions.append(prob)
+                        indices.append([memory_int, observation_int, action])
+                        if action > max_action:
+                            max_action = action
+                else:
+                    indices.append([memory_int, observation_int, 0])
+                    actions.append(1.0)
+        
+        sparse_probs = tf.SparseTensor(indices, actions, [len(table_function), len(table_function[0]), max_action + 1])
+        # dense_probs = tf.sparse.to_dense(sparse_probs)
+        return sparse_probs
+    
+    def create_inference_tensors(self, table_function, is_update_function=False):
+        max_action = self.action_spec.maximum + 1 if not is_update_function else len(table_function[0])
+        is_det_table = np.ones((len(table_function), len(table_function[0])), dtype=bool)
+        det_choice_table = np.zeros((len(table_function), len(table_function[0])), dtype=np.int32)
+        non_det_choice_table = []
+        non_det_action_probs_table = []
 
-    def init_fsc_to_tf(self, fsc: FSC, tf_action_keywords):
+        for memory_int, memory in enumerate(table_function):
+            for observation_int, observation in enumerate(memory):
+                if observation is not None:
+                    actions = np.array(list(observation.keys()))
+                    probs = np.array(list(observation.values()))
+                    if len(actions) == 1:
+                        det_choice_table[memory_int, observation_int] = actions[0]
+                    else:
+                        is_det_table[memory_int, observation_int] = False
+                        probs_vec = np.zeros((max_action,))
+                        probs_vec[actions] = probs
+                        non_det_choice_table.append([memory_int, observation_int])
+                        non_det_action_probs_table.append(probs_vec)
+                else:
+                    is_det_table[memory_int, observation_int] = True
+                    det_choice_table[memory_int, observation_int] = 0
+        # Initialize lookup tables for non-deterministic choices
+        non_det_choice_table = np.array(non_det_choice_table)
+        non_det_action_probs_table = np.array(non_det_action_probs_table)
+        if non_det_choice_table.shape[0] == 0:
+            lookup_table = None
+        else:
+            lookup_table = tf.lookup.StaticHashTable(
+                tf.lookup.KeyValueTensorInitializer(
+                    tf.constant(non_det_choice_table, dtype=tf.int32),
+                    tf.range(len(non_det_choice_table), dtype=tf.int32),
+                    key_dtype=tf.int32,
+                    value_dtype=tf.int32
+                ),
+                default_value=-1
+            )
+
+
+        return is_det_table, det_choice_table, lookup_table, non_det_action_probs_table
+
+    def init_fsc_to_tf(self, fsc: FSC, tf_action_keywords, is_stochastic):
         self._fsc = fsc
-        self._fsc.action_function = tf.constant(
-            self._fsc.action_function, dtype=tf.int32)
-        self._fsc.update_function = tf.constant(
-            self._fsc.update_function, dtype=tf.int32)
+        if not is_stochastic:
+            self._fsc.action_function = tf.constant(
+                self._fsc.action_function, dtype=tf.int32)
+            self._fsc.update_function = tf.constant(
+                self._fsc.update_function, dtype=tf.int32)
+        else: # action_funciton contains from dicts of probabilities for each action. The shape (without dict) is [memory_size, observation_size]. Dicts are sparse representation of the action function distribution.
+            # self.tf_sparse_action_function = self.convert_to_sparse_tf(self._fsc.action_function)
+            # self.tf_sparse_update_function = self.convert_to_sparse_tf(self._fsc.update_function)
+            is_det_t, det_ch_t, look_up_t, non_det_prob_t = self.create_inference_tensors(self._fsc.action_function)
+            is_det_u, det_ch_u, look_up_u, non_det_prob_u = self.create_inference_tensors(self._fsc.update_function, is_update_function=True)
+            self.is_det_table_action = tf.constant(is_det_t, dtype=tf.bool)
+            self.det_choice_table_action = tf.constant(det_ch_t, dtype=tf.int32)
+            self.non_det_choice_table_action = look_up_t
+            self.non_det_action_probs_table_action = tf.constant(non_det_prob_t, dtype=tf.float32)
+            self.is_det_table_update = tf.constant(is_det_u, dtype=tf.bool)
+            self.det_choice_table_update = tf.constant(det_ch_u, dtype=tf.int32)
+            self.non_det_choice_table_update = look_up_u
+            self.non_det_action_probs_table_update = tf.constant(non_det_prob_u, dtype=tf.float32)
         self._fsc.action_labels = tf.constant(
-            self._fsc.action_labels, dtype=tf.string)
+                self._fsc.action_labels, dtype=tf.string)
         self.tf_action_labels = tf.constant(
-            tf_action_keywords, dtype=tf.string)
+                tf_action_keywords, dtype=tf.string)
+                    
+
 
     def _get_initial_state(self, batch_size):
         return tf.zeros((batch_size, 1), dtype=tf.int32)
 
     def _distribution(self, time_step: TimeStep, policy_state, seed) -> PolicyStep:
         raise NotImplementedError(
-            "PAYNT currently implement only deterministic FSC policies")
+            "PAYNT currently implements only deterministic FSC policies")
 
-    def _action_number(self, policy_state, observation_integer):
+    # @tf.function
+    def _action_number(self, policy_state, observation_integer, is_stochastic):
         indices = tf.stack([policy_state, observation_integer], axis=1)
-        fsc_action_numbers = tf.gather_nd(self._fsc.action_function, indices)
+        indices = tf.cast(indices, dtype=tf.int64)
+        # print("State", policy_state)
+        # print("observation", observation_integer)
+        
+        if is_stochastic:
+            is_det_choice = tf.gather_nd(self.is_det_table_action, indices)
+            det_choice = tf.gather_nd(self.det_choice_table_action, indices)
+            
+            if self.non_det_choice_table_action is None:
+
+                fsc_action_numbers = tf.where(is_det_choice, det_choice, 0)
+                fsc_action_numbers = tf.reshape(fsc_action_numbers, shape=(-1,))
+            else:
+                # Find non-det indices from the lookup table
+                non_det_indices = self.non_det_choice_table_action.lookup(indices)
+                # Remove -1 indices
+                non_det_indices = tf.where(non_det_indices != -1)
+                non_det_indices = tf.cast(non_det_indices, dtype=tf.int32)
+                # Convert non-det-indices to self.non_det_action_probs_table_action indices by self.non_det_choice_table_action
+                default_probs = tf.zeros([tf.shape(is_det_choice)[0], self.action_spec.maximum + 1], dtype=tf.float32)
+                non_det_probs = tf.gather_nd(self.non_det_action_probs_table_action, non_det_indices)
+                # Replace default probs with non_det_probs given non_det_indices
+                non_det_indices = tf.gather_nd(self.non_det_choice_table_action, non_det_indices)
+                non_det_probs = tf.tensor_scatter_nd_update(default_probs, non_det_indices, non_det_probs)
+
+                fsc_action_numbers = tf.where(is_det_choice, det_choice, tf.random.categorical(
+                    tf.math.log(non_det_probs), 1, dtype=tf.int32))
+                fsc_action_numbers = tf.reshape(fsc_action_numbers, shape=(-1,))
+
+        else:
+            fsc_action_numbers = tf.gather_nd(self._fsc.action_function, indices)
         tf_action_numbers = convert_to_tf_action_number(
-            fsc_action_numbers, self._fsc.action_labels, self.tf_action_labels)
+                fsc_action_numbers, self._fsc.action_labels, self.tf_action_labels)  
+
         return tf_action_numbers
 
-    def _new_fsc_state(self, policy_state, observation_integer):
+    @tf.function
+    def _new_fsc_state(self, policy_state, observation_integer, is_stochastic):
         indices = tf.stack([policy_state, observation_integer], axis=1)
-        new_policy_state = tf.gather_nd(self._fsc.update_function, indices)
+        indices = tf.cast(indices, dtype=tf.int64)
+        if is_stochastic:
+            is_det_choice = tf.gather_nd(self.is_det_table_update, indices)
+            det_choice = tf.gather_nd(self.det_choice_table_update, indices)
+            if self.non_det_choice_table_update is None:
+                new_policy_state = tf.where(is_det_choice, det_choice, 0)
+                new_policy_state = tf.reshape(new_policy_state, shape=(-1,))
+            else:
+                # Find non-det indices from the lookup table
+                non_det_indices = self.non_det_choice_table_update.lookup(indices)
+                # Remove -1 indices
+                non_det_indices = tf.where(non_det_indices != -1)
+                non_det_indices = tf.cast(non_det_indices, dtype=tf.int32)
+                # Convert non-det-indices to self.non_det_action_probs_table_update indices by self.non_det_choice_table_update
+                default_probs = tf.zeros([tf.shape(is_det_choice)[0], self.action_spec.maximum + 1], dtype=tf.float32)
+                non_det_probs = tf.gather_nd(self.non_det_action_probs_table_update, non_det_indices)
+                # Replace default probs with non_det_probs given non_det_indices
+                non_det_indices = tf.gather_nd(self.non_det_choice_table_update, non_det_indices)
+                non_det_probs = tf.tensor_scatter_nd_update(default_probs, non_det_indices, non_det_probs)
+                new_policy_state = tf.where(is_det_choice, det_choice, tf.random.categorical(
+                    tf.math.log(non_det_probs), 1, dtype=tf.int32))
+                new_policy_state = tf.reshape(new_policy_state, shape=(-1,))
+        else:
+            new_policy_state = tf.gather_nd(self._fsc.update_function, indices)
         new_policy_state = tf.convert_to_tensor(tf.reshape(
             new_policy_state, shape=(-1, 1)), dtype=tf.int32)
+        
         return new_policy_state
 
     def _action(self, time_step: TimeStep, policy_state, seed):
         _, _, integer = fsc_action_constraint_splitter(time_step.observation)
         integer = tf.squeeze(integer)
         policy_state = tf.squeeze(policy_state)
-        action_number = self._action_number(policy_state, integer)
-        new_policy_state = self._new_fsc_state(policy_state, integer)
+        action_number = self._action_number(policy_state, integer, is_stochastic=self.is_stochastic)
+        new_policy_state = self._new_fsc_state(policy_state, integer, is_stochastic=self.is_stochastic)
+        print("action_number", action_number)
+        print("new_policy_state", new_policy_state)
         return PolicyStep(action_number, new_policy_state, ())
