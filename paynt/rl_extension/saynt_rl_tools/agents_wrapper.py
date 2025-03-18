@@ -277,7 +277,7 @@ class AgentsWrapper:
                 self.pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
                 self.agent.train_agent(500, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
         else:
-            self.pre_trainer.train_both_networks(nr_of_iterations // 6, fsc=fsc, use_best_traj_only=False)
+            self.pre_trainer.train_both_networks(nr_of_iterations, fsc=fsc, use_best_traj_only=False)
             self.agent.train_agent(nr_of_iterations, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
 
         # TODO: Other methods of training with FSC or SAYNT controller.

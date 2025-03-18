@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 class StormPOMDPControl:
 
     latest_storm_result = None      # holds object representing the latest Storm result
+    latest_storm_fsc = None
     storm_bounds = None             # under-approximation value from Storm
 
     # PAYNT data and FSC export
@@ -71,6 +72,7 @@ class StormPOMDPControl:
 
     def __init__(self):
         self.latest_storm_result = None      # holds object representing the latest Storm result
+        self.latest_storm_fsc = None
         self.storm_bounds = None             # under-approximation value from Storm
 
         # PAYNT data and FSC export
@@ -147,6 +149,7 @@ class StormPOMDPControl:
 
     def store_storm_result(self, result):
         self.latest_storm_result = result
+        self.latest_storm_fsc = self.belief_controller_to_fsc(result, self.latest_paynt_result_fsc)
         if self.quotient.specification.optimality.minimizing:
             self.storm_bounds = self.latest_storm_result.upper_bound
         else:
@@ -726,7 +729,7 @@ class StormPOMDPControl:
 
         assert fsc_nodes-1 == len([x for x in belief_mc_nodes_map if x is not None]), f"{fsc_nodes-1} != {len([x for x in belief_mc_nodes_map if x is not None])}"
 
-        if uses_fsc:
+        if paynt_fsc and uses_fsc:
             fsc_nodes += paynt_fsc.num_nodes
             first_fsc_node = belief_mc.nr_states - paynt_cutoff_states + 1
         

@@ -98,10 +98,7 @@ class ExperimentInterface:
             num_envs = args.num_environments
         if args.vectorized_envs_flag:
             environment = EnvironmentWrapperVec(
-                pomdp_model, args, num_envs=num_envs, 
-                state_based_oracle=state_based_oracle, 
-                state_based_sim=state_based_sim, 
-                num_of_expansion_features=num_of_expansion_fatures)
+                pomdp_model, args, num_envs=num_envs)
         else:
             environment = Environment_Wrapper(pomdp_model, args)
         # self.environment = Environment_Wrapper_Vec(self.pomdp_model, self.args, num_envs=num_envs)
@@ -267,7 +264,7 @@ class ExperimentInterface:
             logger.error(e)
             return
         self.environment, self.tf_environment, stormpy_model = self.initialize_environment(
-            self.args, state_based_sim=state_based_sim)
+            self.args)
         if self.args.evaluate_random_policy:  # Evaluate random policy
             return self.evaluate_random_policy()
         
@@ -286,8 +283,6 @@ class ExperimentInterface:
             self.args = original_args
 
         self.agent.init_collector_driver(self.tf_environment, demasked=True, batch_tf_environments=batch_tf_environments)
-        if state_based_agent is not None:
-            self.environment.set_state_based_oracle(state_based_agent.policy, state_based_sim=state_based_sim)
         self.agent.train_agent(self.args.nr_runs, vectorized=self.args.vectorized_envs_flag,
                                replay_buffer_option=self.args.replay_buffer_option)
         self.agent.save_agent()

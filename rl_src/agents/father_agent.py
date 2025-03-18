@@ -493,6 +493,23 @@ class FatherAgent(AbstractAgent):
             if evaluation_result.best_reach_prob >= performance_condition * 0.75:
                 return True
             return False
+        
+    def render_agent_behavior(self, policy : TFPolicy):
+        self.environment.set_random_starts_simulation(False)
+        self.set_agent_greedy()
+        self.tf_environment.reset()
+        policy_state = policy.get_initial_state(self.tf_environment.batch_size)
+        trajectory = [self.environment.render("rgb_array")]
+        while True:
+            time_step = self.tf_environment.current_time_step()
+            action = policy.action(time_step, policy_state=policy_state)
+            policy_state = action.state
+            self.tf_environment.step(action.action)
+            trajectory.append(self.environment.render("rgb_array"))
+            if self.environment.dones[0]:
+                break
+        self.environment.render("human", trajectory=trajectory)
+        self.tf_environment.reset()
 
     def evaluate_agent(self, last=False, vectorized=False, max_steps : int = None):
         """Evaluate the agent. Used for evaluation of the agent during training.
@@ -524,6 +541,8 @@ class FatherAgent(AbstractAgent):
             if last:
                 self.set_agent_greedy()
                 logger.info("Evaluating agent with greedy policy.")
+                if self.args.render_if_possible and self.environment.grid_like_renderer:
+                    self.render_agent_behavior(self.get_evaluation_policy())
             self.vec_driver.run()
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(1)

@@ -23,6 +23,7 @@ from tools.encoding_methods import *
 
 from tools.args_emulator import ArgsEmulator
 from environment.vectorized_sim_initializer import SimulatorInitializer
+from tools.specification_check import SpecificationChecker
 
 from vec_storm.storm_vec_env import StormVecEnv
 
@@ -30,15 +31,12 @@ from tools.state_estimators import LSTMStateEstimator
 
 import json
 
-import jax
-
-import time
-
 import tf_agents.policies.tf_policy as TFPolicy
 
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
+from environment.renderers.grid_like_renderer import GridLikeRenderer
 
 def pad_labels(label):
     current_length = tf.shape(label)[0]
@@ -66,7 +64,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     """
 
     def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table: list[list] = None, num_envs: int = 1,
-                 state_based_oracle : TFPolicy = None, state_based_sim : StormVecEnv = None, num_of_expansion_features : int = 0):
+                 specification_checker : SpecificationChecker = None):
         """Initializes the environment wrapper.
 
         Args:
@@ -76,6 +74,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             num_envs: The number of environments for vectorization.
             state_based_oracle: The state-based oracle for the environment, expecting some memoryless MDP controller.
         """
+        # print(stormpy_model)
         self.args = args
         super(EnvironmentWrapperVec, self).__init__()
         # self.batched = True
@@ -99,6 +98,12 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs,
             max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=self.args.continuous_enlargement)
         
+        try:
+            self.grid_like_renderer = GridLikeRenderer(
+                self.vectorized_simulator, self.get_model_name())
+        except:
+            logger.error("Grid-like renderer not possible to initialize.")
+            self.grid_like_renderer = None
         self.vectorized_simulator.simulator.set_max_steps(args.max_steps)
         
         if args.state_supporting:
@@ -139,7 +144,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self.reward_multiplier = 10.0
         # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
         else:
-            self.reward_multiplier = -1.0
+            self.reward_multiplier = -0.0
+            # self.reward_multiplier = -1.0 if specification_checker is None or specification_checker.optimization_goal == "reachability" else 0.0
 
         # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
         args.evaluation_goal = args.evaluation_goal if "rew" not in rew_list[-1] else 3.0
@@ -148,7 +154,6 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.antigoal_values_vector = tf.constant(
             [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
         
-        # print(f"List of reward models: {list(stormpy_model.reward_models.keys())}", file=sys.stderr)
 
         self._current_time_step = None
 
@@ -247,7 +252,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
-                exit(0)
+                raise "Valuation encoding not possible, currently not compatible. Probably model issue."
         elif self.encoding_method == "MaskedValuations":
             try:
                 action_mask_size = len(self.action_keywords)
@@ -260,7 +265,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
-                exit(0)
+                raise "Valuation encoding not possible, currently not compatible. Probably model issue."
         else:
             raise ValueError("Encoding method currently not implemented")
         return observation_spec
@@ -438,6 +443,11 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             ),
             self.terminated_step_types
         )
+        self.step_types = tf.where(
+            self.dones,
+            self.init_step_types,
+            self.default_step_types
+        )
         self._current_time_step = ts.TimeStep(
             step_type=self.step_types,
             reward=self.reward,
@@ -464,7 +474,6 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
         # if there any truncated episodes, we should set the done flag to True
-
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
@@ -504,7 +513,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         return new_actions.numpy()
 
     @staticmethod
-    def change_illegal_actions_to_random_allowed(actions, masks):
+    def change_illegal_actions_to_random_allowed(actions, masks, dones = None):
         """Changes the illegal actions to random allowed actions given mask with allowed actions."""
         rows = tf.range(tf.shape(masks)[0])
         gather_indices = tf.stack([rows, actions], axis=-1)
@@ -513,6 +522,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         flat_indices = tf.where(masks)
         legal_counts = tf.reduce_sum(tf.cast(masks, tf.int32), axis=1)
         batch_offsets = tf.cumsum(tf.concat([[0], legal_counts[:-1]], axis=0))
+        # print(tf.reduce_max(legal_counts))
+        # print(legal_counts)
         random_offsets = tf.random.uniform(
             shape=(batch_size,),
             maxval=tf.reduce_max(legal_counts),
@@ -538,18 +549,34 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self._played_illegal_actions = illegals
             action = {"simulator_action": aux_action, "memory_update": action["memory_update"]}
         else:
-            _, illegals = self.change_illegal_actions_to_random_allowed(
-                action, self.allowed_actions)
+            action, illegals = self.change_illegal_actions_to_random_allowed(
+                action, self.allowed_actions, self.dones)
             self._played_illegal_actions = illegals
-            if True in self._played_illegal_actions:
-                logging.error("Illegal action played.")
-        # after_change_time = time.time()
         self.cumulative_num_steps += self.num_envs
         self.last_action = action
         self._do_step_in_simulator(action)
         evaluated_step = self.evaluate_simulator()
-        # end_time = time.time()
         return evaluated_step
+    
+    def get_model_name(self):
+        # args.prism_model contains .../model_name/sketch.templ" so we need to extract the model name
+        if not hasattr(self, "model_mame"):
+            self.model_name = self.args.prism_model.split("/")[-2]
+        return self.model_name
+    
+    def is_renderable(self): # Search from list of known models and return True if the model is renderable
+        renderable_models = ["mba", "mba-small", "drone-2-6-1", "drone-2-8-1", "geo-2-8", 
+                             "refuel-10", "refuel-20", "intercept", "super-intercept", "evade", 
+                             "rocks-16", "rocks-4-20"]
+        return self.get_model_name() in renderable_models
+    
+    def render(self, mode = 'rgb_array', trajectory = None):
+        """Returns the renderable image of the environment. Supposed to be added to a batch of renders"""
+        if self.is_renderable():
+            return self.grid_like_renderer.render(mode, trajectory)
+        else:
+            return None
+
 
     def current_time_step(self) -> ts.TimeStep:
         return self._current_time_step

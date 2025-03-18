@@ -61,7 +61,6 @@ class Recurrent_PPO_agent(FatherAgent):
         time_step_spec = tf_environment.time_step_spec()
         time_step_spec = time_step_spec._replace(
             observation=tf_environment.observation_spec()["observation"])
-
         self.agent = ppo_agent.PPOAgent(
             time_step_spec,
             action_spec,
@@ -71,16 +70,16 @@ class Recurrent_PPO_agent(FatherAgent):
             num_epochs=3,
             train_step_counter=train_step_counter,
             greedy_eval=self.args.completely_greedy,
-            discount_factor=0.98,
+            discount_factor=0.99,
             use_gae=True,
             lambda_value=0.95,
-            gradient_clipping=0.5,
+            # gradient_clipping=0.5,
             policy_l2_reg=0.0001,
             value_function_l2_reg=0.0001,
             value_pred_loss_coef=0.45,
-            entropy_regularization=0.01,
+            entropy_regularization=0.04,
             normalize_rewards=True,
-            normalize_observations=True
+            normalize_observations=True,
         )
         self.agent.initialize()
         

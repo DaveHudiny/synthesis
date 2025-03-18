@@ -10,7 +10,7 @@ from paynt.rl_extension.family_extractors.external_family_wrapper import Extract
 from rl_src.experimental_interface import ArgsEmulator
 from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import BottleneckExtractor, TableBasedPolicy
 from rl_src.tools.evaluators import evaluate_policy_in_model
-from rl_src.agents.networks.fsc_trained_actor import *
+from interpreters.fsc_trained_actor import *
 
 import pickle
 import stormpy
@@ -102,10 +102,10 @@ class SynthesizerRL:
         args = ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
-                            evaluate_random_policy=False, max_steps=401, evaluation_goal=50.0, evaluation_antigoal=-0.0,
-                            trajectory_num_steps=25, discount_factor=0.99, num_environments=256,
+                            evaluate_random_policy=False, max_steps=1201, evaluation_goal=50.0, evaluation_antigoal=-0.0,
+                            trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=2000, random_start_simulator=False,
-                            batch_size=256, vectorized_envs_flag=True, perform_interpretation=False, 
+                            batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
                             use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
                             completely_greedy=False, prefer_stochastic=False)
         return args
@@ -146,9 +146,9 @@ class SynthesizerRL:
 
     def extract_one_fsc_w_entropy(self, agents_wrapper: AgentsWrapper, greedy: bool = False) -> NaiveFSCPolicyExtraction:
         self.extracted_fsc = NaiveFSCPolicyExtraction(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
-                                           agents_wrapper.agent.tf_environment, self.args, entropy_extraction=True,
-                                           greedy=greedy, max_memory_size=4)
-        
+                                                      agents_wrapper.agent.tf_environment, self.args, entropy_extraction=True,
+                                                      greedy=greedy, max_memory_size=4)
+
         return self.extracted_fsc
 
     def set_memory_w_extracted_fsc_entropy(self, extracted_fsc: NaiveFSCPolicyExtraction, ceil=True):
@@ -189,16 +189,19 @@ class SynthesizerRL:
         if save:
             agents_wrapper.save_to_json(
                 experiment_name, model=self.model_name, method=self.args.learning_method)
-            
-    def perform_bottleneck_extraction(self, agents_wrapper : AgentsWrapper):
+
+    def perform_bottleneck_extraction(self, agents_wrapper: AgentsWrapper):
         input_dim = 64
         latent_dim = 1
         best_bottleneck_extractor = None
         best_evaluation_result = None
         for i in range(2):
-            bottleneck_extractor = BottleneckExtractor(agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
-            bottleneck_extractor.train_autoencoder(agents_wrapper.agent.wrapper, num_epochs=20, num_data_steps=self.args.max_steps + 1)
-            evaluation_result = bottleneck_extractor.evaluate_bottlenecking(agents_wrapper.agent, max_steps=self.args.max_steps + 1)
+            bottleneck_extractor = BottleneckExtractor(
+                agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
+            bottleneck_extractor.train_autoencoder(
+                agents_wrapper.agent.wrapper, num_epochs=20, num_data_steps=self.args.max_steps + 1)
+            evaluation_result = bottleneck_extractor.evaluate_bottlenecking(
+                agents_wrapper.agent, max_steps=self.args.max_steps + 1)
             if best_bottleneck_extractor is None or evaluation_result.best_reach_prob > best_evaluation_result.best_reach_prob:
                 best_bottleneck_extractor = bottleneck_extractor
                 best_evaluation_result = evaluation_result
@@ -207,24 +210,45 @@ class SynthesizerRL:
                 best_evaluation_result = evaluation_result
         bottleneck_extractor = best_bottleneck_extractor
         agents_wrapper.agent.wrapper.set_greedy(True)
-        extracted_fsc = bottleneck_extractor.extract_fsc(policy = agents_wrapper.agent.wrapper, environment = agents_wrapper.agent.environment)
-        evaluation_result = evaluate_policy_in_model(extracted_fsc, agents_wrapper.agent.args, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment)
+        extracted_fsc = bottleneck_extractor.extract_fsc(
+            policy=agents_wrapper.agent.wrapper, environment=agents_wrapper.agent.environment)
+        evaluation_result = evaluate_policy_in_model(
+            extracted_fsc, agents_wrapper.agent.args, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment)
         agents_wrapper.agent.wrapper.set_greedy(False)
         return bottleneck_extractor, extracted_fsc, evaluation_result, latent_dim
+
+    def perform_rl_to_fsc_cloning(self, agents_wrapper: AgentsWrapper, latent_dim=2):
+        buffer = sample_data_with_policy(agents_wrapper.agent.wrapper, 5000,
+                                         agents_wrapper.agent.environment, 
+                                         agents_wrapper.agent.tf_environment)
+        cloned_fsc_actor = behavioral_clone_original_policy_to_fsc(
+            buffer, 100000, agents_wrapper.agent, latent_dim, sample_len=self.args.trajectory_num_steps)
+        fsc = extract_fsc(
+            cloned_fsc_actor, agents_wrapper.agent.environment, latent_dim, self.args)
+        return fsc
     
-    def perform_rl_to_fsc_cloning(self, agents_wrapper: AgentsWrapper, latent_dim=1):
-        buffer = sample_data_with_policy(agents_wrapper.agent.wrapper, 5000, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment)
-        cloned_fsc_actor = behavioral_clone_original_policy_to_fsc(buffer, 60000, agents_wrapper.agent, latent_dim)
-        fsc = extract_fsc(cloned_fsc_actor, agents_wrapper.agent.environment, latent_dim, self.args)
+    def perform_policy_to_fsc_cloning(self, policy : TFPolicy, 
+                                      environment : EnvironmentWrapperVec, 
+                                      tf_environment : TFPyEnvironment, latent_dim=2):
+        buffer = sample_data_with_policy(policy, 5000, environment, tf_environment)
+        cloned_fsc_actor = behavioral_clone_original_policy_to_fsc(
+            buffer, 70000, policy, latent_dim, sample_len=self.args.trajectory_num_steps, 
+            observation_and_action_constraint_splitter=self.agents_wrapper.agent.wrapper.observation_and_action_constraint_splitter,
+            environment=self.agents_wrapper.agent.environment,
+            tf_environment=self.agents_wrapper.agent.tf_environment,
+            args=self.args)
+        fsc = extract_fsc(
+            cloned_fsc_actor, environment, latent_dim, self.args)
         return fsc
 
     def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None):
 
         if storm_control is not None:
             trajectories = agents_wrapper.generate_saynt_trajectories(
-                storm_control, self.quotient, fsc=fsc, model_reward_multiplier=agents_wrapper.agent.environment.reward_multiplier, 
-                tf_action_labels = agents_wrapper.agent.environment.action_keywords, num_episodes=32)
-            agents_wrapper.train_with_bc(nr_of_iterations=nr_rl_iterations // 20, trajectories=trajectories)
+                storm_control, self.quotient, fsc=fsc, model_reward_multiplier=agents_wrapper.agent.environment.reward_multiplier,
+                tf_action_labels=agents_wrapper.agent.environment.action_keywords, num_episodes=32)
+            agents_wrapper.train_with_bc(
+                nr_of_iterations=nr_rl_iterations // 20, trajectories=trajectories)
             agents_wrapper.train_agent(nr_rl_iterations)
         elif fsc is not None:
             if self.combo_mode == RL_SAYNT_Combo_Modes.JUMPSTART_MODE:
@@ -234,38 +258,53 @@ class SynthesizerRL:
                 self.run_rl_synthesis_shaping(
                     fsc, saynt=self.saynt, save=False, nr_of_iterations=nr_rl_iterations)
             elif self.combo_mode == RL_SAYNT_Combo_Modes.BEHAVIORAL_CLONING:
-                agents_wrapper.train_with_bc(fsc, nr_of_iterations=nr_rl_iterations)
+                agents_wrapper.train_with_bc(
+                    fsc, nr_of_iterations=nr_rl_iterations)
             else:
                 logger.error(
                     "Not implemented combo mode, running baseline training.")
                 agents_wrapper.train_agent(nr_rl_iterations)
         else:
             agents_wrapper.train_agent(nr_rl_iterations)
-        
-        # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
-        
-        if False:
-            bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(agents_wrapper)
-        else:
-            extracted_fsc = self.perform_rl_to_fsc_cloning(agents_wrapper)
-            latent_dim = 1
 
+        # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
+
+        if False:
+            bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
+                agents_wrapper)
+        else:
+            latent_dim = 2
+            extracted_fsc = self.perform_policy_to_fsc_cloning(
+                agents_wrapper.agent.wrapper, 
+                agents_wrapper.agent.environment, 
+                agents_wrapper.agent.tf_environment, 
+                latent_dim=latent_dim)
+        return self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
+        
+    
+    def compute_paynt_assignment_from_fsc_like(self, fsc_like, latent_dim=2, agents_wrapper=None, paynt_timeout=60):
         self.quotient.set_imperfect_memory_size(3 ** latent_dim)
 
         family = self.quotient.family
-        
+
         initialized_extraction = ExtractedFamilyWrapper(
             family, 0, agents_wrapper, greedy=self.greedy, memory_only=self.memory_only_subfamilies,
-            extracted_bottlenecked_fsc=extracted_fsc)
+            extracted_bottlenecked_fsc=fsc_like)
 
         main_family = initialized_extraction.get_family()
-        assignment = self.synthesize(main_family, timer=paynt_timeout, print_stats=False)
-        if assignment is None:
+        assignment = self.synthesize(
+            main_family, timer=paynt_timeout, print_stats=True)
+        alternative_assignment = self.synthesize(
+            family=family, timer=paynt_timeout, print_stats=True)
+        if alternative_assignment is None:
             logger.info("No improving assignment found.")
+        else:
+            assignment = alternative_assignment
         return assignment
 
     def run(self):
-        agents_wrapper = AgentsWrapper(self.quotient.pomdp, self.args, agent_folder=self.model_name)
+        agents_wrapper = AgentsWrapper(
+            self.quotient.pomdp, self.args, agent_folder=self.model_name)
         self.set_agents_wrapper(agents_wrapper)
         start_time = time.time()
         fsc = None

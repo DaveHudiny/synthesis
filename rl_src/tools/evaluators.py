@@ -195,22 +195,24 @@ class TrajectoryBuffer:
         self.numpize_lists()
         outcomes = self.episode_outcomes
         finished_true_indices = np.argwhere(self.finished == True)
-        prev_index = np.array([0, -1])
+        prev_index = np.array([0, 0])
         for index in finished_true_indices:
             if index[0] != prev_index[0]:
-                prev_index = np.array([index[0], -1])
+                prev_index = np.array([index[0], 0])
             in_episode_reward = np.sum(
-                self.real_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
+                self.real_rewards[prev_index[0], prev_index[1]:index[1]+1])
             in_episode_virtual_reward = np.sum(
-                self.virtual_rewards[prev_index[0], prev_index[1]+1:index[1]+1])
+                self.virtual_rewards[prev_index[0], prev_index[1]:index[1]+1])
             goal_achieved = self.finished_successfully[index[0], index[1]]
             trap_achieved = self.finished_traps[index[0], index[1]]
             outcomes.add_episode_outcome(
                 in_episode_virtual_reward, in_episode_reward, goal_achieved, trap_achieved)
             prev_index = index
+            prev_index[1] += 1
 
     def final_update_of_results(self, updator: callable = None):
         self.update_outcomes()
+        # print(self.episode_outcomes.cumulative_rewards)
         avg_return = np.mean(self.episode_outcomes.cumulative_rewards)
         avg_episode_return = np.mean(self.episode_outcomes.virtual_rewards)
         reach_prob = np.mean(self.episode_outcomes.goals_achieved)
@@ -370,7 +372,7 @@ def evaluate_extracted_fsc(external_evaluation_result : EvaluationResults, model
         set_fsc_values_to_evaluation_result(external_evaluation_result, evaluation_result)
         buffer.clear()
 
-def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator, environment, tf_environment, max_steps = None,
+def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator, environment : EnvironmentWrapperVec, tf_environment, max_steps = None,
                              evaluation_result : EvaluationResults = None) -> EvaluationResults:
     """Evaluate the policy in the given environment and return the evaluation results."""
     if max_steps is None:
@@ -379,6 +381,7 @@ def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator, environment
         evaluation_result = EvaluationResults()
     driver, buffer = get_new_vectorized_evaluation_driver(
         tf_environment, environment, custom_policy=policy, num_steps=max_steps)
+    environment.set_random_starts_simulation(False)
     tf_environment.reset()
     driver.run()
     buffer.final_update_of_results(evaluation_result.update)

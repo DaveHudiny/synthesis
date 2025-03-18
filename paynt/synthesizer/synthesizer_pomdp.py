@@ -246,25 +246,16 @@ class SynthesizerPomdp:
                 time.sleep(0.1)
 
             pre_rl_time = time.time()
-            if False and not skip_first and self.rl_oracle and (self.loop or iteration == 1):
-                if hasattr(self.storm_control, "latest_paynt_result_fsc") and self.storm_control.latest_paynt_result_fsc is not None:
-                    fsc = self.storm_control.latest_paynt_result_fsc
-                else:
-                    fsc = None
-                if iteration > 1 and self.is_rl_better():
-                    fsc = None
-                storm_control = self.storm_control if self.storm_control.latest_storm_result is not None else None
-                if storm_control is not None:
-                    fsc = self.get_better_fsc()
-                fsc = None
-                storm_control = None
-                
-                assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=2000,
-                                                                  paynt_timeout=paynt_timeout,
-                                                                  fsc=fsc,
-                                                                  storm_control=storm_control)
-                if assignment is not None:
-                    self.assign_rl_result(assignment)
+            # if not skip_first and self.rl_oracle and (self.loop or iteration == 1):
+            #     if self.storm_control.latest_storm_fsc is not None:
+            #         fsc = self.storm_control.latest_storm_fsc
+            #     else:
+            #         fsc = None
+            #     assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=701,
+            #                                                       paynt_timeout=paynt_timeout,
+            #                                                       fsc=fsc)
+            #     if assignment is not None:
+            #         self.assign_rl_result(assignment)
             skip_first = False
 
             timeout_bonus += time.time() - pre_rl_time
@@ -285,23 +276,33 @@ class SynthesizerPomdp:
             if time.time() > iteration_timeout + timeout_bonus or iteration == iteration_limit:
                 break
             
-            if self.rl_oracle:
-                print("Unpacking storm result")
-                # storm_fsc = self.storm_control.belief_controller_to_fsc(self.storm_control.latest_storm_result, 
-                #                                                         self.storm_control.latest_paynt_result_fsc)
-                print("Unpacking FSC to Tensorflow")
-                simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_paynt_result_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
-                                            time_step_spec=agent_wrapper.agent.wrapper.time_step_spec, 
-                                            action_spec=agent_wrapper.agent.wrapper.action_spec,
-                                            is_stochastic = False)
-                print("Evaluation started")
-                eval_result = evaluate_policy_in_model(simple_fsc, 
-                                                    agent_wrapper.agent.args, 
-                                                    agent_wrapper.agent.environment, 
-                                                    agent_wrapper.agent.tf_environment,
-                                                    2001, None)
-                exit(0)
+            # if self.rl_oracle:
+            #     print("Unpacking storm result")
+            #     dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
+            #     print(dtmc)
+            #     result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
+            #     print(result.at(0))
+            #     # exit(0)
+            #     
+            #     print("Evaluation started")
+                
+            #     eval_result = evaluate_policy_in_model(simple_fsc,
+            #                                         agent_wrapper.agent.args,
+            #                                         agent_wrapper.agent.environment, 
+            #                                         agent_wrapper.agent.tf_environment,
+            #                                         8001, None)
+            #     exit(0)
             # print(eval_result.__dict__)
+            
+            pre_clone_time = time.time()
+            simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_storm_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
+                                         time_step_spec=agent_wrapper.agent.wrapper.time_step_spec, 
+                                         action_spec=agent_wrapper.agent.wrapper.action_spec)
+            fsc = rl_synthesizer.perform_policy_to_fsc_cloning(simple_fsc, agent_wrapper.agent.environment, agent_wrapper.agent.tf_environment, 3)
+            assignment = rl_synthesizer.compute_paynt_assignment_from_fsc_like(fsc, 1, agent_wrapper, 60)
+            if assignment is not None:
+                self.assign_rl_result(assignment)
+            timeout_bonus += time.time() - pre_clone_time
             
             iteration += 1
 
