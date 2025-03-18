@@ -27,6 +27,9 @@ from rl_src.tools.specification_check import SpecificationChecker
 
 import logging
 
+import os, sys
+import json
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,8 @@ class ExtractionStats:
         self.extracted_fsc_reachability = None
         self.extracted_fsc_reward = None
 
+        self.evaluation_accuracies = []
+
     def add_extraction_result(self, extracted_policy_reachability : float, extracted_policy_reward : float):
         self.extracted_policy_reachabilities.append(extracted_policy_reachability)
         self.extracted_policy_rewards.append(extracted_policy_reward)
@@ -53,12 +58,23 @@ class ExtractionStats:
         self.extracted_fsc_reachability.append(extracted_fsc_reachability)
         self.extracted_fsc_reward.append(extracted_fsc_reward)
 
-    def store_as_json(self, file_path : str):
-        pass
+    def add_evaluation_accuracy(self, evaluation_accuracy : float):
+        self.evaluation_accuracies.append(evaluation_accuracy)
 
+    def store_as_json(self, model_name : str, experiments_path : str):
+        if not os.path.exists(experiments_path):
+            os.makedirs(experiments_path)
+        index = 0
+        while os.path.exists(os.path.join(experiments_path, f"{model_name}_extraction_stats_{index}.json")):
+            index += 1
+        with open(os.path.join(experiments_path, f"{model_name}_extraction_stats_{index}.json"), "w") as f:
+            for key, value in self.__dict__.items():
+                if isinstance(value, list):
+                    value = [float(v) for v in value]
+                f.write(f"{key}: {value}\n")
 
 class NeuralFSCActor(models.Model):
-    def __init__(self, observation_shape, action_range, memory_len, use_one_hot=False):
+    def __init__(self, observation_shape : tf.TensorShape, action_range : int, memory_len : int, use_one_hot : bool =False, use_residual_connection : bool = True):
         super(NeuralFSCActor, self).__init__()
         self.observation_shape = observation_shape
         self.action_range = action_range
@@ -80,6 +96,7 @@ class NeuralFSCActor(models.Model):
             self.quantization_layer = layers.Lambda(lambda x: tf.one_hot(tf.argmax(x, axis=-1),
                                                                          depth=self.memory_len, dtype=tf.float32))
             self.one_hot_constant = 1
+        self.use_residual_connection = use_residual_connection
 
     def get_initial_state(self, batch_size):
         zeros_like = tf.zeros(
@@ -91,11 +108,15 @@ class NeuralFSCActor(models.Model):
         # inputs = tf.concat([inputs, tf.cast(old_memory, tf.float32)], axis=-1)
         inputs = tf.concat([inputs], axis=-1)
         x = self.dense1(inputs)
-        x = self.dense2(x)
-        # Flatten the x
-        # x = tf.reshape(x, (x.shape[0], -1))
-        # memory = tf.reshape(old_memory, (old_memory.shape[0], -1))
-        x, memory = self.simple_rnn_for_memory(x, initial_state=old_memory)
+
+        if self.use_residual_connection:
+            x1, memory = self.simple_rnn_for_memory(x, initial_state=old_memory)
+            x2 = self.projection_network(x1)
+            x = layers.concatenate([x1, x2], axis=-1)
+        else:
+            x = self.dense2(x)
+            x, memory = self.simple_rnn_for_memory(x, initial_state=old_memory)
+
         # x2 = self.projection_network(x)
         # x = layers.concatenate(x1, axis=-1)
         
@@ -249,24 +270,6 @@ def extract_fsc(policy: TFPolicy, environment: EnvironmentWrapperVec, memory_len
         policy, fsc_actions, fsc_updates, initial_memory=0)
     return table_based_policy
 
-def evaluate_accuracy_on_dataset(buffer: TFUniformReplayBuffer, policy: NeuralFSCActor, sample_len=25):
-    dataset = buffer.as_dataset(sample_batch_size=512, num_steps=sample_len, num_parallel_calls=8, single_deterministic_pass=True)
-    iterator = iter(dataset)
-    number_of_actions = 0
-    number_of_correct_actions = 0
-    for experience, _ in iterator:
-        observations = experience.observation["observation"]
-        gt_actions = experience.action
-        step_types = tf.cast(experience.step_type, tf.float32)
-        step_types = tf.reshape(step_types, (step_types.shape[0], -1, 1))
-        action, memory = policy(observations, step_types)
-        played_actions = tf.argmax(action, axis=-1, output_type=tf.int32)
-        number_of_actions += tf.reduce_sum(tf.ones_like(gt_actions)).numpy()
-        number_of_correct_actions += tf.reduce_sum(
-            tf.cast(tf.equal(gt_actions, played_actions), tf.int32)).numpy()
-    return number_of_correct_actions / number_of_actions
-    
-
 def behavioral_clone_original_policy_to_fsc(buffer: TFUniformReplayBuffer, num_epochs: int, policy: TFPolicy,
                                             memory_size: int, sample_len=25, optimal_value = 0.0,
                                             specification_checker : SpecificationChecker = None,
@@ -279,8 +282,6 @@ def behavioral_clone_original_policy_to_fsc(buffer: TFUniformReplayBuffer, num_e
         policy, memory_size, observation_and_action_constraint_splitter, use_one_hot=use_one_hot)
     dataset_options = tf.data.Options()
     dataset_options.experimental_deterministic = False
-    accuracy = evaluate_accuracy_on_dataset(buffer, cloned_actor.fsc_actor, sample_len)
-    logger.info(f"Initial accuracy: {accuracy}")
     dataset = (
         buffer.as_dataset(sample_batch_size=64, num_steps=sample_len,
                           num_parallel_calls=tf.data.AUTOTUNE)
@@ -337,19 +338,14 @@ def behavioral_clone_original_policy_to_fsc(buffer: TFUniformReplayBuffer, num_e
         if i % 5000 == 0:
             evaluation_result = evaluate_policy_in_model(
                 cloned_actor, args, environment, tf_environment, args.max_steps + 1, evaluation_result)
-            accuracy = evaluate_accuracy_on_dataset(buffer, cloned_actor.fsc_actor, sample_len)
-            logger.info(f"Epoch {i}, Evaluation accuracy: {accuracy}")
-            if False and specification_checker is not None:
-                if specification_checker.check_specification(evaluation_result):
-                    logger.info("Specification reached")
-                    break
 
     return cloned_actor
 
 
 def run_experiment(prism_path, properties_path, memory_size, num_data_steps=100, num_training_steps=300, 
                    specification_goal = "reachability", optimization_goal = "max", use_one_hot = False,
-                   experiments_storage_path_folder = "experiments_extraction"):
+                   experiments_storage_path_folder = "experiments_extraction",
+                   extraction_epochs = 100000):
 
     args = init_args(prism_path=prism_path, properties_path=properties_path,
                      nr_runs=num_training_steps, goal_value_multiplier=1.00)
@@ -376,7 +372,7 @@ def run_experiment(prism_path, properties_path, memory_size, num_data_steps=100,
         )
     # Train the cloned actor (cloned_actor.fsc_actor) to mimic the original policy
     cloned_actor, extraction_stats = behavioral_clone_original_policy_to_fsc(
-        buffer, num_epochs=100000, policy=agent.wrapper, 
+        buffer, num_epochs=extraction_epochs, policy=agent.wrapper, 
         memory_size=memory_size, 
         specification_checker=specification_checker,
         observation_and_action_constraint_splitter=agent.wrapper.observation_and_action_constraint_splitter,
@@ -392,11 +388,12 @@ def parse_args_from_cmd():
     parser.add_argument("--properties-path", type=str, required=True)
     parser.add_argument("--memory-size", type=int, default=2)
     parser.add_argument("--num-data-steps", type=int, default=5000)
-    parser.add_argument("--num-training-steps", type=int, default=10)
+    parser.add_argument("--num-training-steps", type=int, default=3)
     parser.add_argument("--specification-goal", type=str, default="reachability")
     parser.add_argument("--optimization-goal", type=str, default="max")
     parser.add_argument("--use-one-hot", action="store_true")
     parser.add_argument("--experiments-storage-path-folder", type=str, default="experiments_extraction")
+    parser.add_argument("--extraction-epochs", type=int, default=1000)
     args = parser.parse_args()
     return args
 
@@ -407,4 +404,5 @@ if __name__ == "__main__":
 
     args = parse_args_from_cmd()
     run_experiment(args.prism_path, args.properties_path, args.memory_size, args.num_data_steps, args.num_training_steps,
-                   args.specification_goal, args.optimization_goal, args.use_one_hot, args.experiments_storage_path_folder)
+                   args.specification_goal, args.optimization_goal, args.use_one_hot, args.experiments_storage_path_folder,
+                     args.extraction_epochs)

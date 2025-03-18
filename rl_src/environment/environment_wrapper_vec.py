@@ -144,7 +144,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self.reward_multiplier = 10.0
         # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
         else:
-            self.reward_multiplier = -0.0
+            self.reward_multiplier = -1.0 if not "refuel" in args.prism_model else 0.0 
             # self.reward_multiplier = -1.0 if specification_checker is None or specification_checker.optimization_goal == "reachability" else 0.0
 
         # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
