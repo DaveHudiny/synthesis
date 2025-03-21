@@ -10,7 +10,7 @@ from paynt.rl_extension.family_extractors.external_family_wrapper import Extract
 from rl_src.experimental_interface import ArgsEmulator
 from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import BottleneckExtractor, TableBasedPolicy
 from rl_src.tools.evaluators import evaluate_policy_in_model
-from interpreters.fsc_trained_actor import *
+from interpreters.direct_fsc_extraction.direct_extraction_main import *
 
 import pickle
 import stormpy

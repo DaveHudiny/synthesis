@@ -314,6 +314,8 @@ class FatherAgent(AbstractAgent):
             self.environment.state_estimator.collect_and_train(
                 self.args.max_steps + 1, external_policy=self.agent.policy, epochs=25)
             self.tf_environment.reset()
+        if self.environment.is_reward_turned_off() and (train_iteration > 999 or self.evaluation_result.reach_probs[-1] > 0.9):
+            self.environment.turn_on_rewards()
         return train_loss
 
     def train_body_off_policy(self, num_iterations, vectorized: bool = True, randomized=False):

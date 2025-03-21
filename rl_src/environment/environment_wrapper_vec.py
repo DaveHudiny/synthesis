@@ -139,20 +139,24 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # Initialization of the reward multiplier for different tasks.
         rew_list = list(stormpy_model.reward_models.keys())
         if rew_list == 0:
-            self.reward_multiplier = -1.0
+            self.reward_multiplier = 0.0
         elif "rew" in rew_list[-1]:
             self.reward_multiplier = 10.0
         # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
         else:
-            self.reward_multiplier = -1.0 if not "refuel" in args.prism_model else 0.0 
+            self.reward_multiplier = 0.0 
             # self.reward_multiplier = -1.0 if specification_checker is None or specification_checker.optimization_goal == "reachability" else 0.0
 
+        self.initial_reward_turnoff = True
         # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
         args.evaluation_goal = args.evaluation_goal if "rew" not in rew_list[-1] else 3.0
+        if "network" in args.prism_model:
+            args.evaluation_goal = 0.0
         self.goal_values_vector = tf.constant(
             [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
         self.antigoal_values_vector = tf.constant(
-            [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+            [0.0] * self.num_envs, dtype=tf.float32)
+        
         
 
         self._current_time_step = None
@@ -189,6 +193,15 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # Add reward shaping
         self.reward_shaper_function = lambda observation, _: tf.zeros(
             (observation.shape[0],), dtype=tf.float32)
+        
+    def turn_on_rewards(self):
+        self.initial_reward_turnoff = False
+        self.reward_multiplier = -1.0 if self.reward_multiplier == 0.0 else self.reward_multiplier
+        self.antigoal_values_vector = tf.constant(
+            [self.args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+
+    def is_reward_turned_off(self):
+        return self.initial_reward_turnoff
         
     def get_num_of_expansion_features(self, vectorized_simulator : StormVecEnv, state_based_sim : StormVecEnv):
         original_labels = vectorized_simulator.get_observation_labels()
@@ -423,6 +436,14 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
+        # self.reward = tf.where(
+        #     self.goal_state_mask,
+        #     goal_values_vector,
+        #     tf.where(
+        #         still_running_mask,
+        #         self.default_rewards,
+        #         antigoal_values_vector)
+        # )
         self.reward += tf.abs(self.reward_multiplier) * self.reward_shaping_rewards
         if hasattr(self, "state_based_oracle") and hasattr(self, "state_based_sim") and self.state_based_oracle is not None:
 

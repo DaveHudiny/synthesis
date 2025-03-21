@@ -36,7 +36,7 @@ class ResultInfo:
         return f"Ending stats: {self.ending_stats_dict}"
 
 
-class TracingInterpret(Interpret):
+class TracingInterpret:
     """Interpretation class for tracing the environment and agent interaction.
 
     This class is used to trace the interaction between the environment and the agent.
