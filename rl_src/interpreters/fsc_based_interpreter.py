@@ -7,12 +7,10 @@ from tf_agents.specs.tensor_spec import TensorSpec
 
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 
-from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
+from environment.environment_wrapper_vec import EnvironmentWrapperVec
 
-from rl_src.agents.policies.policy_mask_wrapper import PolicyMaskWrapper
-# from rl_src.agents.father_agent import FatherAgent
-
-# from rl_src.interpreters.tracing_interpret import TracingInterpret
+from agents.policies.policy_mask_wrapper import PolicyMaskWrapper
+from interpreters.extracted_fsc.extracted_fsc_policy import ExtractedFSCPolicy
 
 import numpy as np
 import tensorflow as tf
@@ -153,51 +151,6 @@ def construct_memoryless_table_w_entropy(agent_policy: PolicyMaskWrapper,
     return observation_to_action_table, observation_to_entropy_table, observation_to_update_table
 
 
-class ExtractedFSCPolicy(TFPolicy):
-    def __init__(self, time_step_spec, action_spec, policy_state_spec, observation_to_action_table = None, observation_to_update_table = None, labels = None, memory_size = 1, observation_size = 1):
-        super(ExtractedFSCPolicy, self).__init__(
-            time_step_spec, action_spec, policy_state_spec)
-        if observation_to_action_table is not None:
-            self.observation_to_action_table = tf.constant(observation_to_action_table, dtype=tf.int32)
-        else:
-            self.tf_observation_to_action_table = tf.zeros(
-                shape=(memory_size, observation_size), dtype=tf.int32)
-        if observation_to_update_table is not None:
-            self.observation_to_update_table = tf.constant(observation_to_update_table, dtype=tf.int32)
-        else:
-            self.tf_observation_to_update_table = tf.zeros(
-                shape=(memory_size, observation_size), dtype=tf.int32)
-        self.model_memory_size = 0
-        self.action_labels = labels
-
-    def _action(self, time_step: TimeStep, policy_state: PolicyStep, seed):
-        observation = time_step.observation["integer"]
-        # if self.model_memory_size == 0:
-        #     memory = policy_state
-        # else:
-        #     memory = tf.cast(
-        #         time_step.observation["observation"][:, -1], dtype=tf.int32)
-        #     memory = tf.reshape(memory, (-1, 1))
-        memory = policy_state
-        indices = tf.concat([memory, observation], axis=1)
-        action = tf.gather_nd(self.tf_observation_to_action_table, indices)
-        update = tf.gather_nd(self.tf_observation_to_update_table, indices)
-        update = tf.reshape(update, (-1, 1))
-        # action = self.observation_to_action_table[memory, observation]
-        # update = self.observation_to_update_table[memory, observation]
-        if self.model_memory_size == 0:
-            action_dict = action
-            policy_state = update
-        else:
-            action_dict = {
-                "simulator_action": action,
-                "memory_update": update
-            }
-
-        return PolicyStep(action_dict, policy_state)
-    
-    def _get_initial_state(self, batch_size):
-        return tf.zeros((batch_size, 1), dtype=tf.int32)
 
 class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
     def __init__(self, agent_policy: TFPolicy, environment: EnvironmentWrapperVec, 

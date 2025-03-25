@@ -464,11 +464,6 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             ),
             self.terminated_step_types
         )
-        self.step_types = tf.where(
-            self.dones,
-            self.init_step_types,
-            self.default_step_types
-        )
         self._current_time_step = ts.TimeStep(
             step_type=self.step_types,
             reward=self.reward,
@@ -663,7 +658,10 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         observation = tf.constant([observation], dtype=tf.float32)
         state = np.where(self.state_to_observation_map.numpy() ==
                              observation_integer)[0][0]
-        mask = tf.constant([self.vectorized_simulator.simulator.allowed_actions[state].tolist()], dtype=tf.bool)
+        if self.vectorized_simulator.simulator.sinks[state]:
+            mask = tf.constant([[True] * self.nr_actions], dtype=tf.bool)
+        else:
+            mask = tf.constant([self.vectorized_simulator.simulator.allowed_actions[state].tolist()], dtype=tf.bool)
         integer = tf.constant([[observation_integer]], dtype=tf.int32)
         time_step = ts.TimeStep(
             observation={"observation": observation, "mask": mask, "integer": integer},

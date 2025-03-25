@@ -181,7 +181,7 @@ class SynthesizerPomdp:
 
     def assign_rl_result(self, assignment):
         self.storm_control.latest_rl_result = assignment
-        self.storm_control.paynt_export = self.second_quotient.extract_policy(
+        self.storm_control.rl_export = self.second_quotient.extract_policy(
             self.storm_control.latest_rl_result)
         self.storm_control.rl_bounds = self.second_quotient.specification.optimality.optimum
         self.storm_control.rl_fsc_size = self.second_quotient.policy_size(
@@ -207,7 +207,20 @@ class SynthesizerPomdp:
         if self.is_rl_better():
             return self.storm_control.latest_rl_result_fsc
         return self.storm_control.latest_paynt_result_fsc
-
+    
+    def get_better_fsc_rl_less(self):
+        if self.storm_control.latest_paynt_result_fsc is None and self.storm_control.latest_rl_result_fsc is None:
+            return None
+        elif self.storm_control.paynt_bounds is None:
+            return self.storm_control.latest_storm_fsc
+        elif self.storm_control.storm_bounds is None:
+            return self.storm_control.latest_paynt_result_fsc
+        elif self.storm_control.paynt_bounds <= self.storm_control.storm_bounds and self.quotient.specification.optimality.minimizing:
+            return self.storm_control.latest_paynt_result_fsc
+        elif self.storm_control.paynt_bounds >= self.storm_control.storm_bounds and not self.quotient.specification.optimality.minimizing:
+            return self.storm_control.latest_paynt_result_fsc
+        else:
+            return self.storm_control.latest_storm_fsc
 
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         ''' Main SAYNT loop. '''
@@ -216,7 +229,7 @@ class SynthesizerPomdp:
         self.storm_control.interactive_storm_setup()
         if hasattr(self, "input_rl_settings_dict"):
             rl_synthesizer = SynthesizerRL(
-                self.second_quotient, self.method, self.storm_control, self.input_rl_settings_dict)
+                self.second_quotient, self.method, self.storm_control, self.input_rl_settings_dict, True)
             self.loop = self.input_rl_settings_dict["loop"]
             self.rl_oracle = True
             agent_wrapper = rl_synthesizer.get_agents_wrapper()
@@ -229,7 +242,7 @@ class SynthesizerPomdp:
         iteration_timeout = time.time() + timeout
         timeout_bonus = 0
         self.saynt_timer.start()
-        skip_first = False
+        skip_first = True
         
         while True:
             if iteration == 1:
@@ -246,16 +259,13 @@ class SynthesizerPomdp:
                 time.sleep(0.1)
 
             pre_rl_time = time.time()
-            # if not skip_first and self.rl_oracle and (self.loop or iteration == 1):
-            #     if self.storm_control.latest_storm_fsc is not None:
-            #         fsc = self.storm_control.latest_storm_fsc
-            #     else:
-            #         fsc = None
-            #     assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=701,
-            #                                                       paynt_timeout=paynt_timeout,
-            #                                                       fsc=fsc)
-            #     if assignment is not None:
-            #         self.assign_rl_result(assignment)
+            if not skip_first and self.rl_oracle and (self.loop or iteration == 1):
+                fsc = self.get_better_fsc_rl_less()
+                assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=701,
+                                                                  paynt_timeout=paynt_timeout,
+                                                                  fsc=fsc)
+                if assignment is not None:
+                    self.assign_rl_result(assignment)
             skip_first = False
 
             timeout_bonus += time.time() - pre_rl_time
@@ -275,34 +285,6 @@ class SynthesizerPomdp:
 
             if time.time() > iteration_timeout + timeout_bonus or iteration == iteration_limit:
                 break
-            
-            # if self.rl_oracle:
-            #     print("Unpacking storm result")
-            #     dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
-            #     print(dtmc)
-            #     result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
-            #     print(result.at(0))
-            #     # exit(0)
-            #     
-            #     print("Evaluation started")
-                
-            #     eval_result = evaluate_policy_in_model(simple_fsc,
-            #                                         agent_wrapper.agent.args,
-            #                                         agent_wrapper.agent.environment, 
-            #                                         agent_wrapper.agent.tf_environment,
-            #                                         8001, None)
-            #     exit(0)
-            # print(eval_result.__dict__)
-            
-            pre_clone_time = time.time()
-            simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_storm_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
-                                         time_step_spec=agent_wrapper.agent.wrapper.time_step_spec, 
-                                         action_spec=agent_wrapper.agent.wrapper.action_spec)
-            fsc = rl_synthesizer.perform_policy_to_fsc_cloning(simple_fsc, agent_wrapper.agent.environment, agent_wrapper.agent.tf_environment, 3)
-            assignment = rl_synthesizer.compute_paynt_assignment_from_fsc_like(fsc, 1, agent_wrapper, 60)
-            if assignment is not None:
-                self.assign_rl_result(assignment)
-            timeout_bonus += time.time() - pre_clone_time
             
             iteration += 1
 

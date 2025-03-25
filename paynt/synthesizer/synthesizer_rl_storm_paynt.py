@@ -1,47 +1,22 @@
-from rl_src.tools.evaluators import evaluate_extracted_fsc
 from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 from paynt.family.family import Family
-import json
-import numpy as np
-from time import sleep
-import os
 from paynt.rl_extension.family_extractors.external_family_wrapper import ExtractedFamilyWrapper
 
 from rl_src.experimental_interface import ArgsEmulator
-from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import BottleneckExtractor, TableBasedPolicy
+from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import BottleneckExtractor
 from rl_src.tools.evaluators import evaluate_policy_in_model
-from interpreters.direct_fsc_extraction.direct_extraction_main import *
+from interpreters.direct_fsc_extraction.direct_extractor import *
 
-import pickle
-import stormpy
-
-from .statistic import Statistic
-import paynt.synthesizer.synthesizer_ar
-from .synthesizer_ar_storm import SynthesizerARStorm
-from .synthesizer_hybrid import SynthesizerHybrid
-from .synthesizer_multicore_ar import SynthesizerMultiCoreAR
 from .synthesizer_onebyone import SynthesizerOneByOne
 from paynt.rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
 
 from paynt.rl_extension.saynt_rl_tools.rl_saynt_combo_modes import RL_SAYNT_Combo_Modes, init_rl_args
 
-from paynt.rl_extension.saynt_rl_tools.regex_patterns import RegexPatterns
-from paynt.rl_extension.family_extractors.external_family_wrapper import RLFamilyExtractor
-from paynt.parser.prism_parser import PrismParser
 from paynt.quotient.storm_pomdp_control import StormPOMDPControl
 from paynt.quotient.pomdp import PomdpQuotient
 
-import paynt.quotient.quotient
-import paynt.quotient.pomdp
-import paynt.utils.timer
+from rl_src.tools.specification_check import SpecificationChecker
 
-import paynt.verification.property
-
-import math
-from collections import defaultdict
-
-from threading import Thread
-from queue import Queue
 import time
 
 import tensorflow as tf
@@ -49,24 +24,23 @@ import tensorflow as tf
 import logging
 logger = logging.getLogger(__name__)
 
+from rl_src.interpreters.direct_fsc_extraction.direct_extractor import DirectExtractor
+from rl_src.interpreters.direct_fsc_extraction.extraction_stats import ExtractionStats
 
 class SynthesizerRL:
-    def __init__(self, quotient: PomdpQuotient, method: str, storm_control: StormPOMDPControl, input_rl_settings: dict = None):
+    def __init__(self, quotient: PomdpQuotient, method: str, storm_control: StormPOMDPControl, input_rl_settings: dict = None,
+                 use_one_hot_memory = False):
         self.quotient = quotient
         self.use_storm = False
         self.synthesizer = None
         self.set_input_rl_settings_for_paynt(input_rl_settings)
-        if method == "ar":
-            self.synthesizer = paynt.synthesizer.synthesizer_ar.SynthesizerAR
-        elif method == "ar_multicore":
-            self.synthesizer = SynthesizerMultiCoreAR
-        elif method == "hybrid":
-            self.synthesizer = SynthesizerHybrid
+        self.synthesizer = SynthesizerOneByOne
         self.total_iters = 0
 
         if storm_control is not None:
             self.use_storm = True
             self.storm_control = storm_control
+        self.use_one_hot_memory = use_one_hot_memory
 
     def synthesize(self, family=None, print_stats=True, timer=None):
         if family is None:
@@ -103,7 +77,7 @@ class SynthesizerRL:
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=1201, evaluation_goal=50.0, evaluation_antigoal=-0.0,
-                            trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
+                            trajectory_num_steps=25, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=2000, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
                             use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
@@ -165,11 +139,6 @@ class SynthesizerRL:
             obs_memory_dict[observation] = memory_entropies[observation]
         self.quotient.set_memory_from_dict(obs_memory_dict)
 
-    def initialize_main_family_w_extracted_fsc(self, extracted_fsc) -> Family:
-        pass
-
-    def iterative_storm_rl_paynt(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
-        pass
 
     def run_rl_synthesis_jumpstarts(self, fsc, saynt: bool = False, save=True, nr_of_iterations=4000):
         if saynt:
@@ -217,29 +186,36 @@ class SynthesizerRL:
         agents_wrapper.agent.wrapper.set_greedy(False)
         return bottleneck_extractor, extracted_fsc, evaluation_result, latent_dim
 
-    def perform_rl_to_fsc_cloning(self, agents_wrapper: AgentsWrapper, latent_dim=2):
-        buffer = sample_data_with_policy(agents_wrapper.agent.wrapper, 5000,
-                                         agents_wrapper.agent.environment, 
-                                         agents_wrapper.agent.tf_environment)
-        cloned_fsc_actor = behavioral_clone_original_policy_to_fsc(
-            buffer, 100000, agents_wrapper.agent, latent_dim, sample_len=self.args.trajectory_num_steps)
-        fsc = extract_fsc(
-            cloned_fsc_actor, agents_wrapper.agent.environment, latent_dim, self.args)
+    def perform_rl_to_fsc_cloning(self, policy : TFPolicy, 
+                                  environment : EnvironmentWrapperVec, 
+                                  tf_environment : TFPyEnvironment, latent_dim=2):
+        if "Pmax" in self.quotient.get_property().__str__():
+            optimization_specification = SpecificationChecker.Constants.REACHABILITY
+        else:
+            optimization_specification = SpecificationChecker.Constants.REWARD
+
+        direct_extractor = DirectExtractor(memory_len = latent_dim, is_one_hot=self.use_one_hot_memory,
+                                           use_residual_connection=True, training_epochs=60001,
+                                           num_data_steps=6000, get_best_policy_flag=True, model_name=self.model_name,
+                                           max_episode_len=self.args.max_steps, optimizing_specification=optimization_specification)
+        fsc, extraction_stats = direct_extractor.clone_and_generate_fsc_from_policy(
+            policy, environment, tf_environment)
+        extraction_stats.store_as_json(self.model_name, "experiments_loopy_fscs")
         return fsc
     
-    def perform_policy_to_fsc_cloning(self, policy : TFPolicy, 
-                                      environment : EnvironmentWrapperVec, 
-                                      tf_environment : TFPyEnvironment, latent_dim=2):
-        buffer = sample_data_with_policy(policy, 5000, environment, tf_environment)
-        cloned_fsc_actor = behavioral_clone_original_policy_to_fsc(
-            buffer, 70000, policy, latent_dim, sample_len=self.args.trajectory_num_steps, 
-            observation_and_action_constraint_splitter=self.agents_wrapper.agent.wrapper.observation_and_action_constraint_splitter,
-            environment=self.agents_wrapper.agent.environment,
-            tf_environment=self.agents_wrapper.agent.tf_environment,
-            args=self.args)
-        fsc = extract_fsc(
-            cloned_fsc_actor, environment, latent_dim, self.args)
-        return fsc
+    # def perform_policy_to_fsc_cloning(self, policy : TFPolicy, 
+    #                                   environment : EnvironmentWrapperVec, 
+    #                                   tf_environment : TFPyEnvironment, latent_dim=2):
+    #     buffer = sample_data_with_policy(policy, 5000, environment, tf_environment)
+    #     cloned_fsc_actor = behavioral_clone_original_policy_to_fsc(
+    #         buffer, 70000, policy, latent_dim, sample_len=self.args.trajectory_num_steps, 
+    #         observation_and_action_constraint_splitter=self.agents_wrapper.agent.wrapper.observation_and_action_constraint_splitter,
+    #         environment=self.agents_wrapper.agent.environment,
+    #         tf_environment=self.agents_wrapper.agent.tf_environment,
+    #         args=self.args)
+    #     fsc = extract_fsc(
+    #         cloned_fsc_actor, environment, latent_dim, self.args)
+    #     return fsc
 
     def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None):
 
@@ -268,22 +244,26 @@ class SynthesizerRL:
             agents_wrapper.train_agent(nr_rl_iterations)
 
         # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
-
+        agents_wrapper.agent.set_agent_greedy()
+        latent_dim = 2 if not self.use_one_hot_memory else 5
         if False:
             bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
                 agents_wrapper)
         else:
-            latent_dim = 2
-            extracted_fsc = self.perform_policy_to_fsc_cloning(
+            
+            extracted_fsc = self.perform_rl_to_fsc_cloning(
                 agents_wrapper.agent.wrapper, 
                 agents_wrapper.agent.environment, 
                 agents_wrapper.agent.tf_environment, 
                 latent_dim=latent_dim)
+        agents_wrapper.agent.set_agent_stochastic()
         return self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
         
     
     def compute_paynt_assignment_from_fsc_like(self, fsc_like, latent_dim=2, agents_wrapper=None, paynt_timeout=60):
-        self.quotient.set_imperfect_memory_size(3 ** latent_dim)
+
+        fsc_size = 3 ** latent_dim if not self.use_one_hot_memory else latent_dim
+        self.quotient.set_imperfect_memory_size(fsc_size)
 
         family = self.quotient.family
 

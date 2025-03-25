@@ -223,6 +223,7 @@ class ActorValuePretrainer:
             actor_net = external_actor_net
         else:
             actor_net = self.actor_net
+
         # exit(0)
         if external_critic_net is not None:
             critic_net = external_critic_net
@@ -271,7 +272,7 @@ class ActorValuePretrainer:
                     critic_net, experience=experience)
             if epoch % 10 == 0:
                 if epoch % 50 == 0:
-                    self.evaluate_actor(actor_net, critic_net, num_episodes=40)
+                    self.evaluate_actor(actor_net, critic_net, num_steps = self.args.max_steps + 1)
                 print(f"Epoch: {epoch}, Actor Loss: {actor_loss.numpy()}")
                 print(f"Epoch: {epoch}, Critic Loss: {critic_loss.numpy()}")
 
@@ -306,13 +307,13 @@ class ActorValuePretrainer:
             num_steps=(1 + num_steps) * self.args.num_environments
         )
 
-    def evaluate_actor(self, actor_net: ActorDistributionRnnNetwork, critic_net, num_episodes: int):
+    def evaluate_actor(self, actor_net: ActorDistributionRnnNetwork, critic_net, num_steps = 401):
         self.environment.set_random_starts_simulation(False)
         self.tf_environment.reset()
         if self.args.vectorized_envs_flag:
             if not hasattr(self, "vec_driver"):
                 self.init_vectorized_evaluation_driver(
-                    self.tf_environment, self.environment, num_steps=401, actor_net=actor_net, critic_net=critic_net)
+                    self.tf_environment, self.environment, num_steps=num_steps, actor_net=actor_net, critic_net=critic_net)
             
             self.vec_driver.run()
             
@@ -321,15 +322,7 @@ class ActorValuePretrainer:
             self.trajectory_buffer.clear()
             log_evaluation_info(self.evaluation_result)
         else:
-            
-            avg_return, avg_episodic_return, success_rate = compute_average_return(policy=None, tf_environment=self.tf_environment, 
-                                                                                   num_episodes=num_episodes, environment=self.environment,
-                                                                                   custom_runner=self.create_actor_evaluator_runner(actor_net))
-        
-        
-            print("Average Return =", avg_return)
-            print("Average Virtual Goal Value =", avg_episodic_return)
-            print("Goal Reach Probability =", success_rate)
+            raise NotImplementedError("Non-vectorized environments are not supported anymore.")
         self.tf_environment.reset()
 
 

@@ -372,11 +372,15 @@ def evaluate_extracted_fsc(external_evaluation_result : EvaluationResults, model
         set_fsc_values_to_evaluation_result(external_evaluation_result, evaluation_result)
         buffer.clear()
 
-def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator, environment : EnvironmentWrapperVec, tf_environment, max_steps = None,
+def evaluate_policy_in_model(policy : TFPolicy, args : ArgsEmulator = None, 
+                             environment : EnvironmentWrapperVec = None, 
+                             tf_environment = None, max_steps = None,
                              evaluation_result : EvaluationResults = None) -> EvaluationResults:
     """Evaluate the policy in the given environment and return the evaluation results."""
-    if max_steps is None:
+    if max_steps is None and args is not None:
         max_steps = args.max_steps
+    elif max_steps is None:
+        max_steps = 1000
     if evaluation_result is None:
         evaluation_result = EvaluationResults()
     driver, buffer = get_new_vectorized_evaluation_driver(

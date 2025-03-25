@@ -5,10 +5,10 @@ from keras import layers, models, activations
 
 
 class FSCLikeActorNetwork(models.Model):
-    def __init__(self, observation_shape: tf.TensorShape, 
-                 action_range: int, 
-                 memory_len: int, 
-                 use_one_hot: bool = False, 
+    def __init__(self, observation_shape: tf.TensorShape,
+                 action_range: int,
+                 memory_len: int,
+                 use_one_hot: bool = False,
                  use_residual_connection: bool = True):
         super(FSCLikeActorNetwork, self).__init__()
         self.observation_shape = observation_shape
@@ -62,5 +62,5 @@ class FSCLikeActorNetwork(models.Model):
 
         action = self.action(x)
         # State-through estimation, where we ignore round(x)
-        
+
         return action, memory

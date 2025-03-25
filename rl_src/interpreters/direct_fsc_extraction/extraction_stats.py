@@ -1,6 +1,8 @@
-import os, json
+import os
+import json
 
 import tensorflow as tf
+
 
 class ExtractionStats:
     def __init__(self, original_policy_reachability: float, original_policy_reward: float,
@@ -16,8 +18,8 @@ class ExtractionStats:
 
         self.extracted_policy_reachabilities = []
         self.extracted_policy_rewards = []
-        self.extracted_fsc_reachability = None
-        self.extracted_fsc_reward = None
+        self.extracted_fsc_reachability = []
+        self.extracted_fsc_reward = []
 
         self.evaluation_accuracies = []
 
@@ -27,9 +29,9 @@ class ExtractionStats:
         self.extracted_policy_rewards.append(extracted_policy_reward)
 
     def add_fsc_result(self, extracted_fsc_reachability: float, extracted_fsc_reward: float):
-        self.extracted_fsc_reachability = extracted_fsc_reachability
-        self.extracted_fsc_reward = extracted_fsc_reward
-
+        self.extracted_fsc_reachability.append(extracted_fsc_reachability)
+        self.extracted_fsc_reward.append(extracted_fsc_reward)
+        
     def add_evaluation_accuracy(self, evaluation_accuracy: tf.Tensor):
         self.evaluation_accuracies.append(evaluation_accuracy.numpy())
 

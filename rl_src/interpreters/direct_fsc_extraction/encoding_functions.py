@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
+
 def compute_rounded_memory(memory_size: int, memory_int: int, memory_base=3) -> tf.Tensor:
     memory = np.zeros((memory_size,))
     # increase the memory by 1 given the previous memory. Every memory cell can be {-1, 0, 1}
@@ -35,5 +36,3 @@ def get_encoding_functions(is_one_hot: bool = True) -> tuple[callable, callable]
         compute_memory = compute_rounded_memory
         decompute_memory = decompute_rounded_memory
     return compute_memory, decompute_memory
-
-

@@ -4,8 +4,6 @@ import numpy as np
 
 from tf_agents.policies import TFPolicy
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
-from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
-from tf_agents.specs.tensor_spec import TensorSpec
 from tf_agents.trajectories.policy_step import PolicyStep
 
 from interpreters.bottlenecking.bottleneck_autoencoder import Encoder, Decoder, Autoencoder
@@ -19,9 +17,10 @@ from tools.saving_tools import *
 from rl_src.tests.general_test_tools import *
 from agents.recurrent_ppo_agent import Recurrent_PPO_agent
 from environment.environment_wrapper_vec import EnvironmentWrapperVec
-from interpreters.fsc_based_interpreter import ExtractedFSCPolicy
 
 from interpreters.bottlenecking.bottlenecked_actor_network import BottleneckedActor
+
+from interpreters.extracted_fsc.table_based_policy import TableBasedPolicy
 
 import sys
 import os
@@ -49,23 +48,6 @@ class AutoencodedPolicy(TFPolicy):
             new_state = tf.split(substates, num_or_size_splits=2, axis=-1)
             policy_state[state_part1] = new_state
         return PolicyStep(action=action_step.action, state=policy_state, info=action_step.info)
-
-
-class TableBasedPolicy(ExtractedFSCPolicy):
-    def __init__(self, original_policy : TFPolicy, external_observation_to_action_table : np.ndarray, external_observation_to_update_table : np.ndarray, initial_memory = 0):
-        policy_state_spec = TensorSpec(shape=(), dtype=tf.int32)
-        super(TableBasedPolicy, self).__init__(original_policy.time_step_spec, original_policy.action_spec, policy_state_spec=policy_state_spec)
-        self.tf_observation_to_action_table = tf.constant(external_observation_to_action_table, dtype=tf.int32)
-        self.tf_observation_to_update_table = tf.constant(external_observation_to_update_table, dtype=tf.int32)
-
-        self.initial_memory = initial_memory
-
-    def _get_initial_state(self, batch_size):
-        return tf.constant(self.initial_memory, shape=(batch_size, 1), dtype=tf.int32)
-
-    def _action(self, time_step, policy_state, seed):
-        return super(TableBasedPolicy, self)._action(time_step, policy_state, seed)
-
 
 class BottleneckExtractor:
 

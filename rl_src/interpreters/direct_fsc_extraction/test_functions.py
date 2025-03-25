@@ -30,18 +30,18 @@ def compare_two_policies(policy1: TFPolicy, policy2: TFPolicy, buffer: TFUniform
                              "mask": experience.observation["mask"][:, i], 
                              "integer" : experience.observation["integer"][:, i]}
             )
+            for obs in time_step.observation["integer"]:
+                fake_time_step = environment.create_fake_timestep_from_observation_integer(obs.numpy())
             policy_step1 = policy1_eager.action(time_step, policy_state1)
             policy_step2 = policy2_eager.action(time_step, policy_state2)
             action1 = policy_step1.action
             action2 = policy_step2.action
             policy_state1 = policy_step1.state
             policy_state2 = policy_step2.state
-            for mem1, mem2 in zip(policy_state1.numpy(), policy_state2.numpy()):
-                mem2 = memory_encode(mem_size, mem2).numpy()
-                for mem1_val, mem2_val in zip(mem1, mem2):
-                    assert mem1_val == mem2_val, f"Failed for {mem1_val}, {mem2_val}"
-            for act1, act2 in zip(action1.numpy(), action2.numpy()):
-                assert act1 == act2, f"Failed for {act1}, {act2}"
+            for substate1, substate2 in zip(policy_state1, policy_state2):
+                substate2_encoded = memory_encode(mem_size, substate2)
+                tf.debugging.assert_equal(substate1, substate2_encoded, message="Policy states do not match")
+            tf.debugging.assert_equal(action1, action2, message="Actions do not match")
 
 def test_memory_endoce_and_decode_functions(encode, decode, max_memory, memory_size):
     for i in range(max_memory):

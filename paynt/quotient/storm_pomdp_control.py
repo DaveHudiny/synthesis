@@ -532,8 +532,11 @@ class StormPOMDPControl:
     # parse PAYNT/RL result to a dictionart
     def parse_paynt_result(self, quotient, second_quotient=None):
 
-        
-        if second_quotient and self.rl_bounds is not None and self.rl_bounds <= self.paynt_bounds:
+        if self.quotient.specification.optimality.minimizing:
+            comparer = lambda x,y: x <= y
+        else:
+            comparer = lambda x,y: x >= y
+        if second_quotient and self.rl_bounds is not None and comparer(self.rl_bounds, self.paynt_bounds):
             latest_result = self.latest_rl_result
             used_quotient = second_quotient
         else:
@@ -701,6 +704,7 @@ class StormPOMDPControl:
         uses_fsc = False
         used_randomized_schedulers = {}
         paynt_cutoff_states = 0
+
 
         for state in belief_mc.states:
             if 'finite_mem' in state.labels:
