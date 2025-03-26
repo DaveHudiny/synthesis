@@ -5,6 +5,8 @@
 # Login: xhudak03
 
 from agents.father_agent import FatherAgent
+from tools.trajectory_buffer import TrajectoryBuffer
+from tools.evaluation_results_class import EvaluationResults, log_evaluation_info
 from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy, FSC
 from interpreters.tracing_interpret import TracingInterpret
 

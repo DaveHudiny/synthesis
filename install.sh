@@ -12,7 +12,9 @@ PREREQUISITES=${PAYNT_ROOT}/prerequisites # modify this to install prerequisites
 # storm and stormpy dependencies
 sudo apt update -qq
 sudo apt install -y build-essential git cmake libboost-all-dev libcln-dev libgmp-dev libginac-dev automake libglpk-dev libhwloc-dev libz3-dev libxerces-c-dev libeigen3-dev
-sudo apt install -y maven uuid-dev python3.10-dev python3.10-venv python3.10-pip
+sudo apt install -y maven uuid-dev python3.10-dev python3.10-venv
+
+python3.10 -m pip install --upgrade pip
 
 # prerequisites
 mkdir -p ${PREREQUISITES}
@@ -72,6 +74,8 @@ cd ${PREREQUISITES}
 git clone https://github.com/kurecka/VecStorm.git VecStorm
 cd ${PREREQUISITES}/VecStorm
 pip install -e .
+
+cd ${PAYNT_ROOT}
 
 # done
 deactivate

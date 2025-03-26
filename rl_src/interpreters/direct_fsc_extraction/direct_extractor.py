@@ -10,10 +10,11 @@ from tf_agents.replay_buffers.tf_uniform_replay_buffer import TFUniformReplayBuf
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 
 from environment.environment_wrapper_vec import EnvironmentWrapperVec
+from tools.evaluation_results_class import EvaluationResults
 
 from rl_src.tests.general_test_tools import init_environment, init_args
 from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
-from rl_src.tools.evaluators import evaluate_policy_in_model, EvaluationResults
+from rl_src.tools.evaluators import evaluate_policy_in_model
 
 from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import TableBasedPolicy
 from rl_src.tools.specification_check import SpecificationChecker

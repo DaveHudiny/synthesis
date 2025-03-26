@@ -25,7 +25,7 @@ class ArgsEmulator:
                  illegal_action_penalty_per_step=-0.0002, flag_illegal_action_penalty=False, use_rnn_less=False, model_memory_size=0,
                  name_of_experiment="results_of_interpretation", continuous_enlargement=False, continuous_enlargement_step=1, init_size=6,
                  state_supporting: bool = False, train_state_estimator_continuously=False, completely_greedy=False,
-                 render_if_possible : bool = False):
+                 render_if_possible : bool = False, model_name = ""):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -128,3 +128,4 @@ class ArgsEmulator:
         self.train_state_estimator_continuously = train_state_estimator_continuously
         self.completely_greedy = completely_greedy
         self.render_if_possible = render_if_possible
+        self.model_name = model_name

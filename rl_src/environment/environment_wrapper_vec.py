@@ -63,8 +63,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
 
-    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table: list[list] = None, num_envs: int = 1,
-                 specification_checker : SpecificationChecker = None):
+    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, num_envs: int = 1):
         """Initializes the environment wrapper.
 
         Args:
@@ -136,28 +135,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # Initialization of the rewards before simulation.
         self.reward = tf.constant(0.0, dtype=tf.float32)
 
-        # Initialization of the reward multiplier for different tasks.
-        rew_list = list(stormpy_model.reward_models.keys())
-        if rew_list == 0:
-            self.reward_multiplier = 0.0
-        elif "rew" in rew_list[-1]:
-            self.reward_multiplier = 10.0
-        # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
-        else:
-            self.reward_multiplier = 0.0 
-            # self.reward_multiplier = -1.0 if specification_checker is None or specification_checker.optimization_goal == "reachability" else 0.0
-
-        self.initial_reward_turnoff = True
-        
-        # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
-        args.evaluation_goal = args.evaluation_goal if "rew" not in rew_list[-1] else 3.0
-        if "network" in args.prism_model:
-            args.evaluation_goal = 0.0
-        self.goal_values_vector = tf.constant(
-            [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
-        self.antigoal_values_vector = tf.constant(
-            [0.0] * self.num_envs, dtype=tf.float32)
-        # self.turn_on_rewards()
+        # Initialization of reward model.
+        self.set_basic_rewards()
         
 
         self._current_time_step = None
@@ -170,7 +149,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.create_specifications()
 
         # Normalization of the rewards. Useless for PPO with its own normalization.
-        self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32) if "rew" not in rew_list[-1] else tf.constant(3.0, dtype=tf.float32)
+        self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32)
         self.normalize_simulator_rewards = self.args.normalize_simulator_rewards
         if self.normalize_simulator_rewards:
             self.normalizer = 1.0/tf.abs(self.goal_value)
@@ -195,14 +174,54 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.reward_shaper_function = lambda observation, _: tf.zeros(
             (observation.shape[0],), dtype=tf.float32)
         
-    def turn_on_rewards(self):
-        self.initial_reward_turnoff = False
-        self.reward_multiplier = -1.0 if self.reward_multiplier == 0.0 else self.reward_multiplier
+    def set_basic_rewards(self):
+        rew_list = list(self.stormpy_model.reward_models.keys())
+        self.reward_multiplier = -1.0 if not "rew" in rew_list[-1] else 10.0
         self.antigoal_values_vector = tf.constant(
             [self.args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant(
+            [self.args.evaluation_goal] * self.num_envs, dtype=tf.float32)
 
-    def is_reward_turned_off(self):
-        return self.initial_reward_turnoff
+    def set_reachability_rewards(self):
+        self.reward_multiplier = 0.0
+        self.antigoal_values_vector = tf.constant(
+            [self.args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant(
+            [self.args.evaluation_goal] * self.num_envs, dtype=tf.float32)
+        
+    def set_maxizing_rewards(self):
+        self.reward_multiplier = 10.0
+        self.antigoal_values_vector = tf.constant(
+            [0.0] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant(
+            [1.0] * self.num_envs, dtype=tf.float32)
+        
+    def set_minimizing_rewards(self):
+        self.reward_multiplier = -1.0
+        self.antigoal_values_vector = tf.constant(
+            [0.0] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant( # Decreasing the goal value to make the optimization more reasonable
+            [1.0] * self.num_envs, dtype=tf.float32)
+        
+    def set_reward_model(self, model_name):
+        self.reward_models = {
+            "network": self.set_minimizing_rewards,
+            "drone": self.set_reachability_rewards,
+            "refuel": self.set_reachability_rewards,
+            "intercept": self.set_reachability_rewards,
+            "evade": self.set_reachability_rewards,
+            "rocks": self.set_minimizing_rewards,
+            "geo": self.set_reachability_rewards,
+            "mba": self.set_minimizing_rewards,
+            "maze": self.set_maxizing_rewards
+        }
+        for key in self.reward_models.keys():
+            if key in model_name:
+                self.reward_models[key]()
+                break
+        
+
+        
         
     def get_num_of_expansion_features(self, vectorized_simulator : StormVecEnv, state_based_sim : StormVecEnv):
         original_labels = vectorized_simulator.get_observation_labels()
@@ -369,7 +388,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.last_action = np.zeros((self.num_envs,), dtype=np.int32)
         self.virtual_reward = tf.zeros((self.num_envs,), dtype=tf.float32)
         self.dones = np.array(len(self.last_observation) * [False])
-        self.reward = tf.constant(
+        self.orig_reward = tf.constant(
             np.array(len(self.last_observation) * [0.0]), dtype=tf.float32)
         hidden_state = self.vectorized_simulator.simulator_states
         self.integers = tf.reshape(
@@ -384,7 +403,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.truncated = np.array(len(self.last_observation) * [False])
         self._current_time_step = ts.TimeStep(
             observation=observation_tensor,
-            reward=self.reward_multiplier * self.reward,
+            reward=self.reward_multiplier * self.orig_reward,
             discount=self.discount,
             step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32))
         self.prev_dones = np.array(len(self.last_observation) * [False])
@@ -421,7 +440,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.flag_goal = tf.zeros((self.num_envs,), dtype=tf.bool)
         labels_mask = tf.convert_to_tensor(self.labels_mask, dtype=tf.bool)
         labels_mask = tf.reshape(labels_mask, (self.num_envs,))
-        self.default_rewards = tf.constant(self.reward, dtype=tf.float32)
+        self.default_rewards = tf.constant(self.orig_reward, dtype=tf.float32) * self.reward_multiplier
         antigoal_values_vector = self.antigoal_values_vector + self.default_rewards
         goal_values_vector = self.goal_values_vector + self.default_rewards
         self.goal_state_mask = labels_mask & self.dones
@@ -473,7 +492,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         )
         
         self.prev_dones = self.dones
-        self.virtual_reward = self.reward - self.default_rewards
+        self.virtual_reward = self.reward
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -499,8 +518,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self.goal = True
         else:
             self.goal = False
-        self.reward = tf.constant(
-            rewards.tolist(), dtype=tf.float32) * self.reward_multiplier
+        self.orig_reward = tf.constant(
+            rewards.tolist(), dtype=tf.float32)
         self.dones = done
         self.truncated = truncated
         self.integers = tf.reshape(

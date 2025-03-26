@@ -3,25 +3,19 @@
 # Login: xhudak03
 # File: synthesizer_rl.py
 
-
-from rl_src.environment.environment_wrapper import Environment_Wrapper
 from rl_src.experimental_interface import ArgsEmulator, ExperimentInterface
 from rl_src.interpreters.tracing_interpret import TracingInterpret
 from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
 from rl_src.tools.saving_tools import save_statistics_to_new_json
 from rl_src.tools.encoding_methods import *
-from rl_src.tools.evaluators import EvaluationResults
+from tools.evaluation_results_class import EvaluationResults
 from paynt.quotient.fsc import FSC
 from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
-
-from rl_src.environment import tf_py_environment
 
 from paynt.quotient.fsc import FSC
 from paynt.rl_extension.saynt_controller.saynt_driver import SAYNT_Driver
 
-from rl_src.agents.duplexing.behavioral_trainers import ActorValuePretrainer
-
-from rl_src.agents.father_agent import FatherAgent
+from rl_src.agents.imitation_learning.behavioral_trainers import ActorValuePretrainer
 
 
 import logging

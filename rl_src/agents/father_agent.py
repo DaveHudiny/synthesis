@@ -19,11 +19,12 @@ from tf_agents.trajectories import Trajectory
 import tensorflow as tf
 import tf_agents
 
+from tools.trajectory_buffer import TrajectoryBuffer
 from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from agents.random_agent import RandomAgent
+from tools.evaluation_results_class import EvaluationResults
 from tools.evaluators import *
-from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
 from rl_src.agents.policies.fsc_copy import FSC
 from rl_src.agents.policies.combination_policy import CombinationPolicy, CombinationSettings
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
@@ -314,8 +315,6 @@ class FatherAgent(AbstractAgent):
             self.environment.state_estimator.collect_and_train(
                 self.args.max_steps + 1, external_policy=self.agent.policy, epochs=25)
             self.tf_environment.reset()
-        if self.environment.is_reward_turned_off() and (train_iteration > 999 or self.evaluation_result.reach_probs[-1] > 0.9):
-            self.environment.turn_on_rewards()
         return train_loss
 
     def train_body_off_policy(self, num_iterations, vectorized: bool = True, randomized=False):

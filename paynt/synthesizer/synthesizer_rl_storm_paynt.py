@@ -1,3 +1,4 @@
+from tools.evaluation_results_class import EvaluationResults
 from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 from paynt.family.family import Family
 from paynt.rl_extension.family_extractors.external_family_wrapper import ExtractedFamilyWrapper

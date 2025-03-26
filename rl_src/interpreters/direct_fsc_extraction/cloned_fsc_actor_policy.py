@@ -13,10 +13,11 @@ from tf_agents.environments.tf_py_environment import TFPyEnvironment
 from keras import optimizers
 
 from interpreters.direct_fsc_extraction.fsc_like_actor_network import FSCLikeActorNetwork
+from tools.evaluation_results_class import EvaluationResults
 from tools.specification_check import SpecificationChecker
 from tools.args_emulator import ArgsEmulator
 from environment.environment_wrapper_vec import EnvironmentWrapperVec
-from tools.evaluators import evaluate_policy_in_model, EvaluationResults
+from tools.evaluators import evaluate_policy_in_model
 from interpreters.direct_fsc_extraction.extraction_stats import ExtractionStats
 
 import logging

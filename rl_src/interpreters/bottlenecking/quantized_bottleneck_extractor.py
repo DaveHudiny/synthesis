@@ -11,6 +11,7 @@ from interpreters.bottlenecking.bottleneck_autoencoder import Encoder, Decoder, 
 from environment.tf_py_environment import TFPyEnvironment
 from agents.father_agent import FatherAgent
 
+from tools.evaluation_results_class import EvaluationResults
 from tools.evaluators import *
 from tools.saving_tools import *
 

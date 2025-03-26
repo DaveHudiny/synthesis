@@ -12,8 +12,6 @@ from keras.layers import LSTM, TimeDistributed, Dense
 from tf_agents.policies import TFPolicy
 from tf_agents.trajectories.time_step import TimeStep
 
-from tools.args_emulator import ArgsEmulator
-
 
 def generate_legal_actions(masks):
     """Changes the illegal actions to random allowed actions given mask with allowed actions."""

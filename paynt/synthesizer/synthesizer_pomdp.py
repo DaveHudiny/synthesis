@@ -259,7 +259,7 @@ class SynthesizerPomdp:
                 time.sleep(0.1)
 
             pre_rl_time = time.time()
-            if not skip_first and self.rl_oracle and (self.loop or iteration == 1):
+            if False and not skip_first and self.rl_oracle and (self.loop or iteration == 1):
                 fsc = self.get_better_fsc_rl_less()
                 assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=701,
                                                                   paynt_timeout=paynt_timeout,
@@ -280,7 +280,7 @@ class SynthesizerPomdp:
             self.storm_control.belief_controller_size = self.storm_control.get_belief_controller_size(
                 self.storm_control.latest_storm_result, self.storm_control.paynt_fsc_size)
 
-            if self.rl_oracle:
+            if self.storm_control.latest_storm_fsc is not None:
                 pre_clone_time = time.time()
                 print("Unpacking storm result")
                 dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
@@ -349,8 +349,8 @@ class SynthesizerPomdp:
         while True:
             if self.storm_control.is_storm_better == False:
                 self.storm_control.parse_results(self.quotient)
-                assignment = self.unfold_and_synthesize(
-                    mem_size, unfold_storm, unfold_imperfect_only)
+            assignment = self.unfold_and_synthesize(
+                mem_size, unfold_storm, unfold_imperfect_only)
             if assignment is not None:
                 self.storm_control.latest_paynt_result = assignment
                 self.storm_control.paynt_export = self.quotient.extract_policy(
