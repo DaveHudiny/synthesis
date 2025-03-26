@@ -159,24 +159,33 @@ class SynthesizerRL:
             agents_wrapper.save_to_json(
                 experiment_name, model=self.model_name, method=self.args.learning_method)
 
+    def bottleneck_extraction(self, agents_wrapper : AgentsWrapper, 
+                              input_dim : int =64, latent_dim : int = 1, 
+                              best_extractor : BottleneckExtractor = None, 
+                              best_result : EvaluationResults = None
+                              ) -> tuple[BottleneckExtractor, EvaluationResults]:
+        bottleneck_extractor = BottleneckExtractor(
+                agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
+        bottleneck_extractor.train_autoencoder(
+                agents_wrapper.agent.wrapper, num_epochs=20, num_data_steps=self.args.max_steps + 1)
+        evaluation_result = bottleneck_extractor.evaluate_bottlenecking(
+                agents_wrapper.agent, max_steps=self.args.max_steps + 1)
+        if best_extractor is None or evaluation_result.best_reach_prob > best_result.best_reach_prob:
+                best_extractor = bottleneck_extractor
+                best_result = evaluation_result
+        elif evaluation_result.best_reach_prob == best_result.best_reach_prob and evaluation_result.best_return > best_result.best_return:
+                best_extractor = bottleneck_extractor
+                best_result = evaluation_result
+        return best_extractor, best_result
+
     def perform_bottleneck_extraction(self, agents_wrapper: AgentsWrapper):
         input_dim = 64
         latent_dim = 1
         best_bottleneck_extractor = None
         best_evaluation_result = None
         for i in range(2):
-            bottleneck_extractor = BottleneckExtractor(
-                agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
-            bottleneck_extractor.train_autoencoder(
-                agents_wrapper.agent.wrapper, num_epochs=20, num_data_steps=self.args.max_steps + 1)
-            evaluation_result = bottleneck_extractor.evaluate_bottlenecking(
-                agents_wrapper.agent, max_steps=self.args.max_steps + 1)
-            if best_bottleneck_extractor is None or evaluation_result.best_reach_prob > best_evaluation_result.best_reach_prob:
-                best_bottleneck_extractor = bottleneck_extractor
-                best_evaluation_result = evaluation_result
-            elif evaluation_result.best_reach_prob == best_evaluation_result.best_reach_prob and evaluation_result.best_return > best_evaluation_result.best_return:
-                best_bottleneck_extractor = bottleneck_extractor
-                best_evaluation_result = evaluation_result
+            best_bottleneck_extractor, best_evaluation_result = self.bottleneck_extraction(
+                agents_wrapper, input_dim, latent_dim, best_bottleneck_extractor, best_evaluation_result)
         bottleneck_extractor = best_bottleneck_extractor
         agents_wrapper.agent.wrapper.set_greedy(True)
         extracted_fsc = bottleneck_extractor.extract_fsc(
@@ -245,7 +254,7 @@ class SynthesizerRL:
 
         # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
         agents_wrapper.agent.set_agent_greedy()
-        latent_dim = 2 if not self.use_one_hot_memory else 5
+        latent_dim = 2 if not self.use_one_hot_memory else 2
         if False:
             bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
                 agents_wrapper)

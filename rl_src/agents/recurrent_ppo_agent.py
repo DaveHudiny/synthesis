@@ -77,7 +77,7 @@ class Recurrent_PPO_agent(FatherAgent):
             policy_l2_reg=0.0001,
             value_function_l2_reg=0.0001,
             value_pred_loss_coef=0.45,
-            entropy_regularization=0.04,
+            entropy_regularization=0.02,
             normalize_rewards=True,
             normalize_observations=True,
         )

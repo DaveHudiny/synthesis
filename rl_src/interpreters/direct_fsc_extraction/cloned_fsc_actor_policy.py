@@ -133,8 +133,8 @@ class ClonedFSCActorPolicy(TFPolicy):
         neural_fsc = cloned_actor.fsc_actor
         optimizer = optimizers.Adam(learning_rate=1.6e-4)
         loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        loss_metric = tf.keras.metrics.Mean(name="train_loss")
-        accuracy_metric = tf.keras.metrics.SparseCategoricalAccuracy(
+        loss_metric = keras.metrics.Mean(name="train_loss")
+        accuracy_metric = keras.metrics.SparseCategoricalAccuracy(
             name="accuracy")
 
         self.evaluation_result = None
@@ -170,6 +170,10 @@ class ClonedFSCActorPolicy(TFPolicy):
             self.periodical_evaluation(i, loss_metric, accuracy_metric, cloned_actor,
                                        environment, tf_environment, extraction_stats,
                                        self.evaluation_result, specification_checker)
+            if i > 10000 and accuracy_metric.result() > 0.98:
+                break
+            loss_metric.reset_states()
+            accuracy_metric.reset_states()
 
         return extraction_stats
 
@@ -189,8 +193,7 @@ class ClonedFSCActorPolicy(TFPolicy):
             logger.info(f"Epoch {iteration_number}, Loss: {avg_loss:.4f}")
             logger.info(f"Epoch {iteration_number}, Accuracy: {accuracy:.4f}")
             extraction_stats.add_evaluation_accuracy(accuracy)
-            loss_metric.reset_states()
-            accuracy_metric.reset_states()
+            
         if iteration_number % 5000 == 0:
             self.evaluation_result = evaluate_policy_in_model(
                 cloned_actor, None, environment, tf_environment, self.max_episode_length * 2, evaluation_result)

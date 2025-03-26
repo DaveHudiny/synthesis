@@ -1,9 +1,6 @@
 import tensorflow as tf
 from tf_agents.trajectories.trajectory import Trajectory
-from tf_agents.trajectories.time_step import StepType
-from tf_agents.networks import value_rnn_network, actor_distribution_network
 from tf_agents.replay_buffers.tf_uniform_replay_buffer import TFUniformReplayBuffer
-from tf_agents.replay_buffers.episodic_replay_buffer import EpisodicReplayBuffer
 
 from rl_src.environment.tf_py_environment import TFPyEnvironment
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
@@ -34,6 +31,8 @@ from agents.policies.fsc_copy import FSC
 
 from tf_agents.networks.network import get_state_spec
 
+import keras
+
 
 
 
@@ -50,15 +49,15 @@ class ActorValuePretrainer:
             tf_environment, tf_environment.action_spec())
         self.critic_net = create_recurrent_value_net_demasked(tf_environment)
 
-        self.actor_optimizer = tf.keras.optimizers.Adam(
+        self.actor_optimizer = keras.optimizers.Adam(
             learning_rate=0.0005, weight_decay=0.00001)
-        self.actor_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
+        self.actor_loss_fn = keras.losses.SparseCategoricalCrossentropy(
             from_logits=True)
         self.gamma = 0.99
 
-        self.critic_optimizer = tf.keras.optimizers.Adam(
+        self.critic_optimizer = keras.optimizers.Adam(
             learning_rate=0.0005, weight_decay=0.00001)
-        self.critic_loss_fn = tf.keras.losses.MeanSquaredError()
+        self.critic_loss_fn = keras.losses.MeanSquaredError()
         self.init_replay_buffer(
             tf_environment, collect_data_spec=collect_data_spec)
         self.evaluation_result = EvaluationResults(self.environment.goal_value)
@@ -138,13 +137,13 @@ class ActorValuePretrainer:
         observations, actions, step_types = experience.observation, experience.action, experience.step_type
         observations = self.normalize(observations)
         with tf.GradientTape() as tape:
-            init_state = actor_net.get_initial_state(observations.shape[0])
+            # init_state = actor_net.get_initial_state(observations.shape[0])
             # Create init state with random values
             # for i in range(len(init_state)):
             #    init_state[i] = tf.random.normal(init_state[i].shape)
             
             predicted_actions, network_state = actor_net(
-                observations, step_type=step_types, network_state=init_state, training=True)
+                observations, step_type=step_types, training=True)
             logits = predicted_actions.logits_parameter()
             _, _, num_classes = logits.shape
             actions = tf.reshape(actions, (-1,))
@@ -156,7 +155,7 @@ class ActorValuePretrainer:
         grads = [tf.clip_by_norm(grad, clip_norm=1.0) for grad in grads]
         self.actor_optimizer.apply_gradients(
             zip(grads, actor_net.trainable_variables))
-
+        self.accuracy_metric.update_state(actions, logits)
         return actor_loss
 
     def train_value_iteration(self, critic_net: ValueRnnNetwork, experience):
@@ -194,28 +193,6 @@ class ActorValuePretrainer:
     def reinit_fsc_policy_driver(self, fsc: FSC = None):
         self.init_fsc_policy_driver(
             tf_environment=self.tf_environment, fsc=fsc)
-    
-    def train_with_external_trajectories(self, trajectories : list[Trajectory], num_epochs : int):
-        replay_buffer = TFUniformReplayBuffer(
-            data_spec=self.replay_buffer.data_spec,
-            batch_size=1,
-            max_length=2056 * self.args.max_steps)
-        for trajectory in trajectories:
-            replay_buffer.add_batch(trajectory)
-        dataset = replay_buffer.as_dataset(
-            num_parallel_calls=8, sample_batch_size=16, num_steps=25, single_deterministic_pass=False).prefetch(64)
-        self.iterator = iter(dataset)
-        for epoch in range(num_epochs):
-            experience, _ = next(self.iterator)
-            actor_loss = self.train_actor_iteration(
-                self.actor_net, experience=experience)
-            critic_loss = self.train_value_iteration(
-                self.critic_net, experience=experience)
-            if epoch % 10 == 0:
-                print(f"Epoch: {epoch}, Actor Loss: {actor_loss.numpy()}")
-                print(f"Epoch: {epoch}, Critic Loss: {critic_loss.numpy()}")
-            if epoch % 50 == 0:
-                self.evaluate_actor(self.actor_net, self.critic_net, num_episodes=40)
 
     def train_both_networks(self, num_epochs: int, fsc: FSC, external_actor_net: ActorDistributionRnnNetwork = None, external_critic_net: ValueRnnNetwork = None,
                             use_best_traj_only = False, offline_data = False):
@@ -232,12 +209,8 @@ class ActorValuePretrainer:
 
         if fsc is not None:
             self.reinit_fsc_policy_driver(fsc=fsc)
-        
-        def is_valid_trajectory(trajectory : Trajectory, *args):
-            step_types = trajectory.step_type
-            logic = tf.reduce_all(step_types[:-1] != StepType.LAST)
-            return logic
-        
+        self.accuracy_metric = keras.metrics.SparseCategoricalAccuracy(
+            name="accuracy")
         dataset = self.replay_buffer.as_dataset(
             num_parallel_calls=8, sample_batch_size=64, num_steps=25, single_deterministic_pass=False).prefetch(64)
         self.iterator = iter(dataset)
@@ -273,6 +246,8 @@ class ActorValuePretrainer:
             if epoch % 10 == 0:
                 if epoch % 50 == 0:
                     self.evaluate_actor(actor_net, critic_net, num_steps = self.args.max_steps + 1)
+                print("Accuracy: ", self.accuracy_metric.result().numpy())
+                self.accuracy_metric.reset_states()
                 print(f"Epoch: {epoch}, Actor Loss: {actor_loss.numpy()}")
                 print(f"Epoch: {epoch}, Critic Loss: {critic_loss.numpy()}")
 

@@ -148,6 +148,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             # self.reward_multiplier = -1.0 if specification_checker is None or specification_checker.optimization_goal == "reachability" else 0.0
 
         self.initial_reward_turnoff = True
+        
         # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
         args.evaluation_goal = args.evaluation_goal if "rew" not in rew_list[-1] else 3.0
         if "network" in args.prism_model:
@@ -156,7 +157,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
         self.antigoal_values_vector = tf.constant(
             [0.0] * self.num_envs, dtype=tf.float32)
-        
+        # self.turn_on_rewards()
         
 
         self._current_time_step = None
