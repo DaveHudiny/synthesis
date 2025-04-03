@@ -2,6 +2,10 @@
 # Author: David Hudák
 # Login: xhudak03
 # File: interface.py
+
+import sys
+sys.path.append("../")
+
 from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
 import copy
 import argparse
@@ -11,8 +15,8 @@ from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 import os
 import logging
 import time
-import sys
-sys.path.append("../")
+
+
 
 
 logger = logging.getLogger(__name__)
@@ -145,7 +149,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         encoding_method = "Valuations"
         refusing = None
 
-        for learning_method in ["Stochastic_PPO"]:
+        for learning_method in ["PPO"]:
             # if not "network" in model:
             #     continue
             for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
@@ -156,7 +160,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False,
                                     evaluate_random_policy=False, max_steps=401, evaluation_goal=60, evaluation_antigoal=-0.0,
                                     trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
-                                    normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator,
+                                    normalize_simulator_rewards=False, buffer_size=5000, random_start_simulator=random_start_simulator,
                                     replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
                                     use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,

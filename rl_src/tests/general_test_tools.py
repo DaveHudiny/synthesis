@@ -1,9 +1,9 @@
 import numpy as np
-from rl_src.environment.pomdp_builder import *
+from environment.pomdp_builder import *
 
-from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
-from rl_src.tools.args_emulator import ArgsEmulator
-from rl_src.environment.tf_py_environment import TFPyEnvironment
+from environment.environment_wrapper_vec import EnvironmentWrapperVec
+from tools.args_emulator import ArgsEmulator
+from environment.tf_py_environment import TFPyEnvironment
 
 
 def init_environment(args : ArgsEmulator) -> tuple[EnvironmentWrapperVec, TFPyEnvironment]:

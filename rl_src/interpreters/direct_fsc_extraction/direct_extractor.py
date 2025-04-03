@@ -12,12 +12,12 @@ from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 from environment.environment_wrapper_vec import EnvironmentWrapperVec
 from tools.evaluation_results_class import EvaluationResults
 
-from rl_src.tests.general_test_tools import init_environment, init_args
-from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
-from rl_src.tools.evaluators import evaluate_policy_in_model
+from tests.general_test_tools import init_environment, init_args
+from agents.recurrent_ppo_agent import Recurrent_PPO_agent
+from tools.evaluators import evaluate_policy_in_model
 
-from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import TableBasedPolicy
-from rl_src.tools.specification_check import SpecificationChecker
+from interpreters.bottlenecking.quantized_bottleneck_extractor import TableBasedPolicy
+from tools.specification_check import SpecificationChecker
 
 import logging
 
@@ -106,8 +106,8 @@ class DirectExtractor:
         extraction_stats = self.cloned_actor.behavioral_clone_original_policy_to_fsc(
             buffer, num_epochs=self.training_epochs, specification_checker=self.specification_checker,
             environment=env, tf_environment=tf_env, args=None, extraction_stats=self.extraction_stats)
-        if self.get_best_policy_flag:
-            self.cloned_actor.load_best_policy()
+        # if self.get_best_policy_flag:
+        #     self.cloned_actor.load_best_policy()
         fsc = DirectExtractor.extract_fsc(self.cloned_actor, env, self.memory_len, is_one_hot=self.is_one_hot)
         fsc_res = evaluate_policy_in_model(fsc, environment=env, tf_environment=tf_env, max_steps=(self.max_episode_len + 1) * 2)
         extraction_stats.add_fsc_result(fsc_res.reach_probs[-1], fsc_res.returns[-1])
@@ -254,9 +254,10 @@ if __name__ == "__main__":
     # test_memory_endoce_and_decode_functions(encode, decode, max_memory, memory_size)
     prism_templ = os.path.join(args.prism_path, "sketch.templ")
     properties_templ = os.path.join(args.prism_path, "sketch.props")
-    _, _, extraction_stats, og_agent = DirectExtractor.run_benchmark(prism_templ, properties_templ, args.memory_size, args.num_data_steps, args.num_training_steps,
-                                                      args.specification_goal, args.optimization_goal, args.use_one_hot,
-                                                      args.extraction_epochs, args.use_residual_connection)
+    _, _, extraction_stats, og_agent = DirectExtractor.run_benchmark(prism_templ, properties_templ, args.memory_size, 
+                                                                     args.num_data_steps, args.num_training_steps,
+                                                                     args.specification_goal, args.optimization_goal, args.use_one_hot,
+                                                                     args.extraction_epochs, args.use_residual_connection)
 
     extraction_stats.store_as_json(args.prism_path.split(
         "/")[-1], args.experiments_storage_path_folder)

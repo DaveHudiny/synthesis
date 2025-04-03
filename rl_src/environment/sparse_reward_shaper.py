@@ -5,7 +5,7 @@ import enum
 
 from tf_agents.trajectories import Trajectory
 
-from rl_src.agents.policies.fsc_copy import FSC
+from agents.policies.fsc_copy import FSC
 
 import numpy as np
 

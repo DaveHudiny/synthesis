@@ -4,7 +4,7 @@ from environment.pomdp_builder import *
 from stormpy import simulator
 import vec_storm
 
-from general_test_tools import get_scalarized_reward, special_labels, initialize_prism_model
+from tests.general_test_tools import get_scalarized_reward, special_labels, initialize_prism_model
 
 
 import numpy as np

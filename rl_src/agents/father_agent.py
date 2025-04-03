@@ -25,8 +25,8 @@ from agents.abstract_agent import AbstractAgent
 from agents.random_agent import RandomAgent
 from tools.evaluation_results_class import EvaluationResults
 from tools.evaluators import *
-from rl_src.agents.policies.fsc_copy import FSC
-from rl_src.agents.policies.combination_policy import CombinationPolicy, CombinationSettings
+from agents.policies.fsc_copy import FSC
+from agents.policies.combination_policy import CombinationPolicy, CombinationSettings
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
 from agents.policies.policy_mask_wrapper import PolicyMaskWrapper
@@ -213,7 +213,7 @@ class FatherAgent(AbstractAgent):
                 self.current_env = self.current_env + 1
 
     def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, 
-                              demasked : bool =False, 
+                              demasked : bool = False, 
                               alternative_observer: callable = None, 
                               batch_tf_environments : list[tf_py_environment.TFPyEnvironment] = []):
         if demasked:
@@ -311,10 +311,7 @@ class FatherAgent(AbstractAgent):
             self.evaluate_agent(vectorized=vectorized, max_steps = self.args.max_steps * 2)
             self.environment.set_random_starts_simulation(randomized)
             self.tf_environment.reset()
-        if train_iteration % 500 == 0 and self.args.train_state_estimator_continuously:
-            self.environment.state_estimator.collect_and_train(
-                self.args.max_steps + 1, external_policy=self.agent.policy, epochs=25)
-            self.tf_environment.reset()
+            
         return train_loss
 
     def train_body_off_policy(self, num_iterations, vectorized: bool = True, randomized=False):
@@ -406,6 +403,12 @@ class FatherAgent(AbstractAgent):
         self.init_demonstration_shaper(fsc)
         self.environment.set_reward_shaper(
             self.shaper.create_reward_function())
+        
+    def special_agent_pretraining_stuff(self):
+        pass # Father agent does not have any special pretraining stuff.
+
+    def special_agent_midtraining_stuff(self):
+        pass # Father agent does not have any special training stuff.
 
     def train_agent(self, iterations: int,
                     vectorized: bool = True,
@@ -423,6 +426,7 @@ class FatherAgent(AbstractAgent):
             self.agent.train = common.function(self.agent.train)
         if fsc is not None:
             self.evaluate_fsc(fsc)
+        # self.special_agent_pretraining_stuff()
         # print("during training:", self.environment.vectorized_simulator.simulator.transitions.nr_states)
         # self.evaluate_agent(vectorized=vectorized)
         if fsc is not None and shaping:

@@ -39,7 +39,7 @@ class TrajectoryBuffer:
     def add_batched_step(self, traj: Trajectory):
         environment = self.environment
         self.virtual_rewards.append(environment.virtual_reward.numpy())
-        self.real_rewards.append(environment.default_rewards.numpy())
+        self.real_rewards.append(environment.orig_reward.numpy())
         self.finished.append(environment.dones)
         self.finished_successfully.append(environment.goal_state_mask)
         self.finished_truncated.append(environment.truncated)

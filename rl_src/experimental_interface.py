@@ -271,20 +271,7 @@ class ExperimentInterface:
             return self.evaluate_random_policy()
         
         self.agent = self.initialize_agent()
-        batch_tf_environments = []
-        if self.args.continuous_enlargement:
-            original_args = self.args
-            i = self.args.init_size
-            while i < 21:
-                self.args.constants= f"N={i}"
-                num_of_expansion_features = self.environment.num_of_expansion_features
-                _, tf_environment, _ = self.initialize_environment(self.args, num_of_expansion_fatures=num_of_expansion_features)
-                # batch_environments.append(environment)
-                batch_tf_environments.append(tf_environment)
-                i += self.args.continuous_enlargement_step
-            self.args = original_args
 
-        self.agent.init_collector_driver(self.tf_environment, demasked=True, batch_tf_environments=batch_tf_environments)
         self.agent.train_agent(self.args.nr_runs, vectorized=self.args.vectorized_envs_flag,
                                replay_buffer_option=self.args.replay_buffer_option)
         self.agent.save_agent()

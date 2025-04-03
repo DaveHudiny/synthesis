@@ -48,6 +48,13 @@ class SynthesizerPomdp:
         self.storm_control = storm_control
         if storm_control is not None:
             self.storm_control.quotient = self.quotient
+            
+            if quotient.specification.optimality.minimizing:
+                self.storm_control.comparer = lambda x, y: x <= y
+            else:
+                self.storm_control.comparer = lambda x, y: x >= y
+
+
             self.storm_control.pomdp = self.quotient.pomdp
             self.storm_control.spec_formulas = self.quotient.specification.stormpy_formulae()
             self.synthesis_terminate = False
@@ -190,6 +197,8 @@ class SynthesizerPomdp:
             self.storm_control.latest_rl_result)
         self.storm_control.second_quotient = self.second_quotient
         self.storm_control.update_data()
+        if self.storm_control.is_rl_better:
+            self.storm_control.paynt_export = self.storm_control.rl_export
 
     def is_rl_better(self):
         if self.storm_control.rl_bounds is None:
@@ -242,7 +251,7 @@ class SynthesizerPomdp:
         iteration_timeout = time.time() + timeout
         timeout_bonus = 0
         self.saynt_timer.start()
-        skip_first = True
+        skip_first = False
         
         while True:
             if iteration == 1:
@@ -259,12 +268,13 @@ class SynthesizerPomdp:
                 time.sleep(0.1)
 
             pre_rl_time = time.time()
-            if False and not skip_first and self.rl_oracle and (self.loop or iteration == 1):
+            if not skip_first and self.rl_oracle and (self.loop or iteration == 1):
                 fsc = self.get_better_fsc_rl_less()
-                assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=701,
+                assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=1001,
                                                                   paynt_timeout=paynt_timeout,
                                                                   fsc=fsc)
                 if assignment is not None:
+                    print("RL assignment found")
                     self.assign_rl_result(assignment)
             skip_first = False
 
@@ -280,27 +290,27 @@ class SynthesizerPomdp:
             self.storm_control.belief_controller_size = self.storm_control.get_belief_controller_size(
                 self.storm_control.latest_storm_result, self.storm_control.paynt_fsc_size)
 
-            if self.storm_control.latest_storm_fsc is not None:
-                pre_clone_time = time.time()
-                print("Unpacking storm result")
-                dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
-                print(dtmc)
-                result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
-                print(result.at(0))
-                # exit(0)
+            # if self.storm_control.latest_storm_fsc is not None:
+            #     pre_clone_time = time.time()
+            #     print("Unpacking storm result")
+            #     dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
+            #     print(dtmc)
+            #     result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
+            #     print(result.at(0))
+            #     # exit(0)
                 
-                print("Evaluation started")
-                simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_storm_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
-                                            time_step_spec=agent_wrapper.agent.wrapper.time_step_spec, 
-                                            action_spec=agent_wrapper.agent.wrapper.action_spec)
-                eval_result = evaluate_policy_in_model(simple_fsc,
-                                                    agent_wrapper.agent.args,
-                                                    agent_wrapper.agent.environment, 
-                                                    agent_wrapper.agent.tf_environment,
-                                                    8001, None)
+            #     print("Evaluation started")
+            #     simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_storm_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
+            #                                 time_step_spec=agent_wrapper.agent.wrapper.time_step_spec, 
+            #                                 action_spec=agent_wrapper.agent.wrapper.action_spec)
+            #     eval_result = evaluate_policy_in_model(simple_fsc,
+            #                                         agent_wrapper.agent.args,
+            #                                         agent_wrapper.agent.environment, 
+            #                                         agent_wrapper.agent.tf_environment,
+            #                                         801, None)
                 
                 
-                timeout_bonus += time.time() - pre_clone_time
+            #     timeout_bonus += time.time() - pre_clone_time
 
             # For large models, it is not good idea to print the controllers
             # self.print_synthesized_controllers()

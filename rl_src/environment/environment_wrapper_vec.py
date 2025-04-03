@@ -135,8 +135,10 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # Initialization of the rewards before simulation.
         self.reward = tf.constant(0.0, dtype=tf.float32)
 
+
         # Initialization of reward model.
-        self.set_basic_rewards()
+        self.model_name = self.get_model_name()
+        self.set_reward_model(self.model_name)
         
 
         self._current_time_step = None
@@ -201,7 +203,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.antigoal_values_vector = tf.constant(
             [0.0] * self.num_envs, dtype=tf.float32)
         self.goal_values_vector = tf.constant( # Decreasing the goal value to make the optimization more reasonable
-            [1.0] * self.num_envs, dtype=tf.float32)
+            [3.0] * self.num_envs, dtype=tf.float32)
         
     def set_reward_model(self, model_name):
         self.reward_models = {
@@ -215,10 +217,15 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             "mba": self.set_minimizing_rewards,
             "maze": self.set_maxizing_rewards
         }
+        key_found = False
         for key in self.reward_models.keys():
             if key in model_name:
                 self.reward_models[key]()
+                key_found = True
                 break
+        if not key_found:
+            self.set_basic_rewards()
+        
         
 
         
@@ -493,6 +500,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         
         self.prev_dones = self.dones
         self.virtual_reward = self.reward
+        self.orig_reward = self.orig_reward * tf.sign(self.reward_multiplier) # To better demonstrate the objective reward
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -596,9 +604,13 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     
     def get_model_name(self):
         # args.prism_model contains .../model_name/sketch.templ" so we need to extract the model name
-        if not hasattr(self, "model_mame"):
-            self.model_name = self.args.prism_model.split("/")[-2]
-        return self.model_name
+        if self.args.model_name != "":
+            model_name = self.args.model_name
+        elif self.args.prism_model is not None:
+            model_name = self.args.prism_model.split("/")[-2]
+        else:
+            model_name = "unknown"
+        return model_name
     
     def is_renderable(self): # Search from list of known models and return True if the model is renderable
         renderable_models = ["mba", "mba-small", "drone-2-6-1", "drone-2-8-1", "geo-2-8", 

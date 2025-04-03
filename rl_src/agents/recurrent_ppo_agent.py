@@ -4,25 +4,19 @@
 # File: recurrent_ppo_agent.py
 
 import logging
-from paynt.quotient.fsc import FSC
 from agents.father_agent import FatherAgent
 from tools.encoding_methods import *
 
 import tensorflow as tf
-import tf_agents
 
 from environment import tf_py_environment
 from tf_agents.agents.ppo import ppo_agent
 
-from tf_agents.utils import common
-
-from tf_agents.policies import py_tf_eager_policy
 
 
 from environment.environment_wrapper import Environment_Wrapper
 
 from agents.policies.policy_mask_wrapper import PolicyMaskWrapper
-from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
 
 from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
@@ -94,6 +88,20 @@ class Recurrent_PPO_agent(FatherAgent):
             self.load_agent()
         self.init_vec_evaluation_driver(
             self.tf_environment, self.environment, num_steps=self.args.max_steps)
+        
+    def special_agent_pretraining_stuff(self):
+        logger.info("Setting value net to trainable")
+        for var in self.agent.trainable_variables:
+            var._trainable = False
+        for var in self.agent._value_net.variables:
+            var._trainable = True
+
+    def special_agent_midtraining_stuff(self):
+        logger.info("Setting actor net to trainable")
+        for var in self.agent.variables:
+            var._trainable = True
+        self.agent.initialize()
+
 
     def reset_weights(self):
         for net_type in [self.agent._value_net, self.agent._actor_net]:

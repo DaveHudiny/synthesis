@@ -2,9 +2,9 @@ source prerequisites/venv/bin/activate
 
 run_loop(){
     # Go through all models in the folder and runs paynt on the model
-    folders=("rl_src/models_paynt_experiments/")
+    folders=($1)
     # already_performed_experiments=("evade" "grid-large-10-5" "grid-large-30-5" "intercept" "intercept-n7-r1" "mba" "mba-small")
-    already_performed_experiments=("evade-n12" "drone-2-6-1" "geo-2-8" "maze-10")
+    already_performed_experiments=()
     experiment_folder="experiments_bc_loop"
     if ! [ -d $experiment_folder ]; then
         mkdir $experiment_folder
@@ -40,4 +40,4 @@ run_loop(){
 }
 
 
-run_loop
+run_loop $1

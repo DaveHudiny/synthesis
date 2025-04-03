@@ -1,14 +1,14 @@
 import sys
 sys.path.append("../")
 
-from rl_src.environment.environment_wrapper_vec import EnvironmentWrapperVec
+from environment.environment_wrapper_vec import EnvironmentWrapperVec
 
 from tf_agents.environments import tf_py_environment
 
-from rl_src.tests.general_test_tools import *
-from rl_src.tools.args_emulator import ArgsEmulator, ReplayBufferOptions
+from tests.general_test_tools import *
+from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
-from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
+from agents.recurrent_ppo_agent import Recurrent_PPO_agent
 
 def init_environment(args : ArgsEmulator):
     prism_model = initialize_prism_model(args.prism_model, args.prism_properties, args.constants)

@@ -1,4 +1,4 @@
-from tools.evaluation_results_class import EvaluationResults
+from rl_src.tools.evaluation_results_class import EvaluationResults
 from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 from paynt.family.family import Family
 from paynt.rl_extension.family_extractors.external_family_wrapper import ExtractedFamilyWrapper
@@ -6,7 +6,7 @@ from paynt.rl_extension.family_extractors.external_family_wrapper import Extract
 from rl_src.experimental_interface import ArgsEmulator
 from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import BottleneckExtractor
 from rl_src.tools.evaluators import evaluate_policy_in_model
-from interpreters.direct_fsc_extraction.direct_extractor import *
+from rl_src.interpreters.direct_fsc_extraction.direct_extractor import *
 
 from .synthesizer_onebyone import SynthesizerOneByOne
 from paynt.rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
@@ -72,17 +72,17 @@ class SynthesizerRL:
 
     def create_rl_args(self, input_rl_settings_dict: dict):
         nr_runs = self.rl_training_iters
-        agent_name = "BC_loop"
+        agent_name = "SAYNT_Booster"
         rnn_less = self.rnn_less
         args = ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
-                            evaluate_random_policy=False, max_steps=1201, evaluation_goal=50.0, evaluation_antigoal=-0.0,
+                            evaluate_random_policy=False, max_steps=601, evaluation_goal=50.0, evaluation_antigoal=-0.0,
                             trajectory_num_steps=25, discount_factor=0.99, num_environments=256,
-                            normalize_simulator_rewards=False, buffer_size=2000, random_start_simulator=False,
+                            normalize_simulator_rewards=False, buffer_size=200, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
                             use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
-                            completely_greedy=False, prefer_stochastic=False)
+                            completely_greedy=False, prefer_stochastic=False, model_name=self.model_name)
         return args
 
     def set_input_rl_settings_for_paynt(self, input_rl_settings_dict):
@@ -255,7 +255,7 @@ class SynthesizerRL:
 
         # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
         agents_wrapper.agent.set_agent_greedy()
-        latent_dim = 2 if not self.use_one_hot_memory else 2
+        latent_dim = 2 if not self.use_one_hot_memory else 5
         if False:
             bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
                 agents_wrapper)

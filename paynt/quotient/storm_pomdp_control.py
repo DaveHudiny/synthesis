@@ -47,6 +47,7 @@ class StormPOMDPControl:
     rl_fsc_size = None
 
     is_storm_better = False
+    is_rl_better = False
 
     pomdp = None                    # The original POMDP model
     quotient = None
@@ -69,6 +70,9 @@ class StormPOMDPControl:
     saynt_timer = None
     export_fsc_storm = None
     export_fsc_paynt = None
+
+    comparer = None
+    
 
     def __init__(self):
         # holds object representing the latest Storm result
@@ -152,14 +156,18 @@ class StormPOMDPControl:
 
     def store_storm_result(self, result):
         self.latest_storm_result = result
-        self.latest_storm_fsc = self.belief_controller_to_fsc(
-            result, self.latest_paynt_result_fsc)
+        if self.is_rl_better:
+            self.latest_storm_fsc = self.belief_controller_to_fsc(
+                result, self.latest_rl_result_fsc)  
+        else:
+            self.latest_storm_fsc = self.belief_controller_to_fsc(
+                result, self.latest_paynt_result_fsc)
         if self.quotient.specification.optimality.minimizing:
             self.storm_bounds = self.latest_storm_result.upper_bound
         else:
             self.storm_bounds = self.latest_storm_result.lower_bound
-        self.saynt_fsc = self.belief_controller_to_fsc(
-            self.latest_storm_result, self.latest_paynt_result_fsc)
+        # self.saynt_fsc = self.belief_controller_to_fsc(
+        #     self.latest_storm_result, self.latest_paynt_result_fsc)
 
     # run Storm POMDP analysis for given model and specification
     # TODO: discuss Storm options
@@ -199,14 +207,22 @@ class StormPOMDPControl:
         logger.info("starting Storm POMDP analysis")
         storm_timer = paynt.utils.timer.Timer()
         storm_timer.start()
+        if self.is_rl_better:
+            paynt_export = self.rl_export
+        else:
+            paynt_export = self.paynt_export
         result = belmc.check(
-            self.spec_formulas[0], self.paynt_export)   # calls Storm
+            self.spec_formulas[0], paynt_export)   # calls Storm
         storm_timer.stop()
         logger.info("Storm POMDP analysis completed")
 
         value = result.upper_bound if self.quotient.specification.optimality.minimizing else result.lower_bound
-        self.belief_controller_size = self.get_belief_controller_size(
-            result, self.paynt_fsc_size)
+        if self.is_rl_better:
+            self.belief_controller_size = self.get_belief_controller_size(
+                result, self.rl_fsc_size)
+        else:
+            self.belief_controller_size = self.get_belief_controller_size(
+                result, self.paynt_fsc_size)
 
         print(f'-----------Storm-----------')
         print(
@@ -267,15 +283,22 @@ class StormPOMDPControl:
     # this function represents the storm thread in SAYNT
     def interactive_run(self, belmc):
         logger.info("starting Storm POMDP analysis")
+        if self.is_rl_better:
+            paynt_export = self.rl_export
+        else:
+            paynt_export = self.paynt_export
         result = belmc.check(
-            self.spec_formulas[0], self.paynt_export)   # calls Storm
+            self.spec_formulas[0], paynt_export)   # calls Storm
 
         # to get here Storm exploration has to end either by constructing finite belief MDP or by outside termination
         self.storm_terminated = True
 
         if result.induced_mc_from_scheduler is not None:
             value = result.upper_bound if self.quotient.specification.optimality.minimizing else result.lower_bound
-            size = self.get_belief_controller_size(result, self.paynt_fsc_size)
+            if self.is_rl_better:
+                size = self.get_belief_controller_size(result, self.rl_fsc_size)
+            else:
+                size = self.get_belief_controller_size(result, self.paynt_fsc_size)
 
             print(f'-----------Storm----------- \
               \nValue = {value} | Time elapsed = {round(self.saynt_timer.read(),1)}s | FSC size = {size}\n', flush=True)
@@ -301,7 +324,12 @@ class StormPOMDPControl:
         # Update cut-off FSC values provided by PAYNT
         if not start:
             logger.info("Updating FSC values in Storm")
-            belmc.set_fsc_values(self.paynt_export)
+            if self.is_rl_better:
+                print("Updating RL FSC values in Storm")
+                belmc.set_fsc_values(self.rl_export)
+            else:
+                print("Updating PAYNT FSC values in Storm")
+                belmc.set_fsc_values(self.paynt_export)
             belmc.continue_unfolding()
 
         # wait for Storm to start exploring
@@ -324,7 +352,10 @@ class StormPOMDPControl:
         result = belmc.get_interactive_result()
 
         value = result.upper_bound if self.quotient.specification.optimality.minimizing else result.lower_bound
-        size = self.get_belief_controller_size(result, self.paynt_fsc_size)
+        if self.is_rl_better:
+            size = self.get_belief_controller_size(result, self.rl_fsc_size)
+        else:
+            size = self.get_belief_controller_size(result, self.paynt_fsc_size)
 
         print(f'-----------Storm----------- \
               \nValue = {value} | Time elapsed = {round(self.saynt_timer.read(),1)}s | FSC size = {size}\n', flush=True)
@@ -439,7 +470,7 @@ class StormPOMDPControl:
             self.result_dict = {}
             self.result_dict_no_cutoffs = {}
 
-        if self.latest_paynt_result is not None:
+        if self.latest_paynt_result is not None or self.latest_rl_result is not None:
             self.parse_paynt_result(quotient, second_quotient)
         else:
             self.result_dict_paynt = {}
@@ -489,7 +520,7 @@ class StormPOMDPControl:
                 for label in state.labels:
                     if 'finite_mem' in label and not finite_mem:
                         finite_mem = True
-                        self.parse_paynt_result(self.quotient)
+                        self.parse_paynt_result(self.quotient, self.second_quotient)
                         for obs, actions in self.result_dict_paynt.items():
                             for action in actions:
                                 if action not in result_no_cutoffs[obs]:
@@ -558,11 +589,8 @@ class StormPOMDPControl:
     # parse PAYNT/RL result to a dictionart
     def parse_paynt_result(self, quotient, second_quotient=None):
 
-        if self.quotient.specification.optimality.minimizing:
-            def comparer(x, y): return x <= y
-        else:
-            def comparer(x, y): return x >= y
-        if second_quotient and self.rl_bounds is not None and comparer(self.rl_bounds, self.paynt_bounds):
+        
+        if second_quotient and self.rl_bounds is not None and (not self.paynt_bounds or self.comparer(self.rl_bounds, self.paynt_bounds)):
             latest_result = self.latest_rl_result
             used_quotient = second_quotient
         else:
@@ -694,7 +722,7 @@ class StormPOMDPControl:
 
     # update all of the important data structures according to the current results
     def update_data(self):
-
+        self.parse_paynt_result(self.quotient, self.second_quotient)
         if self.paynt_bounds is None and self.storm_bounds is None:
             return
 
@@ -703,7 +731,15 @@ class StormPOMDPControl:
             self.is_rl_better = self.rl_bounds is not None
         elif self.storm_bounds is None:
             self.is_storm_better = False
+            if self.rl_bounds is not None:
+                self.is_rl_better = self.comparer(self.rl_bounds, self.paynt_bounds)
+            else:
+                self.is_rl_better = False
         else:
+            if self.rl_bounds is not None:
+                self.is_rl_better = self.comparer(self.rl_bounds, self.paynt_bounds)
+            else:
+                self.is_rl_better = False
             if self.quotient.specification.optimality.minimizing:
                 if self.paynt_bounds <= self.storm_bounds or (self.rl_bounds is not None and self.rl_bounds <= self.storm_bounds):
                     self.is_storm_better = False
@@ -714,7 +750,7 @@ class StormPOMDPControl:
                     self.is_storm_better = False
                 else:
                     self.is_storm_better = True
-
+        
         if self.unfold_strategy_storm in ["storm", "paynt"]:
             for obs in range(self.quotient.observations):
                 if obs in self.result_dict_no_cutoffs.keys():
@@ -928,6 +964,7 @@ class StormPOMDPControl:
                     fsc_switch = None
                     cutoff_switch = None
                     for label in belief_mc.labeling.get_labels_of_state(succ):
+                        # print(label)
                         if '[' in label:
                             # observation based on prism observables
                             succ_observation = self.quotient.observation_labels.index(
