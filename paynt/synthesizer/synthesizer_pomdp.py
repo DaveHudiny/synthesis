@@ -1,8 +1,4 @@
-import stormpy
 
-import paynt.quotient.storm_pomdp_control
-
-from .statistic import Statistic
 import paynt.synthesizer.synthesizer_ar
 import paynt.synthesizer.synthesizer_hybrid
 import paynt.synthesizer.synthesizer_ar_storm
@@ -11,16 +7,12 @@ import paynt.quotient.quotient
 import paynt.quotient.pomdp
 import paynt.utils.timer
 
-from paynt.quotient.quotient import Quotient
 from paynt.quotient.pomdp import PomdpQuotient
 from paynt.quotient.storm_pomdp_control import StormPOMDPControl
 from paynt.family.family import Family
 
-import paynt.verification.property
-from paynt.synthesizer.synthesizer_rl_storm_paynt import SynthesizerRL
+from paynt.synthesizer.synthesizer_rl import SynthesizerRL
 
-from rl_src.agents.policies.simple_fsc_policy import SimpleFSCPolicy
-from rl_src.tools.evaluators import evaluate_policy_in_model
 
 from threading import Thread
 from queue import Queue

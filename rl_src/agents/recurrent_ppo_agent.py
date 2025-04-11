@@ -102,6 +102,13 @@ class Recurrent_PPO_agent(FatherAgent):
             var._trainable = True
         self.agent.initialize()
 
+    def set_policy_masking(self):
+        """If PPO, this function sets the masking active for agent wrapper."""
+        self.wrapper.set_policy_masker()
+
+    def unset_policy_masking(self):
+        """If PPO, this function sets the masking inactive for agent wrapper."""
+        self.wrapper.unset_policy_masker()
 
     def reset_weights(self):
         for net_type in [self.agent._value_net, self.agent._actor_net]:

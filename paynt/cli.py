@@ -15,6 +15,8 @@ import paynt.synthesizer.synthesizer_cegis
 import paynt.synthesizer.policy_tree
 import paynt.synthesizer.decision_tree
 
+from paynt.synthesizer.synthesizer_rl import SynthesizerRL
+
 import click
 import sys
 import os
@@ -201,10 +203,10 @@ def paynt_run(
     rl_load_memory_flag, agent_task, model_name, sub_method, rl_method, greedy, loop, fsc_time_in_loop, time_limit,
     fsc_size, rnn_less):
 
-    if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
-        logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
-        sys.exit(1)
-    elif reinforcement_learning:
+    # if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
+    #     logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
+    #     sys.exit(1)
+    if reinforcement_learning:
         rl_input_dictionary = {
             "reinforcement_learning": reinforcement_learning,
             "load_agent": load_agent,
@@ -263,9 +265,14 @@ def paynt_run(
     quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound, exact)
     second_quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound, exact)
     synthesizer = paynt.synthesizer.synthesizer.Synthesizer.choose_synthesizer(quotient, method, fsc_synthesis, storm_control)
-    if reinforcement_learning:
+    if reinforcement_learning and fsc_synthesis and storm_pomdp:
         synthesizer.set_reinforcement_learning(rl_input_dictionary)
         synthesizer.set_second_quotient(second_quotient)
+
+    rl_synthesizer = SynthesizerRL(
+                second_quotient, method, None, rl_input_dictionary, True)
+    rl_synthesizer.run(multiple_assignments_benchmark=True)
+    exit(0)
     synthesizer.run(optimum_threshold)
 
     if profiling:

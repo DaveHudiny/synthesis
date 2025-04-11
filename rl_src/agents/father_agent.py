@@ -516,6 +516,14 @@ class FatherAgent(AbstractAgent):
         self.environment.render("human", trajectory=trajectory)
         self.tf_environment.reset()
 
+    def set_policy_masking(self):
+        """If PPO, this function sets the masking active for agent wrapper."""
+        pass
+
+    def unset_policy_masking(self):
+        """If PPO, this function sets the masking inactive for agent wrapper."""
+        pass
+
     def evaluate_agent(self, last=False, vectorized=False, max_steps : int = None):
         """Evaluate the agent. Used for evaluation of the agent during training.
 
@@ -545,7 +553,9 @@ class FatherAgent(AbstractAgent):
             self.tf_environment.reset()
             if last:
                 self.set_agent_greedy()
-                logger.info("Evaluating agent with greedy policy.")
+                
+                logger.info("Evaluating agent with greedy masked policy.")
+                self.set_policy_masking()
                 if self.args.render_if_possible and self.environment.grid_like_renderer:
                     self.render_agent_behavior(self.get_evaluation_policy())
             self.vec_driver.run()
@@ -557,6 +567,7 @@ class FatherAgent(AbstractAgent):
             self.trajectory_buffer.clear()
 
         self.set_agent_stochastic()
+        self.unset_policy_masking()
         if self.evaluation_result.best_updated and self.agent_folder is not None:
             self.save_agent(best=True)
         self.log_evaluation_info()

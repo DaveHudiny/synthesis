@@ -37,6 +37,8 @@ class TrajectoryBuffer:
         self.episode_outcomes = self.EpisodeOutcomes([], [], [], [])
 
     def add_batched_step(self, traj: Trajectory):
+        """WARNING: This function uses the current state of the environment to add the step. 
+        If the environment is desynchronized with the trajectory, it will not work properly."""
         environment = self.environment
         self.virtual_rewards.append(environment.virtual_reward.numpy())
         self.real_rewards.append(environment.orig_reward.numpy())

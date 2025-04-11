@@ -80,8 +80,9 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # self.batch_size = num_envs
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
-        self.state_to_observation_map = tf.constant(stormpy_model.observations)
-        self.observation_valuations = stormpy_model.observation_valuations
+
+
+            
         # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
         # TODO: What if we want to minimize the probability of reaching some state or we want to maximize the probability of reaching some other state?
         self.special_labels = np.array(["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
@@ -97,6 +98,13 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs,
             max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=self.args.continuous_enlargement)
         
+        try:
+            self.state_to_observation_map = tf.constant(stormpy_model.observations)
+            self.observation_valuations = stormpy_model.observation_valuations
+        except:
+            self.state_to_observation_map = tf.constant(self.vectorized_simulator.simulator.state_observation_ids)
+            self.observation_valuations = tf.constant(self.vectorized_simulator.simulator.state_values)
+
         try:
             self.grid_like_renderer = GridLikeRenderer(
                 self.vectorized_simulator, self.get_model_name())
@@ -187,7 +195,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     def set_reachability_rewards(self):
         self.reward_multiplier = 0.0
         self.antigoal_values_vector = tf.constant(
-            [self.args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+            [0.0] * self.num_envs, dtype=tf.float32)
         self.goal_values_vector = tf.constant(
             [self.args.evaluation_goal] * self.num_envs, dtype=tf.float32)
         
@@ -196,7 +204,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.antigoal_values_vector = tf.constant(
             [0.0] * self.num_envs, dtype=tf.float32)
         self.goal_values_vector = tf.constant(
-            [1.0] * self.num_envs, dtype=tf.float32)
+            [2.0] * self.num_envs, dtype=tf.float32)
         
     def set_minimizing_rewards(self):
         self.reward_multiplier = -1.0
@@ -225,6 +233,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
                 break
         if not key_found:
             self.set_basic_rewards()
+
+        self.reward_signum = tf.sign(self.reward_multiplier) if self.reward_multiplier != 0.0 else tf.constant(-1.0)
         
         
 
@@ -284,11 +294,9 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             memory_update_size = 0
         if self.encoding_method == "Valuations":
             try:
-                json_example = self.stormpy_model.observation_valuations.get_json(
-                    0)
-                parse_data = json.loads(str(json_example))
+                observation_len = len(self.vectorized_simulator.simulator.observations[0])
                 observation_spec = tensor_spec.TensorSpec(shape=(
-                    len(parse_data) + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features,), dtype=tf.float32, name="observation")
+                    observation_len + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features,), dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
@@ -312,8 +320,6 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
 
     def create_specifications(self):
         """Creates the specifications for the environment. Important for TF-Agents."""
-        self._possible_observations = np.unique(
-            self.stormpy_model.observations)
         observation_spec = self.create_observation_spec()
         integer_information = tensor_spec.TensorSpec(
             shape=(1,), dtype=tf.int32, name="integer_information")
@@ -500,7 +506,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         
         self.prev_dones = self.dones
         self.virtual_reward = self.reward
-        self.orig_reward = self.orig_reward * tf.sign(self.reward_multiplier) # To better demonstrate the objective reward
+        self.orig_reward = self.orig_reward * self.reward_signum # To better demonstrate the objective reward
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -566,8 +572,6 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         flat_indices = tf.where(masks)
         legal_counts = tf.reduce_sum(tf.cast(masks, tf.int32), axis=1)
         batch_offsets = tf.cumsum(tf.concat([[0], legal_counts[:-1]], axis=0))
-        # print(tf.reduce_max(legal_counts))
-        # print(legal_counts)
         random_offsets = tf.random.uniform(
             shape=(batch_size,),
             maxval=tf.reduce_max(legal_counts),
@@ -688,7 +692,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         """Creates a fake TimeStep from the observation integer."""
         observation = create_valuations_encoding(observation_integer, self.stormpy_model)
         observation = tf.constant([observation], dtype=tf.float32)
-        state = np.where(self.state_to_observation_map.numpy() ==
+        state = np.where(self.state_to_observation_map ==
                              observation_integer)[0][0]
         if self.vectorized_simulator.simulator.sinks[state]:
             mask = tf.constant([[True] * self.nr_actions], dtype=tf.bool)

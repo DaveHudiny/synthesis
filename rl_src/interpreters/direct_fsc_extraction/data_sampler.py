@@ -6,10 +6,12 @@ from tf_agents.environments.tf_py_environment import TFPyEnvironment
 
 from environment.environment_wrapper_vec import EnvironmentWrapperVec
 
+from tools.trajectory_buffer import TrajectoryBuffer
 
 def sample_data_with_policy(policy: TFPolicy, num_samples=100,
                             environment: EnvironmentWrapperVec = None,
-                            tf_environment: TFPyEnvironment = None) -> TFUniformReplayBuffer:
+                            tf_environment: TFPyEnvironment = None,
+                            trajectory_buffer: TrajectoryBuffer = None) -> TFUniformReplayBuffer:
     prev_time_step = tf_environment.reset()
     policy_state = policy.get_initial_state(environment.batch_size)
     replay_buffer = TFUniformReplayBuffer(
@@ -24,5 +26,8 @@ def sample_data_with_policy(policy: TFPolicy, num_samples=100,
         traj = tf_agents.trajectories.trajectory.from_transition(
             prev_time_step, policy_step, time_step)
         replay_buffer.add_batch(traj)
+        if trajectory_buffer is not None:
+            trajectory_buffer.add_batched_step(
+                traj)
         prev_time_step = time_step
     return replay_buffer

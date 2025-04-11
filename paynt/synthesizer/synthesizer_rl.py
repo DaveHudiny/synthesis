@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 from rl_src.interpreters.direct_fsc_extraction.direct_extractor import DirectExtractor
 from rl_src.interpreters.direct_fsc_extraction.extraction_stats import ExtractionStats
+from paynt.rl_extension.extraction_benchmark_res import ExtractionBenchmarkRes, ExtractionBenchmarkResManager
 
 class SynthesizerRL:
     def __init__(self, quotient: PomdpQuotient, method: str, storm_control: StormPOMDPControl, input_rl_settings: dict = None,
@@ -77,8 +78,8 @@ class SynthesizerRL:
         args = ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
-                            evaluate_random_policy=False, max_steps=601, evaluation_goal=50.0, evaluation_antigoal=-0.0,
-                            trajectory_num_steps=25, discount_factor=0.99, num_environments=256,
+                            evaluate_random_policy=False, max_steps=1501, evaluation_goal=50.0, evaluation_antigoal=-0.0,
+                            trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=200, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
                             use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
@@ -168,7 +169,7 @@ class SynthesizerRL:
         bottleneck_extractor = BottleneckExtractor(
                 agents_wrapper.agent.tf_environment, input_dim, latent_dim=latent_dim)
         bottleneck_extractor.train_autoencoder(
-                agents_wrapper.agent.wrapper, num_epochs=20, num_data_steps=self.args.max_steps + 1)
+                agents_wrapper.agent.wrapper, num_epochs=501, num_data_steps=self.args.max_steps + 1)
         evaluation_result = bottleneck_extractor.evaluate_bottlenecking(
                 agents_wrapper.agent, max_steps=self.args.max_steps + 1)
         if best_extractor is None or evaluation_result.best_reach_prob > best_result.best_reach_prob:
@@ -205,13 +206,13 @@ class SynthesizerRL:
             optimization_specification = SpecificationChecker.Constants.REWARD
 
         direct_extractor = DirectExtractor(memory_len = latent_dim, is_one_hot=self.use_one_hot_memory,
-                                           use_residual_connection=True, training_epochs=60001,
-                                           num_data_steps=6000, get_best_policy_flag=True, model_name=self.model_name,
+                                           use_residual_connection=True, training_epochs=30001,
+                                           num_data_steps=(self.args.max_steps + 1) * 6, get_best_policy_flag=False, model_name=self.model_name,
                                            max_episode_len=self.args.max_steps, optimizing_specification=optimization_specification)
         fsc, extraction_stats = direct_extractor.clone_and_generate_fsc_from_policy(
             policy, environment, tf_environment)
         extraction_stats.store_as_json(self.model_name, "experiments_loopy_fscs")
-        return fsc
+        return fsc, extraction_stats
     
     # def perform_policy_to_fsc_cloning(self, policy : TFPolicy, 
     #                                   environment : EnvironmentWrapperVec, 
@@ -227,7 +228,8 @@ class SynthesizerRL:
     #         cloned_fsc_actor, environment, latent_dim, self.args)
     #     return fsc
 
-    def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None):
+    def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None,
+                              bottlenecking = False):
 
         if storm_control is not None:
             trajectories = agents_wrapper.generate_saynt_trajectories(
@@ -256,19 +258,19 @@ class SynthesizerRL:
         # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
         agents_wrapper.agent.set_agent_greedy()
         latent_dim = 2 if not self.use_one_hot_memory else 5
-        if False:
+        if bottlenecking:
             bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
                 agents_wrapper)
         else:
             
-            extracted_fsc = self.perform_rl_to_fsc_cloning(
+            extracted_fsc, _ = self.perform_rl_to_fsc_cloning(
                 agents_wrapper.agent.wrapper, 
                 agents_wrapper.agent.environment, 
                 agents_wrapper.agent.tf_environment, 
                 latent_dim=latent_dim)
         agents_wrapper.agent.set_agent_stochastic()
-        return self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
-        
+        assignment = self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
+        return assignment
     
     def compute_paynt_assignment_from_fsc_like(self, fsc_like, latent_dim=2, agents_wrapper=None, paynt_timeout=60):
 
@@ -291,16 +293,90 @@ class SynthesizerRL:
         else:
             assignment = alternative_assignment
         return assignment
+    
+    def perform_benchmarking(self, agents_wrapper: AgentsWrapper, number_of_runs=10):
+        methods = ["Bottlenecking", "Direct_Tanh", "Direct_OneHot"]
+        benchmark_results = []
+        sizes_bottlenecking = [1, 2]
+        sizes_direct_tanh = [1, 2]
+        sizes_direct_onehot = [3, 5, 9]
+        agents_wrapper.train_agent(2001) # We train only a single network
+        original_rl_reward = agents_wrapper.agent.evaluation_result.returns[-1]
+        original_rl_reachability = agents_wrapper.agent.evaluation_result.reach_probs[-1]
+        agents_wrapper.agent.set_agent_greedy()
+        method_sizes_map = {
+            "Bottlenecking": sizes_bottlenecking,
+            "Direct_Tanh": sizes_direct_tanh,
+            "Direct_OneHot": sizes_direct_onehot
+        }
+        # agents_wrapper.agent.load_agent(True)
+        
+        for i in range(number_of_runs):
+            for method, sizes in method_sizes_map.items():
+                for size in sizes:
+                    if method == "Bottlenecking":
+                        self.use_one_hot_memory = False
+                        bottleneck_extractor = BottleneckExtractor(
+                            agents_wrapper.agent.tf_environment, input_dim=64, latent_dim=size)
+                        bottleneck_extractor.train_autoencoder(
+                            agents_wrapper.agent.wrapper, num_epochs=80, num_data_steps=(self.args.max_steps + 1) * 6)
+                        extracted_fsc = bottleneck_extractor.extract_fsc(
+                            policy=agents_wrapper.agent.wrapper, environment=agents_wrapper.agent.environment)
+                        assignment = self.compute_paynt_assignment_from_fsc_like(
+                            extracted_fsc, latent_dim=size, agents_wrapper=agents_wrapper)
+                        logger.info(
+                            f"Benchmarking {method} with size {size} finished. Verified performance: {self.quotient.specification.optimality.optimum}.")
+                        # paynt_export = self.quotient.extract_policy(assignment)
+                        paynt_bounds = self.quotient.specification.optimality.optimum
+                        benchmark_result = ExtractionBenchmarkRes(
+                            type=method, memory_size=size, accuracies=[0.0], verified_performance=paynt_bounds,
+                            original_rl_reward=original_rl_reward, original_rl_reachability=original_rl_reachability,
+                            reachabilities=[0.0], rewards=[0.0])
+                    else:  # Direct_Tanh or Direct_OneHot
+                        self.use_one_hot_memory = True if method == "Direct_OneHot" else False
+                        extracted_fsc, stats = self.perform_rl_to_fsc_cloning(
+                            agents_wrapper.agent.wrapper, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment, latent_dim=size)
 
-    def run(self):
+                        assignment = self.compute_paynt_assignment_from_fsc_like(
+                        extracted_fsc, latent_dim=size, agents_wrapper=agents_wrapper)
+                        logger.info(f"Exporting assignment.")
+                        # paynt_export = self.quotient.extract_policy(assignment)
+                        paynt_bounds = self.quotient.specification.optimality.optimum
+
+                        benchmark_result = ExtractionBenchmarkRes(
+                            type=method, memory_size=size, accuracies=stats.evaluation_accuracies, verified_performance=paynt_bounds,
+                            original_rl_reward=original_rl_reward, original_rl_reachability=original_rl_reachability,
+                            reachabilities=stats.extracted_policy_reachabilities, rewards=stats.extracted_policy_rewards)
+                    benchmark_results.append(benchmark_result)
+                    self.quotient.specification.reset()
+                    logger.info(
+                        f"Benchmarking {method} with size {size} finished. Verified performance: {paynt_bounds}.")
+                    ExtractionBenchmarkResManager.create_folder_with_extraction_benchmark_res(
+                        f"experiments_extraction/{self.model_name}", benchmark_results)
+        return benchmark_results
+                    
+                
+
+
+    def run(self, multiple_assignments_benchmark = False, bottlenecking = False):
+        if not hasattr(self.quotient, "pomdp"):
+            pomdp = self.quotient.quotient_mdp
+        else:
+            pomdp = self.quotient.pomdp
         agents_wrapper = AgentsWrapper(
-            self.quotient.pomdp, self.args, agent_folder=self.model_name)
+            pomdp, self.args, agent_folder=self.model_name)
         self.set_agents_wrapper(agents_wrapper)
         start_time = time.time()
+        if multiple_assignments_benchmark:
+            benchmark_results = self.perform_benchmarking(agents_wrapper)
+            ExtractionBenchmarkResManager.create_folder_with_extraction_benchmark_res(
+                f"experiments_extraction/{self.model_name}", benchmark_results)
+            return None
         fsc = None
         while True:
             assignment = self.single_shot_synthesis(
-                agents_wrapper, self.rl_training_iters, self.fsc_synthesis_time_limit, fsc)
+                agents_wrapper, self.rl_training_iters, self.fsc_synthesis_time_limit, fsc,
+                bottlenecking=bottlenecking)
             if assignment is not None:
                 agents_wrapper.agent.evaluation_result.add_paynt_bound(
                     self.quotient.specification.optimality.optimum)

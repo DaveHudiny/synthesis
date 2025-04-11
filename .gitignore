@@ -30,3 +30,6 @@ experiments_*
 .DS_Store
 
 build/
+
+/.vscode
+.vscode/launch.json

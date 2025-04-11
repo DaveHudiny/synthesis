@@ -27,6 +27,8 @@ from rl_src.interpreters.direct_fsc_extraction.extraction_stats import Extractio
 from interpreters.direct_fsc_extraction.data_sampler import sample_data_with_policy
 from interpreters.direct_fsc_extraction.cloned_fsc_actor_policy import ClonedFSCActorPolicy
 
+from agents.policies.policy_mask_wrapper import PolicyMaskWrapper
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -100,9 +102,12 @@ class DirectExtractor:
         if self.regenerate_fsc_network_flag or self.cloned_actor is None:
             self.reset_cloned_actor(original_policy, orig_eval_result, env)
 
+        if isinstance(original_policy, PolicyMaskWrapper):
+            original_policy.set_policy_masker()
         buffer = sample_data_with_policy(
             original_policy, num_samples=self.num_data_steps, environment=env, tf_environment=tf_env)
-        
+        if isinstance(original_policy, PolicyMaskWrapper):
+            original_policy.unset_policy_masker()
         extraction_stats = self.cloned_actor.behavioral_clone_original_policy_to_fsc(
             buffer, num_epochs=self.training_epochs, specification_checker=self.specification_checker,
             environment=env, tf_environment=tf_env, args=None, extraction_stats=self.extraction_stats)
@@ -203,6 +208,7 @@ class DirectExtractor:
         split_path = prism_path.split("/")
         model_name = split_path[-2]
         agent.set_agent_greedy()
+        
         buffer = sample_data_with_policy(
             agent.wrapper, num_samples=num_data_steps,
             environment=env, tf_environment=tf_env,

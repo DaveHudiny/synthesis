@@ -20,6 +20,8 @@ from environment.environment_wrapper_vec import EnvironmentWrapperVec
 from tools.evaluators import evaluate_policy_in_model
 from interpreters.direct_fsc_extraction.extraction_stats import ExtractionStats
 
+
+
 import logging
 
 import os
@@ -132,7 +134,7 @@ class ClonedFSCActorPolicy(TFPolicy):
 
         iterator = iter(dataset)
         neural_fsc = cloned_actor.fsc_actor
-        optimizer = optimizers.Adam(learning_rate=1.6e-4)
+        optimizer = optimizers.Adam(learning_rate=1.6e-4, weight_decay=1e-3)
         loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
         loss_metric = keras.metrics.Mean(name="train_loss")
         accuracy_metric = keras.metrics.SparseCategoricalAccuracy(
@@ -165,7 +167,7 @@ class ClonedFSCActorPolicy(TFPolicy):
             observations = experience.observation["observation"]
             gt_actions = experience.action
             step_types = tf.cast(experience.step_type, tf.float32)
-            loss = 0
+            loss = []
             with tf.GradientTape() as tape:
                 mem = neural_fsc.get_initial_state(
                     observations.shape[0])
@@ -178,9 +180,10 @@ class ClonedFSCActorPolicy(TFPolicy):
                     played_action = tf.reshape(played_action, (played_action.shape[0], -1))
                     mem = tf.where(tf.equal(step_type, tf_agents.trajectories.time_step.StepType.LAST), 
                                    neural_fsc.get_initial_state(observations.shape[0]), mem)
-                    loss += loss_fn(gt_actions[:, i], played_action)
+                    loss.append(loss_fn(gt_actions[:, i], played_action))
                     accuracy_metric.update_state(gt_actions[:, i], played_action)
-                loss /= step_types.shape[1]
+                loss = tf.reduce_mean(loss)
+            # loss = tf.reduce_mean(loss)
             grads = tape.gradient(loss, neural_fsc.trainable_variables)
             grads, _ = tf.clip_by_global_norm(grads, 5.0)
             optimizer.apply_gradients(
@@ -196,7 +199,7 @@ class ClonedFSCActorPolicy(TFPolicy):
                 iterator = iter(dataset)
                 experience, _ = next(iterator)
 
-            loss = train_step_by_step(experience) # train_step(experience)
+            loss = train_step(experience) # train_step(experience)
             self.periodical_evaluation(i, loss_metric, accuracy_metric, cloned_actor,
                                        environment, tf_environment, extraction_stats,
                                        self.evaluation_result, specification_checker)

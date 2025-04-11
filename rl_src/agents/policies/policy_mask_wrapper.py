@@ -47,11 +47,24 @@ class PolicyMaskWrapper(TFPolicy):
         self._real_distribution = self._distribution
         self._select_random_action_probability = select_rand_action_probability
 
+        self.__policy_masker = lambda logits, mask: tf.compat.v2.where(
+            tf.cast(mask, tf.bool), logits, tf.constant(logits.dtype.min, dtype=logits.dtype))
+        self.__policy_dummy_masker = lambda logits, mask: logits
+        self.current_masker = self.__policy_dummy_masker
+
     def is_greedy(self):
         return self._is_greedy
     
     def set_greedy(self, is_greedy):
         self._is_greedy = is_greedy
+
+    def set_policy_masker(self):
+        """Set the policy masker to the default one"""
+        self.current_masker = self.__policy_masker
+    
+    def unset_policy_masker(self):
+        """Unset the policy masker to the default one"""
+        self.current_masker = self.__policy_dummy_masker
 
     @tf.function
     def _get_initial_state(self, batch_size):
@@ -65,7 +78,7 @@ class PolicyMaskWrapper(TFPolicy):
         distribution_result = self._policy.distribution(
             time_step, policy_state)
         
-        # logits = distribution_result.action.logits
+        logits = distribution_result.action.logits
         # print(logits)
         # policy_state = distribution_result.state
         # Taken from q_policy.py from TensorFlow library
@@ -76,10 +89,10 @@ class PolicyMaskWrapper(TFPolicy):
         # logits = tf.compat.v2.where(
         #     tf.cast(mask, tf.bool), logits, almost_neg_inf
         # )
-        # print(logits)
-        # distribution = tfp.distributions.Categorical(
-        #     logits=logits
-        # )
+        logits = self.current_masker(logits, mask)
+        distribution = tfp.distributions.Categorical(
+            logits=logits
+        )
         # distribution = tf.nest.pack_sequence_as(
         #     self._action_spec, [distribution])
         return distribution_result
