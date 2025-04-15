@@ -29,6 +29,8 @@ from rl_src.interpreters.direct_fsc_extraction.direct_extractor import DirectExt
 from rl_src.interpreters.direct_fsc_extraction.extraction_stats import ExtractionStats
 from paynt.rl_extension.extraction_benchmark_res import ExtractionBenchmarkRes, ExtractionBenchmarkResManager
 
+from rl_src.interpreters.extracted_fsc.table_based_policy import TableBasedPolicy
+
 class SynthesizerRL:
     def __init__(self, quotient: PomdpQuotient, method: str, storm_control: StormPOMDPControl, input_rl_settings: dict = None,
                  use_one_hot_memory = False):
@@ -78,7 +80,7 @@ class SynthesizerRL:
         args = ArgsEmulator(learning_rate=1.6e-4,
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
-                            evaluate_random_policy=False, max_steps=1501, evaluation_goal=50.0, evaluation_antigoal=-0.0,
+                            evaluate_random_policy=False, max_steps=401, evaluation_goal=50.0, evaluation_antigoal=-0.0,
                             trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=200, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
@@ -206,8 +208,8 @@ class SynthesizerRL:
             optimization_specification = SpecificationChecker.Constants.REWARD
 
         direct_extractor = DirectExtractor(memory_len = latent_dim, is_one_hot=self.use_one_hot_memory,
-                                           use_residual_connection=True, training_epochs=30001,
-                                           num_data_steps=(self.args.max_steps + 1) * 6, get_best_policy_flag=False, model_name=self.model_name,
+                                           use_residual_connection=True, training_epochs=301,
+                                           num_data_steps=500, get_best_policy_flag=False, model_name=self.model_name,
                                            max_episode_len=self.args.max_steps, optimizing_specification=optimization_specification)
         fsc, extraction_stats = direct_extractor.clone_and_generate_fsc_from_policy(
             policy, environment, tf_environment)
@@ -272,8 +274,7 @@ class SynthesizerRL:
         assignment = self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
         return assignment
     
-    def compute_paynt_assignment_from_fsc_like(self, fsc_like, latent_dim=2, agents_wrapper=None, paynt_timeout=60):
-
+    def compute_assignment_through_family(self, fsc_like, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60):
         fsc_size = 3 ** latent_dim if not self.use_one_hot_memory else latent_dim
         self.quotient.set_imperfect_memory_size(fsc_size)
 
@@ -293,6 +294,17 @@ class SynthesizerRL:
         else:
             assignment = alternative_assignment
         return assignment
+
+    def compute_paynt_assignment_directly(self, fsc_like : TableBasedPolicy):
+        
+        return 
+
+    def compute_paynt_assignment_from_fsc_like(self, fsc_like : TableBasedPolicy, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60, old=False):
+        if old:
+            return self.compute_assignment_through_family(fsc_like, latent_dim, agents_wrapper, paynt_timeout)
+        else:
+            return compute_paynt_assignment_directly(fsc_like)
+        
     
     def perform_benchmarking(self, agents_wrapper: AgentsWrapper, number_of_runs=10):
         methods = ["Bottlenecking", "Direct_Tanh", "Direct_OneHot"]
@@ -381,6 +393,8 @@ class SynthesizerRL:
                 agents_wrapper.agent.evaluation_result.add_paynt_bound(
                     self.quotient.specification.optimality.optimum)
                 fsc = self.quotient.assignment_to_fsc(assignment)
+                print(fsc.observation_labels)
+                print(fsc.action_labels)
 
             if not self.loop:
                 break

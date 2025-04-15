@@ -30,6 +30,8 @@ sys.path.append("../")
 
 logger = logging.getLogger(__name__)
 
+from reward_machines.predicate_automata import PredicateAutomata, create_dummy_predicate_automata
+
 
 class Recurrent_PPO_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,

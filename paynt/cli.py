@@ -271,7 +271,7 @@ def paynt_run(
 
     rl_synthesizer = SynthesizerRL(
                 second_quotient, method, None, rl_input_dictionary, True)
-    rl_synthesizer.run(multiple_assignments_benchmark=True)
+    rl_synthesizer.run(multiple_assignments_benchmark=False)
     exit(0)
     synthesizer.run(optimum_threshold)
 

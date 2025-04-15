@@ -1,4 +1,5 @@
 import json
+import tensorflow as tf
 
 import logging
 logger = logging.getLogger(__name__)
@@ -14,14 +15,28 @@ class FSC:
     - deterministic posterior-unaware memory update delta: NxZ -> N
     '''
 
-    def __init__(self, num_nodes, num_observations, is_deterministic=False):
-        self.num_nodes = num_nodes
-        self.num_observations = num_observations
-        self.is_deterministic = is_deterministic
+    def __init__(self, num_nodes, num_observations, is_deterministic=False, 
+                 action_function : tf.Tensor = None, update_function : tf.Tensor = None,
+                 observation_labels = None, action_labels = None):
+        if action_function and update_function and observation_labels and action_labels:
+            self.tensor_init()
+        else:
+            self.num_nodes = num_nodes
+            self.num_observations = num_observations
+            self.is_deterministic = is_deterministic
         
-        self.action_function = [ [None]*num_observations for _ in range(num_nodes) ]
-        self.update_function = [ [None]*num_observations for _ in range(num_nodes) ]
+            self.action_function = [ [None]*num_observations for _ in range(num_nodes) ]
+            self.update_function = [ [None]*num_observations for _ in range(num_nodes) ]
 
+            self.observation_labels = None
+            self.action_labels = None
+
+    def tensor_init(self): 
+        self.num_nodes = tf.shape(self.action_function)[0]
+        self.num_observations = tf.shape(self.action_function)[1]
+        self.is_deterministic = tf.shape(self.action_function)[2] == 1
+        self.action_function = tf.cast(self.action_function, dtype=tf.int32)
+        self.update_function = tf.cast(self.update_function, dtype=tf.int32)
         self.observation_labels = None
         self.action_labels = None
 
