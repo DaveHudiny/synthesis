@@ -100,11 +100,19 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         
         try:
             self.state_to_observation_map = tf.constant(stormpy_model.observations)
-            self.observation_valuations = stormpy_model.observation_valuations
+            self.observation_valuations = np.array(self.vectorized_simulator.simulator.observation_by_ids)
+            _, first_indices = np.unique(self.state_to_observation_map, return_index=True)
         except:
+            logger.error("State to observation map not possible to initialize. Using the default one.")
+            exit(1)
             self.state_to_observation_map = tf.constant(self.vectorized_simulator.simulator.state_observation_ids)
-            self.observation_valuations = tf.constant(self.vectorized_simulator.simulator.state_values)
-
+            self.observation_valuations = np.array(self.vectorized_simulator.simulator.state_values)
+            self.first_indices = self.state_to_observation_map
+        self.observations_to_states_map = np.zeros((stormpy_model.nr_observations), 
+                                                       dtype=np.int32)
+        for observation in range(stormpy_model.nr_observations):
+            self.observations_to_states_map[observation] = np.where(
+                self.state_to_observation_map == observation)[0][0]
         try:
             self.grid_like_renderer = GridLikeRenderer(
                 self.vectorized_simulator, self.get_model_name())
@@ -211,7 +219,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.antigoal_values_vector = tf.constant(
             [0.0] * self.num_envs, dtype=tf.float32)
         self.goal_values_vector = tf.constant( # Decreasing the goal value to make the optimization more reasonable
-            [3.0] * self.num_envs, dtype=tf.float32)
+            [2.0] * self.num_envs, dtype=tf.float32)
         
     def set_reward_model(self, model_name):
         self.reward_models = {
@@ -664,8 +672,10 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     
     def encode_observation(self, integer_observation, memory, state) -> dict[str: tf.Tensor]:
         """Encodes the observation based on the integer observation and memory."""
-        json_valuation = json.loads(str(self.observation_valuations.get_json(integer_observation)))
-        valuated = np.array(list(json_valuation.values()), dtype=np.float32)
+        # json_valuation = json.loads(str(self.observation_valuations.get_json(integer_observation)))
+        # valuated = np.array(list(json_valuation.values()), dtype=np.float32)
+        valuated = self.observation_valuations[integer_observation]
+        valuated = tf.constant(valuated, dtype=tf.float32)
         allowed_actions = self.vectorized_simulator.simulator.allowed_actions[state]
         if self.model_memory_size > 0:
             return {"observation": tf.concat([tf.constant(valuated, dtype=tf.float32), tf.constant([memory], dtype=tf.float32)], axis=0),
@@ -688,22 +698,36 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         )
         return time_step
     
-    def create_fake_timestep_from_observation_integer(self, observation_integer):
+    def create_fake_timestep_from_observation_integer(self, observation_integer : int|list[int]) -> ts.TimeStep:
         """Creates a fake TimeStep from the observation integer."""
-        observation = create_valuations_encoding(observation_integer, self.stormpy_model)
-        observation = tf.constant([observation], dtype=tf.float32)
-        state = np.where(self.state_to_observation_map ==
-                             observation_integer)[0][0]
-        if self.vectorized_simulator.simulator.sinks[state]:
-            mask = tf.constant([[True] * self.nr_actions], dtype=tf.bool)
-        else:
-            mask = tf.constant([self.vectorized_simulator.simulator.allowed_actions[state].tolist()], dtype=tf.bool)
-        integer = tf.constant([[observation_integer]], dtype=tf.int32)
+        # observation = create_valuations_encoding(observation_integer, self.stormpy_model)
+        if isinstance(observation_integer, int):
+            observation_integer = [observation_integer]
+        observation = self.observation_valuations[observation_integer]
+        observation = tf.constant(observation, dtype=tf.float32)
+        # state = np.where(self.state_to_observation_map ==
+        #                      observation_integer)
+        state = self.observations_to_states_map[observation_integer]
+        # if self.vectorized_simulator.simulator.sinks[state]:
+        #     mask = tf.ones(shape=(len(observation_integer), self.nr_actions,), dtype=tf.bool)
+            # mask = tf.constant([[True] * self.nr_actions], dtype=tf.bool)
+        # else:
+        #     mask = tf.constant(self.vectorized_simulator.simulator.allowed_actions[state].tolist(), dtype=tf.bool)
+        mask = tf.constant(self.vectorized_simulator.simulator.allowed_actions[state].tolist(), dtype=tf.bool)
+        sinks = self.vectorized_simulator.simulator.sinks[state]
+        sinks = tf.reshape(sinks, (-1, 1))
+        mask = tf.where(sinks, tf.ones(shape=(len(observation_integer), self.nr_actions,), dtype=tf.bool), mask)
+        integer = tf.constant(observation_integer, dtype=tf.int32)
+        integer = tf.reshape(integer, (-1, 1))
+        mask = tf.reshape(mask, (-1, self.nr_actions))
+        # observation = tf.reshape(observation, len(observation_integer), -1)
+
+
         time_step = ts.TimeStep(
             observation={"observation": observation, "mask": mask, "integer": integer},
-            reward=tf.constant([0.0], dtype=tf.float32),
-            discount=tf.constant([1.0], dtype=tf.float32),
-            step_type=tf.constant([ts.StepType.MID], dtype=tf.int32)
+            reward=tf.zeros(integer.shape[0], dtype=tf.float32),
+            discount=tf.ones(integer.shape[0], dtype=tf.float32),
+            step_type=tf.fill(integer.shape[0], ts.StepType.MID)
         )
         return time_step
 
@@ -711,3 +735,9 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     def get_simulator_observation(self) -> int:
         observation = self.last_observation
         return observation
+
+def test_environment():
+    pass
+
+if __name__ == "__main__":
+    exit(test_environment())

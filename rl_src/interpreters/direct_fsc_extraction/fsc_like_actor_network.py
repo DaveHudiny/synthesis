@@ -29,7 +29,7 @@ class FSCLikeActorNetwork(models.Model):
         else:
 
             self.memory_function = layers.Lambda(
-                lambda x: activations.softmax(x))
+                lambda x: activations.sigmoid(x))
             self.quantization_layer = layers.Lambda(lambda x: tf.one_hot(tf.argmax(x, axis=-1),
                                                                          depth=self.memory_len, dtype=tf.float32))
             self.one_hot_constant = 1

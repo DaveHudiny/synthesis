@@ -1,6 +1,7 @@
 from tf_agents.policies import TFPolicy
 from tf_agents.trajectories.policy_step import PolicyStep
 from tf_agents.trajectories.time_step import TimeStep
+from tf_agents.trajectories import StepType
 
 import numpy as np
 import tensorflow as tf
@@ -38,8 +39,13 @@ class PolicyMaskWrapper(TFPolicy):
             self.state_spec_len = predicate_automata.get_reward_state_spec_len(predicate_based=False)
             # Combine original spec with the length of the predicate automata visited states vector as a dictionary
             policy_state_spec = policy.policy_state_spec
-            policy_state_spec = {**policy_state_spec, 'visited_automata_states': tf.TensorSpec(shape=(self.state_spec_len, 1), dtype=tf.bool),
-                                 "automata_state": tf.TensorSpec(shape=(1,), dtype=tf.int32)}
+            if predicate_automata.predicate_based_rewards:
+                self.prediate_number = len(predicate_automata.predicate_set_labels)
+                policy_state_spec = {**policy_state_spec, 'satisfied_predicates': tf.TensorSpec(shape=(len(predicate_automata.predicate_set_labels), 1), dtype=tf.bool),
+                                    "automata_state": tf.TensorSpec(shape=(1,), dtype=tf.int32)}
+            else:
+                policy_state_spec = {**policy_state_spec, 'visited_automata_states': tf.TensorSpec(shape=(self.state_spec_len, 1), dtype=tf.bool),
+                                    "automata_state": tf.TensorSpec(shape=(1,), dtype=tf.int32)}
             self.predicate_automata = predicate_automata
             self.get_initial_automata_state = self.predicate_automata.get_initial_state
             self.step_automata = self.predicate_automata.step
@@ -97,17 +103,24 @@ class PolicyMaskWrapper(TFPolicy):
         return visited_states
 
     def generate_curiosity_reward(self, prev_state, next_state, next_policy_step_type):
+        print("Generating curiosity reward")
         # Get the previously_visited_states
-        visited_states = tf.cast(prev_state["visited_automata_states"], tf.float32)
+        if self.predicate_automata.predicate_based_rewards:
+            visited_states = tf.cast(prev_state["satisfied_predicates"], tf.float32)
+            next_visited_states = tf.cast(next_state["satisfied_predicates"], tf.float32)
+        else:
+            visited_states = tf.cast(prev_state["visited_automata_states"], tf.float32)
+            next_visited_states = tf.cast(next_state["visited_automata_states"], tf.float32)
         # Get the next visited states
-        next_visited_states = tf.cast(next_state["visited_automata_states"], tf.float32)
+        
         # Compare the visited states, if there is any change for a given batch number, add a reward
         diff = tf.abs(next_visited_states - visited_states)
-        print(next_visited_states)
         # Get the reward
-        reward = tf.reduce_max(diff, axis=-1)
+        reward = tf.reduce_max(diff, axis=-1) * 1
+        # If there is no new state, give some small penalty
+        reward = tf.where(tf.equal(reward, 0.0), -0.05, reward)
         reward = tf.where( # if the next_state is initial state, set the reward to 0
-            tf.equal(next_policy_step_type, 0), 0.0, reward
+            tf.not_equal(next_policy_step_type, StepType.MID), 0.0, reward
         )
         return reward
 
@@ -117,7 +130,10 @@ class PolicyMaskWrapper(TFPolicy):
 
         policy_state = self._policy._get_initial_state(batch_size)
         if self.predicate_automata is not None:
-            policy_state["visited_automata_states"] = self.get_initial_visited_states(batch_size)
+            if self.predicate_automata.predicate_based_rewards:
+                policy_state["satisfied_predicates"] = tf.zeros((batch_size, self.prediate_number), dtype=tf.bool)
+            else:
+                policy_state["visited_automata_states"] = self.get_initial_visited_states(batch_size)
             policy_state["automata_state"] = self.get_initial_automata_state(batch_size)
         return policy_state
 
@@ -125,16 +141,17 @@ class PolicyMaskWrapper(TFPolicy):
         observation, mask = self._observation_and_action_constraint_splitter(
             time_step.observation)
         time_step = time_step._replace(observation=observation)
-        distribution_result = self._policy.distribution(
+        distribution = self._policy.distribution(
             time_step, policy_state)
         
-        logits = distribution_result.action.logits
-        logits = self.current_masker(logits, mask)
-        distribution = tfp.distributions.Categorical(
-            logits=logits
-        )
-        return policy_step.PolicyStep(distribution, policy_state, distribution_result.info)
-    
+        # logits = distribution_result.action.logits
+        # logits = self.current_masker(logits, mask)
+        # distribution = tfp.distributions.Categorical(
+        #     logits=logits
+        # )
+        # return policy_step.PolicyStep(distribution, policy_state, distribution.info)
+        return distribution
+
     def _get_action_masked(self, distribution, mask):
         logits = distribution.action.logits
         almost_neg_inf = tf.constant(logits.dtype.min, dtype=logits.dtype)
@@ -152,13 +169,7 @@ class PolicyMaskWrapper(TFPolicy):
             
         policy_step = PolicyStep(action=action, state=distribution.state, info=distribution.info)
         return policy_step
-    
-    def _get_initial_state(self, batch_size):
-        init_state = self._policy.get_initial_state(batch_size)
-        if self.predicate_automata is not None:
-            init_state["visited_automata_states"] = self.get_initial_visited_states(batch_size)
-            init_state["automata_state"] = self.get_initial_automata_state(batch_size)
-        return init_state
+
 
     def _action(self, time_step, policy_state, seed) -> PolicyStep:
         # observation, mask = self._observation_and_action_constraint_splitter(time_step.observation)
@@ -177,20 +188,31 @@ class PolicyMaskWrapper(TFPolicy):
         if self.predicate_automata is not None:
             new_policy_state = distribution.state
             # Get the visited states
-            visited_states = tf.cast(policy_state["visited_automata_states"], tf.bool)
+            if self.predicate_automata.predicate_based_rewards:
+                visited_states = tf.cast(policy_state["satisfied_predicates"], tf.bool)
+            else:
+                visited_states = tf.cast(policy_state["visited_automata_states"], tf.bool)
             # Get the next visited states
-            next_visited_state = self.step_automata(policy_state["automata_state"], time_step.observation["observation"])
-            # Create indices from next_visited_state using batch numbers
-            batch_size = tf.shape(next_visited_state)[0]
-            batch_indices = tf.range(batch_size)
-            batch_indices = tf.reshape(batch_indices, (batch_size, 1))
-            batch_indices = tf.stack([batch_indices, next_visited_state], axis=-1)
-            next_state_indices = tf.reshape(batch_indices, (batch_size, 2))
-            # Update the visited states with newly observed states
-            visited_states = tf.tensor_scatter_nd_update(visited_states, next_state_indices, tf.ones(next_state_indices.shape[0], dtype=tf.bool))
-
-            new_policy_state["visited_automata_states"] = visited_states
+            next_visited_state, satisfied_predicates = self.step_automata(policy_state["automata_state"], time_step.observation["observation"])
             new_policy_state["automata_state"] = next_visited_state
+
+            # Create indices from next_visited_state using batch numbers
+            if self.predicate_automata.predicate_based_rewards:
+                next_visited_state = tf.cast(satisfied_predicates, tf.bool)
+                next_visited_state = tf.reshape(next_visited_state, (tf.shape(next_visited_state)[0], -1))
+                next_visited_state = tf.logical_or(next_visited_state, visited_states)
+                new_policy_state["satisfied_predicates"] = tf.cast(next_visited_state, tf.bool)
+            else:
+                batch_size = tf.shape(next_visited_state)[0]
+                batch_indices = tf.range(batch_size)
+                batch_indices = tf.reshape(batch_indices, (batch_size, 1))
+                batch_indices = tf.stack([batch_indices, next_visited_state], axis=-1)
+                next_state_indices = tf.reshape(batch_indices, (batch_size, 2))
+                # Update the visited states with newly observed states
+                visited_states = tf.tensor_scatter_nd_update(visited_states, next_state_indices, tf.ones(next_state_indices.shape[0], dtype=tf.bool))
+
+                new_policy_state["visited_automata_states"] = visited_states
+            
 
         else:
             new_policy_state = distribution.state

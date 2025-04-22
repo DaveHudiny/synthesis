@@ -104,16 +104,19 @@ class DirectExtractor:
 
         if isinstance(original_policy, PolicyMaskWrapper):
             original_policy.set_policy_masker()
+        logger.info("Sampling data with original policy")
         buffer = sample_data_with_policy(
             original_policy, num_samples=self.num_data_steps, environment=env, tf_environment=tf_env)
+        logger.info("Data sampled")
         if isinstance(original_policy, PolicyMaskWrapper):
             original_policy.unset_policy_masker()
+        logger.info("Cloning original policy to FSC")
         extraction_stats = self.cloned_actor.behavioral_clone_original_policy_to_fsc(
             buffer, num_epochs=self.training_epochs, specification_checker=self.specification_checker,
             environment=env, tf_environment=tf_env, args=None, extraction_stats=self.extraction_stats)
         # if self.get_best_policy_flag:
         #     self.cloned_actor.load_best_policy()
-        fsc = DirectExtractor.extract_fsc(self.cloned_actor, env, self.memory_len, is_one_hot=self.is_one_hot)
+        fsc, _, _ = DirectExtractor.extract_fsc(self.cloned_actor, env, self.memory_len, is_one_hot=self.is_one_hot)
         fsc_res = evaluate_policy_in_model(fsc, environment=env, tf_environment=tf_env, max_steps=(self.max_episode_len + 1) * 2)
         extraction_stats.add_fsc_result(fsc_res.reach_probs[-1], fsc_res.returns[-1])
 
@@ -127,26 +130,30 @@ class DirectExtractor:
         memory_to_tensor_table = tf.convert_to_tensor(
             memory_to_tensor_table, dtype=tf.float32)
         return memory_to_tensor_table
-
+    
     @staticmethod
-    def extract_fsc(policy: TFPolicy, environment: EnvironmentWrapperVec, memory_len: int, is_one_hot: bool = True) -> TableBasedPolicy:
-        # Computes the number of potential combinations of latent memory (3 possible values for each latent memory cell, {-1, 0, 1})
+    def extract_fsc_nonvectorized(policy: TFPolicy, environment: EnvironmentWrapperVec, memory_len: int, is_one_hot: bool = True) -> TableBasedPolicy:
         base = 3
         max_memory = base ** memory_len if not is_one_hot else memory_len
         nr_observations = environment.stormpy_model.nr_observations
         fsc_actions = np.zeros((max_memory, nr_observations))
         fsc_updates = np.zeros((max_memory, nr_observations))
-
+        logger.info("Computing memory to tensor table of non-vectorized approach")
         compute_memory, decompute_memory = get_encoding_functions(is_one_hot)
         memory_to_tensor_table = DirectExtractor.create_memory_to_tensor_table(
             compute_memory, memory_len, max_memory)
         eager = PyTFEagerPolicy(
             policy, use_tf_function=True, batch_time_steps=False)
-
+        logger.info("Starting to extract FSC via non-vectorized approach")
+        obs_batch = tf.convert_to_tensor(np.arange(nr_observations), dtype=tf.int32)
+        time_steps = environment.create_fake_timestep_from_observation_integer(obs_batch)
+        # Go through all observations
         for i in range(nr_observations):
             # Go thrgough all memory permutations
             fake_time_step = environment.create_fake_timestep_from_observation_integer(
                 i)
+            # Assert that time_step for observation i is the same as the one in the batch with corresponding indice
+
             for j in range(max_memory):
                 policy_state = memory_to_tensor_table[j]
                 policy_state = tf.reshape(policy_state, (1, memory_len))
@@ -160,7 +167,49 @@ class DirectExtractor:
 
         table_based_policy = TableBasedPolicy(
             policy, fsc_actions, fsc_updates, initial_memory=0)
-        return table_based_policy
+        return table_based_policy, fsc_actions, fsc_updates
+
+    @staticmethod
+    def extract_fsc(policy: TFPolicy, environment: EnvironmentWrapperVec, memory_len: int, is_one_hot: bool = True) -> TableBasedPolicy:
+        # Computes the number of potential combinations of latent memory (3 possible values for each latent memory cell, {-1, 0, 1})
+        base = 3
+        max_memory = base ** memory_len if not is_one_hot else memory_len
+        nr_observations = environment.stormpy_model.nr_observations
+        fsc_actions = np.zeros((max_memory, nr_observations))
+        fsc_updates = np.zeros((max_memory, nr_observations))
+        logger.info("Computing memory to tensor table")
+        compute_memory, decompute_memory = get_encoding_functions(is_one_hot)
+        memory_to_tensor_table = DirectExtractor.create_memory_to_tensor_table(
+            compute_memory, memory_len, max_memory)
+        eager = PyTFEagerPolicy(
+            policy, use_tf_function=True, batch_time_steps=False)
+        logger.info("Starting to extract FSC")
+
+        _, obs_mesh = np.meshgrid(
+            np.arange(max_memory), np.arange(nr_observations), indexing='ij')
+        obs_mesh = obs_mesh.flatten()
+        obs_batch = tf.convert_to_tensor(obs_mesh, dtype=tf.int32)  # (N,)
+        time_steps = environment.create_fake_timestep_from_observation_integer(obs_batch)
+
+        memory_states = tf.convert_to_tensor(memory_to_tensor_table, dtype=tf.float32)  # (M, L)
+        memory_states = tf.reshape(memory_states, (max_memory, 1, memory_len))          # (M, 1, L)
+        memory_states = tf.repeat(memory_states, repeats=nr_observations, axis=1)       # (M, N, L)
+        memory_states = tf.reshape(memory_states, (-1, memory_len))                     # (M*N, L)
+
+
+        policy_steps = eager.action(time_steps, policy_state=memory_states)
+        actions = policy_steps.action.numpy().reshape((max_memory, nr_observations))
+        fsc_actions[:, :] = actions
+
+        states = policy_steps.state  # (M*N, L)
+        decoded_states = np.stack([
+            decompute_memory(memory_len, states[i], base)
+            for i in range(max_memory * nr_observations)
+        ])
+        fsc_updates[:, :] = decoded_states.reshape((max_memory, nr_observations))
+        table_based_policy = TableBasedPolicy(
+            policy, fsc_actions, fsc_updates, initial_memory=0)
+        return table_based_policy, fsc_actions, fsc_updates
 
     @staticmethod
     def save_eval_res_to_json(eval_res: EvaluationResults, prism_model: str, path_to_experiment_folder: str):
@@ -223,7 +272,21 @@ class DirectExtractor:
             environment=env, tf_environment=tf_env, args=args,
             extraction_stats=extraction_stats
         )
-        fsc = DirectExtractor.extract_fsc(cloned_actor, env, memory_size, is_one_hot=use_one_hot)
+        fsc, action_table, update_table = DirectExtractor.extract_fsc(cloned_actor, env, memory_size, is_one_hot=use_one_hot)
+        fsc2, action_table2, update_table2 = DirectExtractor.extract_fsc_nonvectorized(cloned_actor, env, memory_size, is_one_hot=use_one_hot)
+        # Compare action and update tables (they should be same)
+        try:
+            assert np.array_equal(action_table, action_table2)
+        except AssertionError:
+            print("Action tables are not equal")
+            print(f"Action table: {action_table}")
+            print(f"Action table2: {action_table2}")
+        try:
+            assert np.array_equal(update_table, update_table2)
+        except AssertionError:
+            print("Update tables are not equal")
+            print(f"Update table: {update_table}")
+            print(f"Update table2: {update_table2}")
         if DEBUG:
             buffer_test = sample_data_with_policy(
                 cloned_actor, num_samples=400, environment=env, tf_environment=tf_env)

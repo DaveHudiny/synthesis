@@ -40,7 +40,7 @@ class TrajectoryBuffer:
         """WARNING: This function uses the current state of the environment to add the step. 
         If the environment is desynchronized with the trajectory, it will not work properly."""
         environment = self.environment
-        self.virtual_rewards.append(environment.virtual_reward.numpy())
+        self.virtual_rewards.append(traj.reward.numpy())
         self.real_rewards.append(environment.orig_reward.numpy())
         self.finished.append(environment.dones)
         self.finished_successfully.append(environment.goal_state_mask)

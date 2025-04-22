@@ -778,8 +778,10 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             for selected_action in selected_actions.keys():
                 for selected_update in selected_updates.keys():
                     selected_action_label = action_labels[selected_action]
-
-                    choice_offset_for_selected_label = self.action_labels_at_observation[current_obs].index(selected_action_label)
+                    if selected_action_label not in self.action_labels_at_observation[current_obs]:
+                        choice_offset_for_selected_label = 0
+                    else:
+                        choice_offset_for_selected_label = self.action_labels_at_observation[current_obs].index(selected_action_label)
                     choice_index = self.pomdp.get_choice_index(current_state_memory_pair[0], choice_offset_for_selected_label)
 
                     for entry in self.pomdp.transition_matrix.get_row(choice_index):
@@ -813,7 +815,10 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
 
             for selected_action, action_prob in selected_actions.items():
                 selected_action_label = action_labels[selected_action]
-                choice_offset_for_selected_label = self.action_labels_at_observation[current_obs].index(selected_action_label)
+                if selected_action_label not in self.action_labels_at_observation[current_obs]:
+                    choice_offset_for_selected_label = 0
+                else:
+                    choice_offset_for_selected_label = self.action_labels_at_observation[current_obs].index(selected_action_label)
                 choice_index = self.pomdp.get_choice_index(current_state_memory_pair[0], choice_offset_for_selected_label)
 
                 for reward_name, reward_model in self.pomdp.reward_models.items():

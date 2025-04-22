@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 # max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
 OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 500
 
-AUTOMATA = True
+AUTOMATA = False
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 

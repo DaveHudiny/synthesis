@@ -19,7 +19,7 @@ class FSC:
                  action_function : tf.Tensor = None, update_function : tf.Tensor = None,
                  observation_labels = None, action_labels = None):
         if action_function and update_function and observation_labels and action_labels:
-            self.tensor_init()
+            self.external_init(action_function, update_function, observation_labels, action_labels, num_nodes, num_observations, is_deterministic)
         else:
             self.num_nodes = num_nodes
             self.num_observations = num_observations
@@ -31,15 +31,17 @@ class FSC:
             self.observation_labels = None
             self.action_labels = None
 
-    def tensor_init(self): 
-        self.num_nodes = tf.shape(self.action_function)[0]
-        self.num_observations = tf.shape(self.action_function)[1]
-        self.is_deterministic = tf.shape(self.action_function)[2] == 1
-        self.action_function = tf.cast(self.action_function, dtype=tf.int32)
-        self.update_function = tf.cast(self.update_function, dtype=tf.int32)
-        self.observation_labels = None
-        self.action_labels = None
+    def external_init(self, action_function, update_function, observation_labels, action_labels, num_nodes, num_observations, is_deterministic):
+        self.num_nodes = num_nodes
+        self.num_observations = num_observations
+        self.is_deterministic = is_deterministic
 
+        self.action_function = action_function
+        self.update_function = update_function
+
+        self.observation_labels = observation_labels
+        self.action_labels = action_labels
+        self.is_deterministic = is_deterministic
     def __str__(self):
         return json.dumps(self.to_json(), indent=4)
 

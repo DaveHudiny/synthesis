@@ -31,6 +31,10 @@ from paynt.rl_extension.extraction_benchmark_res import ExtractionBenchmarkRes, 
 
 from rl_src.interpreters.extracted_fsc.table_based_policy import TableBasedPolicy
 
+from paynt.rl_extension.family_extractors.direct_fsc_construction import ConstructorFSC
+
+import stormpy
+
 class SynthesizerRL:
     def __init__(self, quotient: PomdpQuotient, method: str, storm_control: StormPOMDPControl, input_rl_settings: dict = None,
                  use_one_hot_memory = False):
@@ -40,7 +44,6 @@ class SynthesizerRL:
         self.set_input_rl_settings_for_paynt(input_rl_settings)
         self.synthesizer = SynthesizerOneByOne
         self.total_iters = 0
-
         if storm_control is not None:
             self.use_storm = True
             self.storm_control = storm_control
@@ -208,8 +211,8 @@ class SynthesizerRL:
             optimization_specification = SpecificationChecker.Constants.REWARD
 
         direct_extractor = DirectExtractor(memory_len = latent_dim, is_one_hot=self.use_one_hot_memory,
-                                           use_residual_connection=True, training_epochs=301,
-                                           num_data_steps=500, get_best_policy_flag=False, model_name=self.model_name,
+                                           use_residual_connection=True, training_epochs=10001,
+                                           num_data_steps=3000, get_best_policy_flag=False, model_name=self.model_name,
                                            max_episode_len=self.args.max_steps, optimizing_specification=optimization_specification)
         fsc, extraction_stats = direct_extractor.clone_and_generate_fsc_from_policy(
             policy, environment, tf_environment)
@@ -259,7 +262,7 @@ class SynthesizerRL:
 
         # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
         agents_wrapper.agent.set_agent_greedy()
-        latent_dim = 2 if not self.use_one_hot_memory else 5
+        latent_dim = 4 if not self.use_one_hot_memory else 3 ** 1
         if bottlenecking:
             bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
                 agents_wrapper)
@@ -270,8 +273,12 @@ class SynthesizerRL:
                 agents_wrapper.agent.environment, 
                 agents_wrapper.agent.tf_environment, 
                 latent_dim=latent_dim)
+
+            
+        logger.info(f"Extracted FSC from RL policy.")
         agents_wrapper.agent.set_agent_stochastic()
         assignment = self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
+        logger.info(f"Paynt assignment computed.")
         return assignment
     
     def compute_assignment_through_family(self, fsc_like, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60):
@@ -296,14 +303,25 @@ class SynthesizerRL:
         return assignment
 
     def compute_paynt_assignment_directly(self, fsc_like : TableBasedPolicy):
-        
-        return 
+        fsc = ConstructorFSC.construct_fsc_from_table_based_policy(
+            fsc_like, self.agents_wrapper.agent.environment, self.quotient)
+        logger.info(f"Extracted FSC from RL policy.")
+        logger.info(f"DTMC extraction")
+        dtmc = self.quotient.get_induced_dtmc_from_fsc(fsc)
+            #     print(dtmc)
+        logger.info(f"DTMC extraction finished")
+        logger.info(f"Checking DTMC.")
+        result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
+        logger.info(f"DTMC check finished")
+        print(f"DTMC check result{result.at(0)}")
 
-    def compute_paynt_assignment_from_fsc_like(self, fsc_like : TableBasedPolicy, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60, old=False):
+
+    def compute_paynt_assignment_from_fsc_like(self, fsc_like : TableBasedPolicy, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60, old=True):
         if old:
             return self.compute_assignment_through_family(fsc_like, latent_dim, agents_wrapper, paynt_timeout)
         else:
-            return compute_paynt_assignment_directly(fsc_like)
+            logger.info(f"Computing assignment from fsc_like.")
+            return self.compute_paynt_assignment_directly(fsc_like)
         
     
     def perform_benchmarking(self, agents_wrapper: AgentsWrapper, number_of_runs=10):
@@ -393,8 +411,8 @@ class SynthesizerRL:
                 agents_wrapper.agent.evaluation_result.add_paynt_bound(
                     self.quotient.specification.optimality.optimum)
                 fsc = self.quotient.assignment_to_fsc(assignment)
-                print(fsc.observation_labels)
-                print(fsc.action_labels)
+                # print(fsc.observation_labels)
+                # print(fsc.action_labels)
 
             if not self.loop:
                 break
