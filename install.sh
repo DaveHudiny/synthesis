@@ -77,5 +77,9 @@ pip install -e .
 
 cd ${PAYNT_ROOT}
 
+pip install tensorflow==2.15
+pip install tf_agents
+pip install tqdm dill matplotlib pandas seaborn networkx
+
 # done
 deactivate

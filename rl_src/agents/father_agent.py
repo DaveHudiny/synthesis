@@ -101,6 +101,7 @@ class FatherAgent(AbstractAgent):
         if args.paynt_fsc_imitation:
             self.fsc = self.load_fsc(args.paynt_fsc_json)
         self.wrapper = wrapper
+        self.wrapper_eager = None
         self.evaluation_result = EvaluationResults(self.environment.goal_value)
         self.duplexing = False
 
@@ -628,11 +629,20 @@ class FatherAgent(AbstractAgent):
         else:
             self.wrapper.set_greedy(False)
 
-    def policy(self, time_step, policy_state=None):
+    def action(self, time_step, policy_state=None):
         """Make a decision based on the policy of the agent."""
         if policy_state is None:
-            policy_state = self.agent.policy.get_initial_state(None)
+            policy_state = self.wrapper.get_initial_state(self.tf_environment.batch_size)
+        if self.wrapper_eager is not None:
+            return self.wrapper_eager.action(
+                time_step, policy_state=policy_state)
         return self.agent.policy.action(time_step, policy_state=policy_state)
+    
+    def policy(self):
+        """Get the policy of the agent."""
+        if self.wrapper is not None:
+            return self.wrapper
+        return self.agent.policy
 
     def save_agent(self, best=False):
         """Save the agent. Used for saving the agent after or during training training.

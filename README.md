@@ -3,7 +3,11 @@
 This version of PAYNT contains implementation of reinforcement algorithms based on TF Agents and is currently distributed on https://github.com/DaveHudiny/synthesis, which is fork from [PAYNT repository](https://github.com/randriu/synthesis). This toolkit was created as a part of diploma thesis "Using Reinforcement learning and inductive synthesis for designing robust controllers in POMDPs" by David Hudák (xhudak03) under superivision of doc. Milan Češka. It is currently part of PhD. studies of David Hudák (ihudak@fit.vutbr.cz).
 
 ## Installation
- Install paynt (below).
+  Run ./install.sh script.
+
+ (Detailed description)
+ Install PAYNT (below).
+ Install VecStorm.
  Then use following commands:
  ```shell
    $ source prerequisites/venv/bin/activate
@@ -20,9 +24,12 @@ This version of PAYNT contains implementation of reinforcement algorithms based 
  The main implementation of the diploma thesis is included within the rl_src folder, which contains the main parts of implementation of our reinforcement learning approach.
 
 ## Usage
+ If you simply want to use reinforcement learning framework, the best option is now to check rl_demonstration.ipynb, where are the most of the important parts of the RL usage.
+
  You can use:
  ```shell
   $ source prerequisites/venv/bin/activate
+  
   $ python3 paynt.py --help
   ```
  to see, how to use this project. Implementation of the extension is primarily focused on option --reinforcement-learning with option --storm-pomdp and --fsc-synthesis, which enables to use reinforcement learning options within the project. For example, you can use

@@ -175,7 +175,6 @@ class PolicyMaskWrapper(TFPolicy):
         # observation, mask = self._observation_and_action_constraint_splitter(time_step.observation)
         # time_step = time_step._replace(observation=observation)
         # return self._policy.action(time_step, policy_state, seed)
-
         distribution = self._real_distribution(time_step, policy_state)
 
         if self._is_greedy:

@@ -24,6 +24,8 @@ from agents.networks.actor_networks import create_recurrent_actor_net_demasked
 from tf_agents.networks.value_rnn_network import ValueRnnNetwork
 from tf_agents.networks.actor_distribution_rnn_network import ActorDistributionRnnNetwork
 
+from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
+
 import sys
 sys.path.append("../")
 
@@ -85,10 +87,13 @@ class Recurrent_PPO_agent(FatherAgent):
         self.init_collector_driver(self.tf_environment, demasked=True)
         self.wrapper = PolicyMaskWrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
+        self.wrapper_eager = PyTFEagerPolicy(self.wrapper, True, False)
+        logging.info("Collector driver initialized")
         if load:
             self.load_agent()
         self.init_vec_evaluation_driver(
             self.tf_environment, self.environment, num_steps=self.args.max_steps)
+        logging.info("Evaluation driver initialized")
         
     def special_agent_pretraining_stuff(self):
         logger.info("Setting value net to trainable")

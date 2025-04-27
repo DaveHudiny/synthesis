@@ -79,7 +79,7 @@ class ExperimentInterface:
             time_step = self.tf_environment._reset()
             is_last = time_step.is_last()
             while not is_last:
-                action_step = self.agent.policy(time_step)
+                action_step = self.agent.action(time_step)
                 next_time_step = self.tf_environment.step(action_step.action)
                 time_step = next_time_step
                 is_last = time_step.is_last()
