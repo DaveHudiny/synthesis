@@ -12,6 +12,13 @@ import math
 import re
 import collections
 
+import numpy as np
+from paynt.quotient.fsc import FSC
+
+import time
+
+import networkx as nx
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -43,6 +50,8 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         self.actions_at_observation = None
         # action labels corresponding to ^
         self.action_labels_at_observation = None
+        # ordered list of action labels
+        self.ordered_action_labels = None
         # for each observation, number of states associated with it
         self.observation_states = None
 
@@ -111,6 +120,21 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         for obs,labels in enumerate(self.action_labels_at_observation):
             if len(labels) == 0:
                 logger.warning(f"WARNING: POMDP has no action for observation {obs}")
+        
+
+        self.ordered_action_labels = list(self.pomdp.choice_labeling.get_labels())
+
+        G = nx.DiGraph()
+
+        for lst in self.action_labels_at_observation:
+            for i in range(len(lst)-1):
+                G.add_edge(lst[i], lst[i+1])
+        order = list(nx.topological_sort(G))
+        for i in self.ordered_action_labels:
+            if i not in order:
+                order.append(i)
+
+        self.ordered_action_labels = order
 
         # mark perfect observations
         self.observation_states = [0 for obs in range(self.observations)]
@@ -271,11 +295,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             if hole != num_holes:
                 hole_options.append( (hole,choice_memory_option[choice]) )
             choice_to_hole_options.append(hole_options)
-
-        # print(family)
-        # print(type(family))
-        # print(dir(family))
-        # exit()
 
         return family, choice_to_hole_options
 
@@ -763,6 +782,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         state_queue = [(self.pomdp.initial_states[0],0)]
         dtmc_states_map[len(dtmc_states_map)] = (self.pomdp.initial_states[0],0)
 
+        start_time = time.time()
         while state_queue:
             current_state_memory_pair = state_queue.pop()
 
@@ -790,7 +810,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                         if next_state_memory_pair not in dtmc_states_map.values():
                             state_queue.append(next_state_memory_pair)
                             dtmc_states_map[len(dtmc_states_map)] = next_state_memory_pair
-
 
         # construct the transition matrix
         num_dtmc_states = len(dtmc_states_map)
@@ -864,6 +883,156 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         components = stormpy.SparseModelComponents(transition_matrix=dtmc_tm, state_labeling=dtmc_labeling, reward_models=dtmc_reward_models)
         induced_dtmc = stormpy.storage.SparseDtmc(components)
 
+        return induced_dtmc
+    
+    def compute_function_expansion(self, action_or_update_function, max_actions):
+        # compute the function expansion
+        expanded_function = np.zeros((action_or_update_function.shape[0], action_or_update_function.shape[1], max_actions), dtype=float)
+        for i in range(action_or_update_function.shape[0]):
+            for j in range(action_or_update_function.shape[1]):
+                dictus = action_or_update_function[i][j]
+                if dictus is None:
+                    continue
+                for key in dictus.keys():
+                    expanded_function[i][j][key] = dictus[key]
+        return expanded_function
+    
+    def compute_dtmc_maps(self, np_action_function):
+        state_indices, memory_indices = np.meshgrid(np.arange(self.pomdp.nr_states), np.arange(np_action_function.shape[0]), indexing='ij') 
+        product = np.stack((state_indices, memory_indices), axis=-1).reshape(-1, 2)
+        active_boolean_map = np.zeros((product.shape[0],), dtype=bool) # Replacement for state_queue
+        used_boolean_map = np.zeros((product.shape[0],), dtype=bool) # Replacement for dtmc_states_map
+        return product, active_boolean_map, used_boolean_map
+    
+    def precompute_action_offsets_at_observations(self, fixed_action_labels, action_labels_at_observation):
+        original_fixed_action_labels = np.array(self.ordered_action_labels)
+        nr_observations = len(action_labels_at_observation)
+        expanded_action_labels_at_observation_flags = np.zeros((nr_observations, len(fixed_action_labels)), dtype=bool)
+        for obs in range(nr_observations):
+            for action_label in action_labels_at_observation[obs]:
+                if action_label in original_fixed_action_labels:
+                    expanded_action_labels_at_observation_flags[obs][np.argwhere(action_label == original_fixed_action_labels)] = True
+                else:
+                    print(f"Action label {action_label} not found in original fixed action labels.")
+        action_offsets = np.cumsum(expanded_action_labels_at_observation_flags, axis=1) - 1
+        index_map = [self.ordered_action_labels.index(label) for label in fixed_action_labels]
+        expanded_action_labels_at_observation_flags = expanded_action_labels_at_observation_flags[:, index_map]
+        action_offsets = action_offsets[:, index_map]
+        return action_offsets, expanded_action_labels_at_observation_flags
+        
+    def own_choice_index_matrix_computation(self, choice_offsets_for_obs, state_to_obs_map):
+        np_choice_index_matrix = np.zeros((self.pomdp.nr_states, choice_offsets_for_obs.shape[1]), dtype=int)
+        num_legal_actions_cumulative = np.cumsum(choice_offsets_for_obs[state_to_obs_map, -1] + 1)
+        num_legal_actions_cumulative = np.append([0], num_legal_actions_cumulative[:-1]).reshape(-1, 1)
+        num_legal_actions_cumulative_repeated = np.repeat(num_legal_actions_cumulative, choice_offsets_for_obs.shape[1], axis=1)
+        np_choice_index_matrix = num_legal_actions_cumulative_repeated + np.arange(choice_offsets_for_obs.shape[1])
+        return np_choice_index_matrix 
+
+    def get_induced_dtmc_from_fsc_vec(self, fsc : FSC):
+        if fsc.is_deterministic:
+            fsc_copy = fsc.copy()
+            fsc_copy.make_stochastic()
+        else:
+            fsc_copy = fsc.copy()
+
+        action_labels = np.array(fsc.action_labels)
+
+        np_action_function = np.array(fsc_copy.action_function)
+        np_update_function = np.array(fsc_copy.update_function)
+        np_action_function = self.compute_function_expansion(np_action_function, len(action_labels))
+
+        def extract(d):
+            if d is None:
+                return 0
+            return next(iter(d.keys()))
+        vextract = np.vectorize(extract)
+        np_update_function = vextract(np_update_function)
+        np_state_to_observations = np.array(self.pomdp.observations)
+        mem_size = np_action_function.shape[0]
+
+        action_labels_at_observation = self.action_labels_at_observation
+        action_offsets, expanded_action_labels_at_observation_flags = self.precompute_action_offsets_at_observations(action_labels, action_labels_at_observation)
+        
+        # Check, whether the offsets are correct
+        for obs in range(len(action_labels_at_observation)):
+            for action, action_label in enumerate(action_labels):
+                if action_label in action_labels_at_observation[obs]:
+                    action_offset_original = action_labels_at_observation[obs].index(action_label)
+                    action_offset = action_offsets[obs][action]
+                else:
+                    action_offset_original = 0
+                if expanded_action_labels_at_observation_flags[obs][action] == False:
+                    action_offset = 0
+                if action_offset != action_offset_original:
+                    print(f"Action offset mismatch for observation {obs}, action {action_label}: {action_offset} != {action_offset_original}")
+
+
+        np_choice_index_matrix = self.own_choice_index_matrix_computation(action_offsets, np_state_to_observations)
+
+        dtmc_state_memory_product, dtmc_state_active_boolean_map, dtmc_states_map_flag = self.compute_dtmc_maps(np_action_function)
+        
+        initial_state_memory_pair = (self.pomdp.initial_states[0], 0)
+        dtmc_state_active_boolean_map[np.where(np.all(dtmc_state_memory_product == initial_state_memory_pair, axis=1))] = True
+        dtmc_states_map_flag[np.where(np.all(dtmc_state_memory_product == initial_state_memory_pair, axis=1))] = True
+        start_time = time.time()
+        while np.max(dtmc_state_active_boolean_map) == True: # Vectorized reimplementation of the code above
+            current_state_memory_pairs = dtmc_state_memory_product[dtmc_state_active_boolean_map]
+            dtmc_state_active_boolean_map[:] = False
+            current_obs = np_state_to_observations[current_state_memory_pairs[:,0]]
+            selected_actions = np_action_function[current_state_memory_pairs[:,1],current_obs, :]
+
+            nonzero_selected_actions = np.argwhere(selected_actions > 0)
+
+            # Remove current_state_memory_pairs, where we removed the actions and updates
+            current_state_memory_pairs = current_state_memory_pairs[nonzero_selected_actions[:, 0]]
+            current_obs = current_obs[nonzero_selected_actions[:, 0]]
+            selected_updates = np_update_function[current_state_memory_pairs[:, 1], current_obs]
+            if nonzero_selected_actions.shape[0] == 0:
+                break
+
+            offsets = np.where(
+                expanded_action_labels_at_observation_flags[current_obs][np.arange(nonzero_selected_actions.shape[0]), nonzero_selected_actions[:, 1]] == True, 
+                action_offsets[current_obs][np.arange(nonzero_selected_actions.shape[0]), nonzero_selected_actions[:, 1]], 
+                0
+            )
+            # compute original offsets
+            offsets_orig = []
+            choice_indices = []
+            print(current_state_memory_pairs)
+            print(current_obs)
+            print(nonzero_selected_actions)
+            print(nonzero_selected_actions.shape)
+            for i, (state, memory) in enumerate(current_state_memory_pairs):
+                for j, selected_action in nonzero_selected_actions[state]:
+                        selected_action_label = action_labels[selected_action]
+                        if selected_action_label not in self.action_labels_at_observation[current_obs[i]]:
+                            offsets_orig.append(0)
+                        else:
+                            offsets_orig.append(self.action_labels_at_observation[current_obs[i]].index(selected_action_label))
+                        print(f"state {state}, offset {offsets_orig[i]}, selected action {selected_action_label}")
+                        choice_indices.append(self.pomdp.get_choice_index(state, offsets_orig[-1]))
+
+            offsets_orig = np.array(offsets_orig)
+            # compare offsets
+            if not np.array_equal(offsets, offsets_orig):
+                print(f"Offsets mismatch: {offsets} != {offsets_orig}")
+                raise ValueError("Offsets mismatch")
+            choice_indices = np_choice_index_matrix[current_state_memory_pairs[:,0], offsets]
+            
+            # compare
+            for i, choice in enumerate(choice_indices):
+                entries = self.pomdp.transition_matrix.get_row(choice)
+                entries_values_list = [entry.column for entry in entries]
+                entries_values_list = np.array(entries_values_list)
+                unique_index = entries_values_list * mem_size + selected_updates[i]
+                dtmc_state_active_boolean_map[unique_index] = np.where(dtmc_states_map_flag[unique_index] == False, True, dtmc_state_active_boolean_map[unique_index])
+                dtmc_states_map_flag[unique_index] = True
+        print(f"Induced DTMC state space construction took {time.time()-start_time} seconds")
+        print(f"Size of induced DTMC: {np.sum(dtmc_states_map_flag)}")
+        print(f"Induced DTMC states: {dtmc_state_memory_product[dtmc_states_map_flag]}")
+        
+        components = stormpy.SparseModelComponents()
+        induced_dtmc = stormpy.storage.SparseDtmc(components)
         return induced_dtmc
 
 

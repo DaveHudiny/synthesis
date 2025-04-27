@@ -269,10 +269,10 @@ def paynt_run(
         synthesizer.set_reinforcement_learning(rl_input_dictionary)
         synthesizer.set_second_quotient(second_quotient)
 
-    rl_synthesizer = SynthesizerRL(
-                second_quotient, method, None, rl_input_dictionary, True)
-    rl_synthesizer.run(multiple_assignments_benchmark=False)
-    exit(0)
+    # rl_synthesizer = SynthesizerRL(
+    #             second_quotient, method, None, rl_input_dictionary, True)
+    # rl_synthesizer.run(multiple_assignments_benchmark=False)
+    # exit(0)
     synthesizer.run(optimum_threshold)
 
     if profiling:

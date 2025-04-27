@@ -13,6 +13,7 @@ from paynt.family.family import Family
 
 from paynt.synthesizer.synthesizer_rl import SynthesizerRL
 
+import stormpy
 
 from threading import Thread
 from queue import Queue
@@ -225,6 +226,7 @@ class SynthesizerPomdp:
 
     def iterative_storm_loop(self, timeout, paynt_timeout, storm_timeout, iteration_limit=0):
         ''' Main SAYNT loop. '''
+
         self.interactive_queue = Queue()
         self.synthesizer.s_queue = self.interactive_queue
         self.storm_control.interactive_storm_setup()
@@ -244,7 +246,6 @@ class SynthesizerPomdp:
         timeout_bonus = 0
         self.saynt_timer.start()
         skip_first = False
-        
         while True:
             if iteration == 1:
                 paynt_thread.start()
@@ -252,7 +253,6 @@ class SynthesizerPomdp:
                 self.interactive_queue.put("resume")
 
             logger.info("Timeout for PAYNT started")
-
             time.sleep(paynt_timeout)
             self.interactive_queue.put("timeout")
 
@@ -289,7 +289,6 @@ class SynthesizerPomdp:
             #     print(dtmc)
             #     result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
             #     print(result.at(0))
-            #     # exit(0)
                 
             #     print("Evaluation started")
             #     simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_storm_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
@@ -312,13 +311,23 @@ class SynthesizerPomdp:
             
             iteration += 1
 
+
         self.interactive_queue.put("terminate")
         self.synthesis_terminate = True
         paynt_thread.join()
 
         self.storm_control.interactive_storm_terminate()
 
+
         self.saynt_timer.stop()
+
+        # if self.storm_control.latest_storm_fsc is not None:
+        #     pre_clone_time = time.time()
+        #     print("Unpacking storm result")
+        #     dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_paynt_result_fsc)
+        #     # result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
+        #     # print("Old result", result.at(0))
+        #     dtmc_vec = self.quotient.get_induced_dtmc_from_fsc_vec(self.storm_control.latest_paynt_result_fsc)
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

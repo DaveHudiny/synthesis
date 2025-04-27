@@ -1,6 +1,6 @@
 # PAYNT with RL extension
 
-This version of PAYNT contains implementation of reinforcement algorithms based on TF Agents and is currently distributed on https://github.com/DaveHudiny/synthesis, which is fork from [PAYNT repository](https://github.com/randriu/synthesis). This toolkit was created as a part of diploma thesis "Using Reinforcement learning and inductive synthesis for designing robust controllers in POMDPs" by David Hudák (xhudak03) under superivision of doc. Milan Češka.
+This version of PAYNT contains implementation of reinforcement algorithms based on TF Agents and is currently distributed on https://github.com/DaveHudiny/synthesis, which is fork from [PAYNT repository](https://github.com/randriu/synthesis). This toolkit was created as a part of diploma thesis "Using Reinforcement learning and inductive synthesis for designing robust controllers in POMDPs" by David Hudák (xhudak03) under superivision of doc. Milan Češka. It is currently part of PhD. studies of David Hudák (ihudak@fit.vutbr.cz).
 
 ## Installation
  Install paynt (below).
@@ -9,7 +9,7 @@ This version of PAYNT contains implementation of reinforcement algorithms based 
    $ source prerequisites/venv/bin/activate
    $ pip install tensorflow==2.15
    $ pip install tf_agents
-   $ pip install tqdm dill matplotlib pandas seaborn
+   $ pip install tqdm dill matplotlib pandas seaborn networkx
  ```
 
  This implementation was experimented within Ubuntu 22.04 and Debian 12.5. Other Linux distributions may miss some libraries etc. and you should install them on your own, or contact the authors (DaveHudiny at GitHub, or at my e-mail skolahudak@gmail.com, or one of the authors of PAYNT Roman Andriushchenko with e-mail iandri@vutbr.cz).

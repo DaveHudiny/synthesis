@@ -84,7 +84,7 @@ class SynthesizerRL:
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=401, evaluation_goal=50.0, evaluation_antigoal=-0.0,
-                            trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
+                            trajectory_num_steps=16, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=200, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
                             use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
@@ -274,8 +274,8 @@ class SynthesizerRL:
                 agents_wrapper.agent.tf_environment, 
                 latent_dim=latent_dim)
 
-            
-        logger.info(f"Extracted FSC from RL policy.")
+        k_fsc = 3 ** latent_dim if not self.use_one_hot_memory else latent_dim
+        logger.info(f"Extracted {k_fsc}-FSC from RL policy.")
         agents_wrapper.agent.set_agent_stochastic()
         assignment = self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
         logger.info(f"Paynt assignment computed.")

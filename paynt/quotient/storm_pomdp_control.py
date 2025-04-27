@@ -156,12 +156,12 @@ class StormPOMDPControl:
 
     def store_storm_result(self, result):
         self.latest_storm_result = result
-        # if self.is_rl_better:
-        #     self.latest_storm_fsc = self.belief_controller_to_fsc(
-        #         result, self.latest_rl_result_fsc)  
-        # else:
-        #     self.latest_storm_fsc = self.belief_controller_to_fsc(
-        #         result, self.latest_paynt_result_fsc)
+        if self.is_rl_better:
+            self.latest_storm_fsc = self.belief_controller_to_fsc(
+                result, self.latest_rl_result_fsc)  
+        else:
+            self.latest_storm_fsc = self.belief_controller_to_fsc(
+                result, self.latest_paynt_result_fsc)
         if self.quotient.specification.optimality.minimizing:
             self.storm_bounds = self.latest_storm_result.upper_bound
         else:
@@ -597,7 +597,9 @@ class StormPOMDPControl:
             latest_result = self.latest_paynt_result
             used_quotient = quotient
         result = {x: [] for x in range(used_quotient.observations)}
-
+        if latest_result is None:
+            return
+        
         for hole in range(latest_result.num_holes):
             name = latest_result.hole_name(hole)
             if name.startswith('M'):
