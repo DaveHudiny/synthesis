@@ -1,23 +1,23 @@
 import numpy as np
-from rl_src.environment.pomdp_builder import *
+from environment.pomdp_builder import *
 
-from rl_src.environment.environment_wrapper_vec import Environment_Wrapper_Vec
-from rl_src.tools.args_emulator import ArgsEmulator
-from rl_src.environment.tf_py_environment import TFPyEnvironment
+from environment.environment_wrapper_vec import EnvironmentWrapperVec
+from tools.args_emulator import ArgsEmulator
+from environment.tf_py_environment import TFPyEnvironment
 
 
-def init_environment(args : ArgsEmulator) -> tuple[Environment_Wrapper_Vec, TFPyEnvironment]:
+def init_environment(args : ArgsEmulator) -> tuple[EnvironmentWrapperVec, TFPyEnvironment]:
     prism_model = initialize_prism_model(args.prism_model, args.prism_properties, args.constants)
-    env = Environment_Wrapper_Vec(prism_model, args, num_envs=args.num_environments)
+    env = EnvironmentWrapperVec(prism_model, args, num_envs=args.num_environments)
     tf_env = TFPyEnvironment(env)
     return env, tf_env
 
-def init_args(prism_path, properties_path) -> ArgsEmulator:
+def init_args(prism_path, properties_path, nr_runs=101, goal_value_multiplier = 1.0) -> ArgsEmulator:
     args = ArgsEmulator(prism_model=prism_path, prism_properties=properties_path, learning_rate=1.6e-4,
-                            restart_weights=0, learning_method="Stochastic_PPO",
-                            nr_runs=1001, agent_name="Testus", load_agent=False,
-                            evaluate_random_policy=False, max_steps=400, evaluation_goal=50, evaluation_antigoal=-20,
-                            trajectory_num_steps=30, discount_factor=0.99, num_environments=256,
+                            restart_weights=0, learning_method="Stochastic_PPO", prefer_stochastic=False,
+                            nr_runs=nr_runs, agent_name="Testus", load_agent=False,
+                            evaluate_random_policy=False, max_steps=401, evaluation_goal=50, evaluation_antigoal=-20,
+                            trajectory_num_steps=25, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=True, use_rnn_less=False, model_memory_size=0)
     return args

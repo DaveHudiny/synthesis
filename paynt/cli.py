@@ -3,9 +3,10 @@ from . import version
 import paynt.utils.timer
 import paynt.parser.sketch
 
-import paynt.quotient
+import paynt.quotient.quotient
 import paynt.quotient.pomdp
 import paynt.quotient.decpomdp
+import paynt.quotient.posmg
 import paynt.quotient.storm_pomdp_control
 import paynt.quotient.mdp
 
@@ -13,6 +14,8 @@ import paynt.synthesizer.synthesizer
 import paynt.synthesizer.synthesizer_cegis
 import paynt.synthesizer.policy_tree
 import paynt.synthesizer.decision_tree
+
+from paynt.synthesizer.synthesizer_rl import SynthesizerRL
 
 import click
 import sys
@@ -28,13 +31,13 @@ logger = logging.getLogger(__name__)
 
 def setup_logger(log_path = None):
     ''' Setup routine for logging. '''
-    
+
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     # root.setLevel(logging.INFO)
 
     # formatter = logging.Formatter('%(asctime)s %(threadName)s - %(name)s - %(levelname)s - %(message)s')
-    formatter = logging.Formatter('%(asctime)s - %(filename)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(filename)s:%(lineno)d - %(message)s')
 
     handlers = []
     if log_path is not None:
@@ -63,6 +66,8 @@ def setup_logger(log_path = None):
     help="known optimum bound")
 @click.option("--precision", type=click.FLOAT, default=1e-4,
     help="model checking precision")
+@click.option("--exact", is_flag=True, default=False,
+    help="use exact synthesis (very limited at the moment)")
 @click.option("--timeout", type=int,
     help="timeout (s)")
 
@@ -116,14 +121,8 @@ def setup_logger(log_path = None):
 @click.option("--export-synthesis", type=click.Path(), default=None,
     help="base filename to output synthesis result")
 
-@click.option("--mdp-split-wrt-mdp", is_flag=True, default=False,
-    help="if set, MDP abstraction scheduler will be used for splitting, otherwise game abstraction scheduler will be used")
 @click.option("--mdp-discard-unreachable-choices", is_flag=True, default=False,
     help="if set, unreachable choices will be discarded from the splitting scheduler")
-@click.option("--mdp-use-randomized-abstraction", is_flag=True, default=False,
-    help="if set, randomized abstraction guess-and-verify will be used instead of game abstraction;" +
-    " MDP abstraction scheduler will be used for splitting"
-)
 
 @click.option("--tree-depth", default=0, type=int,
     help="decision tree synthesis: tree depth")
@@ -167,7 +166,7 @@ def setup_logger(log_path = None):
                 help="Name of the model to be used with output json file.")
 @click.option("--sub-method", type=click.Path(), default="random",
                 help="Name of the submethod to use with dqn critic.")
-@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="R_Shaping",
+@click.option("--rl-method", type=click.Choice(["BC", "Trajectories", "SAYNT_Trajectories", "JumpStarts", "R_Shaping"], case_sensitive=False), default="BC",
                 help="Name of the method to process FSC/SAYNT controller to RL.")
 @click.option("--greedy", is_flag=True, default=False,
               help="Use greedy policy for RL oracle. Default is False.")
@@ -175,7 +174,7 @@ def setup_logger(log_path = None):
               help="Use loop policy for RL oracle. Default is False.")
 @click.option("--fsc-time-in-loop", default=60, type=click.INT,
                 help="Time in loop policy for FSC oracle. Default is 60.")
-@click.option("--time-limit", default=1200, type=click.INT,
+@click.option("--time-limit", default=120, type=click.INT,
                 help="Time limit for RL oracle. Default is 1800.")
 @click.option("--fsc-size", default=1, type=click.INT, help="Size of the FSC to be used with the memoryless RL oracle. Default is 1.")
 @click.option("--rnn-less", is_flag=True, default=False, help="Use RNN-less (memoryless) version of the RL oracle.")
@@ -186,7 +185,7 @@ def setup_logger(log_path = None):
 
 
 def paynt_run(
-    project, sketch, props, relative_error, optimum_threshold, precision, timeout,
+    project, sketch, props, relative_error, optimum_threshold, precision, exact, timeout,
     export,
     method,
     disable_expected_visits,
@@ -194,7 +193,7 @@ def paynt_run(
     storm_pomdp, iterative_storm, get_storm_result, storm_options, prune_storm,
     use_storm_cutoffs, unfold_strategy_storm,
     export_fsc_storm, export_fsc_paynt, export_synthesis,
-    mdp_split_wrt_mdp, mdp_discard_unreachable_choices, mdp_use_randomized_abstraction,
+    mdp_discard_unreachable_choices,
     tree_depth, tree_enumeration, tree_map_scheduler, add_dont_care_action,
     constraint_bound,
     ce_generator,
@@ -204,10 +203,10 @@ def paynt_run(
     rl_load_memory_flag, agent_task, model_name, sub_method, rl_method, greedy, loop, fsc_time_in_loop, time_limit,
     fsc_size, rnn_less):
 
-    if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
-        logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
-        sys.exit(1)
-    elif reinforcement_learning:
+    # if reinforcement_learning and not (fsc_synthesis or storm_pomdp):
+    #     logger.error("Reinforcement learning oracle can be used only with FSC synthesis or Storm POMDP.")
+    #     sys.exit(1)
+    if reinforcement_learning:
         rl_input_dictionary = {
             "reinforcement_learning": reinforcement_learning,
             "load_agent": load_agent,
@@ -244,10 +243,9 @@ def paynt_run(
     paynt.quotient.pomdp.PomdpQuotient.initial_memory_size = fsc_memory_size
     paynt.quotient.pomdp.PomdpQuotient.posterior_aware = posterior_aware
     paynt.quotient.decpomdp.DecPomdpQuotient.initial_memory_size = fsc_memory_size
+    paynt.quotient.posmg.PosmgQuotient.initial_memory_size = fsc_memory_size
 
-    paynt.synthesizer.policy_tree.SynthesizerPolicyTree.split_wrt_mdp_scheduler = mdp_split_wrt_mdp
     paynt.synthesizer.policy_tree.SynthesizerPolicyTree.discard_unreachable_choices = mdp_discard_unreachable_choices
-    paynt.synthesizer.policy_tree.SynthesizerPolicyTree.use_randomized_abstraction = mdp_use_randomized_abstraction
 
     paynt.synthesizer.decision_tree.SynthesizerDecisionTree.tree_depth = tree_depth
     paynt.synthesizer.decision_tree.SynthesizerDecisionTree.tree_enumeration = tree_enumeration
@@ -264,10 +262,17 @@ def paynt_run(
 
     sketch_path = os.path.join(project, sketch)
     properties_path = os.path.join(project, props)
-    quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound)
+    quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound, exact)
+    second_quotient = paynt.parser.sketch.Sketch.load_sketch(sketch_path, properties_path, export, relative_error, precision, constraint_bound, exact)
     synthesizer = paynt.synthesizer.synthesizer.Synthesizer.choose_synthesizer(quotient, method, fsc_synthesis, storm_control)
-    if reinforcement_learning:
+    if reinforcement_learning and fsc_synthesis and storm_pomdp:
         synthesizer.set_reinforcement_learning(rl_input_dictionary)
+        synthesizer.set_second_quotient(second_quotient)
+
+    # rl_synthesizer = SynthesizerRL(
+    #             second_quotient, method, None, rl_input_dictionary, True)
+    # rl_synthesizer.run(multiple_assignments_benchmark=False)
+    # exit(0)
     synthesizer.run(optimum_threshold)
 
     if profiling:

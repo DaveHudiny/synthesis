@@ -19,26 +19,32 @@ from tf_agents.trajectories import Trajectory
 import tensorflow as tf
 import tf_agents
 
+from tools.trajectory_buffer import TrajectoryBuffer
 from tools.encoding_methods import *
 from agents.abstract_agent import AbstractAgent
 from agents.random_agent import RandomAgent
+from tools.evaluation_results_class import EvaluationResults
 from tools.evaluators import *
-from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
-from rl_src.agents.policies.fsc_copy import FSC
-from rl_src.agents.policies.combination_policy import CombinationPolicy, CombinationSettings
+from agents.policies.fsc_copy import FSC
+from agents.policies.combination_policy import CombinationPolicy, CombinationSettings
 from tools.args_emulator import ArgsEmulator, ReplayBufferOptions
 
-from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
+from agents.policies.policy_mask_wrapper import PolicyMaskWrapper
 from agents.policies.simple_fsc_policy import *
+from tf_agents.drivers.dynamic_step_driver import DynamicStepDriver
 
+from agents.reward_driver import DynamicRewardDriver
+
+from reward_machines.predicate_automata import PredicateAutomata, create_dummy_predicate_automata
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 # max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
-OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 4
+OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 500
 
+AUTOMATA = False
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -73,7 +79,7 @@ class FatherAgent(AbstractAgent):
         fsc = FSC.from_json(fsc_json)
         return fsc
 
-    def common_init(self, environment: Environment_Wrapper_Vec, tf_environment: tf_py_environment.TFPyEnvironment,
+    def common_init(self, environment: EnvironmentWrapperVec, tf_environment: tf_py_environment.TFPyEnvironment,
                     args: ArgsEmulator, load=False, agent_folder=None, wrapper: tf_agents.policies.tf_policy.TFPolicy = None):
         """Common initialization of the agents.
 
@@ -89,16 +95,17 @@ class FatherAgent(AbstractAgent):
         self.args = args
         self.evaluation_episodes = args.evaluation_episodes
         self.agent_folder = agent_folder
-        self.traj_num_steps = args.num_steps
+        self.traj_num_steps = args.trajectory_num_steps
         self.agent = None
         self.observation_and_action_constraint_splitter = observation_and_action_constraint_splitter
         if args.paynt_fsc_imitation:
             self.fsc = self.load_fsc(args.paynt_fsc_json)
         self.wrapper = wrapper
+        self.wrapper_eager = None
         self.evaluation_result = EvaluationResults(self.environment.goal_value)
         self.duplexing = False
 
-    def __init__(self, environment: Environment_Wrapper_Vec, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
+    def __init__(self, environment: EnvironmentWrapperVec, tf_environment: tf_py_environment.TFPyEnvironment, args, load=False, agent_folder=None):
         """Initialization of the father agent. Not recommended to use this class directly, use the child classes instead. Implemented as example.
 
         Args:
@@ -133,14 +140,14 @@ class FatherAgent(AbstractAgent):
             if self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
                 buffer_size = self.args.max_steps * OFF_POLICY_BUFFER_SIZE_MULTIPLIER
             elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-                buffer_size = self.args.num_steps + 10
+                buffer_size = self.args.trajectory_num_steps + 10
 
         self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
             data_spec=self.agent.collect_data_spec,
             batch_size=batch_size,
             max_length=buffer_size)
 
-    def init_vec_evaluation_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, environment: Environment_Wrapper_Vec, num_steps=400):
+    def init_vec_evaluation_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, environment: EnvironmentWrapperVec, num_steps=400):
         """Initialize the vectorized evaluation driver for the agent. Used for evaluation of the agent.
 
         Args:
@@ -150,7 +157,7 @@ class FatherAgent(AbstractAgent):
         self.trajectory_buffer = TrajectoryBuffer(environment)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
-        self.vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        self.vec_driver = DynamicStepDriver(
             tf_environment,
             eager,
             observers=[self.trajectory_buffer.add_batched_step],
@@ -164,13 +171,69 @@ class FatherAgent(AbstractAgent):
             observers = [alternative_observer]
         return observers
 
-    def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment, demasked=False, alternative_observer: callable = None):
+    def compute_number_of_steps(self):
+        if not self.args.vectorized_envs_flag:
+            num_steps = self.args.trajectory_num_steps
+        elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
+            # TODO: Compare it with self.args.max_steps
+            num_steps = self.args.num_environments * self.args.trajectory_num_steps
+        elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
+            num_steps = self.args.num_environments * \
+                (self.args.trajectory_num_steps // 2)
+        elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
+            num_steps = self.args.trajectory_num_steps
+        else:
+            num_steps = self.args.trajectory_num_steps
+        return num_steps
+
+    class BatchEnvironmentDriver:
+        def __init__(self,
+                     batch_tf_environments: list[tf_py_environment.TFPyEnvironment],
+                     eager: py_tf_eager_policy.PyTFEagerPolicy,
+                     observers: list[callable],
+                     num_steps):
+            self.batch_tf_environments = batch_tf_environments
+            self.eager = eager
+            self.observers = observers
+            self.num_steps = num_steps
+            self.current_env = 0
+            self.drivers = self.__generate_each_driver()
+
+        def __generate_each_driver(self) -> list[DynamicStepDriver]:
+            drivers = []
+            for env in self.batch_tf_environments:
+                driver = DynamicStepDriver(
+                    env,
+                    self.eager,
+                    observers=self.observers,
+                    num_steps=self.num_steps
+                )
+                drivers.append(driver)
+
+            return drivers
+
+        def run(self):
+            if self.current_env >= 500:
+                self.drivers[-1].run()
+            else:
+                self.drivers[self.current_env % len(self.drivers)].run()
+                self.current_env = self.current_env + 1
+
+    def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment,
+                              demasked: bool = False,
+                              alternative_observer: callable = None,
+                              batch_tf_environments: list[tf_py_environment.TFPyEnvironment] = []):
+        if AUTOMATA:
+            predicate_automata = create_dummy_predicate_automata(self.environment.vectorized_simulator.get_observation_labels())
+        else:
+            predicate_automata = None
         if demasked:
-            self.collect_policy_wrapper = Policy_Mask_Wrapper(
-                self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec())
+            self.collect_policy_wrapper = PolicyMaskWrapper(
+                self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(), predicate_automata=predicate_automata)
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
         else:
+
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
         if demasked:
@@ -178,23 +241,26 @@ class FatherAgent(AbstractAgent):
                 self.args.vectorized_envs_flag)]
         else:
             observers = self.get_observers(alternative_observer)
-        if not self.args.vectorized_envs_flag:
-            num_steps = self.args.num_steps
-        elif self.args.replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            # TODO: Compare it with self.args.max_steps
-            num_steps = self.args.num_environments * self.args.num_steps
-        elif self.args.replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
-            num_steps = self.args.num_environments
-        elif self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
-            num_steps = self.args.num_steps
-        else:
-            num_steps = self.args.num_steps
+        num_steps = self.compute_number_of_steps()
         self.num_steps = num_steps
-        self.driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-            tf_environment,
-            eager,
-            observers=observers,
-            num_steps=num_steps)
+        if len(batch_tf_environments) > 0:
+            # Add original tf_environment as last to enable training on it.
+            batch_tf_environments.append(tf_environment)
+            self.driver = self.BatchEnvironmentDriver(
+                batch_tf_environments, eager, observers, num_steps)
+        elif AUTOMATA:
+            self.driver = DynamicRewardDriver(
+                tf_environment,
+                eager,
+                observers=observers,
+                num_steps=num_steps,
+                trajectory_reward_generator=self.collect_policy_wrapper.generate_curiosity_reward)
+        else:
+            self.driver = DynamicStepDriver(
+                tf_environment,
+                eager,
+                observers=observers,
+                num_steps=num_steps)
 
     def init_random_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment,
                                      alternative_observer: callable = None):
@@ -208,8 +274,8 @@ class FatherAgent(AbstractAgent):
                                                                            observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter)
         observers = self.get_observers(alternative_observer)
         if not hasattr(self, "num_steps"):
-            self.num_steps = self.args.num_steps
-        self.random_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+            self.num_steps = self.args.trajectory_num_steps
+        self.random_driver = DynamicStepDriver(
             tf_environment,
             random_policy,
             observers=observers,
@@ -224,19 +290,20 @@ class FatherAgent(AbstractAgent):
         """Initializes the driver for the FSC policy. Used for hard and soft FSC advices. Currently implemented only for wrapped policies."""
         parallel_policy = self.wrapper
         self.fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
-                                            policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
-        self.fsc_policy = py_tf_eager_policy.PyTFEagerPolicy(self.fsc_policy, use_tf_function=True, batch_time_steps=False)
+                                          policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
+        self.fsc_policy = py_tf_eager_policy.PyTFEagerPolicy(
+            self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         self.combination_policy = CombinationPolicy(policies=[self.fsc_policy, parallel_policy], time_step_spec=self.tf_environment.time_step_spec(),
                                                     action_spec=self.tf_environment.action_spec(), observation_and_action_constraint_splitter=self.observation_and_action_constraint_splitter,
                                                     enable_masking=False, combination_settings=CombinationSettings.PRIMARY_POLICY, primary_policy_index=0)
         self.combination_policy = py_tf_eager_policy.PyTFEagerPolicy(
             self.combination_policy, use_tf_function=True, batch_time_steps=False)
         observer = self.get_demasked_observer()
-        self.fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        self.fsc_driver = DynamicStepDriver(
             tf_environment,
             self.combination_policy,
             observers=[observer],
-            num_steps=self.args.num_environments * self.args.num_steps
+            num_steps=self.args.num_environments * self.args.trajectory_num_steps
         )
 
     def get_evaluation_policy(self):
@@ -258,13 +325,16 @@ class FatherAgent(AbstractAgent):
         train_loss = train_loss.numpy()
         self.agent.train_step_counter.assign_add(1)
         self.evaluation_result.add_loss(train_loss)
-        if train_iteration % 10 == 0:
+        if train_iteration % 5 == 0:
             logger.info(
                 f"Step: {train_iteration}, Training loss: {train_loss}")
         if train_iteration % 100 == 0:
             self.environment.set_random_starts_simulation(False)
-            self.evaluate_agent(vectorized=vectorized, max_steps = self.args.max_steps * 2)
+            self.evaluate_agent(vectorized=vectorized,
+                                max_steps=self.args.max_steps * 2)
             self.environment.set_random_starts_simulation(randomized)
+            self.tf_environment.reset()
+
         return train_loss
 
     def train_body_off_policy(self, num_iterations, vectorized: bool = True, randomized=False):
@@ -284,7 +354,7 @@ class FatherAgent(AbstractAgent):
             randomized_bool=randomized)
         self.tf_environment.reset()
 
-        for _ in range(self.args.num_steps):
+        for _ in range(self.args.trajectory_num_steps):
             self.driver.run()
 
         for i in range(num_iterations):
@@ -306,6 +376,7 @@ class FatherAgent(AbstractAgent):
             randomized_bool=randomized)
         self.tf_environment.reset()
         logger.info("Training agent on-policy")
+        self.flag_restarted = True
         for i in range(num_iterations):
             if not self.jumpstarting and self.fsc_training and i <= num_iterations // 4:
                 self.run_special_runner()
@@ -333,13 +404,13 @@ class FatherAgent(AbstractAgent):
 
     def init_demonstration_shaper(self, fsc: FSC):
         self.shaper = SparseRewardShaper(RewardShaperMethods.DEMONSTRATION, ObservationLevel.STATE_ACTION, maximum_reward=1.9,
-                                         batch_size=self.args.batch_size, buffer_length=100, cyclic_buffer=True, observation_length=1, action_length=1)
+                                         batch_size=self.args.batch_size, buffer_length=101, cyclic_buffer=True, observation_length=1, action_length=1)
 
         def _add_batch(item: Trajectory):
             observation = item.observation["integer"]
             states = self.environment.prev_states
             self.shaper.add_demonstration(
-                
+
                 item.action, observation=observation, states=states)
 
         fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
@@ -347,8 +418,8 @@ class FatherAgent(AbstractAgent):
 
         fsc_policy = py_tf_eager_policy.PyTFEagerPolicy(
             fsc_policy, use_tf_function=True, batch_time_steps=False)
-        demonstration_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
-            self.tf_environment, fsc_policy, observers=[_add_batch], num_steps=self.args.num_environments * 100)
+        demonstration_driver = DynamicStepDriver(
+            self.tf_environment, fsc_policy, observers=[_add_batch], num_steps=self.args.batch_size * 100)
         demonstration_driver.run()
 
     def init_reward_shaping(self, fsc: FSC):
@@ -356,13 +427,19 @@ class FatherAgent(AbstractAgent):
         self.environment.set_reward_shaper(
             self.shaper.create_reward_function())
 
+    def special_agent_pretraining_stuff(self):
+        pass  # Father agent does not have any special pretraining stuff.
+
+    def special_agent_midtraining_stuff(self):
+        pass  # Father agent does not have any special training stuff.
+
     def train_agent(self, iterations: int,
                     vectorized: bool = True,
                     replay_buffer_option: ReplayBufferOptions = ReplayBufferOptions.ON_POLICY,
                     fsc: FSC = None,
                     jumpstart_fsc: bool = False,
                     debug: bool = False,
-                    shaping = False):
+                    shaping=False):
         """Trains agent with the principle of using gather all on replay buffer and clearing it after each iteration.
 
         Args:
@@ -372,9 +449,9 @@ class FatherAgent(AbstractAgent):
             self.agent.train = common.function(self.agent.train)
         if fsc is not None:
             self.evaluate_fsc(fsc)
-        
+        # self.special_agent_pretraining_stuff()
+        # print("during training:", self.environment.vectorized_simulator.simulator.transitions.nr_states)
         # self.evaluate_agent(vectorized=vectorized)
-        
         if fsc is not None and shaping:
             self.init_reward_shaping(fsc)
         if fsc is not None and not shaping:
@@ -395,13 +472,17 @@ class FatherAgent(AbstractAgent):
 
         logger.info("Training agent with replay buffer option: {0}".format(
             replay_buffer_option))
+        logger.info("Before training evaluation.")
+        self.evaluate_agent(vectorized=vectorized,
+                            max_steps=self.args.max_steps * 2)
         if replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
             self.train_body_off_policy(iterations, vectorized)
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
             self.train_body_on_policy(iterations, vectorized)
         logger.info("Training finished.")
         self.environment.set_random_starts_simulation(False)
-        self.evaluate_agent(vectorized=vectorized, last=True, max_steps = self.args.max_steps * 2) 
+        self.evaluate_agent(vectorized=vectorized, last=True,
+                            max_steps=self.args.max_steps * 2)
 
     def get_throw_away_driver(self, fsc: FSC):
 
@@ -411,7 +492,7 @@ class FatherAgent(AbstractAgent):
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             fsc_policy, use_tf_function=True, batch_time_steps=False)
         num_of_fsc_steps = np.random.geometric(0.05)
-        throw_away_fsc_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        throw_away_fsc_driver = DynamicStepDriver(
             self.tf_environment, eager, observers=[], num_steps=self.args.num_environments * num_of_fsc_steps)
         return throw_away_fsc_driver
 
@@ -430,6 +511,7 @@ class FatherAgent(AbstractAgent):
 
     def is_rl_better(self, evaluation_result: EvaluationResults, performance_condition: float):
         import math
+
         if performance_condition is None or math.isnan(performance_condition):
             return True
         # TODO: Find better way, how to check conditions.
@@ -442,7 +524,32 @@ class FatherAgent(AbstractAgent):
                 return True
             return False
 
-    def evaluate_agent(self, last=False, vectorized=False, max_steps : int = None):
+    def render_agent_behavior(self, policy: TFPolicy):
+        self.environment.set_random_starts_simulation(False)
+        self.set_agent_greedy()
+        self.tf_environment.reset()
+        policy_state = policy.get_initial_state(self.tf_environment.batch_size)
+        trajectory = [self.environment.render("rgb_array")]
+        while True:
+            time_step = self.tf_environment.current_time_step()
+            action = policy.action(time_step, policy_state=policy_state)
+            policy_state = action.state
+            self.tf_environment.step(action.action)
+            trajectory.append(self.environment.render("rgb_array"))
+            if self.environment.dones[0]:
+                break
+        self.environment.render("human", trajectory=trajectory)
+        self.tf_environment.reset()
+
+    def set_policy_masking(self):
+        """If PPO, this function sets the masking active for agent wrapper."""
+        pass
+
+    def unset_policy_masking(self):
+        """If PPO, this function sets the masking inactive for agent wrapper."""
+        pass
+
+    def evaluate_agent(self, last=False, vectorized=False, max_steps: int = None):
         """Evaluate the agent. Used for evaluation of the agent during training.
 
         Args:
@@ -471,7 +578,11 @@ class FatherAgent(AbstractAgent):
             self.tf_environment.reset()
             if last:
                 self.set_agent_greedy()
-                logger.info("Evaluating agent with greedy policy.")
+
+                logger.info("Evaluating agent with greedy masked policy.")
+                self.set_policy_masking()
+                if self.args.render_if_possible and self.environment.grid_like_renderer:
+                    self.render_agent_behavior(self.get_evaluation_policy())
             self.vec_driver.run()
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(1)
@@ -481,6 +592,7 @@ class FatherAgent(AbstractAgent):
             self.trajectory_buffer.clear()
 
         self.set_agent_stochastic()
+        self.unset_policy_masking()
         if self.evaluation_result.best_updated and self.agent_folder is not None:
             self.save_agent(best=True)
         self.log_evaluation_info()
@@ -517,11 +629,20 @@ class FatherAgent(AbstractAgent):
         else:
             self.wrapper.set_greedy(False)
 
-    def policy(self, time_step, policy_state=None):
+    def action(self, time_step, policy_state=None):
         """Make a decision based on the policy of the agent."""
         if policy_state is None:
-            policy_state = self.agent.policy.get_initial_state(None)
+            policy_state = self.wrapper.get_initial_state(self.tf_environment.batch_size)
+        if self.wrapper_eager is not None:
+            return self.wrapper_eager.action(
+                time_step, policy_state=policy_state)
         return self.agent.policy.action(time_step, policy_state=policy_state)
+    
+    def policy(self):
+        """Get the policy of the agent."""
+        if self.wrapper is not None:
+            return self.wrapper
+        return self.agent.policy
 
     def save_agent(self, best=False):
         """Save the agent. Used for saving the agent after or during training training.
@@ -600,27 +721,28 @@ class FatherAgent(AbstractAgent):
             if self.fsc_policy.switched:
                 self.replay_buffer._add_batch(item)
         return _add_batch
-    
+
     def evaluate_fsc(self, fsc: FSC):
         fsc_policy = SimpleFSCPolicy(fsc, self.environment.action_keywords, self.tf_environment.time_step_spec(), self.tf_environment.action_spec(),
                                      policy_state_spec=(), info_spec=(), observation_and_action_constraint_splitter=fsc_action_constraint_splitter)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             fsc_policy, use_tf_function=True, batch_time_steps=False)
         trajectory_buffer = TrajectoryBuffer(self.environment)
-        vec_driver = tf_agents.drivers.dynamic_step_driver.DynamicStepDriver(
+        vec_driver = DynamicStepDriver(
             self.tf_environment, eager, observers=[trajectory_buffer.add_batched_step], num_steps=self.args.num_environments * (self.args.max_steps + 1))
         vec_driver.run()
 
         def print_results(avg_return, avg_episode_return, reach_prob, episode_variance, num_episodes,
-                    trap_reach_prob, virtual_variance, combined_variance):
+                          trap_reach_prob, virtual_variance, combined_variance):
             logger.info("Average return: {0}".format(avg_return))
-            logger.info("Average episode return: {0}".format(avg_episode_return))
+            logger.info("Average episode return: {0}".format(
+                avg_episode_return))
             logger.info("Reachability probability: {0}".format(reach_prob))
             logger.info("Episode variance: {0}".format(episode_variance))
             logger.info("Number of episodes: {0}".format(num_episodes))
-            logger.info("Trap reachability probability: {0}".format(trap_reach_prob))
+            logger.info(
+                "Trap reachability probability: {0}".format(trap_reach_prob))
             logger.info("Virtual variance: {0}".format(virtual_variance))
             logger.info("Combined variance: {0}".format(combined_variance))
-
 
         trajectory_buffer.final_update_of_results(print_results)

@@ -12,7 +12,9 @@ PREREQUISITES=${PAYNT_ROOT}/prerequisites # modify this to install prerequisites
 # storm and stormpy dependencies
 sudo apt update -qq
 sudo apt install -y build-essential git cmake libboost-all-dev libcln-dev libgmp-dev libginac-dev automake libglpk-dev libhwloc-dev libz3-dev libxerces-c-dev libeigen3-dev
-sudo apt install -y maven uuid-dev python3.10-dev python3.10-venv python3.10-pip
+sudo apt install -y maven uuid-dev python3.10-dev python3.10-venv
+
+python3.10 -m pip install --upgrade pip
 
 # prerequisites
 mkdir -p ${PREREQUISITES}
@@ -35,7 +37,7 @@ git clone https://github.com/moves-rwth/storm.git storm
 mkdir -p ${PREREQUISITES}/storm/build
 cd ${PREREQUISITES}/storm/build
 cmake ..
-make storm storm-pomdp storm-counterexamples --jobs ${COMPILE_JOBS}
+make storm storm-cli storm-pomdp --jobs ${COMPILE_JOBS}
 # make check --jobs ${COMPILE_JOBS}
 
 # setup and activate python environment
@@ -72,6 +74,12 @@ cd ${PREREQUISITES}
 git clone https://github.com/kurecka/VecStorm.git VecStorm
 cd ${PREREQUISITES}/VecStorm
 pip install -e .
+
+cd ${PAYNT_ROOT}
+
+pip install tensorflow==2.15
+pip install tf_agents
+pip install tqdm dill matplotlib pandas seaborn networkx
 
 # done
 deactivate

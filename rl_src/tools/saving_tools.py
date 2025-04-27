@@ -5,7 +5,7 @@ from rl_src.environment.environment_wrapper_vec import os
 import os
 import pickle
 
-from rl_src.tools.evaluators import EvaluationResults
+from tools.evaluation_results_class import EvaluationResults
 
 import logging
 logger = logging.getLogger(__name__)

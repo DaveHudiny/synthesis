@@ -23,18 +23,20 @@ from tools.encoding_methods import *
 
 from tools.args_emulator import ArgsEmulator
 from environment.vectorized_sim_initializer import SimulatorInitializer
+from tools.specification_check import SpecificationChecker
 
+from vec_storm.storm_vec_env import StormVecEnv
+
+from tools.state_estimators import LSTMStateEstimator
 
 import json
 
-import jax
-
-import time
-
+import tf_agents.policies.tf_policy as TFPolicy
 
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
+from environment.renderers.grid_like_renderer import GridLikeRenderer
 
 def pad_labels(label):
     current_length = tf.shape(label)[0]
@@ -57,30 +59,35 @@ def generate_reward_selection_function(rewards, labels):
     return rewards[last_reward]
 
 
-class Environment_Wrapper_Vec(py_environment.PyEnvironment):
+class EnvironmentWrapperVec(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
 
-    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, q_values_table: list[list] = None, num_envs: int = 1):
+    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, num_envs: int = 1):
         """Initializes the environment wrapper.
 
         Args:
             stormpy_model: The Storm model to be used.
             args: The arguments from the command line or ArgsSimulator.
+            q_values_table: The Q-values table for the Q-learning agent.
+            num_envs: The number of environments for vectorization.
+            state_based_oracle: The state-based oracle for the environment, expecting some memoryless MDP controller.
         """
+        # print(stormpy_model)
         self.args = args
-        super(Environment_Wrapper_Vec, self).__init__()
+        super(EnvironmentWrapperVec, self).__init__()
         # self.batched = True
         # self.batch_size = num_envs
         self.num_envs = num_envs
         self.stormpy_model = stormpy_model
-        self.state_to_observation_map = tf.constant(stormpy_model.observations)
-        self.observation_valuations = stormpy_model.observation_valuations
+
+
+            
         # Special labels representing the typical labels of goal states. If the model has different label for goal state, we should add it here.
         # TODO: What if we want to minimize the probability of reaching some state or we want to maximize the probability of reaching some other state?
         self.special_labels = np.array(["(((sched = 0) & (t = (8 - 1))) & (k = (20 - 1)))", "goal", "done", "((x = 2) & (y = 0))",
                                         "((x = (10 - 1)) & (y = (10 - 1)))"])
-
+        
         # Initialization of the vectorized simulator.
         labeling = stormpy_model.labeling.get_labels()
         intersection_labels = [
@@ -89,19 +96,48 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
 
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs,
-            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model)
+            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=self.args.continuous_enlargement)
+        
+        try:
+            self.state_to_observation_map = tf.constant(stormpy_model.observations)
+            self.observation_valuations = np.array(self.vectorized_simulator.simulator.observation_by_ids)
+            _, first_indices = np.unique(self.state_to_observation_map, return_index=True)
+        except:
+            logger.error("State to observation map not possible to initialize. Using the default one.")
+            exit(1)
+            self.state_to_observation_map = tf.constant(self.vectorized_simulator.simulator.state_observation_ids)
+            self.observation_valuations = np.array(self.vectorized_simulator.simulator.state_values)
+            self.first_indices = self.state_to_observation_map
+        self.observations_to_states_map = np.zeros((stormpy_model.nr_observations), 
+                                                       dtype=np.int32)
+        for observation in range(stormpy_model.nr_observations):
+            self.observations_to_states_map[observation] = np.where(
+                self.state_to_observation_map == observation)[0][0]
+        try:
+            self.grid_like_renderer = GridLikeRenderer(
+                self.vectorized_simulator, self.get_model_name())
+        except:
+            logger.error("Grid-like renderer not possible to initialize.")
+            self.grid_like_renderer = None
+        self.vectorized_simulator.simulator.set_max_steps(args.max_steps)
+        
+        if args.state_supporting:
+            self.state_estimator = LSTMStateEstimator(self.vectorized_simulator)
+            self.num_of_expansion_features = self.state_estimator.model.compute_obs_len_diff(
+                self.vectorized_simulator)
+            self.state_estimator.collect_and_train(args.max_steps, None, epochs=50)
+        else:
+            self.num_of_expansion_features = 0
+        
+
         self.vectorized_simulator.set_num_envs(num_envs)
         self.vectorized_simulator.reset()
-
+        print("Simulator initialized.")
         # Default labels mask for the environment given that the number of metalabels is 1 ("goals").
         self.labels_mask = list([False] * self.num_envs)
         self.encoding_method = args.encoding_method
 
-        # Initialization of the goal and antigoal values for the evaluation of the environment. These goals represent virtual values for achieving the goal or other states.
-        self.goal_values_vector = tf.constant(
-            [args.evaluation_goal] * self.num_envs, dtype=tf.float32)
-        self.antigoal_values_vector = tf.constant(
-            [args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+        
 
         # Initialization of the penalty for illegal actions.
         self.flag_penalty = args.flag_illegal_action_penalty
@@ -115,14 +151,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # Initialization of the rewards before simulation.
         self.reward = tf.constant(0.0, dtype=tf.float32)
 
-        # Initialization of the reward multiplier for different tasks.
-        if len(list(stormpy_model.reward_models.keys())) == 0:
-            self.reward_multiplier = -1.0
-        elif list(stormpy_model.reward_models.keys())[-1] in "rewards":
-            self.reward_multiplier = 1.0
-        # If 1.0, rewards are positive, if -1.0, rewards are negative (penalties -- we try to minimize them)
-        else:
-            self.reward_multiplier = -1.0
+
+        # Initialization of reward model.
+        self.model_name = self.get_model_name()
+        self.set_reward_model(self.model_name)
+        
 
         self._current_time_step = None
 
@@ -158,6 +191,85 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         # Add reward shaping
         self.reward_shaper_function = lambda observation, _: tf.zeros(
             (observation.shape[0],), dtype=tf.float32)
+        
+    def set_basic_rewards(self):
+        rew_list = list(self.stormpy_model.reward_models.keys())
+        self.reward_multiplier = -1.0 if not "rew" in rew_list[-1] else 10.0
+        self.antigoal_values_vector = tf.constant(
+            [self.args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant(
+            [self.args.evaluation_goal] * self.num_envs, dtype=tf.float32)
+
+    def set_reachability_rewards(self):
+        self.reward_multiplier = 0.0
+        self.antigoal_values_vector = tf.constant(
+            [0.0] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant(
+            [self.args.evaluation_goal] * self.num_envs, dtype=tf.float32)
+        
+    def set_maxizing_rewards(self):
+        self.reward_multiplier = 10.0
+        self.antigoal_values_vector = tf.constant(
+            [0.0] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant(
+            [2.0] * self.num_envs, dtype=tf.float32)
+        
+    def set_minimizing_rewards(self):
+        self.reward_multiplier = -1.0
+        self.antigoal_values_vector = tf.constant(
+            [0.0] * self.num_envs, dtype=tf.float32)
+        self.goal_values_vector = tf.constant( # Decreasing the goal value to make the optimization more reasonable
+            [2.0] * self.num_envs, dtype=tf.float32)
+        
+    def set_reward_model(self, model_name):
+        self.reward_models = {
+            "network": self.set_minimizing_rewards,
+            "drone": self.set_reachability_rewards,
+            "refuel": self.set_reachability_rewards,
+            "intercept": self.set_reachability_rewards,
+            "evade": self.set_reachability_rewards,
+            "rocks": self.set_minimizing_rewards,
+            "geo": self.set_reachability_rewards,
+            "mba": self.set_minimizing_rewards,
+            "maze": self.set_maxizing_rewards
+        }
+        key_found = False
+        for key in self.reward_models.keys():
+            if key in model_name:
+                self.reward_models[key]()
+                key_found = True
+                break
+        if not key_found:
+            self.set_basic_rewards()
+
+        self.reward_signum = tf.sign(self.reward_multiplier) if self.reward_multiplier != 0.0 else tf.constant(-1.0)
+        
+        
+
+        
+        
+    def get_num_of_expansion_features(self, vectorized_simulator : StormVecEnv, state_based_sim : StormVecEnv):
+        original_labels = vectorized_simulator.get_observation_labels()
+        state_based_labels = state_based_sim.get_observation_labels()
+        return len(state_based_labels) - len(original_labels)
+    
+    def get_indices_of_expansion_features(self, vectorized_simulator : StormVecEnv, state_based_sim : StormVecEnv):
+        original_labels = vectorized_simulator.get_observation_labels()
+        state_based_labels = state_based_sim.get_observation_labels()
+        return [state_based_labels.index(label) for label in state_based_labels if label not in original_labels]
+        
+    def set_state_based_oracle(self, state_based_oracle : TFPolicy, state_based_sim : StormVecEnv):
+        self.state_based_oracle = state_based_oracle
+        self.state_based_sim = state_based_sim
+        # self.reward_multiplier = -1.0
+        # self.antigoal_values_vector = tf.constant(
+        #     [-400.0] * self.num_envs, dtype=tf.float32)
+        self.oracle_reward = 50
+
+    def unset_state_based_oracle(self):
+        self.state_based_oracle = None
+        # self.state_based_sim = None
+        self.oracle_reward = 0.0
 
     def set_reward_shaper(self, reward_shaper_function):
         self.reward_shaper_function = reward_shaper_function
@@ -190,35 +302,32 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             memory_update_size = 0
         if self.encoding_method == "Valuations":
             try:
-                json_example = self.stormpy_model.observation_valuations.get_json(
-                    0)
-                parse_data = json.loads(str(json_example))
+                observation_len = len(self.vectorized_simulator.simulator.observations[0])
                 observation_spec = tensor_spec.TensorSpec(shape=(
-                    len(parse_data) + OBSERVATION_SIZE + memory_update_size,), dtype=tf.float32, name="observation")
+                    observation_len + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features,), dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
-                exit(0)
+                raise "Valuation encoding not possible, currently not compatible. Probably model issue."
         elif self.encoding_method == "MaskedValuations":
             try:
                 action_mask_size = len(self.action_keywords)
                 json_example = self.stormpy_model.observation_valuations.get_json(
                     0)
                 parse_data = json.loads(str(json_example))
-                observation_spec = tensor_spec.TensorSpec(shape=(
-                    len(parse_data) + OBSERVATION_SIZE + action_mask_size + memory_update_size,), dtype=tf.float32, name="observation")
+                observation_spec = tensor_spec.TensorSpec(
+                    shape=(len(parse_data) + OBSERVATION_SIZE + action_mask_size + memory_update_size + self.num_of_expansion_features,),
+                    dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
-                exit(0)
+                raise "Valuation encoding not possible, currently not compatible. Probably model issue."
         else:
             raise ValueError("Encoding method currently not implemented")
         return observation_spec
 
     def create_specifications(self):
         """Creates the specifications for the environment. Important for TF-Agents."""
-        self._possible_observations = np.unique(
-            self.stormpy_model.observations)
         observation_spec = self.create_observation_spec()
         integer_information = tensor_spec.TensorSpec(
             shape=(1,), dtype=tf.int32, name="integer_information")
@@ -297,39 +406,62 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         logger.info("Resetting the environment.")
         self.last_observation, self.allowed_actions, self.labels_mask = self._restart_simulator()
         # self.integer_observations = self.vectorized_simulator.observations # TODO: implement it with proposed vectorized simulator
+        self.last_action = np.zeros((self.num_envs,), dtype=np.int32)
         self.virtual_reward = tf.zeros((self.num_envs,), dtype=tf.float32)
         self.dones = np.array(len(self.last_observation) * [False])
-
-        self.reward = tf.constant(
+        self.orig_reward = tf.constant(
             np.array(len(self.last_observation) * [0.0]), dtype=tf.float32)
         hidden_state = self.vectorized_simulator.simulator_states
         self.integers = tf.reshape(
             tf.gather(self.state_to_observation_map, hidden_state.vertices),
             (self.num_envs, 1)
         )
-        observation_tensor = self.get_observation_tensor(
-            tf.constant(self.last_observation, dtype=tf.float32),
-            tf.constant(self.allowed_actions, dtype=tf.bool),
-            self.integers
-        )
+        if hasattr(self, "state_estimator") and self.state_estimator is not None:
+            self.state_estimator.reset()
+        observation_tensor = self.get_observation()
         self.goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.anti_goal_state_mask = tf.zeros((self.num_envs,), dtype=tf.bool)
         self.truncated = np.array(len(self.last_observation) * [False])
         self._current_time_step = ts.TimeStep(
             observation=observation_tensor,
-            reward=self.reward_multiplier * self.reward,
+            reward=self.reward_multiplier * self.orig_reward,
             discount=self.discount,
             step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32))
         self.prev_dones = np.array(len(self.last_observation) * [False])
-
+        
         return self._current_time_step
+    
+    def get_oracle_based_reward(self, action, sim_state):
+        # Compute observations
+        vertices = tf.reshape(sim_state.vertices, (-1, 1))
+        vertices = tf.cast(vertices, dtype=tf.int32)
+        
+        observations = tf.gather_nd(self.state_based_sim.simulator.observations, vertices)
+        # Predict actions by the oracle
+        fake_time_step = ts.TimeStep(
+            step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32),
+            reward=tf.zeros((self.num_envs,), dtype=tf.float32),
+            discount=tf.ones((self.num_envs,), dtype=tf.float32),
+            observation=observations
+        )
+        oracle_actions = self.state_based_oracle(fake_time_step).action
+        oracle_actions = tf.cast(oracle_actions, dtype=tf.int32)
+        oracle_actions = self.change_illegal_actions_to_random_allowed(oracle_actions, self.allowed_actions)
+        # Compute the reward
+        oracle_reward = tf.where(
+            tf.equal(oracle_actions, action),
+            tf.constant(self.oracle_reward, dtype=tf.float32),
+            tf.constant(-self.oracle_reward, dtype=tf.float32)
+        )
+        # self.oracle_reward *= self.args.discount_factor
+        return oracle_reward
 
     def evaluate_simulator(self) -> ts.TimeStep:
         """Evaluates the simulator and returns the current time step. Primarily used to determine, whether the state is the last one or not."""
         self.flag_goal = tf.zeros((self.num_envs,), dtype=tf.bool)
         labels_mask = tf.convert_to_tensor(self.labels_mask, dtype=tf.bool)
         labels_mask = tf.reshape(labels_mask, (self.num_envs,))
-        self.default_rewards = tf.constant(self.reward, dtype=tf.float32)
+        self.default_rewards = tf.constant(self.orig_reward, dtype=tf.float32) * self.reward_multiplier
         antigoal_values_vector = self.antigoal_values_vector + self.default_rewards
         goal_values_vector = self.goal_values_vector + self.default_rewards
         self.goal_state_mask = labels_mask & self.dones
@@ -345,8 +477,18 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 self.default_rewards
             )
         )
-        self.reward += self.reward_shaping_rewards
+        # self.reward = tf.where(
+        #     self.goal_state_mask,
+        #     goal_values_vector,
+        #     tf.where(
+        #         still_running_mask,
+        #         self.default_rewards,
+        #         antigoal_values_vector)
+        # )
+        self.reward += tf.abs(self.reward_multiplier) * self.reward_shaping_rewards
+        if hasattr(self, "state_based_oracle") and hasattr(self, "state_based_sim") and self.state_based_oracle is not None:
 
+            self.reward += self.get_oracle_based_reward(self.last_action, self.current_state())
         if self.flag_penalty:
             illegal_action_penalties = tf.where(
                 self._played_illegal_actions,
@@ -369,9 +511,10 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             discount=self.discount,
             observation=self.get_observation()
         )
-
+        
         self.prev_dones = self.dones
-        self.virtual_reward = self.reward - self.default_rewards
+        self.virtual_reward = self.reward
+        self.orig_reward = self.orig_reward * self.reward_signum # To better demonstrate the objective reward
         return self._current_time_step
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
@@ -384,11 +527,11 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
                 actions["memory_update"], dtype=tf.float32)
         self.prev_states = np.reshape(
             self.vectorized_simulator.simulator_states.vertices, (self.num_envs, 1))
-        
         self.reward_shaping_rewards = self.reward_shaper_function(
             self.prev_states, actions)
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
+        # if there any truncated episodes, we should set the done flag to True
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
@@ -397,8 +540,8 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
             self.goal = True
         else:
             self.goal = False
-        self.reward = tf.constant(
-            rewards.tolist(), dtype=tf.float32) * self.reward_multiplier
+        self.orig_reward = tf.constant(
+            rewards.tolist(), dtype=tf.float32)
         self.dones = done
         self.truncated = truncated
         self.integers = tf.reshape(
@@ -427,12 +570,12 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         )
         return new_actions.numpy()
 
-    def change_illegal_actions_to_random_allowed(self, actions, mask):
+    @staticmethod
+    def change_illegal_actions_to_random_allowed(actions, masks, dones = None):
         """Changes the illegal actions to random allowed actions given mask with allowed actions."""
-        rows = tf.range(tf.shape(mask)[0])
+        rows = tf.range(tf.shape(masks)[0])
         gather_indices = tf.stack([rows, actions], axis=-1)
-        is_action_allowed = tf.gather_nd(mask, gather_indices)
-        masks = self.allowed_actions
+        is_action_allowed = tf.gather_nd(masks, gather_indices)
         batch_size = tf.shape(masks)[0]
         flat_indices = tf.where(masks)
         legal_counts = tf.reduce_sum(tf.cast(masks, tf.int32), axis=1)
@@ -444,35 +587,56 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         ) % legal_counts
         selected_flat_indices = batch_offsets + random_offsets
         selected_actions = tf.gather(flat_indices[:, 1], selected_flat_indices)
+        selected_actions = tf.cast(selected_actions, tf.int32)
         new_actions = tf.where(
             is_action_allowed,
             actions,
             selected_actions
         )
-        self._played_illegal_actions = tf.logical_not(is_action_allowed)
-        return new_actions.numpy()
+        return new_actions.numpy(), tf.logical_not(is_action_allowed)
         
 
     def _step(self, action) -> ts.TimeStep:
         """Does the step in the environment. Important for TF-Agents and the TFPyEnvironment."""
         # current_time = time.time()
         if self.model_memory_size > 0:
-            aux_action = self.change_illegal_actions_to_random_allowed(
+            aux_action, illegals = self.change_illegal_actions_to_random_allowed(
                 action["simulator_action"], self.allowed_actions)
+            self._played_illegal_actions = illegals
             action = {"simulator_action": aux_action, "memory_update": action["memory_update"]}
         else:
-            action = self.change_illegal_actions_to_random_allowed(
-                action, self.allowed_actions)
-        # after_change_time = time.time()
+            action, illegals = self.change_illegal_actions_to_random_allowed(
+                action, self.allowed_actions, self.dones)
+            self._played_illegal_actions = illegals
         self.cumulative_num_steps += self.num_envs
         self.last_action = action
         self._do_step_in_simulator(action)
-        if self.flag_penalty:
-            self._played_illegal_actions = self.get_mask_of_played_illegal_actions(
-                action)
         evaluated_step = self.evaluate_simulator()
-        # end_time = time.time()
         return evaluated_step
+    
+    def get_model_name(self):
+        # args.prism_model contains .../model_name/sketch.templ" so we need to extract the model name
+        if self.args.model_name != "":
+            model_name = self.args.model_name
+        elif self.args.prism_model is not None:
+            model_name = self.args.prism_model.split("/")[-2]
+        else:
+            model_name = "unknown"
+        return model_name
+    
+    def is_renderable(self): # Search from list of known models and return True if the model is renderable
+        renderable_models = ["mba", "mba-small", "drone-2-6-1", "drone-2-8-1", "geo-2-8", 
+                             "refuel-10", "refuel-20", "intercept", "super-intercept", "evade", 
+                             "rocks-16", "rocks-4-20"]
+        return self.get_model_name() in renderable_models
+    
+    def render(self, mode = 'rgb_array', trajectory = None):
+        """Returns the renderable image of the environment. Supposed to be added to a batch of renders"""
+        if self.is_renderable():
+            return self.grid_like_renderer.render(mode, trajectory)
+        else:
+            return None
+
 
     def current_time_step(self) -> ts.TimeStep:
         return self._current_time_step
@@ -489,30 +653,31 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def get_observation(self) -> dict[str: tf.Tensor]:
         encoded_observation = self.last_observation
         mask = self.allowed_actions
+        integers = self.integers
         if self.encoding_method == "MaskedValuations":
             encoded_observation = tf.concat(
                 [encoded_observation, tf.cast(mask, dtype=tf.float32)], axis=1)
-            return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                    "integer": self.integers}
-        
-            
-        elif self.model_memory_size > 0:
+        if self.model_memory_size > 0:
             memory_update = tf.reshape(
                 self.memory_update, shape=(self.num_envs, 1))
             encoded_observation = tf.concat(
                 [encoded_observation, memory_update], axis=1)
-            return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                    "integer": self.integers}
+        if self.num_of_expansion_features > 0:
+            encoded_observation = tf.constant(encoded_observation, dtype=tf.float32)
+            action = tf.constant(self.last_action, dtype=tf.float32)
+            expansion_features = self.state_estimator.estimate_missing_features(encoded_observation, action)
+            encoded_observation = tf.concat([encoded_observation, expansion_features], axis=1)
         return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
-                "integer": self.integers}
+                "integer": integers}
     
     def encode_observation(self, integer_observation, memory, state) -> dict[str: tf.Tensor]:
         """Encodes the observation based on the integer observation and memory."""
-        json_valuation = json.loads(str(self.observation_valuations.get_json(integer_observation)))
-        valuated = np.array(list(json_valuation.values()), dtype=np.float32)
+        # json_valuation = json.loads(str(self.observation_valuations.get_json(integer_observation)))
+        # valuated = np.array(list(json_valuation.values()), dtype=np.float32)
+        valuated = self.observation_valuations[integer_observation]
+        valuated = tf.constant(valuated, dtype=tf.float32)
         allowed_actions = self.vectorized_simulator.simulator.allowed_actions[state]
         if self.model_memory_size > 0:
-
             return {"observation": tf.concat([tf.constant(valuated, dtype=tf.float32), tf.constant([memory], dtype=tf.float32)], axis=0),
                     "mask": tf.constant(allowed_actions, tf.bool),
                     "integer": tf.constant([integer_observation], dtype=tf.int32)}
@@ -533,19 +698,36 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
         )
         return time_step
     
-    def create_fake_timestep_from_observation_integer(self, observation_integer):
+    def create_fake_timestep_from_observation_integer(self, observation_integer : int|list[int]) -> ts.TimeStep:
         """Creates a fake TimeStep from the observation integer."""
-        observation = create_valuations_encoding(observation_integer, self.stormpy_model)
-        observation = tf.constant([observation], dtype=tf.float32)
-        state = np.where(self.state_to_observation_map.numpy() ==
-                             observation_integer)[0][0]
-        mask = tf.constant([self.vectorized_simulator.simulator.allowed_actions[state].tolist()], dtype=tf.bool)
-        integer = tf.constant([[observation_integer]], dtype=tf.int32)
+        # observation = create_valuations_encoding(observation_integer, self.stormpy_model)
+        if isinstance(observation_integer, int):
+            observation_integer = [observation_integer]
+        observation = self.observation_valuations[observation_integer]
+        observation = tf.constant(observation, dtype=tf.float32)
+        # state = np.where(self.state_to_observation_map ==
+        #                      observation_integer)
+        state = self.observations_to_states_map[observation_integer]
+        # if self.vectorized_simulator.simulator.sinks[state]:
+        #     mask = tf.ones(shape=(len(observation_integer), self.nr_actions,), dtype=tf.bool)
+            # mask = tf.constant([[True] * self.nr_actions], dtype=tf.bool)
+        # else:
+        #     mask = tf.constant(self.vectorized_simulator.simulator.allowed_actions[state].tolist(), dtype=tf.bool)
+        mask = tf.constant(self.vectorized_simulator.simulator.allowed_actions[state].tolist(), dtype=tf.bool)
+        sinks = self.vectorized_simulator.simulator.sinks[state]
+        sinks = tf.reshape(sinks, (-1, 1))
+        mask = tf.where(sinks, tf.ones(shape=(len(observation_integer), self.nr_actions,), dtype=tf.bool), mask)
+        integer = tf.constant(observation_integer, dtype=tf.int32)
+        integer = tf.reshape(integer, (-1, 1))
+        mask = tf.reshape(mask, (-1, self.nr_actions))
+        # observation = tf.reshape(observation, len(observation_integer), -1)
+
+
         time_step = ts.TimeStep(
             observation={"observation": observation, "mask": mask, "integer": integer},
-            reward=tf.constant([0.0], dtype=tf.float32),
-            discount=tf.constant([1.0], dtype=tf.float32),
-            step_type=tf.constant([ts.StepType.MID], dtype=tf.int32)
+            reward=tf.zeros(integer.shape[0], dtype=tf.float32),
+            discount=tf.ones(integer.shape[0], dtype=tf.float32),
+            step_type=tf.fill(integer.shape[0], ts.StepType.MID)
         )
         return time_step
 
@@ -553,3 +735,9 @@ class Environment_Wrapper_Vec(py_environment.PyEnvironment):
     def get_simulator_observation(self) -> int:
         observation = self.last_observation
         return observation
+
+def test_environment():
+    pass
+
+if __name__ == "__main__":
+    exit(test_environment())

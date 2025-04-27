@@ -1,4 +1,5 @@
-# This file is used to build a POMDP model from a PRISM model and a property.
+# This file is used to build a POMDP model from a PRISM model and a property. 
+# However, this implementation does not work with any model and property, so we should recommend using PAYNT for this purpose. 
 # Author: David Hudák
 # Login: xhudak03
 # File: pomdp_builder.py

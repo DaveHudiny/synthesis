@@ -6,12 +6,13 @@ import paynt.quotient.quotient
 import paynt.quotient.mdp
 import paynt.quotient.pomdp
 import paynt.quotient.decpomdp
-import paynt.quotient.posg
+import paynt.quotient.posmg
 import paynt.quotient.mdp_family
 import paynt.quotient.pomdp_family
 import paynt.verification.property
 
 from paynt.parser.prism_parser import PrismParser
+from paynt.parser.drn_parser import DrnParser
 
 import uuid
 import os
@@ -47,15 +48,20 @@ def make_rewards_action_based(model):
             for action in range(tm.get_row_group_start(state),tm.get_row_group_end(state)):
                 action_reward[action] += state_reward
 
-        payntbind.synthesis.remove_reward_model(model,name)
-        new_reward_model = stormpy.storage.SparseRewardModel(optional_state_action_reward_vector=action_reward)
-        model.add_reward_model(name, new_reward_model)
+        if model.is_exact:
+            payntbind.synthesis.remove_reward_model_exact(model,name)
+            new_reward_model = stormpy.storage.SparseExactRewardModel(optional_state_action_reward_vector=action_reward)
+            model.add_reward_model(name, new_reward_model)
+        else:
+            payntbind.synthesis.remove_reward_model(model,name)
+            new_reward_model = stormpy.storage.SparseRewardModel(optional_state_action_reward_vector=action_reward)
+            model.add_reward_model(name, new_reward_model)
 
 class Sketch:
 
     @classmethod
     def load_sketch(cls, sketch_path, properties_path,
-        export=None, relative_error=0, precision=1e-4, constraint_bound=None):
+        export=None, relative_error=0, precision=1e-4, constraint_bound=None, use_exact=False):
 
         prism = None
         explicit_quotient = None
@@ -77,15 +83,15 @@ class Sketch:
         try:
             logger.info(f"assuming sketch in PRISM format...")
             prism, explicit_quotient, specification, family, coloring, jani_unfolder, obs_evaluator = PrismParser.read_prism(
-                        sketch_path, properties_path, relative_error)
+                        sketch_path, properties_path, relative_error, use_exact)
             filetype = "prism"
         except SyntaxError:
             pass
         if filetype is None:
             try:
                 logger.info(f"assuming sketch in DRN format...")
-                explicit_quotient = paynt.models.model_builder.ModelBuilder.from_drn(sketch_path)
-                specification = PrismParser.parse_specification(properties_path, relative_error)
+                explicit_quotient = paynt.models.model_builder.ModelBuilder.from_drn(sketch_path, use_exact)
+                specification = PrismParser.parse_specification(properties_path, relative_error, use_exact=use_exact)
                 filetype = "drn"
                 project_path = os.path.dirname(sketch_path)
                 valuations_filename = "state-valuations.json"
@@ -95,6 +101,8 @@ class Sketch:
                     with open(valuations_path) as file:
                         state_valuations = json.load(file)
                 if state_valuations is not None:
+                    if use_exact:
+                        raise Exception("exact synthesis is not supported with state valuations")
                     logger.info(f"found state valuations in {valuations_path}, adding to the model...")
                     explicit_quotient = payntbind.synthesis.addStateValuations(explicit_quotient,state_valuations)
             except Exception as e:
@@ -126,17 +134,20 @@ class Sketch:
         assert filetype is not None, "unknown format of input file"
         logger.info("sketch parsing OK")
 
-        paynt.verification.property.Property.initialize()
-        updated = payntbind.synthesis.addMissingChoiceLabels(explicit_quotient)
+        paynt.verification.property.Property.initialize(use_exact)
+        if explicit_quotient.is_exact:
+            updated = payntbind.synthesis.addMissingChoiceLabelsExact(explicit_quotient)
+        else:
+            updated = payntbind.synthesis.addMissingChoiceLabels(explicit_quotient)
         if updated is not None: explicit_quotient = updated
         if not payntbind.synthesis.assertChoiceLabelingIsCanonic(explicit_quotient.nondeterministic_choice_indices,explicit_quotient.choice_labeling,False):
             logger.warning("WARNING: choice labeling for the quotient is not canonic")
+
 
         make_rewards_action_based(explicit_quotient)
         logger.debug("constructed explicit quotient having {} states and {} choices".format(
             explicit_quotient.nr_states, explicit_quotient.nr_choices))
 
-        specification.check()
         if specification.contains_until_properties() and filetype != "prism":
             logger.info("WARNING: using until formulae with non-PRISM inputs might lead to unexpected behaviour")
         specification.transform_until_to_eventually()
@@ -155,11 +166,11 @@ class Sketch:
             elif prism.model_type == stormpy.storage.PrismModelType.POMDP:
                 quotient_container = paynt.quotient.pomdp_family.PomdpFamilyQuotient(explicit_quotient, family, coloring, specification, obs_evaluator)
         else:
-            assert explicit_quotient.is_nondeterministic_model, "expected nondeterministic model"
+            # assert explicit_quotient.is_nondeterministic_model, "expected nondeterministic model"
             if decpomdp_manager is not None and decpomdp_manager.num_agents > 1:
                 quotient_container = paynt.quotient.decpomdp.DecPomdpQuotient(decpomdp_manager, specification)
-            elif explicit_quotient.labeling.contains_label(paynt.quotient.posg.PosgQuotient.PLAYER_1_STATE_LABEL):
-                quotient_container = paynt.quotient.posg.PosgQuotient(explicit_quotient, specification)
+            elif isinstance(explicit_quotient, payntbind.synthesis.Posmg):
+                quotient_container = paynt.quotient.posmg.PosmgQuotient(explicit_quotient, specification)
             elif not explicit_quotient.is_partially_observable:
                 quotient_container = paynt.quotient.mdp.MdpQuotient(explicit_quotient, specification)
             else:
@@ -217,9 +228,9 @@ class Sketch:
         except SyntaxError as e:
             logger.error(f"all in one approach supports only input in PRISM format!")
             raise e
-        
+
         return prism, specification, family
-    
+
     @classmethod
     def export(cls, export, sketch_path, jani_unfolder, explicit_quotient):
         if export == "jani":

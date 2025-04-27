@@ -27,6 +27,7 @@ class Synthesizer:
         import paynt.quotient.pomdp
         import paynt.quotient.decpomdp
         import paynt.quotient.mdp_family
+        import paynt.quotient.posmg
         import paynt.synthesizer.synthesizer_onebyone
         import paynt.synthesizer.synthesizer_ar
         import paynt.synthesizer.synthesizer_cegis
@@ -34,6 +35,7 @@ class Synthesizer:
         import paynt.synthesizer.synthesizer_multicore_ar
         import paynt.synthesizer.synthesizer_pomdp
         import paynt.synthesizer.synthesizer_decpomdp
+        import paynt.synthesizer.synthesizer_posmg
         import paynt.synthesizer.policy_tree
         import paynt.synthesizer.decision_tree
 
@@ -54,6 +56,9 @@ class Synthesizer:
                 return paynt.synthesizer.synthesizer_onebyone.SynthesizerOneByOne(quotient)
             else:
                 return paynt.synthesizer.policy_tree.SynthesizerPolicyTree(quotient)
+        # FSC synthesis for POSMGs
+        if isinstance(quotient, paynt.quotient.posmg.PosmgQuotient) and fsc_synthesis:
+            return paynt.synthesizer.synthesizer_posmg.SynthesizerPosmg(quotient)
 
         # synthesis engines
         if method == "onebyone":
@@ -114,7 +119,7 @@ class Synthesizer:
         ''' to be overridden '''
         pass
 
-    def evaluate(self, family=None, prop=None, keep_value_only=False, print_stats=True, export_filename_base=None):
+    def evaluate(self, family=None, prop=None, keep_value_only=False, print_stats=True):
         '''
         Evaluate each member of the family wrt the given property.
         :param family if None, then the design space of the quotient will be used
@@ -138,15 +143,15 @@ class Synthesizer:
         self.stat.finished_evaluation(evaluations)
         logger.info("evaluation finished")
 
-        if export_filename_base is not None:
-            self.export_evaluation_result(evaluations, export_filename_base)
+        if self.export_synthesis_filename_base is not None:
+            self.export_evaluation_result(evaluations, self.export_synthesis_filename_base)
 
         if print_stats:
             self.stat.print()
-        
+
         return evaluations
 
-    
+
     def synthesize_one(self, family):
         ''' to be overridden '''
         pass
@@ -168,7 +173,7 @@ class Synthesizer:
             family = self.quotient.family
         if family.constraint_indices is None:
             family.constraint_indices = list(range(len(self.quotient.specification.constraints)))
-        
+
         self.set_optimality_threshold(optimum_threshold)
         self.synthesis_timer = paynt.utils.timer.Timer(timeout)
         self.synthesis_timer.start()
@@ -176,9 +181,9 @@ class Synthesizer:
         self.explored = 0
         self.stat.start(family)
         try:
-            self.synthesize_one(family, timer=timeout)
-        except Exception as e:
-            logger.error(f"synthesis failed: {e}. Running synthesize without timer.")
+            self.synthesize_one(family, timeout)
+        except:
+            logger.info("Synthesizer does not support timeout limiter. Running without timeout.")
             self.synthesize_one(family)
         if self.best_assignment is not None and self.best_assignment.size > 1 and not return_all:
             self.best_assignment = self.best_assignment.pick_any()
@@ -203,6 +208,6 @@ class Synthesizer:
 
         return assignment
 
-    
+
     def run(self, optimum_threshold=None):
         return self.synthesize(optimum_threshold=optimum_threshold)

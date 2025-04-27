@@ -53,6 +53,7 @@ class DecPomdpQuotient(paynt.quotient.quotient.Quotient):
                 
         # do initial unfolding
         self.set_imperfect_memory_size(DecPomdpQuotient.initial_memory_size)
+        self.current_memory_size = DecPomdpQuotient.initial_memory_size
         
 
     def create_hole_name(self, agent, obs, mem, is_action_hole):
@@ -170,12 +171,6 @@ class DecPomdpQuotient(paynt.quotient.quotient.Quotient):
                     hole_options.append( (hole,agent_row_memory_option[agent][choice]) )
             choice_to_hole_options.append(hole_options)
         return family, choice_to_hole_options
-    
-
-    def scheduler_selection(self, mdp, scheduler, coloring=None):
-        ''' Get hole options involved in the scheduler selection. '''
-        assert scheduler.memoryless and scheduler.deterministic
-        return super().scheduler_selection(mdp,scheduler,coloring) 
 
     def estimate_scheduler_difference(self, mdp, quotient_choice_map, inconsistent_assignments, choice_values, expected_visits=None):
         return super().estimate_scheduler_difference(mdp, quotient_choice_map, inconsistent_assignments, choice_values, expected_visits)

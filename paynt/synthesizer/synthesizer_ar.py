@@ -1,3 +1,4 @@
+import paynt.quotient.posmg
 import paynt.synthesizer.synthesizer
 import paynt.quotient.pomdp
 import paynt.verification.property_result
@@ -19,10 +20,14 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
             self._start_time = time.time()
         return self._start_time
 
-    
-    def check_specification_for_mdp(self, family):
+    def check_specification(self, family):
+        ''' Check specification for mdp or smg based on self.quotient '''
         mdp = family.mdp
-        self.stat.iteration(mdp)
+
+        if isinstance(self.quotient, paynt.quotient.posmg.PosmgQuotient):
+            model = self.quotient.create_smg_from_mdp(mdp)
+        else:
+            model = mdp
 
         # check constraints
         admissible_assignment = None
@@ -36,7 +41,7 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
             results[index] = result
 
             # check primary direction
-            result.primary = mdp.model_check_property(constraint)
+            result.primary = model.model_check_property(constraint)
             if result.primary.sat is False:
                 result.sat = False
                 break
@@ -52,7 +57,7 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
                     admissible_assignment = assignment
 
             # primary direction is SAT: check secondary direction to see whether all SAT
-            result.secondary = mdp.model_check_property(constraint, alt=True)
+            result.secondary = model.model_check_property(constraint, alt=True)
             if mdp.is_deterministic and result.primary.value != result.secondary.value:
                 logger.warning("WARNING: model is deterministic but min<max")
             if result.secondary.sat:
@@ -68,7 +73,7 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
             result = paynt.verification.property_result.MdpOptimalityResult(opt)
 
             # check primary direction
-            result.primary = mdp.model_check_property(opt)
+            result.primary = model.model_check_property(opt)
             if not result.primary.improves_optimum:
                 # OPT <= LB
                 result.can_improve = False
@@ -90,11 +95,16 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
         spec_result.evaluate(family, admissible_assignment)
         family.analysis_result = spec_result
 
-
     def verify_family(self, family):
         self.quotient.build(family)
-        self.check_specification_for_mdp(family)
 
+        # TODO include iteration_game in iteration? is it necessary?
+        if isinstance(self.quotient, paynt.quotient.posmg.PosmgQuotient):
+            self.stat.iteration_game(family.mdp.states)
+        else:
+            self.stat.iteration(family.mdp)
+
+        self.check_specification(family)
 
     def update_optimum(self, family):
         ia = family.analysis_result.improving_assignment
@@ -113,7 +123,6 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
         if isinstance(self.quotient, paynt.quotient.pomdp.PomdpQuotient):
             self.stat.new_fsc_found(family.analysis_result.improving_value, ia, self.quotient.policy_size(ia))
 
-
     def synthesize_one(self, family):
         families = [family]
         while families:
@@ -122,6 +131,8 @@ class SynthesizerAR(paynt.synthesizer.synthesizer.Synthesizer):
             family = families.pop(-1)
             self.verify_family(family)
             self.update_optimum(family)
+            if not self.quotient.specification.has_optimality and self.best_assignment is not None:
+                break
             # break
             if family.analysis_result.can_improve is False:
                 self.explore(family)

@@ -1,15 +1,19 @@
 # PAYNT with RL extension
 
-This version of PAYNT contains implementation of reinforcement algorithms based on TF Agents and is currently distributed on https://github.com/DaveHudiny/synthesis, which is fork from [PAYNT repository](https://github.com/randriu/synthesis). This toolkit was created as a part of diploma thesis "Using Reinforcement learning and inductive synthesis for designing robust controllers in POMDPs" by David Hudák (xhudak03) under superivision of doc. Milan Češka.
+This version of PAYNT contains implementation of reinforcement algorithms based on TF Agents and is currently distributed on https://github.com/DaveHudiny/synthesis, which is fork from [PAYNT repository](https://github.com/randriu/synthesis). This toolkit was created as a part of diploma thesis "Using Reinforcement learning and inductive synthesis for designing robust controllers in POMDPs" by David Hudák (xhudak03) under superivision of doc. Milan Češka. It is currently part of PhD. studies of David Hudák (ihudak@fit.vutbr.cz).
 
 ## Installation
- Install paynt (below).
+  Run ./install.sh script.
+
+ (Detailed description)
+ Install PAYNT (below).
+ Install VecStorm.
  Then use following commands:
  ```shell
    $ source prerequisites/venv/bin/activate
    $ pip install tensorflow==2.15
    $ pip install tf_agents
-   $ pip install tqdm dill matplotlib pandas seaborn
+   $ pip install tqdm dill matplotlib pandas seaborn networkx
  ```
 
  This implementation was experimented within Ubuntu 22.04 and Debian 12.5. Other Linux distributions may miss some libraries etc. and you should install them on your own, or contact the authors (DaveHudiny at GitHub, or at my e-mail skolahudak@gmail.com, or one of the authors of PAYNT Roman Andriushchenko with e-mail iandri@vutbr.cz).
@@ -20,9 +24,12 @@ This version of PAYNT contains implementation of reinforcement algorithms based 
  The main implementation of the diploma thesis is included within the rl_src folder, which contains the main parts of implementation of our reinforcement learning approach.
 
 ## Usage
+ If you simply want to use reinforcement learning framework, the best option is now to check rl_demonstration.ipynb, where are the most of the important parts of the RL usage.
+
  You can use:
  ```shell
   $ source prerequisites/venv/bin/activate
+  
   $ python3 paynt.py --help
   ```
  to see, how to use this project. Implementation of the extension is primarily focused on option --reinforcement-learning with option --storm-pomdp and --fsc-synthesis, which enables to use reinforcement learning options within the project. For example, you can use
@@ -119,7 +126,7 @@ SAYNT [6] and Storm associated options (pomdp-api branch of Storm and Stormpy ar
 
 Other options:
 - ``--help``: shows the help message of the PAYNT and aborts
-- ``--export [drn|pomdp]``: exports the model to *.drn/*.pomdp and aborts
+- ``--export [jani|drn|pomdp]``: exports the model to *.drn/*.pomdp and aborts
 
 
 Here are various PAYNT calls:
@@ -134,23 +141,31 @@ python3 paynt.py models/archive/cav23-saynt/4x3-95 --fsc-synthesis --storm-pomdp
 python3 paynt.py models/archive/cav23-saynt/rocks-12 --fsc-synthesis --storm-pomdp --get-storm-result 0
 ```
 
-The Python environment can be deactivated by runnning
+The Python environment can be deactivated by running
 ```sh
 deactivate
 ```
 
+You might consider creating an alias (e.g. in your `.bashrc`) for simpler usage:
+```shell
+paynt() {
+    source /path/to/your/venv/bin/activate
+    python3 /path/to/your/paynt.py $@
+    deactivate
+}
+```
 
 # PAYNT tutorial
 
 For instance, here is a simple PAYNT call:
 
 ```shell
-python3 paynt/paynt.py --project cav21-benchmark/grid --sketch sketch.templ --properties easy.props hybrid
+python3 paynt.py models/archive/cav21-paynt/grid --props easy.props hybrid
 ```
 
-The `--project` option specifies the path to the benchmark folder: now we will investigate the __Grid__ model discussed in [1].
+Now we will investigate the __Grid__ model discussed in [1].
 PAYNT inspects the content of this folder and locates the required files for the synthesis process: the sketch and the specification list.
-In the example above, the sketch file is `cav21-benchmark/grid/sketch.templ` (in this case, `--sketch` option could have been omitted), the specification file is `cav21-benchmark/grid/easy.properties` and the sketch does not have undefined constants, only holes.
+In the example above, the sketch file is `models/archive/cav21-paynt/grid/sketch.templ` (in this case, `--sketch` option could have been omitted), the specification file is `models/archive/cav21-paynt/grid/easy.props` and the sketch does not have undefined constants, only holes.
 Finally, the last argument specifies the selected synthesis method: `hybrid`.
 
 ## Getting started with PAYNT 
@@ -160,11 +175,11 @@ Having the tool installed, you can quickly test it by navigating to the tool fol
 ```sh
 cd /home/cav21/synthesis
 source env/bin/activate
-python3 paynt/paynt.py --project cav21-benchmark/dpm-demo  --properties sketch.props --method hybrid
+python3 paynt.py models/archive/cav21-paynt/dpm-demo --method hybrid
 ```
 
 The syntax of the command is described in more detail in the following chapters of this README.
-For now, we can see that we ask PAYNT to look at the sketch (located in directory ``cav21-benchmark/dpm-demo``) for the dynamic power manager discussed in Section 2 in [1] and synthesize it wrt. specification in file ``cav21-benchmark/dpm-demo/sketch.props`` using the advanced hybrid approach.
+For now, we can see that we ask PAYNT to look at the sketch (located in directory ``models/archive/cav21-paynt/dpm-demo``) for the dynamic power manager discussed in Section 2 in [1] and synthesize it wrt. specification in file ``models/archive/cav21-paynt/dpm-demo/sketch.props`` using the advanced hybrid approach.
 The tool will print a series of log messages and, in the end, a short summary of the synthesis process, similar to the one below:
 
 ```
@@ -199,7 +214,7 @@ Running PAYNT produces a sequence of log and a summary printed at the end of the
 For instance, if we run
 
 ```sh
-python3 paynt/paynt.py --project cav21-benchmark/dpm-demo hybrid
+python3 paynt.py models/archive/cav21-paynt/dpm-demo --method hybrid
 ```
 we obtain the following summary:
 
@@ -259,7 +274,7 @@ In other words, the PM observes the queue occupancy of the intervals: [0, T<sub>
 The values of these levels are unknown and thus are defined using four holes.
 For each occupancy level, the PM changes to the associated power profile P<sub>1</sub>, ..., P<sub>4</sub> in {0,1,2}, where numbers 0 through 2 encode the profiles *sleeping*, *idle* and *active}*, respectively. 
 The strategy which profile to used for the particular occupy is also unknown and thus defined using another four holes. 
-Finally, the queue capacity Q<sub>max</sub> is also unknown and thus the sketch includes in total 9 holes.
+Finally, the queue capacity Q<sub>max</sub> is also unknown and thus the sketch includes in total 8 holes.
 In the sketch, the definition of the hole takes place outside of any module (typically in the beginning of the program) and must include its data type (int or double) as well as the domain:
 
 ```
@@ -279,7 +294,7 @@ hole double T3 in {0.6,0.7,0.8};
 hole int QMAX in {1,2,3,4,5,6,7,8,9,10};
 ```
 
-The following sketch fragment describes the module for the described power manager. The modules implementing other components of the server are omitted here for brevity -- the entire sketch is available in [this file](cav21-benchmark/dpm-demo/sketch.templ).
+The following sketch fragment describes the module for the described power manager. The modules implementing other components of the server are omitted here for brevity -- the entire sketch is available in [this file](models/archive/cav21-paynt/dpm-demo/sketch.templ).
 
 ```
 module PM
@@ -298,7 +313,7 @@ The resulting sketch describes a *design space* of 10 x 5 x 4 x 3<sup>4</sup> = 
 
 The goal is to find the concrete power manager, i.e., the instantiation of the holes, that minimizes power consumption while the expected number of lost requests during the operation time of the server is at most 1. 
 In general, a specification is formalized as a list of temporal logic formulae in the [`PRISM` syntax](https://www.prismmodelchecker.org/manual/PropertySpecification/Introduction).
-Here is a specification available within the benchmark directory [here](cav21-benchmark/dpm-demo/sketch.properties):
+Here is a specification available within the benchmark directory [here](models/archive/cav21-paynt/dpm-demo/sketch.props):
 
 ```
 R{"requests_lost"}<= 1 [ F "finished" ]
@@ -328,7 +343,7 @@ hole assignment: P1=1,P2=2,P3=2,P4=2,T1=0.0,T3=0.8,QMAX=5
 The obtained optimal power manager has queue capacity 5 with thresholds (after rounding) at 0, 2 and 4.
 In addition, the power manager always maintains an active profile unless the request queue is empty, in which case the device is put into an idle state.
 This solution guarantees expected number of lost requests to be at most one and has the power consumption of 9,100 units. 
-To double-check that there are no controllers having expected power consumption less than 9100, we can modify the specification file `cav21-benchmark/dpm-demo/sketch.properties` as follows:
+To double-check that there are no controllers having expected power consumption less than 9100, we can modify the specification file `models/archive/cav21-paynt/dpm-demo/sketch.props` as follows:
 
 ```
 R{"requests_lost"} <= 1 [ F "finished" ]
@@ -353,7 +368,7 @@ from which we can see that PAYNT indeed proved non-existence of a better solutio
 We might further consider a more complex program sketch __Grid__ (discussed in [1]), where we synthesize controller for a robot in an unpredictable environment.
 
 ```shell
-python3 paynt/paynt.py --project cav21-benchmark/grid --properties easy.properties hybrid
+python3 paynt.py models/archive/cav21-paynt/grid --props easy.props --method hybrid
 ```
 
 This sketch describes a family of 65K members, where each member has, on average 1225 states.
@@ -361,7 +376,7 @@ Even though this is a much larger family with much larger chains than in the ske
 Meanwhile, one-by-one enumeration
 
 ```shell
-python3 paynt/paynt.py --project cav21-benchmark/grid --properties easy.properties onebyone
+python3 paynt.py models/archive/cav21-paynt/grid --props easy.props --method onebyone
 ```
 might take up to 20 minutes.
 
@@ -377,5 +392,3 @@ python3 -m pytest --cov=./../paynt/ --cov-report term-missing test_synthesis.py 
 ```
 This command prints the coverage report, displaying the resulting coverage for individual source files.
 Our tests currently cover more than `90%` of the source code lines, even though the result shows `82%` because `~10%` of the source code is only temporary functions for debugging purposes that have no functionality.
-
-

@@ -16,6 +16,9 @@ class Quotient:
     # if True, expected visits will not be computed for hole scoring
     disable_expected_visits = False
 
+    # label associated with un-labelled choices
+    EMPTY_LABEL = "__no_label__"
+
     @staticmethod
     def make_vector_defined(vector):
         vector_noinf = [ value if value != math.inf else 0 for value in vector]
@@ -24,7 +27,7 @@ class Quotient:
         return vector_valid
 
     def __init__(self, quotient_mdp = None, family = None, coloring = None, specification = None):
-        
+
         # colored qoutient MDP for the super-family
         self.quotient_mdp = quotient_mdp
         self.family = family
@@ -45,7 +48,7 @@ class Quotient:
     def export_result(self, dtmc):
         ''' to be overridden '''
         pass
-    
+
 
     def restrict_mdp(self, mdp, choices):
         '''
@@ -69,12 +72,12 @@ class Quotient:
         return model,state_map,choice_map
 
     def restrict_quotient(self, choices):
-        return self.restrict_mdp(self.quotient_mdp, choices)        
-    
+        return self.restrict_mdp(self.quotient_mdp, choices)
+
     def build_from_choice_mask(self, choices):
         mdp,state_map,choice_map = self.restrict_quotient(choices)
         return paynt.models.models.SubMdp(mdp, state_map, choice_map)
-    
+
     def build(self, family):
         ''' Construct the quotient MDP for the family. '''
         # select actions compatible with the family and restrict the quotient
@@ -89,17 +92,23 @@ class Quotient:
         tm = mdp.transition_matrix
         tm.make_row_grouping_trivial()
         assert tm.nr_columns == tm.nr_rows, "expected transition matrix without non-trivial row groups"
-        components = stormpy.storage.SparseModelComponents(tm, mdp.labeling, mdp.reward_models)
-        dtmc = stormpy.storage.SparseDtmc(components)
-        return dtmc
+        if mdp.is_exact:
+            components = stormpy.storage.SparseExactModelComponents(tm, mdp.labeling, mdp.reward_models)
+            dtmc = stormpy.storage.SparseExactDtmc(components)
+            return dtmc
+        else:
+            components = stormpy.storage.SparseModelComponents(tm, mdp.labeling, mdp.reward_models)
+            dtmc = stormpy.storage.SparseDtmc(components)
+            return dtmc
 
     def build_assignment(self, family):
         assert family.size == 1, "expecting family of size 1"
         choices = self.coloring.selectCompatibleChoices(family.family)
+        assert choices.number_of_set_bits() > 0
         mdp,state_map,choice_map = self.restrict_quotient(choices)
         model = Quotient.mdp_to_dtmc(mdp)
         return paynt.models.models.SubMdp(model,state_map,choice_map)
-    
+
     def empty_scheduler(self):
         return [None] * self.quotient_mdp.nr_states
 
@@ -120,7 +129,10 @@ class Quotient:
         return state_to_choice_reachable
 
     def scheduler_to_state_to_choice(self, submdp, scheduler, discard_unreachable_choices=True):
-        state_to_quotient_choice = payntbind.synthesis.schedulerToStateToGlobalChoice(scheduler, submdp.model, submdp.quotient_choice_map)
+        if submdp.model.is_exact:
+            state_to_quotient_choice = payntbind.synthesis.schedulerToStateToGlobalChoiceExact(scheduler, submdp.model, submdp.quotient_choice_map)
+        else:
+            state_to_quotient_choice = payntbind.synthesis.schedulerToStateToGlobalChoice(scheduler, submdp.model, submdp.quotient_choice_map)
         state_to_choice = self.empty_scheduler()
         for state in range(submdp.model.nr_states):
             quotient_choice = state_to_quotient_choice[state]
@@ -137,7 +149,7 @@ class Quotient:
             if choice is not None and choice < num_choices:
                 choices.set(choice,True)
         return choices
-    
+
     def scheduler_selection(self, mdp, scheduler):
         ''' Get hole options involved in the scheduler selection. '''
         assert scheduler.memoryless and scheduler.deterministic
@@ -158,7 +170,10 @@ class Quotient:
         '''
 
         # multiply probability with model checking results
-        choice_values = payntbind.synthesis.multiply_with_vector(mdp.transition_matrix, state_values)
+        if mdp.is_exact:
+            choice_values = payntbind.synthesis.multiply_with_vector_exact(mdp.transition_matrix, state_values)
+        else:
+            choice_values = payntbind.synthesis.multiply_with_vector(mdp.transition_matrix, state_values)
         choice_values = Quotient.make_vector_defined(choice_values)
 
         # if the associated reward model has state-action rewards, then these must be added to choice values
@@ -208,7 +223,7 @@ class Quotient:
             self.coloring, inconsistent_assignments, expected_visits)
         return hole_variance
 
-    
+
     def scheduler_is_consistent(self, mdp, prop, result):
         '''
         Get hole assignment induced by this scheduler and fill undefined
@@ -281,7 +296,7 @@ class Quotient:
         scores = self.scheduler_scores(mdp, result.prop, result.primary.result, result.primary_selection)
         if scores is None:
             scores = {hole:0 for hole in range(mdp.family.num_holes) if mdp.family.hole_num_options(hole) > 1}
-        
+
         splitters = self.holes_with_max_score(scores)
         splitter = splitters[0]
         if len(hole_assignments[splitter]) > 1:
@@ -292,25 +307,16 @@ class Quotient:
             other_suboptions = []
         # print(mdp.family[splitter], core_suboptions, other_suboptions)
 
-        new_family = mdp.family.copy()
         if len(other_suboptions) == 0:
             suboptions = core_suboptions
         else:
             suboptions = [other_suboptions] + core_suboptions  # DFS solves core first
 
-        # construct corresponding design subspaces
-        design_subspaces = []
-        
         # construct corresponding subfamilies
-        subfamilies = []
-        family.splitter = splitter
         parent_info = family.collect_parent_info(self.specification)
-        for suboption in suboptions:
-            subfamily = new_family.subholes(splitter, suboption)
+        subfamilies = family.split(splitter,suboptions)
+        for subfamily in subfamilies:
             subfamily.add_parent_info(parent_info)
-            subfamily.hole_set_options(splitter, suboption)
-            subfamilies.append(subfamily)
-
         return subfamilies
 
 
@@ -318,7 +324,8 @@ class Quotient:
         assert self.specification.num_properties == 1, "expecting a single property"
         return self.specification.all_properties()[0]
 
-    def identify_absorbing_states(self, model):
+    @classmethod
+    def identify_absorbing_states(cls, model):
         state_is_absorbing = [True] * model.nr_states
         tm = model.transition_matrix
         for state in range(model.nr_states):
@@ -330,6 +337,16 @@ class Quotient:
                 if not state_is_absorbing[state]:
                     break
         return state_is_absorbing
+
+    @classmethod
+    def identify_states_with_actions(cls, model):
+        ''' Get a mask of states having more than one action. '''
+        state_has_actions = [None] * model.nr_states
+        ndi = model.nondeterministic_choice_indices
+        for state in range(model.nr_states):
+            num_actions = ndi[state+1]-ndi[state]
+            state_has_actions[state] = (num_actions>1)
+        return state_has_actions
 
     def identify_target_states(self, model=None, prop=None):
         if model is None:

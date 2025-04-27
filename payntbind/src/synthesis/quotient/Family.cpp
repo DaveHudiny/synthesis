@@ -29,21 +29,29 @@ uint64_t Family::addHole(uint64_t num_options) {
     return hole;
 }
 
-void Family::holeSetOptions(uint64_t hole, std::vector<uint64_t> const& options) {
-    hole_options[hole] = options;
+void Family::holeSetOption(uint64_t hole, uint64_t option) {
+    hole_options[hole].clear();
+    hole_options[hole].push_back(option);
     hole_options_mask[hole].clear();
-    for(auto option: options) {
+    hole_options_mask[hole].set(option);
+}
+void Family::holeSetOptions(uint64_t hole, std::vector<uint64_t> const& options) {
+    hole_options_mask[hole].clear();
+    for(uint64_t option: options) {
         hole_options_mask[hole].set(option);
+    }
+    hole_options[hole].clear();
+    for(uint64_t option: hole_options_mask[hole]) {
+        hole_options[hole].push_back(option);
     }
 }
 void Family::holeSetOptions(uint64_t hole, BitVector const& options) {
     hole_options[hole].clear();
-    for(auto option: options) {
+    for(uint64_t option: options) {
         hole_options[hole].push_back(option);
     }
     hole_options_mask[hole] = options;
 }
-
 
 std::vector<uint64_t> const& Family::holeOptions(uint64_t hole) const {
     return hole_options[hole];
@@ -119,11 +127,11 @@ bool Family::includesAssignment(std::vector<std::pair<uint64_t,uint64_t>> const&
     return true;   
 }
 
-std::vector<BitVector>::iterator Family::begin() {
+std::vector<BitVector>::const_iterator Family::begin() const {
     return hole_options_mask.begin();
 }
 
-std::vector<BitVector>::iterator Family::end() {
+std::vector<BitVector>::const_iterator Family::end() const {
     return hole_options_mask.end();
 }
 

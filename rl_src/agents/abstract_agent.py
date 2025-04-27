@@ -13,7 +13,7 @@ class AbstractAgent(ABC):
         pass
 
     @abstractmethod
-    def policy(self, time_step, policy_state=None):
+    def action(self, time_step, policy_state=None):
         raise NotImplementedError
 
     @abstractmethod

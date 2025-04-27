@@ -1,7 +1,7 @@
 from paynt.rl_extension.saynt_rl_tools.agents_wrapper import AgentsWrapper
 import numpy as np
 from rl_src.tools.args_emulator import ArgsEmulator
-from rl_src.tools.evaluators import evaluate_extracted_fsc
+from rl_src.tools.evaluators import evaluate_policy_in_model
 from rl_src.interpreters.fsc_based_interpreter import NaiveFSCPolicyExtraction
 from rl_src.interpreters.bottlenecking.quantized_bottleneck_extractor import TableBasedPolicy
 import logging
@@ -78,9 +78,8 @@ class RLFamilyExtractor:
         extracted_fsc_policy = NaiveFSCPolicyExtraction(agents_wrapper.agent.wrapper, agents_wrapper.agent.environment,
                                                   tf_environment=agents_wrapper.agent.tf_environment, args=args,
                                                   max_memory_size=4)
-        evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
-                               agent=agents_wrapper.agent,
-                               extracted_fsc_policy=extracted_fsc_policy)
+        evaluate_policy_in_model(extracted_fsc_policy, args, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment,
+                                 args.max_steps * 2)
         return extracted_fsc_policy
 
     @staticmethod
@@ -352,8 +351,8 @@ class RLFamilyExtractor:
                 num_misses_complete += complete_miss
 
             extracted_fsc.recompile_tf_tables()
-            evaluate_extracted_fsc(external_evaluation_result=agents_wrapper.agent.evaluation_result,
-                               agent=agents_wrapper.agent, extracted_fsc_policy=extracted_fsc)
+            agent = agents_wrapper.agent
+            evaluate_policy_in_model(agent.wrapper, agent.args, agent.environment, agent.tf_environment, agent.args.max_steps * 2)
         logger.info(
             f"Number of misses: {num_misses} out of {restricted_family.num_holes}")
         logger.info(

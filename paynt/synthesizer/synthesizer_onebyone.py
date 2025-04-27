@@ -12,7 +12,6 @@ class SynthesizerOneByOne(paynt.synthesizer.synthesizer.Synthesizer):
         return "1-by-1"
 
     def synthesize_one(self, family, timer = None):
-
         start_time = time.time()
         
         for hole_combination in family.all_combinations():

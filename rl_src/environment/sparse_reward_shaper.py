@@ -5,7 +5,7 @@ import enum
 
 from tf_agents.trajectories import Trajectory
 
-from rl_src.agents.policies.fsc_copy import FSC
+from agents.policies.fsc_copy import FSC
 
 import numpy as np
 
@@ -121,7 +121,7 @@ class DemonstrationBuffer:
 
 class SparseRewardShaper:
     def __init__(self, shaper_method: RewardShaperMethods, observation_level: ObservationLevel = ObservationLevel.OBSERVATION_ACTION,
-                 maximum_reward: float = 3.0, batch_size: int = 256, buffer_length: int = 5, cyclic_buffer: bool = False,
+                 maximum_reward: float = 1.0, batch_size: int = 256, buffer_length: int = 5, cyclic_buffer: bool = False,
                  observation_length: int = 1, action_length: int = 1):
         self.shaper_method = shaper_method
         self.observation_level = observation_level

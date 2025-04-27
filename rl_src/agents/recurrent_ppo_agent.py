@@ -4,25 +4,19 @@
 # File: recurrent_ppo_agent.py
 
 import logging
-from paynt.quotient.fsc import FSC
 from agents.father_agent import FatherAgent
 from tools.encoding_methods import *
 
 import tensorflow as tf
-import tf_agents
 
 from environment import tf_py_environment
 from tf_agents.agents.ppo import ppo_agent
 
-from tf_agents.utils import common
-
-from tf_agents.policies import py_tf_eager_policy
 
 
 from environment.environment_wrapper import Environment_Wrapper
 
-from agents.policies.policy_mask_wrapper import Policy_Mask_Wrapper
-from rl_src.agents.policies.parallel_fsc_policy import FSC_Policy
+from agents.policies.policy_mask_wrapper import PolicyMaskWrapper
 
 from agents.networks.value_networks import create_recurrent_value_net_demasked
 from agents.networks.actor_networks import create_recurrent_actor_net_demasked
@@ -30,11 +24,14 @@ from agents.networks.actor_networks import create_recurrent_actor_net_demasked
 from tf_agents.networks.value_rnn_network import ValueRnnNetwork
 from tf_agents.networks.actor_distribution_rnn_network import ActorDistributionRnnNetwork
 
+from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
+
 import sys
 sys.path.append("../")
 
 
 logger = logging.getLogger(__name__)
+
 
 
 class Recurrent_PPO_agent(FatherAgent):
@@ -61,7 +58,6 @@ class Recurrent_PPO_agent(FatherAgent):
         time_step_spec = tf_environment.time_step_spec()
         time_step_spec = time_step_spec._replace(
             observation=tf_environment.observation_spec()["observation"])
-
         self.agent = ppo_agent.PPOAgent(
             time_step_spec,
             action_spec,
@@ -70,16 +66,17 @@ class Recurrent_PPO_agent(FatherAgent):
             value_net=self.value_net,
             num_epochs=3,
             train_step_counter=train_step_counter,
-            greedy_eval=False,
-            discount_factor=0.98,
+            greedy_eval=self.args.completely_greedy,
+            discount_factor=0.99,
             use_gae=True,
             lambda_value=0.95,
-            gradient_clipping=0.5,
+            # gradient_clipping=0.5,
             policy_l2_reg=0.0001,
             value_function_l2_reg=0.0001,
             value_pred_loss_coef=0.45,
             entropy_regularization=0.02,
             normalize_rewards=True,
+            normalize_observations=True,
         )
         self.agent.initialize()
         
@@ -88,12 +85,36 @@ class Recurrent_PPO_agent(FatherAgent):
         logging.info("Replay buffer initialized")
 
         self.init_collector_driver(self.tf_environment, demasked=True)
-        self.wrapper = Policy_Mask_Wrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
+        self.wrapper = PolicyMaskWrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
                                            is_greedy=False)
+        self.wrapper_eager = PyTFEagerPolicy(self.wrapper, True, False)
+        logging.info("Collector driver initialized")
         if load:
             self.load_agent()
         self.init_vec_evaluation_driver(
             self.tf_environment, self.environment, num_steps=self.args.max_steps)
+        logging.info("Evaluation driver initialized")
+        
+    def special_agent_pretraining_stuff(self):
+        logger.info("Setting value net to trainable")
+        for var in self.agent.trainable_variables:
+            var._trainable = False
+        for var in self.agent._value_net.variables:
+            var._trainable = True
+
+    def special_agent_midtraining_stuff(self):
+        logger.info("Setting actor net to trainable")
+        for var in self.agent.variables:
+            var._trainable = True
+        self.agent.initialize()
+
+    def set_policy_masking(self):
+        """If PPO, this function sets the masking active for agent wrapper."""
+        self.wrapper.set_policy_masker()
+
+    def unset_policy_masking(self):
+        """If PPO, this function sets the masking inactive for agent wrapper."""
+        self.wrapper.unset_policy_masker()
 
     def reset_weights(self):
         for net_type in [self.agent._value_net, self.agent._actor_net]:

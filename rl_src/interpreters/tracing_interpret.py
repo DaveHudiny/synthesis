@@ -1,4 +1,3 @@
-from interpreters.interpret import Interpret
 from environment.environment_wrapper import Environment_Wrapper
 from environment import tf_py_environment
 from agents.father_agent import FatherAgent
@@ -36,7 +35,7 @@ class ResultInfo:
         return f"Ending stats: {self.ending_stats_dict}"
 
 
-class TracingInterpret(Interpret):
+class TracingInterpret:
     """Interpretation class for tracing the environment and agent interaction.
 
     This class is used to trace the interaction between the environment and the agent.
@@ -184,7 +183,7 @@ class TracingInterpret(Interpret):
         self.obs_act_dict = {}
         self.aux_obs_act_dict = {}
         self.obs_act_updater = self.ObsActUpdater(randomize_illegal_actions=randomize_illegal_actions)
-        num_steps = 1 if not vectorized else agent.args.num_environments * agent.args.num_steps
+        num_steps = 1 if not vectorized else agent.args.num_environments * agent.args.trajectory_num_steps
         # logger.info(f"Number of steps for tracing is {num_steps}")
         self.obs_act_driver = DynamicStepDriver(
             self.tf_environment, agent.get_evaluation_policy(), observers=[self.obs_act_updater.update_obs_act_dict], num_steps=num_steps

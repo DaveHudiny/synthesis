@@ -21,7 +21,15 @@ rl_src/models_paynt_experiments/
 .vscode
 *.pkl
 
-rl_src/compiled_models_vec_storm/
 PAYNT_*
 experiments_*
 *.log
+.idea
+
+# OSX
+.DS_Store
+
+build/
+
+/.vscode
+.vscode/launch.json

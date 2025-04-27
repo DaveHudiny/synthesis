@@ -11,9 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--project",
-                "./drn_models/evade_8/",
-                "--fsc-synthesis",
+                "./rl_src/experiments_robust/obstacles-demo",
             ]
         }
     ]

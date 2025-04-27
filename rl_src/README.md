@@ -6,6 +6,7 @@
  Then use following commands:
  ```shell
    $ source ../prerequisites/venv/bin/activate
+   $ pip install libclang
    $ pip install tensorflow==2.15
    $ pip install tf_agents
    $ pip install tqdm dill matplotlib pandas seaborn
@@ -20,19 +21,19 @@
  To run some selected model (intercept):
  ```shell
    $ source ../prerequisites/venv/bin/activate
-   $ python3 rl_main.py --prism-model ./models/intercept/sketch.templ --prism-properties ./models/intercept/sketch.props
+   $ python3 experiment_runner.py --model-condition intercept
  ```
 
- To run experiments for multiple models:
+ To run experiments for multiple models from some_directory:
  ```shell
    $ source ../prerequisites/venv/bin/activate
-   $ python3 experiment_runner.py
+   $ python3 experiment_runner.py --path-to-models some_directory
  ```
  
  If you want to design your own experiments, you should start with:
  ```shell
    $ source ../prerequisites/venv/bin/activate
-   $ python3 rl_main.py --help
+   $ python3 experiment_runner.py --help
  ```
  
  The results of experiments are usually contained in folder ./experiments, where you can find various stuff like the results of training or pickle dictionaries for PAYNT (you can use PAYNT to use them as oracle).
