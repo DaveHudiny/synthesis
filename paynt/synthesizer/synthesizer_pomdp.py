@@ -324,10 +324,10 @@ class SynthesizerPomdp:
         # if self.storm_control.latest_storm_fsc is not None:
         #     pre_clone_time = time.time()
         #     print("Unpacking storm result")
-        #     dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_paynt_result_fsc)
+        #     dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
         #     # result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
         #     # print("Old result", result.at(0))
-        #     dtmc_vec = self.quotient.get_induced_dtmc_from_fsc_vec(self.storm_control.latest_paynt_result_fsc)
+        #     dtmc_vec = self.quotient.get_induced_dtmc_from_fsc_vec(self.storm_control.latest_storm_fsc)
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

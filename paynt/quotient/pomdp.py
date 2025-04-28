@@ -803,14 +803,13 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                     else:
                         choice_offset_for_selected_label = self.action_labels_at_observation[current_obs].index(selected_action_label)
                     choice_index = self.pomdp.get_choice_index(current_state_memory_pair[0], choice_offset_for_selected_label)
-
                     for entry in self.pomdp.transition_matrix.get_row(choice_index):
                         next_state = entry.column
                         next_state_memory_pair = (next_state,selected_update)
                         if next_state_memory_pair not in dtmc_states_map.values():
                             state_queue.append(next_state_memory_pair)
                             dtmc_states_map[len(dtmc_states_map)] = next_state_memory_pair
-
+            
         # construct the transition matrix
         num_dtmc_states = len(dtmc_states_map)
         dtmc_tm_builder = stormpy.SparseMatrixBuilder(num_dtmc_states, num_dtmc_states, force_dimensions=True)
@@ -912,21 +911,19 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             for action_label in action_labels_at_observation[obs]:
                 if action_label in original_fixed_action_labels:
                     expanded_action_labels_at_observation_flags[obs][np.argwhere(action_label == original_fixed_action_labels)] = True
-                else:
-                    print(f"Action label {action_label} not found in original fixed action labels.")
         action_offsets = np.cumsum(expanded_action_labels_at_observation_flags, axis=1) - 1
         index_map = [self.ordered_action_labels.index(label) for label in fixed_action_labels]
         expanded_action_labels_at_observation_flags = expanded_action_labels_at_observation_flags[:, index_map]
         action_offsets = action_offsets[:, index_map]
         return action_offsets, expanded_action_labels_at_observation_flags
-        
-    def own_choice_index_matrix_computation(self, choice_offsets_for_obs, state_to_obs_map):
-        np_choice_index_matrix = np.zeros((self.pomdp.nr_states, choice_offsets_for_obs.shape[1]), dtype=int)
-        num_legal_actions_cumulative = np.cumsum(choice_offsets_for_obs[state_to_obs_map, -1] + 1)
-        num_legal_actions_cumulative = np.append([0], num_legal_actions_cumulative[:-1]).reshape(-1, 1)
-        num_legal_actions_cumulative_repeated = np.repeat(num_legal_actions_cumulative, choice_offsets_for_obs.shape[1], axis=1)
-        np_choice_index_matrix = num_legal_actions_cumulative_repeated + np.arange(choice_offsets_for_obs.shape[1])
-        return np_choice_index_matrix 
+
+    def own_choice_index_matrix_computation(self, choice_offsets_for_obs, num_states, get_choice_function):
+        # Compute the choice index matrix using the provided function
+        np_choice_index_matrix = np.zeros((num_states, choice_offsets_for_obs.shape[1]), dtype=int)
+        for state in range(num_states):
+            for offset in range(choice_offsets_for_obs.shape[1]):
+                np_choice_index_matrix[state, offset] = get_choice_function(state, offset)
+        return np_choice_index_matrix
 
     def get_induced_dtmc_from_fsc_vec(self, fsc : FSC):
         if fsc.is_deterministic:
@@ -952,22 +949,8 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
 
         action_labels_at_observation = self.action_labels_at_observation
         action_offsets, expanded_action_labels_at_observation_flags = self.precompute_action_offsets_at_observations(action_labels, action_labels_at_observation)
-        
-        # Check, whether the offsets are correct
-        for obs in range(len(action_labels_at_observation)):
-            for action, action_label in enumerate(action_labels):
-                if action_label in action_labels_at_observation[obs]:
-                    action_offset_original = action_labels_at_observation[obs].index(action_label)
-                    action_offset = action_offsets[obs][action]
-                else:
-                    action_offset_original = 0
-                if expanded_action_labels_at_observation_flags[obs][action] == False:
-                    action_offset = 0
-                if action_offset != action_offset_original:
-                    print(f"Action offset mismatch for observation {obs}, action {action_label}: {action_offset} != {action_offset_original}")
 
-
-        np_choice_index_matrix = self.own_choice_index_matrix_computation(action_offsets, np_state_to_observations)
+        np_choice_index_matrix = self.own_choice_index_matrix_computation(action_offsets, self.pomdp.nr_states, self.pomdp.get_choice_index)
 
         dtmc_state_memory_product, dtmc_state_active_boolean_map, dtmc_states_map_flag = self.compute_dtmc_maps(np_action_function)
         
@@ -996,29 +979,8 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                 0
             )
             # compute original offsets
-            offsets_orig = []
             choice_indices = []
-            print(current_state_memory_pairs)
-            print(current_obs)
-            print(nonzero_selected_actions)
-            print(nonzero_selected_actions.shape)
-            for i, (state, memory) in enumerate(current_state_memory_pairs):
-                for j, selected_action in nonzero_selected_actions[state]:
-                        selected_action_label = action_labels[selected_action]
-                        if selected_action_label not in self.action_labels_at_observation[current_obs[i]]:
-                            offsets_orig.append(0)
-                        else:
-                            offsets_orig.append(self.action_labels_at_observation[current_obs[i]].index(selected_action_label))
-                        print(f"state {state}, offset {offsets_orig[i]}, selected action {selected_action_label}")
-                        choice_indices.append(self.pomdp.get_choice_index(state, offsets_orig[-1]))
-
-            offsets_orig = np.array(offsets_orig)
-            # compare offsets
-            if not np.array_equal(offsets, offsets_orig):
-                print(f"Offsets mismatch: {offsets} != {offsets_orig}")
-                raise ValueError("Offsets mismatch")
             choice_indices = np_choice_index_matrix[current_state_memory_pairs[:,0], offsets]
-            
             # compare
             for i, choice in enumerate(choice_indices):
                 entries = self.pomdp.transition_matrix.get_row(choice)
@@ -1027,9 +989,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                 unique_index = entries_values_list * mem_size + selected_updates[i]
                 dtmc_state_active_boolean_map[unique_index] = np.where(dtmc_states_map_flag[unique_index] == False, True, dtmc_state_active_boolean_map[unique_index])
                 dtmc_states_map_flag[unique_index] = True
-        print(f"Induced DTMC state space construction took {time.time()-start_time} seconds")
-        print(f"Size of induced DTMC: {np.sum(dtmc_states_map_flag)}")
-        print(f"Induced DTMC states: {dtmc_state_memory_product[dtmc_states_map_flag]}")
         
         components = stormpy.SparseModelComponents()
         induced_dtmc = stormpy.storage.SparseDtmc(components)
@@ -1076,6 +1035,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                         # i.e. (s,n) has the same value as (s,0)
                         value = state_memory_value[(state,0)]
                 state_memory_value_total[state][memory] = value
+
 
         return state_memory_value_total
 
