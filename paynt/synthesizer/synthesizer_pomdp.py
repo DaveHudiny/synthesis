@@ -283,30 +283,6 @@ class SynthesizerPomdp:
             self.storm_control.belief_controller_size = self.storm_control.get_belief_controller_size(
                 self.storm_control.latest_storm_result, self.storm_control.paynt_fsc_size)
 
-            # if self.storm_control.latest_storm_fsc is not None:
-            #     pre_clone_time = time.time()
-            #     print("Unpacking storm result")
-            #     dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
-            #     print(dtmc)
-            #     result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
-            #     print(result.at(0))
-                
-            #     print("Evaluation started")
-            #     simple_fsc = SimpleFSCPolicy(fsc=self.storm_control.latest_storm_fsc, tf_action_keywords=agent_wrapper.agent.environment.action_keywords,
-            #                                 time_step_spec=agent_wrapper.agent.wrapper.time_step_spec, 
-            #                                 action_spec=agent_wrapper.agent.wrapper.action_spec)
-            #     eval_result = evaluate_policy_in_model(simple_fsc,
-            #                                         agent_wrapper.agent.args,
-            #                                         agent_wrapper.agent.environment, 
-            #                                         agent_wrapper.agent.tf_environment,
-            #                                         801, None)
-                
-                
-            #     timeout_bonus += time.time() - pre_clone_time
-
-            # For large models, it is not good idea to print the controllers
-            # self.print_synthesized_controllers()
-
             if time.time() > iteration_timeout + timeout_bonus or iteration == iteration_limit:
                 break
             
@@ -323,20 +299,15 @@ class SynthesizerPomdp:
         self.saynt_timer.stop()
 
         if self.storm_control.latest_storm_fsc is not None:
-            pre_clone_time = time.time()
-            print("Unpacking storm result")
-            start_time = time.time()
-            # dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_paynt_result_fsc)
-            print(f"Time to unpack storm result: {time.time() - start_time}")
-            #print(dtmc)
-            #result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
-            #print("Old result", result.at(0))
-            start_time = time.time()
+            # pre_clone_time = time.time()
+            # start_time = time.time()
+            dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
+            result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
+            print(result.at(0))
+            # start_time = time.time()
             dtmc_vec = self.quotient.get_induced_dtmc_from_fsc_vec(self.storm_control.latest_storm_fsc)
-            print(f"Time to unpack storm result vec: {time.time() - start_time}")
-            print(dtmc_vec)
             result_vec = stormpy.model_checking(dtmc_vec, self.quotient.specification.optimality.formula)
-            print("New result", result_vec.at(0))
+            print(result_vec.at(0))
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

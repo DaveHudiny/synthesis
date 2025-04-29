@@ -809,7 +809,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                         if next_state_memory_pair not in dtmc_states_map.values():
                             state_queue.append(next_state_memory_pair)
                             dtmc_states_map[len(dtmc_states_map)] = next_state_memory_pair
-        print("Induced DTMC state space construction took {} seconds.".format(time.time()-start_time))
             
         # construct the transition matrix
         num_dtmc_states = len(dtmc_states_map)
@@ -864,7 +863,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
 
 
         dtmc_tm = dtmc_tm_builder.build()
-        print("Induced DTMC transition matrix construction took {} seconds.".format(time.time()-start_time))
 
         start_time = time.time()
 
@@ -883,10 +881,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         for reward_name in self.pomdp.reward_models.keys():
             assert reward_model.has_state_action_rewards == True, "currently this implementation expects state action rewards"
             dtmc_reward_models[reward_name] = stormpy.SparseRewardModel(optional_state_action_reward_vector=state_action_rewards[reward_name])
-
-        print("Induced DTMC labeling and reward structure construction took {} seconds.".format(time.time()-start_time))
-
-        print(dtmc_reward_models)
 
         components = stormpy.SparseModelComponents(transition_matrix=dtmc_tm, state_labeling=dtmc_labeling, reward_models=dtmc_reward_models)
         induced_dtmc = stormpy.storage.SparseDtmc(components)
@@ -927,25 +921,25 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         return action_offsets, expanded_action_labels_at_observation_flags
 
     def own_choice_index_matrix_computation(self, choice_offsets_for_obs, num_states, get_choice_function):
-        # Compute the choice index matrix using the provided function
-        np_choice_index_matrix = np.zeros((num_states, choice_offsets_for_obs.shape[1]), dtype=int)
-        for state in range(num_states):
-            for offset in range(choice_offsets_for_obs.shape[1]):
-                np_choice_index_matrix[state, offset] = get_choice_function(state, offset)
-        return np_choice_index_matrix
+        def wrapped(i, j):
+            return get_choice_function(int(i), int(j))
+        shape = (num_states, choice_offsets_for_obs.shape[1])
+        return np.fromfunction(np.vectorize(wrapped), shape, dtype=int)
     
     def extract_state_action_rewards(self, choice_index_matrix, reward_models):
         unique_choices = np.unique(choice_index_matrix)
         reward_model_names = list(reward_models.keys())
-        state_action_rewards = np.zeros((len(reward_model_names), len(unique_choices),), dtype=float)
-        for reward_name, reward_model in reward_models.items():
-            reward_index = reward_model_names.index(reward_name)
-            for choice in unique_choices:
-                try:
-                    state_action_rewards[reward_index][choice] = reward_model.state_action_rewards[choice]
-                except IndexError:
-                    break
-        return state_action_rewards, reward_model_names
+
+        state_action_rewards = np.zeros((len(reward_model_names), unique_choices.max() + 1), dtype=float)
+
+        for i, reward_name in enumerate(reward_model_names):
+            reward_model = reward_models[reward_name]
+            model_rewards = getattr(reward_model, 'state_action_rewards', None)
+            if model_rewards is not None:
+                max_len = min(len(model_rewards), state_action_rewards.shape[1])
+                state_action_rewards[i, :max_len] = model_rewards[:max_len]
+
+        return state_action_rewards[:, unique_choices], reward_model_names
 
 
     def get_induced_dtmc_from_fsc_vec(self, fsc : FSC):
@@ -1059,8 +1053,10 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             
             updates = nonzero_selected_updates[choices_dtmc_states].reshape(-1, 1)
             probs_action = selected_choices_probs[choices_dtmc_states].reshape(-1, 1)
-
-            state_action_rewards[:, dtmc_indices] = model_state_action_rewards[:, choice] * probs_action
+            values = model_state_action_rewards[:, choice].reshape(-1, 1) * probs_action.T
+            dtmc_indices_flatten = dtmc_indices.flatten()
+            state_action_rewards[:, dtmc_indices_flatten] = values
+            dtmc_indices = dtmc_indices.reshape(-1, 1)
             repeated_choice = np.full((len(choices_dtmc_states), 1), choice)
 
             for entry in entries:
@@ -1083,32 +1079,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                     probs_action
                 ])
                 transition_rows.append(transition_row)
-        # for choice in unique_choices:
-        #     entries = self.pomdp.transition_matrix.get_row(choice)
-        #     choices_dtmc_states = np.argwhere(selected_choices == choice)
-        #     choices_dtmc_state_pairs = selected_states[choices_dtmc_states].reshape(-1, 2)
-            
-        #     dtmc_states_indices = choices_dtmc_state_pairs[:, 0] * mem_size + choices_dtmc_state_pairs[:, 1]
-        #     dtmc_states_indices = dtmc_states_map_flag_cumsum[dtmc_states_indices].reshape(-1, 1)
-        #     # Compute probability of selecting choice in a given state
-        #     updates = nonzero_selected_updates[choices_dtmc_states]
-        #     next_state_prob_tuples = [[entry.column, entry.value()] for entry in entries]
-        #     # from entry.columns and updates construct next_state_memory_pairs
-        #     next_state_memory_pairs = []
-        #     state_action_rewards[:, dtmc_states_indices] = model_state_action_rewards[:, choice] * selected_choices_probs[choices_dtmc_states]
-        #     choice = np.repeat(choice, choices_dtmc_states.shape[0]).reshape(-1, 1)
-        #     num_entries += len(choices_dtmc_states) * len(next_state_prob_tuples)
-        #     for entry in next_state_prob_tuples:
-        #         next_state_repeated = np.repeat(entry[0], updates.shape[0]).reshape(-1, 1)
-        #         next_state_prob_repeated = np.repeat(entry[1], updates.shape[0]).reshape(-1, 1)
-        #         next_state_memory_pairs = np.concatenate([next_state_repeated, updates.reshape(-1, 1)], axis=1)
-        #         indices = next_state_memory_pairs[:, 0] * mem_size + next_state_memory_pairs[:, 1]
-        #         indices = dtmc_states_map_flag_cumsum[indices].reshape(-1, 1)
-        #         # Compute transition probabilities in form [original_state, choice, new_state, prob_state, prob_choice]
-        #         nonzero_selected_actions_probs = selected_choices_probs[choices_dtmc_states].reshape(-1, 1)
-        #         transition_row = np.concatenate([dtmc_states_indices, choice, indices, next_state_prob_repeated, nonzero_selected_actions_probs], axis=1)
-        #         transition_rows.append(transition_row)
-        
 
         transition_rows = np.concatenate(transition_rows, axis=0)
         # Sort transition rows by first column

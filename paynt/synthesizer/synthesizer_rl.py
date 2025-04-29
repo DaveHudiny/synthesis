@@ -307,7 +307,7 @@ class SynthesizerRL:
             fsc_like, self.agents_wrapper.agent.environment, self.quotient)
         logger.info(f"Extracted FSC from RL policy.")
         logger.info(f"DTMC extraction")
-        dtmc = self.quotient.get_induced_dtmc_from_fsc(fsc)
+        dtmc = self.quotient.get_induced_dtmc_from_fsc_vec(fsc)
             #     print(dtmc)
         logger.info(f"DTMC extraction finished")
         logger.info(f"Checking DTMC.")
@@ -316,7 +316,7 @@ class SynthesizerRL:
         print(f"DTMC check result{result.at(0)}")
 
 
-    def compute_paynt_assignment_from_fsc_like(self, fsc_like : TableBasedPolicy, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60, old=True):
+    def compute_paynt_assignment_from_fsc_like(self, fsc_like : TableBasedPolicy, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60, old=False):
         if old:
             return self.compute_assignment_through_family(fsc_like, latent_dim, agents_wrapper, paynt_timeout)
         else:
