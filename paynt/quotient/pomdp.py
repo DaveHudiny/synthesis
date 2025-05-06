@@ -907,6 +907,9 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         return product, active_boolean_map, used_boolean_map
     
     def precompute_action_offsets_at_observations(self, fixed_action_labels, action_labels_at_observation):
+        # add missing labels to the action labels
+        if "__no_label__" in self.ordered_action_labels and "__no_label__" not in fixed_action_labels:
+            fixed_action_labels = np.append(fixed_action_labels, "__no_label__")
         original_fixed_action_labels = np.array(self.ordered_action_labels)
         nr_observations = len(action_labels_at_observation)
         expanded_action_labels_at_observation_flags = np.zeros((nr_observations, len(fixed_action_labels)), dtype=bool)
@@ -952,11 +955,25 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         print(f"Precomputation of action function and update function")
         start_time = time.time()
         action_labels = np.array(fsc.action_labels)
+        # print(action_labels)
+        # print(self.ordered_action_labels)
+        # if "__no_label__" in action_labels:
+        #     # Get the index of the occurence of "__no_label__" in action_function
+        #     index = np.where(action_labels == "__no_label__")[0][0]
+        #     print(f"Found __no_label__ at index {index}")
+        #     # Check, whether the index is in sink state
+        #     state = np.where(self.pomdp.observations == index)[0][0]
+        #     print(f"Found __no_label__ at state {state}")
+        #     if self.pomdp.is_sink_state(state):
+        #         print(f"Found __no_label__ in sink state {state}")
+                
+                
 
         np_action_function = np.array(fsc_copy.action_function)
         
         np_update_function = np.array(fsc_copy.update_function)
         np_action_function = self.compute_function_expansion(np_action_function, len(action_labels))
+
         def extract(d):
             if d is None:
                 return 0

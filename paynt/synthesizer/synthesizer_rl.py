@@ -235,7 +235,7 @@ class SynthesizerRL:
 
     def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None,
                               bottlenecking = False):
-
+        nr_rl_iterations = 2000 # TODO: Remove this. It is only for testing purposes
         if storm_control is not None:
             trajectories = agents_wrapper.generate_saynt_trajectories(
                 storm_control, self.quotient, fsc=fsc, model_reward_multiplier=agents_wrapper.agent.environment.reward_multiplier,
@@ -262,7 +262,7 @@ class SynthesizerRL:
 
         # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
         agents_wrapper.agent.set_agent_greedy()
-        latent_dim = 4 if not self.use_one_hot_memory else 3 ** 1
+        latent_dim = 4 if not self.use_one_hot_memory else 3 ** 3
         if bottlenecking:
             bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
                 agents_wrapper)

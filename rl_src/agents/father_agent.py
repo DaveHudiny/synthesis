@@ -44,8 +44,6 @@ logger = logging.getLogger(__name__)
 # max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
 OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 500
 
-AUTOMATA = False
-
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -157,12 +155,23 @@ class FatherAgent(AbstractAgent):
         self.trajectory_buffer = TrajectoryBuffer(environment)
         eager = py_tf_eager_policy.PyTFEagerPolicy(
             self.get_evaluation_policy(), use_tf_function=True, batch_time_steps=False)
-        self.vec_driver = DynamicStepDriver(
-            tf_environment,
-            eager,
-            observers=[self.trajectory_buffer.add_batched_step],
-            num_steps=(1 + num_steps) * self.args.num_environments
-        )
+        observers = [self.trajectory_buffer.add_batched_step]
+        if self.args.predicate_automata_obs:
+            observers.append(self.create_predicate_automata_observer(environment))
+        if self.args.curiosity_automata_reward:
+            self.vec_driver = DynamicRewardDriver(
+                tf_environment,
+                eager,
+                observers=observers,
+                num_steps=(1 + num_steps) * self.args.num_environments,
+                trajectory_reward_generator=self.collect_policy_wrapper.generate_curiosity_reward)
+        else:
+            self.vec_driver = DynamicStepDriver(
+                tf_environment,
+                eager,
+                observers=observers,
+                num_steps=(1 + num_steps) * self.args.num_environments
+            )
 
     def get_observers(self, alternative_observer):
         if alternative_observer is None:
@@ -219,12 +228,24 @@ class FatherAgent(AbstractAgent):
                 self.drivers[self.current_env % len(self.drivers)].run()
                 self.current_env = self.current_env + 1
 
+    def create_go_explore_observer(self, environment: EnvironmentWrapperVec):
+        def _add_batch(item: Trajectory):
+            environment.go_explore_add_state(
+                item.policy_info["current_automata_state"].numpy())
+        return _add_batch
+    
+    def create_predicate_automata_observer(self, environment: EnvironmentWrapperVec):
+        def _add_batch(item: Trajectory):
+            environment.set_predicate_automata_state(
+                item.policy_info["current_automata_state"].numpy())
+        return _add_batch
+
     def init_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment,
                               demasked: bool = False,
                               alternative_observer: callable = None,
                               batch_tf_environments: list[tf_py_environment.TFPyEnvironment] = []):
-        if AUTOMATA:
-            predicate_automata = create_dummy_predicate_automata(self.environment.vectorized_simulator.get_observation_labels())
+        if self.args.curiosity_automata_reward or self.args.go_explore or self.args.predicate_automata_obs:
+            predicate_automata = self.environment.predicate_automata
         else:
             predicate_automata = None
         if demasked:
@@ -233,7 +254,6 @@ class FatherAgent(AbstractAgent):
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
         else:
-
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.agent.collect_policy, use_tf_function=True, batch_time_steps=False)
         if demasked:
@@ -241,6 +261,11 @@ class FatherAgent(AbstractAgent):
                 self.args.vectorized_envs_flag)]
         else:
             observers = self.get_observers(alternative_observer)
+        if self.args.go_explore:
+            self.environment.set_go_explore(predicate_automata)
+            observers.append(self.create_go_explore_observer(self.environment))
+        if self.args.predicate_automata_obs:
+            observers.append(self.create_predicate_automata_observer(self.environment))
         num_steps = self.compute_number_of_steps()
         self.num_steps = num_steps
         if len(batch_tf_environments) > 0:
@@ -248,7 +273,7 @@ class FatherAgent(AbstractAgent):
             batch_tf_environments.append(tf_environment)
             self.driver = self.BatchEnvironmentDriver(
                 batch_tf_environments, eager, observers, num_steps)
-        elif AUTOMATA:
+        elif self.args.curiosity_automata_reward:
             self.driver = DynamicRewardDriver(
                 tf_environment,
                 eager,
@@ -555,6 +580,8 @@ class FatherAgent(AbstractAgent):
         Args:
             last: Whether this is the last evaluation of the agent.
         """
+        if self.args.go_explore:
+            self.environment.unset_go_explore()
         if max_steps is None:
             max_steps = self.args.max_steps
         if self.args.prefer_stochastic:
@@ -596,6 +623,8 @@ class FatherAgent(AbstractAgent):
         if self.evaluation_result.best_updated and self.agent_folder is not None:
             self.save_agent(best=True)
         self.log_evaluation_info()
+        if self.args.go_explore:
+            self.environment.set_go_explore()
 
     def log_evaluation_info(self):
         logger.info('Average Return = {0}'.format(
@@ -694,7 +723,7 @@ class FatherAgent(AbstractAgent):
                 step_type=item.step_type,
                 observation=item.observation["observation"],
                 action=item.action,
-                policy_info=(item.policy_info),
+                policy_info={"dist_params": item.policy_info["dist_params"]},
                 next_step_type=item.next_step_type,
                 reward=item.reward,
                 discount=item.discount,

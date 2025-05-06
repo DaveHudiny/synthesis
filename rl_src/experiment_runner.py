@@ -127,7 +127,8 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
 
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256,
                     random_start_simulator=False, model_condition: str = "", model_memory_size=0, use_rnn_less=False, state_estimation=False,
-                    train_state_estimator_continuously=False):
+                    train_state_estimator_continuously=False,
+                    curiosity_automata_reward=False, predicate_automata_obs = False, go_explore = False):
     """ Run multiple experiments for PAYNT oracle.
     Args:
         name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
@@ -157,15 +158,17 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
-                                    nr_runs=4001, encoding_method=encoding_method, agent_name=model, load_agent=False,
+                                    nr_runs=2001, encoding_method=encoding_method, agent_name=model, load_agent=False,
                                     evaluate_random_policy=False, max_steps=401, evaluation_goal=60, evaluation_antigoal=-0.0,
-                                    trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
+                                    trajectory_num_steps=64, discount_factor=0.99, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator,
                                     replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
                                     use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,
                                     name_of_experiment=name_of_experiment, continuous_enlargement=False, continuous_enlargement_step=3,
-                                    constants="", state_supporting=(state_estimation), train_state_estimator_continuously=train_state_estimator_continuously)
+                                    constants="", state_supporting=(state_estimation), train_state_estimator_continuously=train_state_estimator_continuously,
+                                    curiosity_automata_reward=curiosity_automata_reward, predicate_automata_obs=predicate_automata_obs, 
+                                    go_explore=go_explore)
                 if "-n" in model:
                     args.continuous_enlargement = True
                     args.constants = "N=20"
@@ -195,13 +198,21 @@ if __name__ == "__main__":
     args_from_cmd.add_argument("--train-state-estimator-continuously", action="store_true",
                                help="Train state estimator continuously.")
 
+    args_from_cmd.add_argument("--curiosity-automata-reward", action="store_true",
+                               help="Use curiosity automata reward.")
+    args_from_cmd.add_argument("--predicate-automata-obs", action="store_true",
+                                 help="Use predicate automata observation.")
+    args_from_cmd.add_argument("--go-explore", action="store_true",
+                                    help="Use Go-Explore.")
+    
+
     args = args_from_cmd.parse_args()
 
     # Run experiments with the given arguments
     if args.random_start_simulator:
-        name = "experiments_martin_tappler_random"
+        name = "experiments_32_random"
     else:
-        name = "experiments_martin_tappler"
+        name = "experiments_32"
 
     if args.use_rnn_less:
         name += "_rnn_less"
@@ -211,6 +222,12 @@ if __name__ == "__main__":
         name += "_state_est"
     if args.train_state_estimator_continuously:
         name += "_train_state_estimator_continuously"
+    if args.curiosity_automata_reward:
+        name += "_curiosity_automata_reward"
+    if args.predicate_automata_obs:
+        name += "_predicate_automata_obs"
+    if args.go_explore:
+        name += "_go_explore"
     if not os.path.exists(name):
         os.makedirs(name)
     
@@ -218,7 +235,9 @@ if __name__ == "__main__":
     run_experiments(f"{name}/experiments_{args.learning_rate}_{args.batch_size}", args.path_to_models, learning_rate=args.learning_rate,
                     batch_size=args.batch_size, random_start_simulator=args.random_start_simulator, model_condition=args.model_condition,
                     model_memory_size=args.model_memory_size, use_rnn_less=args.use_rnn_less, state_estimation=args.state_estimation,
-                    train_state_estimator_continuously=args.train_state_estimator_continuously)
+                    train_state_estimator_continuously=args.train_state_estimator_continuously,
+                    curiosity_automata_reward=args.curiosity_automata_reward, predicate_automata_obs=args.predicate_automata_obs,
+                    go_explore=args.go_explore)
     # for _ in range(10):
     #     # 0.00001
     #     for learning_rate in [0.00005, 0.0001, 0.0005, 0.001]:

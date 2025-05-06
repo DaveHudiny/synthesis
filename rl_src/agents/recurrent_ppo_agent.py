@@ -85,8 +85,13 @@ class Recurrent_PPO_agent(FatherAgent):
         logging.info("Replay buffer initialized")
 
         self.init_collector_driver(self.tf_environment, demasked=True)
+        if self.args.predicate_automata_obs or self.args.curiosity_automata_reward or self.args.go_explore:
+            predicate_automata = self.environment.predicate_automata
+        else:
+            predicate_automata = None
+            
         self.wrapper = PolicyMaskWrapper(self.agent.policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(),
-                                           is_greedy=False)
+                                           is_greedy=False, predicate_automata=predicate_automata)
         self.wrapper_eager = PyTFEagerPolicy(self.wrapper, True, False)
         logging.info("Collector driver initialized")
         if load:

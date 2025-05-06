@@ -33,6 +33,12 @@ import json
 
 import tf_agents.policies.tf_policy as TFPolicy
 
+from reward_machines.predicate_automata import PredicateAutomata, create_dummy_predicate_automata
+from environment.go_explore_manager import GoExploreManager
+
+import time
+
+
 OBSERVATION_SIZE = 0  # Constant for valuation encoding
 MAXIMUM_SIZE = 6  # Constant for reward shaping
 
@@ -191,7 +197,41 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # Add reward shaping
         self.reward_shaper_function = lambda observation, _: tf.zeros(
             (observation.shape[0],), dtype=tf.float32)
-        
+
+        self.predicate_automata_obs = args.predicate_automata_obs
+        self.predicate_automata_states = tf.zeros((num_envs, 1), dtype=tf.float32)
+        self.do_goal_explore = False
+        self.go_explore_manager = None
+        if self.args.predicate_automata_obs or self.args.go_explore or self.args.curiosity_automata_reward:
+            self.predicate_automata = create_dummy_predicate_automata(self.vectorized_simulator.get_observation_labels())
+        else:
+            self.predicate_automata = None
+    
+    def set_go_explore(self, predicate_automata : PredicateAutomata = None):
+        if self.go_explore_manager is None:
+            assert predicate_automata is not None, "Predicate automata must be provided for Go-Explore manager initialization."
+            self.go_explore_manager = GoExploreManager(
+                automata=predicate_automata, 
+                original_initial_state=self.vectorized_simulator.simulator.initial_state,
+                buffer_size=3000)
+        self.do_goal_explore = True
+
+    def unset_go_explore(self):
+        self.do_goal_explore = False
+
+    def go_explore_add_state(self, automata_state):
+        mdp_states = self.vectorized_simulator.simulator_states.vertices
+        self.go_explore_manager.add_state_vec_mine(
+            automata_states=automata_state.flatten(),
+            mdp_states=mdp_states,
+        )
+
+    def set_predicate_automata_state(self, automata_state):
+        self.predicate_automata_states = tf.reshape(
+            automata_state, (self.num_envs, 1), name="predicate_automata_states")
+        self.predicate_automata_states = tf.cast(
+            self.predicate_automata_states, dtype=tf.float32)
+
     def set_basic_rewards(self):
         rew_list = list(self.stormpy_model.reward_models.keys())
         self.reward_multiplier = -1.0 if not "rew" in rew_list[-1] else 10.0
@@ -244,10 +284,6 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
 
         self.reward_signum = tf.sign(self.reward_multiplier) if self.reward_multiplier != 0.0 else tf.constant(-1.0)
         
-        
-
-        
-        
     def get_num_of_expansion_features(self, vectorized_simulator : StormVecEnv, state_based_sim : StormVecEnv):
         original_labels = vectorized_simulator.get_observation_labels()
         state_based_labels = state_based_sim.get_observation_labels()
@@ -296,6 +332,10 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
 
     def create_observation_spec(self) -> tensor_spec:
         """Creates the observation spec based on the encoding method."""
+        if self.args.predicate_automata_obs:
+            predicate_automata_obs_size = 1
+        else:
+            predicate_automata_obs_size = 0
         if self.model_memory_size > 0:
             memory_update_size = 1
         else:
@@ -304,7 +344,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             try:
                 observation_len = len(self.vectorized_simulator.simulator.observations[0])
                 observation_spec = tensor_spec.TensorSpec(shape=(
-                    observation_len + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features,), dtype=tf.float32, name="observation")
+                    observation_len + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features + predicate_automata_obs_size,), dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
@@ -316,7 +356,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
                     0)
                 parse_data = json.loads(str(json_example))
                 observation_spec = tensor_spec.TensorSpec(
-                    shape=(len(parse_data) + OBSERVATION_SIZE + action_mask_size + memory_update_size + self.num_of_expansion_features,),
+                    shape=(len(parse_data) + OBSERVATION_SIZE + action_mask_size + memory_update_size + self.num_of_expansion_features + predicate_automata_obs_size,),
                     dtype=tf.float32, name="observation")
             except:
                 logging.error(
@@ -516,6 +556,16 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.virtual_reward = self.reward
         self.orig_reward = self.orig_reward * self.reward_signum # To better demonstrate the objective reward
         return self._current_time_step
+    
+    def _go_explore_resets(self, prev_dones):
+        """Changes the state of the simulator to the state defined by the Go-Explore manager, when the episode just started."""
+        new_states = self.go_explore_manager.sample_states(self.num_envs)
+        original_states = self.vectorized_simulator.simulator_states.vertices
+        new_states = np.where(prev_dones, new_states, original_states)
+
+        self.vectorized_simulator.set_states(new_states)
+        
+        return self.vectorized_simulator.no_step()
 
     def _do_step_in_simulator(self, actions) -> StepInfo:
         """Does the step in the Stormpy simulator.
@@ -531,15 +581,13 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self.prev_states, actions)
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
+        if self.do_goal_explore:
+            observations, rewards, done, truncated, allowed_actions, metalabels = self._go_explore_resets(prev_dones=self.prev_dones)
         # if there any truncated episodes, we should set the done flag to True
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
         self.allowed_actions = allowed_actions
         self.labels_mask = metalabels
-        if True in self.labels_mask:
-            self.goal = True
-        else:
-            self.goal = False
         self.orig_reward = tf.constant(
             rewards.tolist(), dtype=tf.float32)
         self.dones = done
@@ -667,7 +715,11 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             action = tf.constant(self.last_action, dtype=tf.float32)
             expansion_features = self.state_estimator.estimate_missing_features(encoded_observation, action)
             encoded_observation = tf.concat([encoded_observation, expansion_features], axis=1)
-        return {"observation": tf.constant(encoded_observation, dtype=tf.float32), "mask": tf.constant(mask, dtype=tf.bool),
+        if self.predicate_automata_obs:
+            predicate_automata_obs = self.predicate_automata_states
+            encoded_observation = tf.concat([encoded_observation, predicate_automata_obs], axis=1)
+        encoded_observation = tf.cast(encoded_observation, dtype=tf.float32)
+        return {"observation": encoded_observation, "mask": tf.constant(mask, dtype=tf.bool),
                 "integer": integers}
     
     def encode_observation(self, integer_observation, memory, state) -> dict[str: tf.Tensor]:

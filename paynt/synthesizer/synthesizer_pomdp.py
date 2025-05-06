@@ -301,9 +301,9 @@ class SynthesizerPomdp:
         if self.storm_control.latest_storm_fsc is not None:
             # pre_clone_time = time.time()
             # start_time = time.time()
-            dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
-            result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
-            print(result.at(0))
+            # dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
+            # result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
+            # print(result.at(0))
             # start_time = time.time()
             dtmc_vec = self.quotient.get_induced_dtmc_from_fsc_vec(self.storm_control.latest_storm_fsc)
             result_vec = stormpy.model_checking(dtmc_vec, self.quotient.specification.optimality.formula)

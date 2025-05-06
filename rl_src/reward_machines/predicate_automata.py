@@ -43,6 +43,23 @@ class PredicateAutomata:
             self.boolean_predicate_indices = [label_i[0] for label_i in enumerate(observation_labels) if observation_labels[label_i[0]] in self.boolean_predicate_labels]
             self.integer_predicate_indices = [label_i[0] for label_i in enumerate(observation_labels) if observation_labels[label_i[0]] in self.integer_predicate_labels]
 
+    def get_state_labels(self):
+        """
+        Get the labels of the states in the automata.
+
+        Returns:
+            list[str]: List of labels for each state.
+        """
+        return self.state_labels
+    
+    def get_states(self):
+        """
+        Get the states of the automata.
+
+        Returns:
+            list[int]: List of states in the automata.
+        """
+        return self.states
 
     @tf.function
     def _convert_binary_predicates_to_action_number(self, predicates : tf.Tensor) -> tf.Tensor:
@@ -88,7 +105,7 @@ class PredicateAutomata:
         predicates = tf.reshape(predicates, (tf.shape(predicates)[0], -1))
         return predicates
 
-    @tf.function
+    # @tf.function
     def step(self, current_state : tf.Tensor, observation : tf.Tensor) -> tf.Tensor:
         """
         Perform a step in the automata given the current state and observation.
@@ -100,6 +117,7 @@ class PredicateAutomata:
         """
 
         predicates = self.evaluate_observation(observation)
+
         # Convert predicates to binary representation
         action = self._convert_binary_predicates_to_action_number(predicates)
         # next_state = self.transition_matrix[current_state][action] batch-less version
@@ -165,12 +183,12 @@ def create_dummy_predicate_automata(observation_labels : list[str] = None) -> Pr
 if __name__ == "__main__":
     # Example usage of RewardAutomata
 
-    automata = create_dummy_predicate_automata()
+    automata = create_dummy_predicate_automata(["hascrash", "amdone", "refuelAllowed"])
     current_state = [[0], [0]]
-    next_state = automata.step(current_state, [[True, False], [False, True]])
+    next_state, _ = automata.step(current_state, [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+    # Output: next state: [[0], [0]]
     for _ in range(100): # Play random actions
         current_state = next_state
-        next_state = automata.step(current_state, [[True, False], [False, True]])
-        print("Current state:", current_state)
+        next_state, _ = automata.step(current_state, [[1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
     # print("Next state:", next_state)  # Output: Next state: 1
     

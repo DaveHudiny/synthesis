@@ -25,7 +25,8 @@ class ArgsEmulator:
                  illegal_action_penalty_per_step=-0.0002, flag_illegal_action_penalty=False, use_rnn_less=False, model_memory_size=0,
                  name_of_experiment="results_of_interpretation", continuous_enlargement=False, continuous_enlargement_step=1, init_size=6,
                  state_supporting: bool = False, train_state_estimator_continuously=False, completely_greedy=False,
-                 render_if_possible : bool = False, model_name = ""):
+                 render_if_possible : bool = False, model_name = "", 
+                 predicate_automata_obs : bool = False, curiosity_automata_reward = False, go_explore = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -78,6 +79,11 @@ class ArgsEmulator:
             train_state_estimator_continuously (bool, optional): Whether to train state estimator continuously with trained policy. Defaults to False.
             completely_greedy (bool, optional): Whether to use completely greedy policy. Defaults to False.
             render_if_possible (bool, optional): Whether to render the environment if possible. Defaults to False.
+            model_name (str, optional): The name of the model. Defaults to "".
+            predicate_automata (bool, optional): Whether to use predicate automata. Extends the observation space. Defaults to False.
+            curiosity_automata_reward (bool, optional): Whether to use curiosity automata reward. Defaults to False.
+            go_explore (bool, optional): Whether to use Go-Explore based on predicate automata. Defaults to False.
+
         """
         self.prism_model = prism_model
         self.prism_properties = prism_properties
@@ -129,3 +135,6 @@ class ArgsEmulator:
         self.completely_greedy = completely_greedy
         self.render_if_possible = render_if_possible
         self.model_name = model_name
+        self.predicate_automata_obs = predicate_automata_obs
+        self.curiosity_automata_reward = curiosity_automata_reward
+        self.go_explore = go_explore

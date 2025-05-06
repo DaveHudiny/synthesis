@@ -50,14 +50,19 @@ class PolicyMaskWrapper(TFPolicy):
             self.get_initial_automata_state = self.predicate_automata.get_initial_state
             self.step_automata = self.predicate_automata.step
             self.get_initial_visited_states = self._get_initially_visited_states
+            if policy.info_spec == ():
+                info_spec = {'current_automata_state': tf.TensorSpec(shape=(1,), dtype=tf.int32)}
+            else:
+                info_spec = {**policy.info_spec, 'current_automata_state': tf.TensorSpec(shape=(1,), dtype=tf.int32)}
         else:
             policy_state_spec = policy.policy_state_spec
             self.predicate_automata = None
+            info_spec = policy.info_spec
 
         super(PolicyMaskWrapper, self).__init__(time_step_spec=time_step_spec,
                                                   action_spec=policy.action_spec,
                                                   policy_state_spec=policy_state_spec,
-                                                  info_spec=policy.info_spec,
+                                                  info_spec=info_spec,
                                                   observation_and_action_constraint_splitter=observation_and_action_constraint_splitter)
 
         self._policy = policy
@@ -103,7 +108,6 @@ class PolicyMaskWrapper(TFPolicy):
         return visited_states
 
     def generate_curiosity_reward(self, prev_state, next_state, next_policy_step_type):
-        print("Generating curiosity reward")
         # Get the previously_visited_states
         if self.predicate_automata.predicate_based_rewards:
             visited_states = tf.cast(prev_state["satisfied_predicates"], tf.float32)
@@ -211,11 +215,15 @@ class PolicyMaskWrapper(TFPolicy):
                 visited_states = tf.tensor_scatter_nd_update(visited_states, next_state_indices, tf.ones(next_state_indices.shape[0], dtype=tf.bool))
 
                 new_policy_state["visited_automata_states"] = visited_states
-            
-
+            if distribution.info == ():
+                info = {'current_automata_state': new_policy_state["automata_state"]}
+            else:
+                distribution.info["current_automata_state"] = new_policy_state["automata_state"]
+                info = distribution.info
         else:
             new_policy_state = distribution.state
-        policy_step = PolicyStep(action=action, state=new_policy_state, info=distribution.info)
+            info = distribution.info
+        policy_step = PolicyStep(action=action, state=new_policy_state, info=info)
         return policy_step
     
     def _get_action_entropy(self, time_step, policy_state):
