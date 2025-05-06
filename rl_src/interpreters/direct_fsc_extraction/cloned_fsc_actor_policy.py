@@ -106,7 +106,7 @@ class ClonedFSCActorPolicy(TFPolicy):
         return tf.reshape(init_state, (batch_size, -1))
 
     def behavioral_clone_original_policy_to_fsc(self, buffer: TFUniformReplayBuffer, num_epochs: int,
-                                                sample_len=25,
+                                                sample_len=32,
                                                 specification_checker: SpecificationChecker = None,
                                                 environment: EnvironmentWrapperVec = None,
                                                 tf_environment: TFPyEnvironment = None,
@@ -158,8 +158,7 @@ class ClonedFSCActorPolicy(TFPolicy):
             optimizer.apply_gradients(
                 zip(grads, neural_fsc.trainable_variables))
             loss_metric.update_state(loss)
-            accuracy_metric.update_state(gt_actions, played_action
-                                         )
+            accuracy_metric.update_state(gt_actions, played_action)
             return loss
         
         @tf.function

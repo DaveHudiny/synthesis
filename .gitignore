@@ -33,3 +33,5 @@ build/
 
 /.vscode
 .vscode/launch.json
+drone-2-8-1-tanh.txt
+*.txt

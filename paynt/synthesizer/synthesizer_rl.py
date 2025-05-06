@@ -84,7 +84,7 @@ class SynthesizerRL:
                             restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=401, evaluation_goal=50.0, evaluation_antigoal=-0.0,
-                            trajectory_num_steps=16, discount_factor=0.99, num_environments=256,
+                            trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
                             normalize_simulator_rewards=False, buffer_size=200, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
                             use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
@@ -211,8 +211,8 @@ class SynthesizerRL:
             optimization_specification = SpecificationChecker.Constants.REWARD
 
         direct_extractor = DirectExtractor(memory_len = latent_dim, is_one_hot=self.use_one_hot_memory,
-                                           use_residual_connection=True, training_epochs=10001,
-                                           num_data_steps=3000, get_best_policy_flag=False, model_name=self.model_name,
+                                           use_residual_connection=True, training_epochs=15001,
+                                           num_data_steps=10000, get_best_policy_flag=False, model_name=self.model_name,
                                            max_episode_len=self.args.max_steps, optimizing_specification=optimization_specification)
         fsc, extraction_stats = direct_extractor.clone_and_generate_fsc_from_policy(
             policy, environment, tf_environment)
@@ -235,7 +235,7 @@ class SynthesizerRL:
 
     def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None,
                               bottlenecking = False):
-        nr_rl_iterations = 2000 # TODO: Remove this. It is only for testing purposes
+        nr_rl_iterations = 1000 # TODO: Remove this. It is only for testing purposes
         if storm_control is not None:
             trajectories = agents_wrapper.generate_saynt_trajectories(
                 storm_control, self.quotient, fsc=fsc, model_reward_multiplier=agents_wrapper.agent.environment.reward_multiplier,
@@ -262,7 +262,7 @@ class SynthesizerRL:
 
         # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
         agents_wrapper.agent.set_agent_greedy()
-        latent_dim = 4 if not self.use_one_hot_memory else 3 ** 3
+        latent_dim = 2 if not self.use_one_hot_memory else 3 ** 2
         if bottlenecking:
             bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
                 agents_wrapper)
@@ -308,7 +308,7 @@ class SynthesizerRL:
         logger.info(f"Extracted FSC from RL policy.")
         logger.info(f"DTMC extraction")
         dtmc = self.quotient.get_induced_dtmc_from_fsc_vec(fsc)
-            #     print(dtmc)
+        print(dtmc)
         logger.info(f"DTMC extraction finished")
         logger.info(f"Checking DTMC.")
         result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)

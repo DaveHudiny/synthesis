@@ -190,23 +190,20 @@ class DirectExtractor:
         obs_mesh = obs_mesh.flatten()
         obs_batch = tf.convert_to_tensor(obs_mesh, dtype=tf.int32)  # (N,)
         time_steps = environment.create_fake_timestep_from_observation_integer(obs_batch)
-
         memory_states = tf.convert_to_tensor(memory_to_tensor_table, dtype=tf.float32)  # (M, L)
         memory_states = tf.reshape(memory_states, (max_memory, 1, memory_len))          # (M, 1, L)
-        memory_states = tf.repeat(memory_states, repeats=nr_observations, axis=1)       # (M, N, L)
-        memory_states = tf.reshape(memory_states, (-1, memory_len))                     # (M*N, L)
-
+        memory_states = tf.repeat(memory_states, repeats=nr_observations, axis=1)       # (M, O, L)
+        memory_states = tf.reshape(memory_states, (-1, memory_len))                     # (M*O, L)
 
         policy_steps = eager.action(time_steps, policy_state=memory_states)
         actions = policy_steps.action.numpy().reshape((max_memory, nr_observations))
         fsc_actions[:, :] = actions
 
-        states = policy_steps.state  # (M*N, L)
-        decoded_states = np.stack([
-            decompute_memory(memory_len, states[i], base)
-            for i in range(max_memory * nr_observations)
-        ])
-        fsc_updates[:, :] = decoded_states.reshape((max_memory, nr_observations))
+        states = policy_steps.state  # (M*O, L)
+        states = decompute_memory(
+            memory_len, states, base)
+        states = tf.reshape(states, (max_memory, nr_observations)).numpy()  # (M, O, L)
+        fsc_updates[:, :] = states
         table_based_policy = TableBasedPolicy(
             policy, fsc_actions, fsc_updates, initial_memory=0)
         return table_based_policy, fsc_actions, fsc_updates
@@ -287,16 +284,34 @@ class DirectExtractor:
             print("Update tables are not equal")
             print(f"Update table: {update_table}")
             print(f"Update table2: {update_table2}")
-        if DEBUG:
-            buffer_test = sample_data_with_policy(
-                cloned_actor, num_samples=400, environment=env, tf_environment=tf_env)
-            memory_encode, memory_decode = get_encoding_functions(use_one_hot)
-            compare_two_policies(cloned_actor, fsc, buffer_test, memory_encode,
-                                memory_decode, memory_size, agent.environment)
+        
         ev_res = evaluate_policy_in_model(
             fsc, args, env, tf_env, args.max_steps + 1, None)
         extraction_stats.add_fsc_result(ev_res.reach_probs[-1], ev_res.returns[-1])
         return cloned_actor, buffer, extraction_stats, agent
+    
+def test_sameness_of_extracted_fsc(cloned_actor, env, memory_size, is_one_hot=False, tf_env=None, agent=None):
+    fsc, action_table, update_table = DirectExtractor.extract_fsc(cloned_actor, env, memory_size, is_one_hot=is_one_hot)
+    fsc2, action_table2, update_table2 = DirectExtractor.extract_fsc_nonvectorized(cloned_actor, env, memory_size, is_one_hot=is_one_hot)
+    # Compare action and update tables (they should be same)
+    try:
+        assert np.array_equal(action_table, action_table2)
+    except AssertionError:
+        print("Action tables are not equal")
+        print(f"Action table: {action_table}")
+        print(f"Action table2: {action_table2}")
+    try:
+        assert np.array_equal(update_table, update_table2)
+    except AssertionError:
+        print("Update tables are not equal")
+        print(f"Update table: {update_table}")
+        print(f"Update table2: {update_table2}")
+    if DEBUG:
+            buffer_test = sample_data_with_policy(
+                cloned_actor, num_samples=400, environment=env, tf_environment=tf_env)
+            memory_encode, memory_decode = get_encoding_functions(is_one_hot)
+            compare_two_policies(cloned_actor, fsc, buffer_test, memory_encode,
+                                memory_decode, memory_size, agent.environment)
 
 
 def parse_args_from_cmd():
@@ -327,7 +342,7 @@ if __name__ == "__main__":
                                                                      args.num_data_steps, args.num_training_steps,
                                                                      args.specification_goal, args.optimization_goal, args.use_one_hot,
                                                                      args.extraction_epochs, args.use_residual_connection)
-
+    
     extraction_stats.store_as_json(args.prism_path.split(
         "/")[-1], args.experiments_storage_path_folder)
     DirectExtractor.save_eval_res_to_json(og_agent.evaluation_result, args.prism_path.split(

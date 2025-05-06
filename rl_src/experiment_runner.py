@@ -160,7 +160,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                     nr_runs=2001, encoding_method=encoding_method, agent_name=model, load_agent=False,
                                     evaluate_random_policy=False, max_steps=401, evaluation_goal=60, evaluation_antigoal=-0.0,
-                                    trajectory_num_steps=64, discount_factor=0.99, num_environments=batch_size,
+                                    trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
                                     normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator,
                                     replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,

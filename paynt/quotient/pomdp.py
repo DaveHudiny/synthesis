@@ -970,6 +970,7 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                 
 
         np_action_function = np.array(fsc_copy.action_function)
+        print("Shape of action function: ", np_action_function.shape)
         
         np_update_function = np.array(fsc_copy.update_function)
         np_action_function = self.compute_function_expansion(np_action_function, len(action_labels))
@@ -1125,8 +1126,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
             dtmc_reward_models[reward_name] = stormpy.SparseRewardModel(optional_state_action_reward_vector=list(state_action_rewards[i, :]))
 
         print("Induced DTMC labeling and reward structure construction took {} seconds.".format(time.time()-start_time))
-        
-
 
         
         components = stormpy.SparseModelComponents(transition_matrix=dtmc_tm, state_labeling=dtmc_labeling, reward_models=dtmc_reward_models)
