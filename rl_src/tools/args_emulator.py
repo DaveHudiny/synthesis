@@ -14,7 +14,7 @@ class ArgsEmulator:
     def __init__(self, prism_model: str = None, prism_properties: str = None, constants: str = "", discount_factor: float = 0.75,
                  encoding_method: str = "Valuations", learning_rate: float = 8.6e-4, max_steps: int = 400, evaluation_episodes: int = 20,
                  batch_size: int = 256, trajectory_num_steps: int = 32, nr_runs: int = 4001, evaluation_goal: int = 50,
-                 interpretation_method: str = "Tracing", learning_method: str = "Stochastic_PPO",
+                 interpretation_method: str = "Tracing", learning_method: str = "PPO",
                  save_agent: bool = True, seed: int = 123456, evaluation_antigoal: int = -20, experiment_directory: str = "experiments",
                  buffer_size: int = 500, interpretation_granularity: int = 100, load_agent: bool = False, restart_weights: int = 0,
                  agent_name="test", paynt_fsc_imitation=False, paynt_fsc_json=None, fsc_policy_max_iteration=100,
@@ -26,7 +26,8 @@ class ArgsEmulator:
                  name_of_experiment="results_of_interpretation", continuous_enlargement=False, continuous_enlargement_step=1, init_size=6,
                  state_supporting: bool = False, train_state_estimator_continuously=False, completely_greedy=False,
                  render_if_possible : bool = False, model_name = "", 
-                 predicate_automata_obs : bool = False, curiosity_automata_reward = False, go_explore = False):
+                 predicate_automata_obs : bool = False, curiosity_automata_reward : bool = False, go_explore : bool = False, 
+                 stacked_observations : bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -83,6 +84,7 @@ class ArgsEmulator:
             predicate_automata (bool, optional): Whether to use predicate automata. Extends the observation space. Defaults to False.
             curiosity_automata_reward (bool, optional): Whether to use curiosity automata reward. Defaults to False.
             go_explore (bool, optional): Whether to use Go-Explore based on predicate automata. Defaults to False.
+            stacked_observations (bool, optional): Whether to use stacked observations. Defaults to False.
 
         """
         self.prism_model = prism_model
@@ -138,3 +140,4 @@ class ArgsEmulator:
         self.predicate_automata_obs = predicate_automata_obs
         self.curiosity_automata_reward = curiosity_automata_reward
         self.go_explore = go_explore
+        self.use_stacked_observations = stacked_observations

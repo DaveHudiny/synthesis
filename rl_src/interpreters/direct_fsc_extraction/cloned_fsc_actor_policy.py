@@ -13,6 +13,7 @@ from tf_agents.environments.tf_py_environment import TFPyEnvironment
 from keras import optimizers
 
 from interpreters.direct_fsc_extraction.fsc_like_actor_network import FSCLikeActorNetwork
+from interpreters.direct_fsc_extraction.fsc_like_dict_actor_network import FSCLikeDictActorNetwork
 from tools.evaluation_results_class import EvaluationResults
 from tools.specification_check import SpecificationChecker
 from tools.args_emulator import ArgsEmulator
@@ -38,7 +39,9 @@ class ClonedFSCActorPolicy(TFPolicy):
                  optimization_specification: SpecificationChecker.Constants = SpecificationChecker.Constants.REACHABILITY,
                  model_name: str = "generic_model",
                  find_best_policy: bool = False,
-                 max_episode_length: int = 1000):
+                 max_episode_length: int = 1000,
+                 observation_length: int = 0,
+                 orig_env_use_stacked_observations: bool = True):
         self.original_policy = original_policy
         self.use_one_hot = use_one_hot
         policy_state_spec = BoundedArraySpec(
@@ -49,15 +52,17 @@ class ClonedFSCActorPolicy(TFPolicy):
                                                    observation_and_action_constraint_splitter=observation_and_action_constrint_splitter)
         self.memory_size = memory_size
         self.fsc_actor = FSCLikeActorNetwork(
-            original_policy.time_step_spec.observation["observation"].shape,
+            observation_length,
             original_policy.action_spec.maximum + 1,
             memory_size,
-            use_one_hot=use_one_hot,
-            use_residual_connection=use_residual_connection)
+            use_one_hot=use_one_hot)
         self.model_name = model_name
         self.optimization_specification = optimization_specification
         self.find_best_policy = find_best_policy
         self.max_episode_length = max_episode_length
+        self.observation_length = observation_length
+        self.orig_env_use_stacked_observations = orig_env_use_stacked_observations
+
 
     def load_best_policy(self):
         try:
@@ -78,12 +83,14 @@ class ClonedFSCActorPolicy(TFPolicy):
         observation, mask = self.observation_and_action_constraint_splitter(
             time_step.observation)
         observation = tf.reshape(observation, (observation.shape[0], 1, -1))
+        if self.orig_env_use_stacked_observations:
+            observation = observation[:, :, :self.observation_length]
         policy_state = tf.reshape(policy_state, (policy_state.shape[0], -1))
         step_type = tf.reshape(time_step.step_type,
                                (time_step.step_type.shape[0], 1, -1))
         step_type = tf.cast(step_type, tf.float32)
         action, memory = self.fsc_actor(
-            observation, step_type, policy_state)
+            observation, step_type, policy_state, training=False)
         action = tf.reshape(action, (action.shape[0], -1))
         # Change logits of illegal actions to -inf
         action = tf.where(mask, action, -1e20)
@@ -141,10 +148,13 @@ class ClonedFSCActorPolicy(TFPolicy):
             name="accuracy")
 
         self.evaluation_result = None
-
+        observation_length = environment.observation_spec_len
         @tf.function
         def train_step(experience):
             observations = experience.observation["observation"]
+            if environment.use_stacked_observations: # If the environment uses stacked observations, we need to taky only the last observation
+                
+                observations = observations[:, :, :observation_length]
             gt_actions = experience.action
             step_types = tf.cast(experience.step_type, tf.float32)
             step_types = tf.reshape(step_types, (step_types.shape[0], -1, 1))

@@ -17,8 +17,6 @@ import logging
 import time
 
 
-
-
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO)
@@ -168,7 +166,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     name_of_experiment=name_of_experiment, continuous_enlargement=False, continuous_enlargement_step=3,
                                     constants="", state_supporting=(state_estimation), train_state_estimator_continuously=train_state_estimator_continuously,
                                     curiosity_automata_reward=curiosity_automata_reward, predicate_automata_obs=predicate_automata_obs, 
-                                    go_explore=go_explore)
+                                    go_explore=go_explore, stacked_observations=False)
                 if "-n" in model:
                     args.continuous_enlargement = True
                     args.constants = "N=20"

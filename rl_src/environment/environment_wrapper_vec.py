@@ -85,6 +85,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # self.batched = True
         # self.batch_size = num_envs
         self.num_envs = num_envs
+        self.use_stacked_observations = args.use_stacked_observations
         self.stormpy_model = stormpy_model
 
 
@@ -136,7 +137,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self.num_of_expansion_features = 0
         
 
-        self.vectorized_simulator.set_num_envs(num_envs)
+        self.vectorized_simulator.set_num_envs(num_envs) # If the vectorized simulator was pre-initialized, we need to set the number of environments.
         self.vectorized_simulator.reset()
         print("Simulator initialized.")
         # Default labels mask for the environment given that the number of metalabels is 1 ("goals").
@@ -171,6 +172,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         # Initialization of the observation spec.
         self.model_memory_size = args.model_memory_size # If > 0, the model provides agent with current memory and allows agent to update it.
         self.create_specifications()
+        if args.use_stacked_observations:
+            self.stacked_observations = tf.zeros((self.num_envs, self.observation_spec_len * self.observation_length_multiplier), )
 
         # Normalization of the rewards. Useless for PPO with its own normalization.
         self.goal_value = tf.constant(args.evaluation_goal, dtype=tf.float32)
@@ -231,6 +234,13 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             automata_state, (self.num_envs, 1), name="predicate_automata_states")
         self.predicate_automata_states = tf.cast(
             self.predicate_automata_states, dtype=tf.float32)
+        
+    def predicate_automata_update(self, observation):
+        old_states = self.predicate_automata_states
+        new_states = self.predicate_automata.step(old_states, observation)
+        if self.go_explore_manager is not None:
+            self.go_explore_add_state(new_states)
+        self.predicate_automata_states = new_states
 
     def set_basic_rewards(self):
         rew_list = list(self.stormpy_model.reward_models.keys())
@@ -332,6 +342,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
 
     def create_observation_spec(self) -> tensor_spec:
         """Creates the observation spec based on the encoding method."""
+        self.observation_length_multiplier = self.args.trajectory_num_steps if self.use_stacked_observations else 1
+
         if self.args.predicate_automata_obs:
             predicate_automata_obs_size = 1
         else:
@@ -343,8 +355,9 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         if self.encoding_method == "Valuations":
             try:
                 observation_len = len(self.vectorized_simulator.simulator.observations[0])
-                observation_spec = tensor_spec.TensorSpec(shape=(
-                    observation_len + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features + predicate_automata_obs_size,), dtype=tf.float32, name="observation")
+                self.observation_spec_len = (observation_len + OBSERVATION_SIZE + memory_update_size + self.num_of_expansion_features + predicate_automata_obs_size)
+                observation_spec = tensor_spec.TensorSpec(shape=(self.observation_length_multiplier * self.observation_spec_len,), 
+                    dtype=tf.float32, name="observation")
             except:
                 logging.error(
                     "Valuation encoding not possible, currently not compatible. Probably model issue.")
@@ -437,7 +450,6 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             encoded_observation = tf.concat([observation, memory], axis=1)
         else:
             encoded_observation = observation
-
         return {"observation": encoded_observation, "mask": mask, "integer": integers}
 
 
@@ -445,6 +457,9 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         """Resets the environment. Important for TF-Agents, since we have to restart environment many times."""
         logger.info("Resetting the environment.")
         self.last_observation, self.allowed_actions, self.labels_mask = self._restart_simulator()
+        if self.use_stacked_observations:
+            self.stacked_observations = tf.zeros((self.num_envs, self.observation_spec_len * (self.observation_length_multiplier - 1), ))
+            self.stacked_observations = tf.concat([self.last_observation, self.stacked_observations], axis=1)
         # self.integer_observations = self.vectorized_simulator.observations # TODO: implement it with proposed vectorized simulator
         self.last_action = np.zeros((self.num_envs,), dtype=np.int32)
         self.virtual_reward = tf.zeros((self.num_envs,), dtype=tf.float32)
@@ -545,6 +560,13 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             ),
             self.terminated_step_types
         )
+        self.stacked_observations = tf.concat(
+            [self.last_observation, self.stacked_observations[:, :-self.observation_spec_len]], axis=1) if self.use_stacked_observations else self.last_observation
+        # Nullify all stacked observations for environments that are done
+        if self.use_stacked_observations:
+            self.stacked_observations = tf.where(
+                tf.reshape(self.prev_dones, (-1, 1)), tf.zeros_like(self.stacked_observations), self.stacked_observations)
+            # print(self.stacked_observations)
         self._current_time_step = ts.TimeStep(
             step_type=self.step_types,
             reward=self.reward,
@@ -581,8 +603,10 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             self.prev_states, actions)
         observations, rewards, done, truncated, allowed_actions, metalabels = self.vectorized_simulator.step(
             actions=actions)
-        if self.do_goal_explore:
-            observations, rewards, done, truncated, allowed_actions, metalabels = self._go_explore_resets(prev_dones=self.prev_dones)
+        if self.predicate_automata is not None:
+            self.predicate_automata_update(observations)
+            if self.do_goal_explore:
+                observations, rewards, done, truncated, allowed_actions, metalabels = self._go_explore_resets(prev_dones=self.prev_dones)
         # if there any truncated episodes, we should set the done flag to True
         self.last_observation = observations
         self.states = self.vectorized_simulator.simulator_states
@@ -699,7 +723,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         return self._action_spec
 
     def get_observation(self) -> dict[str: tf.Tensor]:
-        encoded_observation = self.last_observation
+        encoded_observation = self.last_observation if not self.use_stacked_observations else self.stacked_observations
         mask = self.allowed_actions
         integers = self.integers
         if self.encoding_method == "MaskedValuations":
@@ -756,6 +780,8 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         if isinstance(observation_integer, int):
             observation_integer = [observation_integer]
         observation = self.observation_valuations[observation_integer]
+        if self.observation_length_multiplier > 1:
+            observation = tf.tile(observation, [1, self.observation_length_multiplier])
         observation = tf.constant(observation, dtype=tf.float32)
         # state = np.where(self.state_to_observation_map ==
         #                      observation_integer)

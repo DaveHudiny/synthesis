@@ -65,7 +65,7 @@ def run_benchmark(prism_path: str, properties_path: str, memory_size, num_data_s
     )
     cloned_actor = ClonedFSCActorPolicy(
         agent.wrapper, memory_size, agent.wrapper.observation_and_action_constraint_splitter,
-        use_one_hot=use_one_hot, use_residual_connection=use_residual_connection)
+        use_one_hot=use_one_hot, use_residual_connection=use_residual_connection, observation_length=env.observation_spec_len)
     # Train the cloned actor (cloned_actor.fsc_actor) to mimic the original policy
     extraction_stats = cloned_actor.behavioral_clone_original_policy_to_fsc(
         buffer, num_epochs=extraction_epochs,

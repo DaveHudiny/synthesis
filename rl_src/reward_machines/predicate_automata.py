@@ -1,9 +1,9 @@
 import tensorflow as tf
-
+import networkx as nx
 
 class PredicateAutomata:
     def __init__(self, states : list[int], state_labels : list[str], transition_matrix : list[list[int]], predicates_set_labels : list[str], initial_state = 0,
-                 observation_labels : list[str] = None, predicate_based_rewards = False):
+                 observation_labels : list[str] = None, predicate_based_rewards = False, final_states_indices = None):
         """
         Initialize the RewardAutomata object.
 
@@ -42,6 +42,37 @@ class PredicateAutomata:
         if observation_labels is not None:
             self.boolean_predicate_indices = [label_i[0] for label_i in enumerate(observation_labels) if observation_labels[label_i[0]] in self.boolean_predicate_labels]
             self.integer_predicate_indices = [label_i[0] for label_i in enumerate(observation_labels) if observation_labels[label_i[0]] in self.integer_predicate_labels]
+
+        self.final_states_indices = final_states_indices
+        if self.final_states_indices:
+            self.state_ranking = self.compute_state_ranking(transition_matrix, final_states_indices)
+            print("State ranking:", self.state_ranking)
+
+    def compute_state_ranking(self, transition_matrix, final_states_indices):
+        """Computes the ranking of states based on their distance to the final states. Sets high number for states that cannot reach the final states.""" 
+        G = nx.DiGraph()
+        num_states = len(transition_matrix)
+        num_inputs = len(transition_matrix[0])
+        for state in range(num_states):
+            for action in range(num_inputs):
+                next_state = transition_matrix[state][action]
+                G.add_edge(state, next_state)
+        lengths = dict(nx.all_pairs_shortest_path_length(G))
+        state_ranking = {}
+        for state in range(num_states):
+            if state in final_states_indices:
+                state_ranking[state] = 0
+            else:
+                min_distance = float("inf")
+                for final_state in final_states_indices:
+                    if final_state in lengths[state]:
+                        min_distance = min(min_distance, lengths[state][final_state])
+                if min_distance == float("inf"):
+                    state_ranking[state] = num_states + 1 # high number for unreachable states
+                else:
+                    state_ranking[state] = min_distance
+        return state_ranking
+        
 
     def get_state_labels(self):
         """
@@ -177,7 +208,7 @@ def create_dummy_predicate_automata(observation_labels : list[str] = None) -> Pr
     # maybe the predicates are reversed
     predicate_labels = ["hascrash", "amdone", "refuelAllowed"]
     automata = PredicateAutomata(states = states, state_labels = state_labels, transition_matrix = transition_matrix, predicates_set_labels = predicate_labels,
-                                 observation_labels=observation_labels, predicate_based_rewards=False, initial_state=0)
+                                 observation_labels=observation_labels, predicate_based_rewards=False, initial_state=0, final_states_indices=[4])
     return automata
 
 if __name__ == "__main__":

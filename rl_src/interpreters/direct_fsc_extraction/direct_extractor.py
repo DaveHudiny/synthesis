@@ -82,7 +82,7 @@ class DirectExtractor:
                 use_one_hot=self.is_one_hot, use_residual_connection=self.use_residual_connection,
                 optimization_specification = self.optimizing_specification, model_name = self.model_name,
                 find_best_policy=self.get_best_policy_flag,
-                max_episode_length=self.max_episode_len)
+                max_episode_length=self.max_episode_len, observation_length=env.observation_spec_len)
         self.extraction_stats = ExtractionStats(original_policy_reachability=orig_eval_result.reach_probs[-1],
                                                      original_policy_reward=orig_eval_result.returns[-1],
                                                      use_one_hot=self.is_one_hot,
@@ -194,7 +194,6 @@ class DirectExtractor:
         memory_states = tf.reshape(memory_states, (max_memory, 1, memory_len))          # (M, 1, L)
         memory_states = tf.repeat(memory_states, repeats=nr_observations, axis=1)       # (M, O, L)
         memory_states = tf.reshape(memory_states, (-1, memory_len))                     # (M*O, L)
-
         policy_steps = eager.action(time_steps, policy_state=memory_states)
         actions = policy_steps.action.numpy().reshape((max_memory, nr_observations))
         fsc_actions[:, :] = actions
@@ -261,7 +260,7 @@ class DirectExtractor:
         )
         cloned_actor = ClonedFSCActorPolicy(
             agent.wrapper, memory_size, agent.wrapper.observation_and_action_constraint_splitter,
-            use_one_hot=use_one_hot, use_residual_connection=use_residual_connection)
+            use_one_hot=use_one_hot, use_residual_connection=use_residual_connection, observation_length=env.observation_spec_len)
         # Train the cloned actor (cloned_actor.fsc_actor) to mimic the original policy
         extraction_stats = cloned_actor.behavioral_clone_original_policy_to_fsc(
             buffer, num_epochs=extraction_epochs,

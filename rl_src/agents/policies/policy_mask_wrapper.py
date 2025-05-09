@@ -148,12 +148,12 @@ class PolicyMaskWrapper(TFPolicy):
         distribution = self._policy.distribution(
             time_step, policy_state)
         
-        # logits = distribution_result.action.logits
-        # logits = self.current_masker(logits, mask)
-        # distribution = tfp.distributions.Categorical(
-        #     logits=logits
-        # )
-        # return policy_step.PolicyStep(distribution, policy_state, distribution.info)
+        logits = distribution.action.logits
+        logits = self.current_masker(logits, mask)
+        distribution_result = tfp.distributions.Categorical(
+            logits=logits
+        )
+        return policy_step.PolicyStep(distribution_result, policy_state, distribution.info)
         return distribution
 
     def _get_action_masked(self, distribution, mask):

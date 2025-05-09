@@ -71,7 +71,7 @@ cd ${PAYNT_ROOT}
 
 # build vec_storm
 cd ${PREREQUISITES}
-git clone https://github.com/kurecka/VecStorm.git VecStorm
+git clone https://github.com/DaveHudiny/VecStorm.git VecStorm
 cd ${PREREQUISITES}/VecStorm
 pip install -e .
 
