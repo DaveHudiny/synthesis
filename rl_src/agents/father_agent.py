@@ -243,6 +243,10 @@ class FatherAgent(AbstractAgent):
         if demasked:
             self.collect_policy_wrapper = PolicyMaskWrapper(
                 self.agent.collect_policy, observation_and_action_constraint_splitter, tf_environment.time_step_spec(), predicate_automata=predicate_automata)
+            if self.args.masked_training:
+                self.collect_policy_wrapper.set_policy_masker()
+            else:
+                self.collect_policy_wrapper.unset_policy_masker()
             eager = py_tf_eager_policy.PyTFEagerPolicy(
                 self.collect_policy_wrapper, use_tf_function=True, batch_time_steps=False)
         else:
@@ -325,6 +329,7 @@ class FatherAgent(AbstractAgent):
         if self.wrapper is None:
             return self.agent.policy
         else:
+            self.wrapper.set_policy_masker()
             return self.wrapper
 
     def train_innerest_body(self, experience, train_iteration, randomized=False, vectorized=False):
@@ -657,11 +662,11 @@ class FatherAgent(AbstractAgent):
                 time_step, policy_state=policy_state)
         return self.agent.policy.action(time_step, policy_state=policy_state)
     
-    def policy(self):
+    def get_policy(self):
         """Get the policy of the agent."""
         if self.wrapper is not None:
-            return self.wrapper
-        return self.agent.policy
+            return PyTFEagerPolicy(self.wrapper, use_tf_function=True, batch_time_steps=False)
+        return PyTFEagerPolicy(self.agent.policy, use_tf_function=True, batch_time_steps=False)
 
     def save_agent(self, best=False):
         """Save the agent. Used for saving the agent after or during training training.

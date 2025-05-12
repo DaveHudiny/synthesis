@@ -27,7 +27,7 @@ class ArgsEmulator:
                  state_supporting: bool = False, train_state_estimator_continuously=False, completely_greedy=False,
                  render_if_possible : bool = False, model_name = "", 
                  predicate_automata_obs : bool = False, curiosity_automata_reward : bool = False, go_explore : bool = False, 
-                 stacked_observations : bool = False):
+                 stacked_observations : bool = False, masked_training : bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -85,6 +85,7 @@ class ArgsEmulator:
             curiosity_automata_reward (bool, optional): Whether to use curiosity automata reward. Defaults to False.
             go_explore (bool, optional): Whether to use Go-Explore based on predicate automata. Defaults to False.
             stacked_observations (bool, optional): Whether to use stacked observations. Defaults to False.
+            masked_training (bool, optional): Whether to use masking of illegal actions during training. Defaults to False.
 
         """
         self.prism_model = prism_model
@@ -141,3 +142,4 @@ class ArgsEmulator:
         self.curiosity_automata_reward = curiosity_automata_reward
         self.go_explore = go_explore
         self.use_stacked_observations = stacked_observations
+        self.masked_training = masked_training

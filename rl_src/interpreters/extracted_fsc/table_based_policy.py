@@ -8,16 +8,23 @@ import numpy as np
 from interpreters.extracted_fsc.extracted_fsc_policy import ExtractedFSCPolicy
 
 class TableBasedPolicy(TFPolicy):
-    def __init__(self, original_policy : TFPolicy, external_observation_to_action_table : np.ndarray, 
-                 external_observation_to_update_table : np.ndarray, 
+    def __init__(self, original_policy : TFPolicy, action_function : np.ndarray, 
+                 update_function : np.ndarray, # Action and update function has shape (nr_model_states, nr_observations) 
                  initial_memory = 0,
                  action_keywords = None,
                  descending_actions = None
                  ):
+        """
+        TableBasedPolicy is a policy that uses a table to map observations to actions and updates.
+        
+        Args:
+            original_policy (TFPolicy): The original policy to be used. (TODO: Remove this, since you can derive the policy from the model.)
+            action_function (np.ndarray): The action function table. It has shape (nr_model_states, nr_observations).
+            update_function (np.ndarray): The update function table. It has shape (nr_model_states, nr_observations)."""
         policy_state_spec = TensorSpec(shape=(), dtype=tf.int32)
         super(TableBasedPolicy, self).__init__(original_policy.time_step_spec, original_policy.action_spec, policy_state_spec=policy_state_spec)
-        self.tf_observation_to_action_table = tf.constant(external_observation_to_action_table, dtype=tf.int32)
-        self.tf_observation_to_update_table = tf.constant(external_observation_to_update_table, dtype=tf.int32)
+        self.tf_observation_to_action_table = tf.constant(action_function, dtype=tf.int32)
+        self.tf_observation_to_update_table = tf.constant(update_function, dtype=tf.int32)
         if descending_actions is not None: # This array contains actions for a given memory and observation in descending order
                                            # The first action is the most likely one, but it could be illegal in some cases
                                            # This array is used to get the most likely legal action, when combined mask

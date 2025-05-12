@@ -148,7 +148,7 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
         encoding_method = "Valuations"
         refusing = None
 
-        for learning_method in ["Stochastic_PPO"]:
+        for learning_method in ["PPO"]:
             # if not "network" in model:
             #     continue
             for replay_buffer_option in [ReplayBufferOptions.ON_POLICY]:
@@ -167,12 +167,6 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                                     constants="", state_supporting=(state_estimation), train_state_estimator_continuously=train_state_estimator_continuously,
                                     curiosity_automata_reward=curiosity_automata_reward, predicate_automata_obs=predicate_automata_obs, 
                                     go_explore=go_explore, stacked_observations=False)
-                if "-n" in model:
-                    args.continuous_enlargement = True
-                    args.constants = "N=20"
-                if "network" in model:
-                    args.evaluation_antigoal = -0.0
-                    args.evaluation_goal = 0.0
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=False, name_of_experiment=name_of_experiment)

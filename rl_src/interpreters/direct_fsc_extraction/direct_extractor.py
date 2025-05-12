@@ -253,7 +253,7 @@ class DirectExtractor:
         split_path = prism_path.split("/")
         model_name = split_path[-2]
         agent.set_agent_greedy()
-        
+        agent.set_policy_masking()
         buffer = sample_data_with_policy(
             agent.wrapper, num_samples=num_data_steps,
             environment=env, tf_environment=tf_env,
@@ -269,20 +269,21 @@ class DirectExtractor:
             extraction_stats=extraction_stats
         )
         fsc, action_table, update_table = DirectExtractor.extract_fsc(cloned_actor, env, memory_size, is_one_hot=use_one_hot)
-        fsc2, action_table2, update_table2 = DirectExtractor.extract_fsc_nonvectorized(cloned_actor, env, memory_size, is_one_hot=use_one_hot)
-        # Compare action and update tables (they should be same)
-        try:
-            assert np.array_equal(action_table, action_table2)
-        except AssertionError:
-            print("Action tables are not equal")
-            print(f"Action table: {action_table}")
-            print(f"Action table2: {action_table2}")
-        try:
-            assert np.array_equal(update_table, update_table2)
-        except AssertionError:
-            print("Update tables are not equal")
-            print(f"Update table: {update_table}")
-            print(f"Update table2: {update_table2}")
+        if DEBUG:
+            fsc2, action_table2, update_table2 = DirectExtractor.extract_fsc_nonvectorized(cloned_actor, env, memory_size, is_one_hot=use_one_hot)
+            # Compare action and update tables (they should be same)
+            try:
+                assert np.array_equal(action_table, action_table2)
+            except AssertionError:
+                print("Action tables are not equal")
+                print(f"Action table: {action_table}")
+                print(f"Action table2: {action_table2}")
+            try:
+                assert np.array_equal(update_table, update_table2)
+            except AssertionError:
+                print("Update tables are not equal")
+                print(f"Update table: {update_table}")
+                print(f"Update table2: {update_table2}")
         
         ev_res = evaluate_policy_in_model(
             fsc, args, env, tf_env, args.max_steps + 1, None)
