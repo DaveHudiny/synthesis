@@ -37,13 +37,12 @@ class ConstructorFSC:
         return pomdp_quotient.observation_labels
     
     @staticmethod
-    def __create_action_labels(environment : EnvironmentWrapperVec):
-        return environment.action_keywords
+    def __create_action_labels(table_based_policy : TableBasedPolicy):
+        return table_based_policy.action_keywords
 
     @staticmethod
     def construct_fsc_from_table_based_policy(
         table_based_policy: TableBasedPolicy,
-        environment_wrapper: EnvironmentWrapperVec,
         pomdp_quotient: PomdpQuotient
         ) -> FSC:
         """Constructs a Finite State Controller (FSC) from a table-based policy.
@@ -57,7 +56,7 @@ class ConstructorFSC:
         action_function = ConstructorFSC.__create_action_function(table_based_policy.tf_observation_to_action_table)
         update_function = ConstructorFSC.__create_update_function(table_based_policy.tf_observation_to_update_table)
         observation_labels = ConstructorFSC.__create_observation_labels(pomdp_quotient)
-        action_labels = ConstructorFSC.__create_action_labels(environment_wrapper)
+        action_labels = ConstructorFSC.__create_action_labels(table_based_policy)
         
         num_observations = len(observation_labels)
         num_nodes = len(action_function)

@@ -481,7 +481,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             observation=observation_tensor,
             reward=self.reward_multiplier * self.orig_reward,
             discount=self.discount,
-            step_type=tf.convert_to_tensor([ts.StepType.MID] * self.num_envs, dtype=tf.int32))
+            step_type=tf.convert_to_tensor([ts.StepType.FIRST] * self.num_envs, dtype=tf.int32))
         self.prev_dones = np.array(len(self.last_observation) * [False])
         
         return self._current_time_step

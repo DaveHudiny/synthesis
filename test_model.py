@@ -1,4 +1,8 @@
 import aalpy
+import stormpy
+
+import os
+import numpy as np
 
 from learn_aut import learn_automaton
 
@@ -15,8 +19,11 @@ from rl_src.interpreters.extracted_fsc.table_based_policy import TableBasedPolic
 from rl_src.tools.evaluators import evaluate_policy_in_model
 from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
 
-import os
-import numpy as np
+from paynt.quotient.fsc import FSC
+from paynt.rl_extension.family_extractors.direct_fsc_construction import ConstructorFSC
+
+from paynt.quotient.pomdp import PomdpQuotient
+from paynt.parser.sketch import Sketch
 
 def create_action_function(model : aalpy.MealyMachine, nr_model_states, nr_observations):
     action_function = np.zeros((nr_model_states, nr_observations), dtype=np.int32)
@@ -51,10 +58,24 @@ def create_table_based_policy(original_policy, model, nr_observations, action_la
         action_keywords=action_labels,
     )
     return table_based_policy
+
+def verify_model_by_paynt(table_fsc : TableBasedPolicy, prism_model, prism_spec):
+    """
+    Verifies the model by PAYNT verifier.
+    """
+    quotient : PomdpQuotient = Sketch.load_sketch(prism_model, prism_spec)
+
+    fsc : FSC = ConstructorFSC.construct_fsc_from_table_based_policy(
+        table_fsc,
+        quotient
+    )
+    dtmc = quotient.get_induced_dtmc_from_fsc_vec(fsc) # If you feel that there are some issues with the precision of the DTMC, you can remove the _vec suffix
+    result = stormpy.model_checking(dtmc, quotient.specification.optimality.formula)
+    print(f"Result of verification: {result.at(0)}")
     
 
 if __name__ == "__main__":
-    model_name = "geo-2-8"
+    model_name = "evade"
 
     model = learn_automaton(model_name)
 
@@ -86,6 +107,11 @@ if __name__ == "__main__":
     nr_observations = stormpy_model.nr_observations
 
     table_based_policy = create_table_based_policy(original_policy, model, nr_observations, env.action_keywords)
+    verify_model_by_paynt(
+        table_based_policy,
+        prism_template,
+        prism_spec,
+    )
 
     # Evaluate the policy
     evaluation_result = evaluate_policy_in_model(
@@ -95,3 +121,5 @@ if __name__ == "__main__":
         tf_env,
         max_steps=401,
     )
+
+

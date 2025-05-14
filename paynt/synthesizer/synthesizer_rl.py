@@ -304,7 +304,7 @@ class SynthesizerRL:
 
     def compute_paynt_assignment_directly(self, fsc_like : TableBasedPolicy):
         fsc = ConstructorFSC.construct_fsc_from_table_based_policy(
-            fsc_like, self.agents_wrapper.agent.environment, self.quotient)
+            fsc_like, self.quotient)
         logger.info(f"Extracted FSC from RL policy.")
         logger.info(f"DTMC extraction")
         dtmc = self.quotient.get_induced_dtmc_from_fsc_vec(fsc)

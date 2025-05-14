@@ -227,8 +227,7 @@ class DirectExtractor:
 
         args = init_args(prism_path=prism_path, properties_path=properties_path,
                         nr_runs=num_training_steps, goal_value_multiplier=1.00)
-        args.agent_name = "FSC_Clone"
-        args.save_agent = True
+        args.save_agent = False
         env, tf_env = init_environment(args)
         model_name = prism_path.split("/")[-2]
         agent = Recurrent_PPO_agent(

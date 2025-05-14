@@ -662,11 +662,17 @@ class FatherAgent(AbstractAgent):
                 time_step, policy_state=policy_state)
         return self.agent.policy.action(time_step, policy_state=policy_state)
     
-    def get_policy(self):
+    def get_policy(self, eager=True):
         """Get the policy of the agent."""
         if self.wrapper is not None:
-            return PyTFEagerPolicy(self.wrapper, use_tf_function=True, batch_time_steps=False)
-        return PyTFEagerPolicy(self.agent.policy, use_tf_function=True, batch_time_steps=False)
+            if eager:
+                return PyTFEagerPolicy(self.wrapper, use_tf_function=True, batch_time_steps=False)
+            else:
+                return self.wrapper
+        if eager:
+            return PyTFEagerPolicy(self.agent.policy, use_tf_function=True, batch_time_steps=False)
+        else:
+            return self.agent.policy
 
     def save_agent(self, best=False):
         """Save the agent. Used for saving the agent after or during training training.
