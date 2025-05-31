@@ -27,7 +27,8 @@ class ArgsEmulator:
                  state_supporting: bool = False, train_state_estimator_continuously=False, completely_greedy=False,
                  render_if_possible : bool = False, model_name = "", 
                  predicate_automata_obs : bool = False, curiosity_automata_reward : bool = False, go_explore : bool = False, 
-                 stacked_observations : bool = False, masked_training : bool = False):
+                 stacked_observations : bool = False, masked_training : bool = False, 
+                 env_see_reward : bool = False, env_see_num_steps : bool = False, env_see_last_action : bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -86,6 +87,9 @@ class ArgsEmulator:
             go_explore (bool, optional): Whether to use Go-Explore based on predicate automata. Defaults to False.
             stacked_observations (bool, optional): Whether to use stacked observations. Defaults to False.
             masked_training (bool, optional): Whether to use masking of illegal actions during training. Defaults to False.
+            env_see_reward (bool, optional): Whether the environment provides reward in the observation space. Defaults to False.
+            env_see_num_steps (bool, optional): Whether the environment provides number of steps in the observation space. Defaults to False.
+            env_see_last_action (bool, optional): Whether the environment provides last action in the observation space. Defaults to False.
 
         """
         self.prism_model = prism_model
@@ -128,7 +132,6 @@ class ArgsEmulator:
         self.illegal_action_penalty_per_step = illegal_action_penalty_per_step
         self.flag_illegal_action_penalty = flag_illegal_action_penalty
         self.use_rnn_less = use_rnn_less
-        self.model_memory_size = model_memory_size
         self.name_of_experiment = name_of_experiment
         self.continuous_enlargement = continuous_enlargement
         self.continuous_enlargement_step = continuous_enlargement_step
@@ -143,3 +146,6 @@ class ArgsEmulator:
         self.go_explore = go_explore
         self.use_stacked_observations = stacked_observations
         self.masked_training = masked_training
+        self.env_see_reward = env_see_reward
+        self.env_see_num_steps = env_see_num_steps
+        self.env_see_last_action = env_see_last_action

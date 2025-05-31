@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 from rl_src.interpreters.direct_fsc_extraction.direct_extractor import DirectExtractor
 from rl_src.interpreters.direct_fsc_extraction.extraction_stats import ExtractionStats
+from rl_src.interpreters.aalpy_extraction.aalpy_extractor import AALpyExtractor
 from paynt.rl_extension.extraction_benchmark_res import ExtractionBenchmarkRes, ExtractionBenchmarkResManager
 
 from rl_src.interpreters.extracted_fsc.table_based_policy import TableBasedPolicy
@@ -81,11 +82,11 @@ class SynthesizerRL:
         agent_name = "SAYNT_Booster"
         rnn_less = self.rnn_less
         args = ArgsEmulator(learning_rate=1.6e-4,
-                            restart_weights=0, learning_method="Stochastic_PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
+                            restart_weights=0, learning_method="PPO", prism_model=f"fake_path/{self.model_name}/sketch.templ",
                             nr_runs=nr_runs, agent_name=agent_name, load_agent=False,
                             evaluate_random_policy=False, max_steps=401, evaluation_goal=50.0, evaluation_antigoal=-0.0,
                             trajectory_num_steps=32, discount_factor=0.99, num_environments=256,
-                            normalize_simulator_rewards=False, buffer_size=200, random_start_simulator=False,
+                            normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=False,
                             batch_size=256, vectorized_envs_flag=True, perform_interpretation=False,
                             use_rnn_less=rnn_less, model_memory_size=0, state_supporting=False,
                             completely_greedy=False, prefer_stochastic=False, model_name=self.model_name)
@@ -211,31 +212,15 @@ class SynthesizerRL:
             optimization_specification = SpecificationChecker.Constants.REWARD
 
         direct_extractor = DirectExtractor(memory_len = latent_dim, is_one_hot=self.use_one_hot_memory,
-                                           use_residual_connection=True, training_epochs=15001,
-                                           num_data_steps=10000, get_best_policy_flag=False, model_name=self.model_name,
+                                           use_residual_connection=True, training_epochs=50001,
+                                           num_data_steps=4001, get_best_policy_flag=False, model_name=self.model_name,
                                            max_episode_len=self.args.max_steps, optimizing_specification=optimization_specification)
         fsc, extraction_stats = direct_extractor.clone_and_generate_fsc_from_policy(
             policy, environment, tf_environment)
         extraction_stats.store_as_json(self.model_name, "experiments_loopy_fscs")
         return fsc, extraction_stats
     
-    # def perform_policy_to_fsc_cloning(self, policy : TFPolicy, 
-    #                                   environment : EnvironmentWrapperVec, 
-    #                                   tf_environment : TFPyEnvironment, latent_dim=2):
-    #     buffer = sample_data_with_policy(policy, 5000, environment, tf_environment)
-    #     cloned_fsc_actor = behavioral_clone_original_policy_to_fsc(
-    #         buffer, 70000, policy, latent_dim, sample_len=self.args.trajectory_num_steps, 
-    #         observation_and_action_constraint_splitter=self.agents_wrapper.agent.wrapper.observation_and_action_constraint_splitter,
-    #         environment=self.agents_wrapper.agent.environment,
-    #         tf_environment=self.agents_wrapper.agent.tf_environment,
-    #         args=self.args)
-    #     fsc = extract_fsc(
-    #         cloned_fsc_actor, environment, latent_dim, self.args)
-    #     return fsc
-
-    def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None,
-                              bottlenecking = False):
-        nr_rl_iterations = 1000 # TODO: Remove this. It is only for testing purposes
+    def train_agent(self, agents_wrapper : AgentsWrapper, nr_rl_iterations : int = 1000, storm_control : StormPOMDPControl = None, fsc = None):
         if storm_control is not None:
             trajectories = agents_wrapper.generate_saynt_trajectories(
                 storm_control, self.quotient, fsc=fsc, model_reward_multiplier=agents_wrapper.agent.environment.reward_multiplier,
@@ -259,27 +244,6 @@ class SynthesizerRL:
                 agents_wrapper.train_agent(nr_rl_iterations)
         else:
             agents_wrapper.train_agent(nr_rl_iterations)
-
-        # TODO: Explore option, where the extraction is performed the best agent with agents_wrapper.agent.load_agent(True)
-        agents_wrapper.agent.set_agent_greedy()
-        latent_dim = 2 if not self.use_one_hot_memory else 3 ** 2
-        if bottlenecking:
-            bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
-                agents_wrapper)
-        else:
-            
-            extracted_fsc, _ = self.perform_rl_to_fsc_cloning(
-                agents_wrapper.agent.wrapper, 
-                agents_wrapper.agent.environment, 
-                agents_wrapper.agent.tf_environment, 
-                latent_dim=latent_dim)
-
-        k_fsc = 3 ** latent_dim if not self.use_one_hot_memory else latent_dim
-        logger.info(f"Extracted {k_fsc}-FSC from RL policy.")
-        agents_wrapper.agent.set_agent_stochastic()
-        assignment = self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
-        logger.info(f"Paynt assignment computed.")
-        return assignment
     
     def compute_assignment_through_family(self, fsc_like, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60):
         fsc_size = 3 ** latent_dim if not self.use_one_hot_memory else latent_dim
@@ -301,92 +265,144 @@ class SynthesizerRL:
         else:
             assignment = alternative_assignment
         return assignment
+    
+    def compute_number_of_values_in_paynt_export(self, policy):
+        nr_values = 0
+        for obs in range(len(policy)):
+            for mem in range(len(policy[obs])):
+                nr_values += len(policy[obs][mem].keys())
+        return nr_values
+
+    
+    def create_paynt_export(self, result, dtmc_state_to_state_and_mem):
+        values = result.get_values()
+        max_mem = np.max(dtmc_state_to_state_and_mem[:, 1]) + 1
+        # for obs in range(self.quotient.pomdp.nr_observations):
+        #     mem_info = [ {} for _ in range(max_mem) ]
+        #     policy.append(mem_info)
+        policy = [
+            [{} for _ in range(max_mem)]
+            for _ in range(self.quotient.pomdp.nr_observations)
+        ]
+        with open(f"policy_shape_{self.model_name}.txt", "w") as f:
+            f.write(str(policy))
+        import tqdm
+        # tqdm.tqdm.write(f"Creating paynt export for {self.quotient.pomdp.nr_observations} observations and {max_mem} memory nodes.")
+        continue_progress = tqdm.tqdm(total=len(values), desc="Creating paynt export")
+        continue_progress.set_description(f"Creating paynt export for {self.quotient.pomdp.nr_observations} observations and {max_mem} memory nodes.")
+        continue_progress.refresh()
+        
+        for dtmc_state in range(len(values)):
+            continue_progress.update(1)
+            value = values[dtmc_state]
+            mdp_state = dtmc_state_to_state_and_mem[dtmc_state, 0]
+            # mdp_choice = dtmc.quotient_choice_map[dtmc_state]
+            memory_node = dtmc_state_to_state_and_mem[dtmc_state, 1]
+
+            # memory_node = self.quotient.pomdp_manager.state_memory[mdp_state]
+            observation = self.quotient.pomdp.observations[mdp_state]
+            policy[observation][memory_node][mdp_state] = value
+
+        return policy
+    
+    def create_paynt_export_vec(self, result, dtmc_state_to_state_and_mem):
+        start_time = time.time()
+        values = np.array(result.get_values())
+        max_mem = np.max(dtmc_state_to_state_and_mem[:, 1]) + 1
+        observations = np.array(self.quotient.pomdp.observations)
+
+        policy = [
+            [{} for _ in range(max_mem)]
+            for _ in range(self.quotient.pomdp.nr_observations)
+        ]
+        dtmc_states = np.arange(len(values))
+        mdp_states = dtmc_state_to_state_and_mem[dtmc_states, 0]
+        memory_nodes = dtmc_state_to_state_and_mem[dtmc_states, 1]
+        observations_for_states = observations[mdp_states]
+        pairs = np.stack((observations_for_states, memory_nodes), axis=1)
+        unique_pairs = np.unique(pairs, axis=0)
+        for pair in unique_pairs:
+            observation, memory_node = pair
+            matching_indices = np.where((observations_for_states == observation) & (memory_nodes == memory_node))
+            values_for_pair = values[matching_indices]
+            real_mdp_states = mdp_states[matching_indices]
+            policy[observation][memory_node] = dict(zip(real_mdp_states, values_for_pair))
+        logger.info(f"Paynt export created in {time.time() - start_time:.2f} seconds.")
+        return policy
+        
+    def compare_two_exports(self, export1, export2):
+        if len(export1) != len(export2):
+            logger.error(f"Export lengths do not match: {len(export1)} != {len(export2)}")
+            return False
+        for obs in range(len(export1)):
+            if len(export1[obs]) != len(export2[obs]):
+                logger.error(f"Export lengths for observation {obs} do not match: {len(export1[obs])} != {len(export2[obs])}")
+                return False
+            for mem in range(len(export1[obs])):
+                if export1[obs][mem] != export2[obs][mem]:
+                    logger.error(f"Export values for observation {obs} and memory {mem} do not match: {export1[obs][mem]} != {export2[obs][mem]}")
+                    return False
+        return True
 
     def compute_paynt_assignment_directly(self, fsc_like : TableBasedPolicy):
+        
         fsc = ConstructorFSC.construct_fsc_from_table_based_policy(
             fsc_like, self.quotient)
         logger.info(f"Extracted FSC from RL policy.")
         logger.info(f"DTMC extraction")
-        dtmc = self.quotient.get_induced_dtmc_from_fsc_vec(fsc)
-        print(dtmc)
-        logger.info(f"DTMC extraction finished")
+        dtmc, dtmc_state_to_state_and_mem = self.quotient.get_induced_dtmc_from_fsc_vec(fsc)
+        logger.info(f"Extracted DTMC: {dtmc}")
         logger.info(f"Checking DTMC.")
         result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
         logger.info(f"DTMC check finished")
-        print(f"DTMC check result{result.at(0)}")
+        logger.info(f"Result: {result.at(0)}")
+
+        paynt_export_vec = self.create_paynt_export_vec(result, dtmc_state_to_state_and_mem)
+        # paynt_export = self.create_paynt_export_vec(result, dtmc_state_to_state_and_mem)
+        logger.info(f"Paynt export created.")
+        return paynt_export_vec, result.at(0), fsc
 
 
     def compute_paynt_assignment_from_fsc_like(self, fsc_like : TableBasedPolicy, latent_dim=2, agents_wrapper : AgentsWrapper = None, paynt_timeout=60, old=False):
         if old:
-            return self.compute_assignment_through_family(fsc_like, latent_dim, agents_wrapper, paynt_timeout)
+            return self.compute_assignment_through_family(fsc_like, latent_dim, agents_wrapper, paynt_timeout), 0
         else:
             logger.info(f"Computing assignment from fsc_like.")
             return self.compute_paynt_assignment_directly(fsc_like)
         
-    
-    def perform_benchmarking(self, agents_wrapper: AgentsWrapper, number_of_runs=10):
-        methods = ["Bottlenecking", "Direct_Tanh", "Direct_OneHot"]
-        benchmark_results = []
-        sizes_bottlenecking = [1, 2]
-        sizes_direct_tanh = [1, 2]
-        sizes_direct_onehot = [3, 5, 9]
-        agents_wrapper.train_agent(2001) # We train only a single network
-        original_rl_reward = agents_wrapper.agent.evaluation_result.returns[-1]
-        original_rl_reachability = agents_wrapper.agent.evaluation_result.reach_probs[-1]
+    def single_shot_synthesis(self, agents_wrapper: AgentsWrapper, nr_rl_iterations: int, paynt_timeout: int, fsc=None, storm_control=None,
+                              bottlenecking = False, self_interpretation = False):
+        self.use_one_hot_memory = False
+        self.train_agent(agents_wrapper, nr_rl_iterations, storm_control, fsc)
+
         agents_wrapper.agent.set_agent_greedy()
-        method_sizes_map = {
-            "Bottlenecking": sizes_bottlenecking,
-            "Direct_Tanh": sizes_direct_tanh,
-            "Direct_OneHot": sizes_direct_onehot
-        }
-        # agents_wrapper.agent.load_agent(True)
-        
-        for i in range(number_of_runs):
-            for method, sizes in method_sizes_map.items():
-                for size in sizes:
-                    if method == "Bottlenecking":
-                        self.use_one_hot_memory = False
-                        bottleneck_extractor = BottleneckExtractor(
-                            agents_wrapper.agent.tf_environment, input_dim=64, latent_dim=size)
-                        bottleneck_extractor.train_autoencoder(
-                            agents_wrapper.agent.wrapper, num_epochs=80, num_data_steps=(self.args.max_steps + 1) * 6)
-                        extracted_fsc = bottleneck_extractor.extract_fsc(
-                            policy=agents_wrapper.agent.wrapper, environment=agents_wrapper.agent.environment)
-                        assignment = self.compute_paynt_assignment_from_fsc_like(
-                            extracted_fsc, latent_dim=size, agents_wrapper=agents_wrapper)
-                        logger.info(
-                            f"Benchmarking {method} with size {size} finished. Verified performance: {self.quotient.specification.optimality.optimum}.")
-                        # paynt_export = self.quotient.extract_policy(assignment)
-                        paynt_bounds = self.quotient.specification.optimality.optimum
-                        benchmark_result = ExtractionBenchmarkRes(
-                            type=method, memory_size=size, accuracies=[0.0], verified_performance=paynt_bounds,
-                            original_rl_reward=original_rl_reward, original_rl_reachability=original_rl_reachability,
-                            reachabilities=[0.0], rewards=[0.0])
-                    else:  # Direct_Tanh or Direct_OneHot
-                        self.use_one_hot_memory = True if method == "Direct_OneHot" else False
-                        extracted_fsc, stats = self.perform_rl_to_fsc_cloning(
-                            agents_wrapper.agent.wrapper, agents_wrapper.agent.environment, agents_wrapper.agent.tf_environment, latent_dim=size)
+        latent_dim = 2 if not self.use_one_hot_memory else 3 ** 2
 
-                        assignment = self.compute_paynt_assignment_from_fsc_like(
-                        extracted_fsc, latent_dim=size, agents_wrapper=agents_wrapper)
-                        logger.info(f"Exporting assignment.")
-                        # paynt_export = self.quotient.extract_policy(assignment)
-                        paynt_bounds = self.quotient.specification.optimality.optimum
+        agents_wrapper.agent.set_agent_greedy()
+        agents_wrapper.agent.set_policy_masking()
+        if bottlenecking:
+            bottleneck_extractor, extracted_fsc, _, latent_dim = self.perform_bottleneck_extraction(
+                agents_wrapper)
+        elif self_interpretation:
+            extracted_fsc, _ = self.perform_rl_to_fsc_cloning(
+                agents_wrapper.agent.wrapper, 
+                agents_wrapper.agent.environment, 
+                agents_wrapper.agent.tf_environment, 
+                latent_dim=latent_dim)
+        else:
+            aalpy_extractor = AALpyExtractor(
+                agents_wrapper.agent.environment, agents_wrapper.agent.args, num_envs=agents_wrapper.agent.environment.num_envs)
+            
+            extracted_fsc = aalpy_extractor.extract_fsc(
+                agents_wrapper.agent.wrapper)
 
-                        benchmark_result = ExtractionBenchmarkRes(
-                            type=method, memory_size=size, accuracies=stats.evaluation_accuracies, verified_performance=paynt_bounds,
-                            original_rl_reward=original_rl_reward, original_rl_reachability=original_rl_reachability,
-                            reachabilities=stats.extracted_policy_reachabilities, rewards=stats.extracted_policy_rewards)
-                    benchmark_results.append(benchmark_result)
-                    self.quotient.specification.reset()
-                    logger.info(
-                        f"Benchmarking {method} with size {size} finished. Verified performance: {paynt_bounds}.")
-                    ExtractionBenchmarkResManager.create_folder_with_extraction_benchmark_res(
-                        f"experiments_extraction/{self.model_name}", benchmark_results)
-        return benchmark_results
-                    
-                
 
+        k_fsc = 3 ** latent_dim if not self.use_one_hot_memory else latent_dim
+        logger.info(f"Extracted {k_fsc}-FSC from RL policy.")
+        agents_wrapper.agent.set_agent_stochastic()
+        paynt_export, value, classic_fsc = self.compute_paynt_assignment_from_fsc_like(extracted_fsc, latent_dim=latent_dim, agents_wrapper=agents_wrapper)
+        logger.info(f"Paynt assignment computed.")
+        return paynt_export, value, classic_fsc
 
     def run(self, multiple_assignments_benchmark = False, bottlenecking = False):
         if not hasattr(self.quotient, "pomdp"):
@@ -397,20 +413,14 @@ class SynthesizerRL:
             pomdp, self.args, agent_folder=self.model_name)
         self.set_agents_wrapper(agents_wrapper)
         start_time = time.time()
-        if multiple_assignments_benchmark:
-            benchmark_results = self.perform_benchmarking(agents_wrapper)
-            ExtractionBenchmarkResManager.create_folder_with_extraction_benchmark_res(
-                f"experiments_extraction/{self.model_name}", benchmark_results)
-            return None
         fsc = None
         while True:
-            assignment = self.single_shot_synthesis(
-                agents_wrapper, self.rl_training_iters, self.fsc_synthesis_time_limit, fsc,
-                bottlenecking=bottlenecking)
-            if assignment is not None:
-                agents_wrapper.agent.evaluation_result.add_paynt_bound(
-                    self.quotient.specification.optimality.optimum)
-                fsc = self.quotient.assignment_to_fsc(assignment)
+            paynt_export, value, classic_fsc = self.single_shot_synthesis(
+                agents_wrapper, 100, self.fsc_synthesis_time_limit, fsc,
+                bottlenecking=bottlenecking, self_interpretation=True)
+            print("RL Value:", value)
+            if paynt_export is not None:
+                agents_wrapper.agent.evaluation_result.add_paynt_bound(value)
                 # print(fsc.observation_labels)
                 # print(fsc.action_labels)
 
@@ -421,7 +431,7 @@ class SynthesizerRL:
         # Save the final json file
         agents_wrapper.save_to_json(
             self.args.agent_name, model=self.model_name, method=self.args.learning_method)
-        return assignment
+        return paynt_export, value, classic_fsc
 
     def finalize_synthesis(self, assignment):
         if assignment is not None:

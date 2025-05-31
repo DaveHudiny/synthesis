@@ -160,8 +160,7 @@ class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
         self.state_to_observations = np.array(environment.stormpy_model.observations)
         self.all_observations = range(np.unique(self.state_to_observations).shape[0])
         self.minimum_logit = -1e30
-        self.model_memory_size = environment.model_memory_size
-        self.memory_size = environment.model_memory_size if environment.model_memory_size > 0 else 1
+        self.memory_size = 1
         self._init_action_and_memory_tables(agent_policy, environment)
         self.pre_computed_logits = {}
         if not entropy_extraction:
@@ -186,10 +185,7 @@ class NaiveFSCPolicyExtraction(ExtractedFSCPolicy):
         self.observation_size = environment.stormpy_model.nr_observations
         self.args = args
         # Policy state should contain a memory value
-        if self.model_memory_size == 0:
-            policy_state_spec = TensorSpec(shape=(), dtype=tf.int32)
-        else:
-            policy_state_spec = ()
+        policy_state_spec = TensorSpec(shape=(), dtype=tf.int32)
         super(NaiveFSCPolicyExtraction, self).__init__(
             tf_environment.time_step_spec(), tf_environment.action_spec(), policy_state_spec=policy_state_spec)
         

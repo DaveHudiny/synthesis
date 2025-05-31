@@ -22,6 +22,8 @@ import networkx as nx
 import logging
 logger = logging.getLogger(__name__)
 
+import payntbind.synthesis as PayntBindSynthesis
+
 
 class PomdpQuotient(paynt.quotient.quotient.Quotient):
 
@@ -573,7 +575,8 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         # assuming single optimizing property
         assert self.specification.num_properties == 1 and self.specification.has_optimality
         dtmc_state_value = mc_result.optimality_result.result.get_values()
-
+        print("DTMC state values: {}".format(dtmc_state_value))
+        print("DTMC state values size: {}".format(len(dtmc_state_value)))
         # map states of the DTMC to their POMDP counterparts
         # label states with the value achieved in the state
         # group results by observation
@@ -594,6 +597,8 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
 
             policy[observation][memory_node][pomdp_state] = value
 
+        with open("policy_original_mba.txt", "w") as f:
+            f.write(str(policy))
         return policy
 
     def export_policy(self, dtmc, mc_result):
@@ -942,64 +947,75 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                 max_len = min(len(model_rewards), state_action_rewards.shape[1])
                 state_action_rewards[i, :max_len] = model_rewards[:max_len]
 
-        return state_action_rewards[:, unique_choices], reward_model_names
+        return state_action_rewards[:, unique_choices], reward_model_names  
 
+    def generate_transition_rows(self, selected_choices, 
+                                 selected_states, 
+                                 dtmc_states_map_flag_cumsum, 
+                                 selected_choices_probs, 
+                                 nonzero_selected_updates, 
+                                 model_state_action_rewards, 
+                                 mem_size,
+                                 state_action_rewards):
+        unique_choices = np.unique(selected_choices)
+        transition_rows = []
+        rows = PayntBindSynthesis.get_matrix_rows(self.pomdp.transition_matrix, unique_choices)
+        # Vectorized reimplementation of code below
+        super_entries = [[[entry.column, entry.value()] for entry in entries] for entries in rows]
+    
 
-    def get_induced_dtmc_from_fsc_vec(self, fsc : FSC):
-        if fsc.is_deterministic:
-            fsc_copy = fsc.copy()
-            fsc_copy.make_stochastic()
-        else:
-            fsc_copy = fsc.copy()
+        for i, choice in enumerate(unique_choices):
+            choices_mask = selected_choices == choice
+            choices_dtmc_states = np.nonzero(choices_mask)[0]
+            choices_dtmc_state_pairs = selected_states[choices_dtmc_states]  # Already (N, 2)
+            
+            dtmc_indices = choices_dtmc_state_pairs[:, 0] * mem_size + choices_dtmc_state_pairs[:, 1]
+            dtmc_indices = dtmc_states_map_flag_cumsum[dtmc_indices].reshape(-1, 1)
+            
+            updates = nonzero_selected_updates[choices_dtmc_states].reshape(-1, 1)
+            probs_action = selected_choices_probs[choices_dtmc_states].reshape(-1, 1)
+            values = model_state_action_rewards[:, choice].reshape(-1, 1) * probs_action.T
+            dtmc_indices_flatten = dtmc_indices.flatten()
+            state_action_rewards[:, dtmc_indices_flatten] = values
+            dtmc_indices = dtmc_indices.reshape(-1, 1)
+            repeated_choice = np.full((len(choices_dtmc_states), 1), choice)
+            
+            for entry in super_entries[i]:
+                next_state = entry[0]
+                prob_next_state = entry[1]
 
-        print(f"Precomputation of action function and update function")
-        start_time = time.time()
-        action_labels = np.array(fsc.action_labels)
-        # print(action_labels)
-        # print(self.ordered_action_labels)
-        # if "__no_label__" in action_labels:
-        #     # Get the index of the occurence of "__no_label__" in action_function
-        #     index = np.where(action_labels == "__no_label__")[0][0]
-        #     print(f"Found __no_label__ at index {index}")
-        #     # Check, whether the index is in sink state
-        #     state = np.where(self.pomdp.observations == index)[0][0]
-        #     print(f"Found __no_label__ at state {state}")
-        #     if self.pomdp.is_sink_state(state):
-        #         print(f"Found __no_label__ in sink state {state}")
-                
-                
+                next_state_vec = np.full((len(choices_dtmc_states), 1), next_state)
+                prob_next_state_vec = np.full((len(choices_dtmc_states), 1), prob_next_state)
 
-        np_action_function = np.array(fsc_copy.action_function)
-        print("Shape of action function: ", np_action_function.shape)
-        
-        np_update_function = np.array(fsc_copy.update_function)
-        np_action_function = self.compute_function_expansion(np_action_function, len(action_labels))
+                next_state_memory_pairs = np.hstack([next_state_vec, updates])
+                next_indices = dtmc_states_map_flag_cumsum[
+                    next_state_memory_pairs[:, 0] * mem_size + next_state_memory_pairs[:, 1]
+                ].reshape(-1, 1)
 
-        def extract(d):
-            if d is None:
-                return 0
-            return next(iter(d.keys()))
-        vextract = np.vectorize(extract)
-        np_update_function = vextract(np_update_function)
-        np_state_to_observations = np.array(self.pomdp.observations)
-        mem_size = np_action_function.shape[0]
-        print("Precomputation of action function and update function took {} seconds.".format(time.time()-start_time))
+                transition_row = np.hstack([
+                    dtmc_indices,
+                    repeated_choice,
+                    next_indices,
+                    prob_next_state_vec,
+                    probs_action
+                ])
+                transition_rows.append(transition_row)
+        return transition_rows
 
-        start_time = time.time()
-        action_labels_at_observation = self.action_labels_at_observation
-        action_offsets, expanded_action_labels_at_observation_flags = self.precompute_action_offsets_at_observations(action_labels, action_labels_at_observation)
-
-        np_choice_index_matrix = self.own_choice_index_matrix_computation(action_offsets, self.pomdp.nr_states, self.pomdp.get_choice_index)
-
+    def compute_dtmc_states_map_flag(self, np_action_function, 
+                                     np_update_function, 
+                                     np_choice_index_matrix, 
+                                     np_state_to_observations, 
+                                     action_offsets, 
+                                     expanded_action_labels_at_observation_flags, 
+                                     mem_size):
         dtmc_state_memory_product, dtmc_state_active_boolean_map, dtmc_states_map_flag = self.compute_dtmc_maps(np_action_function)
         model_state_action_rewards, model_reward_names = self.extract_state_action_rewards(np_choice_index_matrix, self.pomdp.reward_models)
         
         initial_state_memory_pair = (self.pomdp.initial_states[0], 0)
         dtmc_state_active_boolean_map[np.where(np.all(dtmc_state_memory_product == initial_state_memory_pair, axis=1))] = True
         dtmc_states_map_flag[np.where(np.all(dtmc_state_memory_product == initial_state_memory_pair, axis=1))] = True
-        print(f"Choice and offsets computation took {time.time()-start_time} seconds.")
-        start_time = time.time()
-        while np.max(dtmc_state_active_boolean_map) == True: # Vectorized reimplementation of the code above
+        while np.max(dtmc_state_active_boolean_map) == True:
             current_state_memory_pairs = dtmc_state_memory_product[dtmc_state_active_boolean_map]
             dtmc_state_active_boolean_map[:] = False
             current_obs = np_state_to_observations[current_state_memory_pairs[:,0]]
@@ -1019,18 +1035,61 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
                 action_offsets[current_obs][np.arange(nonzero_selected_actions.shape[0]), nonzero_selected_actions[:, 1]], 
                 0
             )
-            # compute original offsets
-            choice_indices = []
             choice_indices = np_choice_index_matrix[current_state_memory_pairs[:,0], offsets]
-            # compare
-            for i, choice in enumerate(choice_indices):
-                entries = self.pomdp.transition_matrix.get_row(choice)
-                entries_values_list = [entry.column for entry in entries]
-                entries_values_list = np.array(entries_values_list)
-                unique_index = entries_values_list * mem_size + selected_updates[i]
-                dtmc_state_active_boolean_map[unique_index] = np.where(dtmc_states_map_flag[unique_index] == False, True, dtmc_state_active_boolean_map[unique_index])
-                dtmc_states_map_flag[unique_index] = True
+            rows = PayntBindSynthesis.get_matrix_rows(self.pomdp.transition_matrix, choice_indices)
 
+            entries_values_list = np.concatenate([[[entry.column , i] for entry in entries] for i, entries in enumerate(rows)], axis=0)
+            entries_values_list = entries_values_list.reshape(-1, 2)
+            unique_index = entries_values_list[:, 0] * mem_size + selected_updates[entries_values_list[:, 1]]
+            dtmc_state_active_boolean_map[unique_index] = np.where(dtmc_states_map_flag[unique_index] == False, True, dtmc_state_active_boolean_map[unique_index])
+            dtmc_states_map_flag[unique_index] = True
+
+
+            
+        return dtmc_states_map_flag, dtmc_state_memory_product, model_state_action_rewards, model_reward_names
+
+    def get_induced_dtmc_from_fsc_vec(self, fsc : FSC) -> stormpy.storage.SparseDtmc:
+        if fsc.is_deterministic:
+            fsc_copy = fsc.copy()
+            fsc_copy.make_stochastic()
+        else:
+            fsc_copy = fsc.copy()
+
+        logger.info(f"Precomputation of action function and update function")
+        start_time = time.time()
+        action_labels = np.array(fsc.action_labels)
+        np_action_function = np.array(fsc_copy.action_function)
+        np_update_function = np.array(fsc_copy.update_function)
+        print(action_labels)
+        np_action_function = self.compute_function_expansion(np_action_function, action_labels.shape[0])
+
+        def extract(d):
+            if d is None:
+                return 0
+            return next(iter(d.keys()))
+        vextract = np.vectorize(extract)
+        np_update_function = vextract(np_update_function)
+        np_state_to_observations = np.array(self.pomdp.observations)
+        mem_size = np_action_function.shape[0]
+        logger.info("Precomputation of action function and update function took {} seconds.".format(time.time()-start_time))
+
+        start_time = time.time()
+        action_labels_at_observation = self.action_labels_at_observation
+        action_offsets, expanded_action_labels_at_observation_flags = self.precompute_action_offsets_at_observations(action_labels, action_labels_at_observation)
+
+        np_choice_index_matrix = self.own_choice_index_matrix_computation(action_offsets, self.pomdp.nr_states, self.pomdp.get_choice_index)
+
+
+        logger.info(f"Choice and offsets computation took {time.time()-start_time} seconds.")
+        start_time = time.time()
+        
+        dtmc_states_map_flag, dtmc_state_memory_product, model_state_action_rewards, model_reward_names = self.compute_dtmc_states_map_flag(np_action_function,
+                                                                                                        np_update_function,
+                                                                                                        np_choice_index_matrix,
+                                                                                                        np_state_to_observations,
+                                                                                                        action_offsets,
+                                                                                                        expanded_action_labels_at_observation_flags,
+                                                                                                        mem_size)
         print("Induced DTMC state space construction took {} seconds.".format(time.time()-start_time))
         start_time = time.time()
         
@@ -1057,46 +1116,15 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         )
         selected_choices = np_choice_index_matrix[selected_states[:,0], offsets]
         selected_choices_probs = selected_actions[nonzero_selected_actions[:, 0], nonzero_selected_actions[:, 1]]
-        unique_choices = np.unique(selected_choices)
-        transition_rows = []
-        num_entries = 0
-        for choice in unique_choices:
-            entries = self.pomdp.transition_matrix.get_row(choice)
-            choices_mask = selected_choices == choice
-            choices_dtmc_states = np.nonzero(choices_mask)[0]
-            choices_dtmc_state_pairs = selected_states[choices_dtmc_states]  # Already (N, 2)
-            
-            dtmc_indices = choices_dtmc_state_pairs[:, 0] * mem_size + choices_dtmc_state_pairs[:, 1]
-            dtmc_indices = dtmc_states_map_flag_cumsum[dtmc_indices].reshape(-1, 1)
-            
-            updates = nonzero_selected_updates[choices_dtmc_states].reshape(-1, 1)
-            probs_action = selected_choices_probs[choices_dtmc_states].reshape(-1, 1)
-            values = model_state_action_rewards[:, choice].reshape(-1, 1) * probs_action.T
-            dtmc_indices_flatten = dtmc_indices.flatten()
-            state_action_rewards[:, dtmc_indices_flatten] = values
-            dtmc_indices = dtmc_indices.reshape(-1, 1)
-            repeated_choice = np.full((len(choices_dtmc_states), 1), choice)
-
-            for entry in entries:
-                next_state = entry.column
-                prob_next_state = entry.value()
-
-                next_state_vec = np.full((len(choices_dtmc_states), 1), next_state)
-                prob_next_state_vec = np.full((len(choices_dtmc_states), 1), prob_next_state)
-
-                next_state_memory_pairs = np.hstack([next_state_vec, updates])
-                next_indices = dtmc_states_map_flag_cumsum[
-                    next_state_memory_pairs[:, 0] * mem_size + next_state_memory_pairs[:, 1]
-                ].reshape(-1, 1)
-
-                transition_row = np.hstack([
-                    dtmc_indices,
-                    repeated_choice,
-                    next_indices,
-                    prob_next_state_vec,
-                    probs_action
-                ])
-                transition_rows.append(transition_row)
+        
+        transition_rows = self.generate_transition_rows(selected_choices, 
+                                                        selected_states, 
+                                                        dtmc_states_map_flag_cumsum, 
+                                                        selected_choices_probs, 
+                                                        nonzero_selected_updates, 
+                                                        model_state_action_rewards, 
+                                                        mem_size, state_action_rewards)
+        # Save all parameters and transition rows to provide data for playground
 
         transition_rows = np.concatenate(transition_rows, axis=0)
         # Sort transition rows by first column
@@ -1130,7 +1158,10 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         
         components = stormpy.SparseModelComponents(transition_matrix=dtmc_tm, state_labeling=dtmc_labeling, reward_models=dtmc_reward_models)
         induced_dtmc = stormpy.storage.SparseDtmc(components)
-        return induced_dtmc
+
+
+
+        return induced_dtmc, state_memory_pairs
 
 
     def compute_qvalues(self, assignment, prop = None):

@@ -161,14 +161,14 @@ class FatherAgent(AbstractAgent):
                 tf_environment,
                 eager,
                 observers=observers,
-                num_steps=(1 + num_steps) * self.args.num_environments,
+                num_steps=(1 + num_steps) * self.environment.num_envs,
                 trajectory_reward_generator=self.collect_policy_wrapper.generate_curiosity_reward)
         else:
             self.vec_driver = DynamicStepDriver(
                 tf_environment,
                 eager,
                 observers=observers,
-                num_steps=(1 + num_steps) * self.args.num_environments
+                num_steps=(1 + num_steps) * self.environment.num_envs
             )
 
     def get_observers(self, alternative_observer):
@@ -338,8 +338,6 @@ class FatherAgent(AbstractAgent):
         Args:
             experience: The experience for training the agent.
         """
-        # print("Training iteration: ", train_iteration)
-        # print("Experience: ", experience)
         train_loss = self.agent.train(experience).loss
         train_loss = train_loss.numpy()
         self.agent.train_step_counter.assign_add(1)
@@ -351,6 +349,7 @@ class FatherAgent(AbstractAgent):
             self.environment.set_random_starts_simulation(False)
             self.evaluate_agent(vectorized=vectorized,
                                 max_steps=self.args.max_steps * 2)
+            
             self.environment.set_random_starts_simulation(randomized)
             self.tf_environment.reset()
 
@@ -468,9 +467,6 @@ class FatherAgent(AbstractAgent):
             self.agent.train = common.function(self.agent.train)
         if fsc is not None:
             self.evaluate_fsc(fsc)
-        # self.special_agent_pretraining_stuff()
-        # print("during training:", self.environment.vectorized_simulator.simulator.transitions.nr_states)
-        # self.evaluate_agent(vectorized=vectorized)
         if fsc is not None and shaping:
             self.init_reward_shaping(fsc)
         if fsc is not None and not shaping:
@@ -495,9 +491,9 @@ class FatherAgent(AbstractAgent):
         self.evaluate_agent(vectorized=vectorized,
                             max_steps=self.args.max_steps * 2)
         if replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY or replay_buffer_option == ReplayBufferOptions.OFF_POLICY:
-            self.train_body_off_policy(iterations, vectorized)
+            self.train_body_off_policy(iterations, vectorized, randomized=self.args.random_start_simulator)
         if replay_buffer_option == ReplayBufferOptions.ON_POLICY:
-            self.train_body_on_policy(iterations, vectorized)
+            self.train_body_on_policy(iterations, vectorized, randomized=self.args.random_start_simulator)
         logger.info("Training finished.")
         self.environment.set_random_starts_simulation(False)
         self.evaluate_agent(vectorized=vectorized, last=True,
@@ -574,10 +570,13 @@ class FatherAgent(AbstractAgent):
         Args:
             last: Whether this is the last evaluation of the agent.
         """
+        self.environment.set_random_starts_simulation(False)
+        self.environment.temporarily_set_num_envs(512)
+        if not hasattr(self, "tf_env_eval"):
+            self.tf_env_eval = tf_py_environment.TFPyEnvironment(
+                self.environment)
         if self.args.go_explore:
             self.environment.unset_go_explore()
-        if max_steps is None:
-            max_steps = self.args.max_steps
         if self.args.prefer_stochastic:
             self.set_agent_stochastic()
         else:
@@ -593,11 +592,11 @@ class FatherAgent(AbstractAgent):
         else:
             if not hasattr(self, "vec_driver"):
                 self.init_vec_evaluation_driver(
-                    self.tf_environment, self.environment, num_steps=max_steps)
+                    self.tf_env_eval, self.environment, num_steps=self.args.max_steps + 5)
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(
                     self.args.batch_size)
-            self.tf_environment.reset()
+            self.tf_env_eval.reset()
             if last:
                 self.set_agent_greedy()
 
@@ -608,7 +607,7 @@ class FatherAgent(AbstractAgent):
             self.vec_driver.run()
             if self.args.replay_buffer_option == ReplayBufferOptions.ORIGINAL_OFF_POLICY:
                 self.environment.set_num_envs(1)
-                self.tf_environment.reset()
+                self.tf_env_eval.reset()
             self.trajectory_buffer.final_update_of_results(
                 self.evaluation_result.update)
             self.trajectory_buffer.clear()
@@ -620,6 +619,7 @@ class FatherAgent(AbstractAgent):
         self.log_evaluation_info()
         if self.args.go_explore:
             self.environment.set_go_explore()
+        self.environment.reset_num_envs()
 
     def log_evaluation_info(self):
         logger.info('Average Return = {0}'.format(

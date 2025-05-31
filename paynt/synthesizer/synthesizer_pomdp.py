@@ -16,6 +16,8 @@ from paynt.synthesizer.synthesizer_rl import SynthesizerRL
 
 import stormpy
 
+from paynt.quotient.fsc import FSC
+
 from threading import Thread
 from queue import Queue
 import time
@@ -194,6 +196,20 @@ class SynthesizerPomdp:
         if self.storm_control.is_rl_better:
             self.storm_control.paynt_export = self.storm_control.rl_export
 
+    def assign_rl_export_result(self, rl_export, value, rl_fsc : FSC):
+
+        self.storm_control.latest_rl_result = None
+        self.storm_control.paynt_bounds = value
+        self.storm_control.paynt_export = rl_export
+        self.storm_control.rl_export = rl_export
+        self.storm_control.rl_fsc_size = len(rl_fsc.action_function)
+        self.storm_control.rl_bounds = value
+        self.storm_control.paynt_fsc_size = self.storm_control.rl_fsc_size
+        self.storm_control.latest_paynt_result_fsc = rl_fsc
+        self.storm_control.latest_rl_result_fsc = rl_fsc
+        self.storm_control.update_data()
+
+
     def is_rl_better(self):
         if self.storm_control.rl_bounds is None:
             return False
@@ -240,35 +256,38 @@ class SynthesizerPomdp:
         else:
             self.rl_oracle = False
         iteration = 1
-        paynt_thread = Thread(target=self.strategy_iterative_storm, args=(
-            True, self.storm_control.unfold_storm))
+        # paynt_thread = Thread(target=self.strategy_iterative_storm, args=(
+        #     True, self.storm_control.unfold_storm))
 
         iteration_timeout = time.time() + timeout
         timeout_bonus = 0
         self.saynt_timer.start()
         skip_first = False
         while True:
-            if iteration == 1:
-                paynt_thread.start()
-            else:
-                self.interactive_queue.put("resume")
+            # if iteration == 1:
+            #     paynt_thread.start()
+            # else:
+            #     self.interactive_queue.put("resume")
 
-            logger.info("Timeout for PAYNT started")
-            time.sleep(paynt_timeout)
-            self.interactive_queue.put("timeout")
+            # logger.info("Timeout for PAYNT started")
+            # time.sleep(paynt_timeout)
+            # self.interactive_queue.put("timeout")
 
-            while not self.interactive_queue.empty():
-                time.sleep(0.1)
+            # while not self.interactive_queue.empty():
+            #     time.sleep(0.1)
 
             pre_rl_time = time.time()
             if not skip_first and self.rl_oracle and (self.loop or iteration == 1):
-                fsc = self.get_better_fsc_rl_less()
-                assignment = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=1001,
+                # fsc = self.get_better_fsc_rl_less()
+                fsc = None
+                rl_export, value, rl_fsc = rl_synthesizer.single_shot_synthesis(agent_wrapper, nr_rl_iterations=601,
                                                                   paynt_timeout=paynt_timeout,
-                                                                  fsc=fsc)
+                                                                  fsc=fsc, self_interpretation=True)
+                assignment = None
                 if assignment is not None:
                     print("RL assignment found")
                     self.assign_rl_result(assignment)
+                self.assign_rl_export_result(rl_export, value, rl_fsc)
             skip_first = False
 
             timeout_bonus += time.time() - pre_rl_time
@@ -291,23 +310,23 @@ class SynthesizerPomdp:
 
         self.interactive_queue.put("terminate")
         self.synthesis_terminate = True
-        paynt_thread.join()
+        # paynt_thread.join()
 
         self.storm_control.interactive_storm_terminate()
 
 
         self.saynt_timer.stop()
 
-        if self.storm_control.latest_storm_fsc is not None:
+        # if self.storm_control.latest_storm_fsc is not None:
             # pre_clone_time = time.time()
             # start_time = time.time()
             # dtmc = self.quotient.get_induced_dtmc_from_fsc(self.storm_control.latest_storm_fsc)
             # result = stormpy.model_checking(dtmc, self.quotient.specification.optimality.formula)
             # print(result.at(0))
             # start_time = time.time()
-            dtmc_vec = self.quotient.get_induced_dtmc_from_fsc_vec(self.storm_control.latest_storm_fsc)
-            result_vec = stormpy.model_checking(dtmc_vec, self.quotient.specification.optimality.formula)
-            print(result_vec.at(0))
+            # dtmc_vec = self.quotient.get_induced_dtmc_from_fsc_vec(self.storm_control.latest_storm_fsc)
+            # result_vec = stormpy.model_checking(dtmc_vec, self.quotient.specification.optimality.formula)
+            # print(result_vec.at(0))
 
     # run PAYNT POMDP synthesis with a given timeout
     def run_synthesis_timeout(self, timeout):

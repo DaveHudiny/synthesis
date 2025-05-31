@@ -97,9 +97,9 @@ class Recurrent_PPO_agent(FatherAgent):
         logging.info("Collector driver initialized")
         if load:
             self.load_agent()
-        self.init_vec_evaluation_driver(
-            self.tf_environment, self.environment, num_steps=self.args.max_steps)
-        logging.info("Evaluation driver initialized")
+        # self.init_vec_evaluation_driver(
+        #     self.tf_environment, self.environment, num_steps=self.args.max_steps)
+        # logging.info("Evaluation driver initialized")
         
     def special_agent_pretraining_stuff(self):
         logger.info("Setting value net to trainable")

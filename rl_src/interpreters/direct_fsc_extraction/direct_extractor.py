@@ -104,6 +104,7 @@ class DirectExtractor:
 
         if isinstance(original_policy, PolicyMaskWrapper):
             original_policy.set_policy_masker()
+            original_policy.set_greedy(True)
         logger.info("Sampling data with original policy")
         buffer = sample_data_with_policy(
             original_policy, num_samples=self.num_data_steps, environment=env, tf_environment=tf_env)
@@ -204,7 +205,7 @@ class DirectExtractor:
         states = tf.reshape(states, (max_memory, nr_observations)).numpy()  # (M, O, L)
         fsc_updates[:, :] = states
         table_based_policy = TableBasedPolicy(
-            policy, fsc_actions, fsc_updates, initial_memory=0)
+            policy, fsc_actions, fsc_updates, initial_memory=0, action_keywords=environment.action_keywords)
         return table_based_policy, fsc_actions, fsc_updates
 
     @staticmethod
@@ -319,7 +320,7 @@ def parse_args_from_cmd():
     parser.add_argument("--prism-path", type=str, required=True)
     parser.add_argument("--memory-size", type=int, default=2)
     parser.add_argument("--num-data-steps", type=int, default=6000)
-    parser.add_argument("--num-training-steps", type=int, default=3000)
+    parser.add_argument("--num-training-steps", type=int, default=2000)
     parser.add_argument("--specification-goal",
                         type=str, default="reachability")
     parser.add_argument("--optimization-goal", type=str, default="max")

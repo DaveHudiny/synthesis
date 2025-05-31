@@ -60,7 +60,7 @@ class AALpyExtractor:
         return TFUniformReplayBuffer(
             data_spec=collect_data_spec,
             batch_size=num_envs,
-            max_length=num_steps + 100 # +100 is because the step driver is not deterministic and can add more steps
+            max_length=num_steps + 200 # +100 is because the step driver is not deterministic and can add more steps
         )
     
     def get_add_batch(self, replay_buffer: TFUniformReplayBuffer):
@@ -160,8 +160,8 @@ class AALpyExtractor:
         action_function = np.zeros((nr_model_states, nr_observations), dtype=np.int32)
         for i in range(nr_model_states):
             for j in range(nr_observations):
-                if f"[{j}]" in model.states[i].output_fun:
-                    action_function[i][j] = model.states[i].output_fun[f"[{j}]"] if model.states[i].output_fun[f"[{j}]"] != "epsilon" else 0
+                if j in model.states[i].output_fun:
+                    action_function[i][j] = model.states[i].output_fun[j] if model.states[i].output_fun[j] != "epsilon" else 0
                 else:
                     action_function[i][j] = 0
         return action_function
@@ -183,8 +183,8 @@ class AALpyExtractor:
         state_id_to_index = {state_id: i for i, state_id in enumerate(state_ids)}
         for i in range(nr_model_states):
             for j in range(nr_observations):
-                if f"[{j}]" in model.states[i].transitions:
-                    update_function[i][j] = state_id_to_index[model.states[i].transitions[f"[{j}]"].state_id]
+                if j in model.states[i].transitions:
+                    update_function[i][j] = state_id_to_index[model.states[i].transitions[j].state_id]
                 else:
                     update_function[i][j] = 0
         return update_function
@@ -224,21 +224,31 @@ class AALpyExtractor:
         Returns:
             float: The average reward obtained by the policy.
         """
-        return evaluate_policy_in_model(self.env, policy, self.args.nr_runs)
+        return evaluate_policy_in_model(
+            policy,
+            self.args,
+            self.env,
+            self.tf_env,
+            max_steps=801
+        )
+            
     
 if __name__ == "__main__":
     # Example usage
-    prism_model = "models/intercept/sketch.templ"
-    prism_properties = "models/intercept/sketch.props"
+    prism_model = "models/network-5-10-8/sketch.templ"
+    prism_properties = "models/network-5-10-8/sketch.props"
 
     args = init_args(prism_model, prism_properties)
     env, tf_env = init_environment(args)
     agent = Recurrent_PPO_agent(env, tf_env, args)
-    # agent.train_agent(50)
+    agent.train_agent(2001)
+    agent.set_agent_greedy()
+    agent.set_policy_masking()
     policy = agent.get_policy(eager=False)
     
-    extractor = AALpyExtractor(env, args)
+    extractor = AALpyExtractor(env, args, num_envs=args.num_environments)
     fsc = extractor.extract_fsc(policy)
+
     # Evaluate the extracted FSC
     evaluation_result = extractor.evaluate_policy(fsc)
     

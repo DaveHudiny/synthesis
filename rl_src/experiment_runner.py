@@ -157,16 +157,17 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
                                     nr_runs=2001, encoding_method=encoding_method, agent_name=model, load_agent=False,
-                                    evaluate_random_policy=False, max_steps=401, evaluation_goal=60, evaluation_antigoal=-0.0,
+                                    evaluate_random_policy=False, max_steps=1001, evaluation_goal=60, evaluation_antigoal=-0.0,
                                     trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
-                                    normalize_simulator_rewards=False, buffer_size=500, random_start_simulator=random_start_simulator,
+                                    normalize_simulator_rewards=False, buffer_size=1005, random_start_simulator=random_start_simulator,
                                     replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
                                     use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,
                                     name_of_experiment=name_of_experiment, continuous_enlargement=False, continuous_enlargement_step=3,
                                     constants="", state_supporting=(state_estimation), train_state_estimator_continuously=train_state_estimator_continuously,
                                     curiosity_automata_reward=curiosity_automata_reward, predicate_automata_obs=predicate_automata_obs, 
-                                    go_explore=go_explore, stacked_observations=False)
+                                    go_explore=go_explore, stacked_observations=False,
+                                    env_see_reward=False, env_see_last_action=False, env_see_num_steps=False)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=False, name_of_experiment=name_of_experiment)
@@ -175,14 +176,14 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 if __name__ == "__main__":
     args_from_cmd = argparse.ArgumentParser()
 
-    args_from_cmd.add_argument("--batch-size", type=int, default=256)
+    args_from_cmd.add_argument("--batch-size", type=int, default=1024)
     args_from_cmd.add_argument("--learning-rate", type=float, default=1.6e-4)
     args_from_cmd.add_argument(
         "--path-to-models", type=str, default="./models")
     args_from_cmd.add_argument("--random-start-simulator", action="store_true")
     args_from_cmd.add_argument("--model-condition", type=str, default="")
     args_from_cmd.add_argument("--use-rnn-less", action="store_true", default=False,
-                               help="Whether to use neural architecture without LSTM layers.")
+                               help="Removes LSTM layers from PPO Actor and Critic.")
     args_from_cmd.add_argument("--model-memory-size", type=int, default=0,
                                help="The size of the memory in the model. If 0, the memory is not used.")
     args_from_cmd.add_argument("--state-estimation", action="store_true",
@@ -204,7 +205,7 @@ if __name__ == "__main__":
     if args.random_start_simulator:
         name = "experiments_32_random"
     else:
-        name = "experiments_32"
+        name = "experiments_drone_only"
 
     if args.use_rnn_less:
         name += "_rnn_less"

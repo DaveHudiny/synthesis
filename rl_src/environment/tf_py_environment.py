@@ -135,7 +135,6 @@ class TFPyEnvironment(tf_environment.TFEnvironment):
 
     if callable(environment):
       environment = self._execute(environment)
-    print(type(environment))
     if not isinstance(environment, py_environment.PyEnvironment):
       raise TypeError(
           'Environment should implement py_environment.PyEnvironment'
@@ -258,7 +257,6 @@ class TFPyEnvironment(tf_environment.TFEnvironment):
         observation: A Tensor, or a nested dict, list or tuple of Tensors
           corresponding to `observation_spec()`.
     """
-
     def _reset_py():
       with _check_not_called_concurrently(self._lock):
         self._time_step = self._env.reset()
