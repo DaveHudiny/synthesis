@@ -61,6 +61,8 @@ os.environ["JAX_LOG_LEVEL"] = "ERROR"
 
 
 def generate_reward_selection_function(rewards, labels):
+    if labels is None or len(labels) == 0:
+        return -1.0
     last_reward = labels[-1]
     return rewards[last_reward]
 
@@ -69,7 +71,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     """The most important class in this project. It wraps the Stormpy simulator and provides the interface for the RL agent.
     """
 
-    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, num_envs: int = 1):
+    def __init__(self, stormpy_model: storage.SparsePomdp, args: ArgsEmulator, num_envs: int = 1, enforce_compilation: bool = False):
         """Initializes the environment wrapper.
 
         Args:
@@ -101,7 +103,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
 
         self.vectorized_simulator = SimulatorInitializer.load_and_store_simulator(
             stormpy_model=stormpy_model, get_scalarized_reward=generate_reward_selection_function, num_envs=num_envs,
-            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=self.args.continuous_enlargement)
+            max_steps=args.max_steps, metalabels=metalabels, model_path=args.prism_model, enforce_recompilation=enforce_compilation)
 
         try:
             self.state_to_observation_map = tf.constant(
@@ -240,7 +242,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
 
     def set_basic_rewards(self):
         rew_list = list(self.stormpy_model.reward_models.keys())
-        self.reward_multiplier = -1.0 if not "rew" in rew_list[-1] else 10.0
+        self.reward_multiplier = -1.0 if (len(rew_list) == 0  or not "rew" in rew_list[-1]) else 10.0
         self.antigoal_values_vector = tf.constant(
             [self.args.evaluation_antigoal] * self.num_envs, dtype=tf.float32)
         self.goal_values_vector = tf.constant(
@@ -261,7 +263,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             [2.0] * self.num_envs, dtype=tf.float32)
 
     def set_minimizing_rewards(self):
-        self.reward_multiplier = -1.0
+        self.reward_multiplier = -10.0
         self.antigoal_values_vector = tf.constant(
             [0.0] * self.num_envs, dtype=tf.float32)
         self.goal_values_vector = tf.constant(  # Decreasing the goal value to make the optimization more reasonable
@@ -277,7 +279,10 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             "rocks": self.set_minimizing_rewards,
             "geo": self.set_reachability_rewards,
             "mba": self.set_minimizing_rewards,
-            "maze": self.set_maxizing_rewards
+            "maze": self.set_maxizing_rewards,
+            "avoid": self.set_reachability_rewards,
+            "grid": self.set_reachability_rewards,
+
         }
         key_found = False
         for key in self.reward_models.keys():
@@ -815,6 +820,15 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
     def get_simulator_observation(self) -> int:
         observation = self.last_observation
         return observation
+    
+    def get_state(self, use_features : bool = True) -> tf.Tensor:
+        """Returns the current state of the environment."""
+        if use_features:
+            states_vertices = self.vectorized_simulator.simulator_states.vertices
+            states_values = tf.constant(self.vectorized_simulator.simulator.state_values[states_vertices].tolist(), tf.float32)
+            return states_values
+        else:
+            return tf.constant(self.vectorized_simulator.simulator_states.vertices.tolist())
 
 
 def test_environment():

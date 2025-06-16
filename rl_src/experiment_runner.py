@@ -126,7 +126,9 @@ def run_single_experiment(args: ArgsEmulator, model="network-3-8-20", learning_m
 def run_experiments(name_of_experiment="results_of_interpretation", path_to_models="./models_large", learning_rate=0.0001, batch_size=256,
                     random_start_simulator=False, model_condition: str = "", model_memory_size=0, use_rnn_less=False, state_estimation=False,
                     train_state_estimator_continuously=False,
-                    curiosity_automata_reward=False, predicate_automata_obs = False, go_explore = False):
+                    curiosity_automata_reward=False, predicate_automata_obs = False, go_explore = False,
+                    stacked_observations=False, env_see_reward=False, env_see_last_action=False, env_see_num_steps=False,
+                    use_entropy_reward=False, full_observable_entropy_reward=False, use_binary_entropy_reward=False):
     """ Run multiple experiments for PAYNT oracle.
     Args:
         name_of_experiment (str, optional): The name of the experiment. Defaults to "results_of_interpretation".
@@ -139,6 +141,9 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
     for model in os.listdir(f"{path_to_models}"):
         # if "drone" in model:  # Currently not supported model
         #     continue
+        # Check if the model is directory
+        if not os.path.isdir(f"{path_to_models}/{model}"):
+            continue
         if model_condition not in model:
             continue
         # if "network" not in model:
@@ -156,18 +161,20 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
                     f"Running iteration {1} on {model} with {learning_method}, refusing set to: {refusing}, encoding method: {encoding_method}.")
                 args = ArgsEmulator(prism_model=prism_model, prism_properties=prism_properties, learning_rate=learning_rate,
                                     restart_weights=0, learning_method=learning_method, evaluation_episodes=30,
-                                    nr_runs=2001, encoding_method=encoding_method, agent_name=model, load_agent=False,
-                                    evaluate_random_policy=False, max_steps=1001, evaluation_goal=60, evaluation_antigoal=-0.0,
+                                    nr_runs=50, encoding_method=encoding_method, agent_name=model, load_agent=False,
+                                    evaluate_random_policy=False, max_steps=401, evaluation_goal=10, evaluation_antigoal=-0.0,
                                     trajectory_num_steps=32, discount_factor=0.99, num_environments=batch_size,
-                                    normalize_simulator_rewards=False, buffer_size=1005, random_start_simulator=random_start_simulator,
+                                    normalize_simulator_rewards=False, buffer_size=1000, random_start_simulator=random_start_simulator,
                                     replay_buffer_option=replay_buffer_option, batch_size=batch_size,
                                     vectorized_envs_flag=True, flag_illegal_action_penalty=False, perform_interpretation=False,
                                     use_rnn_less=use_rnn_less, model_memory_size=model_memory_size if model_memory_size > 0 else 0,
                                     name_of_experiment=name_of_experiment, continuous_enlargement=False, continuous_enlargement_step=3,
                                     constants="", state_supporting=(state_estimation), train_state_estimator_continuously=train_state_estimator_continuously,
                                     curiosity_automata_reward=curiosity_automata_reward, predicate_automata_obs=predicate_automata_obs, 
-                                    go_explore=go_explore, stacked_observations=False,
-                                    env_see_reward=False, env_see_last_action=False, env_see_num_steps=False)
+                                    go_explore=go_explore, stacked_observations=stacked_observations,
+                                    env_see_reward=env_see_reward, env_see_last_action=env_see_last_action, env_see_num_steps=env_see_num_steps,
+                                    use_entropy_reward=use_entropy_reward, full_observable_entropy_reward=full_observable_entropy_reward,
+                                    use_binary_entropy_reward=use_binary_entropy_reward)
 
                 run_single_experiment(
                     args, model=model, learning_method=learning_method, refusing=False, name_of_experiment=name_of_experiment)
@@ -176,8 +183,8 @@ def run_experiments(name_of_experiment="results_of_interpretation", path_to_mode
 if __name__ == "__main__":
     args_from_cmd = argparse.ArgumentParser()
 
-    args_from_cmd.add_argument("--batch-size", type=int, default=1024)
-    args_from_cmd.add_argument("--learning-rate", type=float, default=1.6e-4)
+    args_from_cmd.add_argument("--batch-size", type=int, default=256)
+    args_from_cmd.add_argument("--learning-rate", type=float, default=2.6e-4)
     args_from_cmd.add_argument(
         "--path-to-models", type=str, default="./models")
     args_from_cmd.add_argument("--random-start-simulator", action="store_true")
@@ -197,15 +204,31 @@ if __name__ == "__main__":
                                  help="Use predicate automata observation.")
     args_from_cmd.add_argument("--go-explore", action="store_true",
                                     help="Use Go-Explore.")
-    
+    args_from_cmd.add_argument("--use-entropy-reward", action="store_true",
+                               help="Use entropy reward.")
+    args_from_cmd.add_argument("--full-observable-entropy-reward", action="store_true",
+                               help="Use entropy reward in fully observable manner. Does not work without --use-entropy-reward.")
+    args_from_cmd.add_argument("--use-binary-entropy-reward", action="store_true",
+                               help="Use binary entropy reward. Does not work without --use-entropy-reward.")
+    args_from_cmd.add_argument("--stacked-observations", action="store_true",
+                                 help="Use stacked observations for POMDPs.")
+
 
     args = args_from_cmd.parse_args()
+    entropy_string = ""
+    if args.use_entropy_reward:
+        entropy_string += "_e"
+    if args.full_observable_entropy_reward:
+        entropy_string += "_fo"
+    if args.use_binary_entropy_reward:
+        entropy_string += "_be"
+
 
     # Run experiments with the given arguments
     if args.random_start_simulator:
         name = "experiments_32_random"
     else:
-        name = "experiments_drone_only"
+        name = "experiments_32/" + entropy_string
 
     if args.use_rnn_less:
         name += "_rnn_less"
@@ -221,6 +244,8 @@ if __name__ == "__main__":
         name += "_predicate_automata_obs"
     if args.go_explore:
         name += "_go_explore"
+    if args.stacked_observations:
+        name += "_stacked_observations"
     if not os.path.exists(name):
         os.makedirs(name)
     
@@ -230,7 +255,8 @@ if __name__ == "__main__":
                     model_memory_size=args.model_memory_size, use_rnn_less=args.use_rnn_less, state_estimation=args.state_estimation,
                     train_state_estimator_continuously=args.train_state_estimator_continuously,
                     curiosity_automata_reward=args.curiosity_automata_reward, predicate_automata_obs=args.predicate_automata_obs,
-                    go_explore=args.go_explore)
+                    go_explore=args.go_explore, use_entropy_reward=args.use_entropy_reward, full_observable_entropy_reward=args.full_observable_entropy_reward,
+                    use_binary_entropy_reward=args.use_binary_entropy_reward, stacked_observations=args.stacked_observations,)
     # for _ in range(10):
     #     # 0.00001
     #     for learning_rate in [0.00005, 0.0001, 0.0005, 0.001]:

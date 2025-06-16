@@ -1,4 +1,5 @@
 import json
+import tensorflow as tf
 
 import logging
 logger = logging.getLogger(__name__)
@@ -14,17 +15,33 @@ class FSC:
     - deterministic posterior-unaware memory update delta: NxZ -> N
     '''
 
-    def __init__(self, num_nodes, num_observations, is_deterministic=False):
+    def __init__(self, num_nodes, num_observations, is_deterministic=False, 
+                 action_function : tf.Tensor = None, update_function : tf.Tensor = None,
+                 observation_labels = None, action_labels = None):
+        if action_function and update_function and observation_labels and action_labels:
+            self.external_init(action_function, update_function, observation_labels, action_labels, num_nodes, num_observations, is_deterministic)
+        else:
+            self.num_nodes = num_nodes
+            self.num_observations = num_observations
+            self.is_deterministic = is_deterministic
+        
+            self.action_function = [ [None]*num_observations for _ in range(num_nodes) ]
+            self.update_function = [ [None]*num_observations for _ in range(num_nodes) ]
+
+            self.observation_labels = None
+            self.action_labels = None
+
+    def external_init(self, action_function, update_function, observation_labels, action_labels, num_nodes, num_observations, is_deterministic):
         self.num_nodes = num_nodes
         self.num_observations = num_observations
         self.is_deterministic = is_deterministic
-        
-        self.action_function = [ [None]*num_observations for _ in range(num_nodes) ]
-        self.update_function = [ [None]*num_observations for _ in range(num_nodes) ]
 
-        self.observation_labels = None
-        self.action_labels = None
+        self.action_function = action_function
+        self.update_function = update_function
 
+        self.observation_labels = observation_labels
+        self.action_labels = action_labels
+        self.is_deterministic = is_deterministic
     def __str__(self):
         return json.dumps(self.to_json(), indent=4)
 

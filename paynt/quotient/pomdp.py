@@ -575,8 +575,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         # assuming single optimizing property
         assert self.specification.num_properties == 1 and self.specification.has_optimality
         dtmc_state_value = mc_result.optimality_result.result.get_values()
-        print("DTMC state values: {}".format(dtmc_state_value))
-        print("DTMC state values size: {}".format(len(dtmc_state_value)))
         # map states of the DTMC to their POMDP counterparts
         # label states with the value achieved in the state
         # group results by observation
@@ -1060,7 +1058,6 @@ class PomdpQuotient(paynt.quotient.quotient.Quotient):
         action_labels = np.array(fsc.action_labels)
         np_action_function = np.array(fsc_copy.action_function)
         np_update_function = np.array(fsc_copy.update_function)
-        print(action_labels)
         np_action_function = self.compute_function_expansion(np_action_function, action_labels.shape[0])
 
         def extract(d):

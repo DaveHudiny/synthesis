@@ -10,7 +10,9 @@ from tools.encoding_methods import *
 import tensorflow as tf
 
 from environment import tf_py_environment
-from tf_agents.agents.ppo import ppo_agent
+# from tf_agents.agents.ppo import ppo_agent
+from agents.tf_agents_modif import ppo_agent
+from tf_agents.trajectories import trajectory
 
 
 
@@ -26,6 +28,11 @@ from tf_agents.networks.actor_distribution_rnn_network import ActorDistributionR
 
 from tf_agents.policies.py_tf_eager_policy import PyTFEagerPolicy
 
+from agents.alternative_training.active_pretraining import EntropyRewardGenerator
+
+from tools.args_emulator import ArgsEmulator
+
+
 import sys
 sys.path.append("../")
 
@@ -36,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 class Recurrent_PPO_agent(FatherAgent):
     def __init__(self, environment: Environment_Wrapper, tf_environment: tf_py_environment.TFPyEnvironment,
-                 args, load=False, agent_folder=None, actor_net: ActorDistributionRnnNetwork = None,
+                 args : ArgsEmulator, load=False, agent_folder=None, actor_net: ActorDistributionRnnNetwork = None,
                  critic_net: ValueRnnNetwork = None):
         self.common_init(environment, tf_environment, args, load, agent_folder)
         train_step_counter = tf.Variable(0)
@@ -73,10 +80,11 @@ class Recurrent_PPO_agent(FatherAgent):
             # gradient_clipping=0.5,
             policy_l2_reg=0.0001,
             value_function_l2_reg=0.0001,
-            value_pred_loss_coef=0.45,
-            entropy_regularization=0.02,
+            entropy_regularization=0.03,
             normalize_rewards=True,
             normalize_observations=True,
+            # log_prob_loss=0.00001
+            
         )
         self.agent.initialize()
         
@@ -95,11 +103,17 @@ class Recurrent_PPO_agent(FatherAgent):
         self.wrapper.set_policy_masker()
         self.wrapper_eager = PyTFEagerPolicy(self.wrapper, True, False)
         logging.info("Collector driver initialized")
+        if self.args.entropy_reward:
+            entropy_reward_generator = EntropyRewardGenerator(binary_flag=args.use_binary_entropy_reward, 
+                                                              full_observability_flag=args.full_observable_entropy_reward, 
+                                                              max_reward=1.0, decreaser='halve')
+            self.init_pretraining_driver(entropy_reward_generator)
         if load:
             self.load_agent()
         # self.init_vec_evaluation_driver(
         #     self.tf_environment, self.environment, num_steps=self.args.max_steps)
-        # logging.info("Evaluation driver initialized")
+        # logging.info("Evaluation driver initialized")        
+
         
     def special_agent_pretraining_stuff(self):
         logger.info("Setting value net to trainable")

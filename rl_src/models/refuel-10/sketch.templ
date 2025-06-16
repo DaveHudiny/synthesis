@@ -30,7 +30,7 @@ observable "cangowest" = westenabled;
 observable "cangoeast" = eastenabled;
 formula done = start & ax = axMAX & ay = ayMAX;
 observable "amdone" = done;
-formula crash =  (ax = ob1x & ay = ob1y);
+formula crash = (ax = ob1x & ay = ob1y);
 observable "hascrash" = crash;
 formula atStation = (ax = rf1x & ay = rf1y) | (ax = rf2x & ay = rf2y) |  (ax = rf3x & ay = rf3y);
 formula canRefuel = atStation  & fuel < fuelCAP;

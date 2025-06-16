@@ -242,9 +242,6 @@ class ClonedFSCActorPolicy(TFPolicy):
                 cloned_actor, None, environment, tf_environment, self.max_episode_length * 2, evaluation_result)
             extraction_stats.add_extraction_result(
                 self.evaluation_result.reach_probs[-1], self.evaluation_result.returns[-1])
-            if False and specification_checker is not None:
-                if specification_checker.check_specification(evaluation_result.reach_probs[-1], evaluation_result.returns[-1]):
-                    pass
             self.check_and_save(self.evaluation_result)
 
     def check_and_save(self, evaluation_result: EvaluationResults):

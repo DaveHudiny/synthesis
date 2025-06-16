@@ -15,7 +15,7 @@ from rl_src.agents.recurrent_ppo_agent import Recurrent_PPO_agent
 from paynt.quotient.fsc import FSC
 from paynt.rl_extension.saynt_controller.saynt_driver import SAYNT_Driver
 
-from rl_src.agents.imitation_learning.behavioral_trainers import ActorValuePretrainer
+from rl_src.agents.alternative_training.behavioral_trainers import ActorValuePretrainer
 
 
 import logging
@@ -258,7 +258,7 @@ class AgentsWrapper:
     # Condition can optimize probability (e.g. maximize probability of reaching the goal state) or reward (e.g. minimize number of steps to reach the goal state)
     def train_with_bc(self, fsc : FSC = None, sub_method = "only_pretrained", nr_of_iterations : int = 1000, trajectories : list = None):
         # self.dqn_agent.pre_train_with_fsc(1000, fsc)
-        args = self.interface.args
+        args : ArgsEmulator = self.interface.args
         if sub_method == "longer_trajectories":
             args.trajectory_num_steps = args.trajectory_num_steps * 4
         if not hasattr(self, "pre_trainer"):
@@ -271,7 +271,7 @@ class AgentsWrapper:
                 self.pre_trainer.train_both_networks(201, fsc=fsc, use_best_traj_only=False)
                 self.agent.train_agent(500, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
         else:
-            self.pre_trainer.train_both_networks(nr_of_iterations // 2, fsc=fsc, use_best_traj_only=False)
+            self.pre_trainer.train_both_networks(nr_of_iterations * 3, fsc=fsc, use_best_traj_only=False)
             self.agent.train_agent(nr_of_iterations, vectorized=args.vectorized_envs_flag, replay_buffer_option=args.replay_buffer_option)
 
         # TODO: Other methods of training with FSC or SAYNT controller.

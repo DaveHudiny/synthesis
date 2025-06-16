@@ -28,7 +28,9 @@ class ArgsEmulator:
                  render_if_possible : bool = False, model_name = "", 
                  predicate_automata_obs : bool = False, curiosity_automata_reward : bool = False, go_explore : bool = False, 
                  stacked_observations : bool = False, masked_training : bool = False, 
-                 env_see_reward : bool = False, env_see_num_steps : bool = False, env_see_last_action : bool = False):
+                 env_see_reward : bool = False, env_see_num_steps : bool = False, env_see_last_action : bool = False,
+                 use_entropy_reward : bool = False, full_observable_entropy_reward: bool = False, 
+                 use_binary_entropy_reward: bool = False):
         """Args emulator for the RL parser. This class is used to emulate the args object from the RL parser for the RL initializer and other stuff.
         Args:
             prism_model (str): The path to the prism model file. Defaults to None -- must be set, if not used inside of Paynt.
@@ -90,6 +92,7 @@ class ArgsEmulator:
             env_see_reward (bool, optional): Whether the environment provides reward in the observation space. Defaults to False.
             env_see_num_steps (bool, optional): Whether the environment provides number of steps in the observation space. Defaults to False.
             env_see_last_action (bool, optional): Whether the environment provides last action in the observation space. Defaults to False.
+            entropy_reward (bool, optional): Whether to provide reward for exploration of the environment. Defaults to False.
 
         """
         self.prism_model = prism_model
@@ -149,3 +152,6 @@ class ArgsEmulator:
         self.env_see_reward = env_see_reward
         self.env_see_num_steps = env_see_num_steps
         self.env_see_last_action = env_see_last_action
+        self.entropy_reward = use_entropy_reward
+        self.full_observable_entropy_reward = full_observable_entropy_reward
+        self.use_binary_entropy_reward = use_binary_entropy_reward

@@ -99,9 +99,10 @@ class ActorValuePretrainer:
             fsc_multiplier: The multiplier for the FSC. Used only in PPO initialization.
         """
         self.fsc = fsc
+        from agents.policies.non_tf_fsc_policy import NonTFFSCPolicy
         self.fsc_policy = SimpleFSCPolicy(fsc=fsc, tf_action_keywords=self.environment.action_keywords,
                                           observation_and_action_constraint_splitter=fsc_action_constraint_splitter, time_step_spec=tf_environment.time_step_spec(),
-                                          action_spec=tf_environment.action_spec(), info_spec=())
+                                          action_spec=tf_environment.action_spec(), info_spec=(), fsc_action_keywords=fsc.action_labels)
         eager = PyTFEagerPolicy(
             self.fsc_policy, use_tf_function=True, batch_time_steps=False)
         self.aux_trajectory_buffer = TrajectoryBuffer(self.environment)
@@ -115,12 +116,6 @@ class ActorValuePretrainer:
             observers=observers,
             num_steps=self.args.num_environments * self.args.max_steps * 2 # * self.args.trajectory_num_steps
         )
-        # self.fsc_driver = DynamicEpisodeDriver(
-        #     tf_environment,
-        #     eager,
-        #     observers=observers,
-        #     num_episodes=self.args.num_environments
-        # )
 
     def get_demasked_observer(self):
         """Observer for replay buffer. Used to demask the observation in the trajectory. Used with policy wrapper."""

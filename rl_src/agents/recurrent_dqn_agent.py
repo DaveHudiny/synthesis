@@ -30,55 +30,17 @@ class Recurrent_DQN_agent(FatherAgent):
         tf_environment = self.tf_environment
         train_step_counter = tf.Variable(0)
         optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
-        if single_value_qnet:
-            q_net_units = 2
-            action_spec = tf_agents.specs.tensor_spec.BoundedTensorSpec(
-                shape=(),
-                dtype=tf.int32,
-                minimum=0,
-                maximum=1,
-                name="action"
-            )
-        else:
-            action_spec = tf_environment.action_spec()
-            q_net_units = len(environment.action_keywords)
-        if agent_settings is None:  # Default settings
-            postprocessing_layers = [tf.keras.layers.Dense(
-                100, activation='relu') for _ in range(2)]
-            q_values_layer = tf.keras.layers.Dense(
-                units=q_net_units,
-                activation=None,
-                kernel_initializer=tf.keras.initializers.RandomUniform(
-                    minval=-0.03, maxval=0.03),
-                bias_initializer=tf.keras.initializers.Constant(-0.2)
-            )
-            q_net = sequential.Sequential([q_values_layer])
-            lstm1 = tf.keras.layers.LSTM(
-                100, return_sequences=True, return_state=True, activation='relu', dtype=tf.float32)
-            self.q_net = sequential.Sequential(
-                [lstm1] + postprocessing_layers + [q_net])
-        else:  # Custom settings. Not used in this project currently.
-            preprocessing_layers = [tf.keras.layers.Dense(
-                num_units, activation='relu') for num_units in agent_settings.preprocessing_layers]
-            lstm_units = [tf.keras.layers.LSTM(num_units, return_sequences=True, return_state=True,
-                                               activation='tanh', dtype=tf.float32) for num_units in agent_settings.lstm_units]
-            postprocessing_layers = [tf.keras.layers.Dense(
-                num_units, activation='relu') for num_units in agent_settings.postprocessing_layers]
-            q_values_layer = tf.keras.layers.Dense(
-                units=q_net_units,
-                activation=None,
-                kernel_initializer=tf.keras.initializers.RandomUniform(tf_environment=self.tf_environment,
-                                                                       minval=-0.03, maxval=0.03),
-                bias_initializer=tf.keras.initializers.Constant(-0.2)
-            )
-            self.q_net = sequential.Sequential(
-                preprocessing_layers + lstm_units + postprocessing_layers + [q_values_layer])
+
+        self.q_net = tf_agents.networks.q_rnn_network.QRnnNetwork(
+            input_tensor_spec=tf_environment.observation_spec()["observation"],
+            action_spec=tf_environment.action_spec(),
+                lstm_size=(64, 64))
 
         logging.info("Creating agent")
         self.agent = dqn_agent.DqnAgent(
             tf_environment._time_step_spec,
             # tf_environment._action_spec,
-            action_spec,
+            tf_environment.action_spec(),
             q_network=self.q_net,
             optimizer=optimizer,
             # td_errors_loss_fn=common.element_wise_squared_loss,

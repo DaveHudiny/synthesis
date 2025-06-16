@@ -34,7 +34,7 @@ def fsc_action_constraint_splitter(observation):
 
 class SimpleFSCPolicy(TFPolicy):
     def __init__(self, fsc: FSC, tf_action_keywords, time_step_spec, action_spec, policy_state_spec=(), info_spec=(), name=None,
-                 observation_and_action_constraint_splitter=None):
+                 observation_and_action_constraint_splitter=None, fsc_action_keywords : list[str] = None):
 
         if policy_state_spec != ():
             raise NotImplementedError(
@@ -44,7 +44,7 @@ class SimpleFSCPolicy(TFPolicy):
         
         super(SimpleFSCPolicy, self).__init__(time_step_spec, action_spec, policy_state_spec=policy_state_spec, info_spec=info_spec, name=name,
                                               observation_and_action_constraint_splitter=observation_and_action_constraint_splitter)
-        self.init_fsc_to_tf(fsc, tf_action_keywords, self.is_stochastic)
+        self.init_fsc_to_tf(fsc, tf_action_keywords, self.is_stochastic, fsc_action_keywords)
         # Initialize the step counter tqdm bar
         self.step_counter = tqdm.tqdm(total=0, position=0, leave=True)
         self.steps = 0
@@ -118,17 +118,72 @@ class SimpleFSCPolicy(TFPolicy):
 
         return is_det_table, det_choice_table, lookup_table, non_det_action_probs_table
 
-    def init_fsc_to_tf(self, fsc: FSC, tf_action_keywords, is_stochastic):
+    def check_same_types(self, a : list[list[dict[int, float]]], b : list[list[dict[int, float]]]):
+        if len(a) != len(b):
+
+            return False
+        if type(a) != type(b):
+            print(f"Type mismatch: {type(a)} != {type(b)}")
+            return False
+        for i in range(len(a)):
+            if type(a[i]) != type(b[i]):
+                print(f"Type mismatch at row {i}: {type(a[i])} != {type(b[i])}")
+                return False
+            if len(a[i]) != len(b[i]):
+                print(f"Length mismatch at row {i}: {len(a[i])} != {len(b[i])}")
+                return False
+            for j in range(len(a[i])):
+                if a[i][j] is None and b[i][j] is None:
+                    continue
+                if a[i][j] is None or b[i][j] is None:
+                    print(f"Type mismatch at ({i}, {j}): {a[i][j]} != {b[i][j]}")
+                    return False
+                for k, l in zip(a[i][j].keys(), b[i][j].keys()):
+                    if type(a[i][j][k]) != type(b[i][j][l]):
+                        print(f"Type mismatch at ({i}, {j}, {k}): {type(a[i][j][k])} != {type(b[i][j][l])}")
+                        return False
+        return True
+    
+    def check_create_inference_tensors_for_a_b(self, a : list[list[dict[int, float]]], b : list[list[dict[int, float]]]):
+        is_det_a, det_choice_a, look_up_a, non_det_prob_a = self.create_inference_tensors(a)
+        is_det_b, det_choice_b, look_up_b, non_det_prob_b = self.create_inference_tensors(b)
+        if not np.array_equal(is_det_a, is_det_b):
+            print("is_det_table mismatch")
+            return False
+        if not np.array_equal(det_choice_a, det_choice_b):
+            print("det_choice_table mismatch")
+            return False
+        if look_up_a is None and look_up_b is None:
+            return True
+        if look_up_a is None or look_up_b is None:
+            print("look_up_table mismatch")
+            return False
+        if not tf.reduce_all(tf.equal(look_up_a.lookup(look_up_a.keys()), look_up_b.lookup(look_up_b.keys()))):
+            print("look_up_table keys mismatch")
+            return False
+        if not tf.reduce_all(tf.equal(non_det_prob_a, non_det_prob_b)):
+            print("non_det_action_probs_table mismatch")
+            return False
+        return True
+
+    def init_fsc_to_tf(self, fsc: FSC, tf_action_keywords : list[str], is_stochastic, original_action_keywords_order: list[str] = None):
         self._fsc = fsc
         self._fsc.action_labels = tf.constant(
                 self._fsc.action_labels, dtype=tf.string)
         self.tf_action_labels = tf.constant(
                 tf_action_keywords, dtype=tf.string)
+            
+
+        # Remap the action in action_function given the fsc_action_keywords ()
+
         if not is_stochastic:
+            array_action_function = np.array(self._fsc.action_function, dtype=np.int32)
             self._fsc.action_function = tf.constant(
-                self._fsc.action_function, dtype=tf.int32)
+                array_action_function, dtype=tf.int32)
             self._fsc.update_function = tf.constant(
                 self._fsc.update_function, dtype=tf.int32)
+            
+            
         else: # action_funciton contains from dicts of probabilities for each action. The shape (without dict) is [memory_size, observation_size]. Dicts are sparse representation of the action function distribution.
             # self.tf_sparse_action_function = self.convert_to_sparse_tf(self._fsc.action_function)
             # self.tf_sparse_update_function = self.convert_to_sparse_tf(self._fsc.update_function)

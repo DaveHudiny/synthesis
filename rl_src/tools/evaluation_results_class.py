@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import numpy as np
 
 class EvaluationResults:
     """Class for storing evaluation results."""
@@ -35,6 +36,18 @@ class EvaluationResults:
         self.extracted_fsc_num_episodes = -1
         self.extracted_fsc_virtual_variance = -1.0
         self.extracted_fsc_combined_variance = -1.0
+
+        self.artificial_reward_means = []
+        self.artificial_reward_stds = []
+
+    def add_artificial_reward(self, artificial_rewards_buffer : list[np.ndarray]):
+        """Add artificial rewards to the evaluation results."""
+        if len(artificial_rewards_buffer) > 0:
+            self.artificial_reward_means.append(np.mean(artificial_rewards_buffer))
+            self.artificial_reward_stds.append(np.std(artificial_rewards_buffer))
+        else:
+            self.artificial_reward_means.append(float("nan"))
+            self.artificial_reward_stds.append(float("nan"))
 
     def set_experiment_settings(self, learning_algorithm: str = "", learning_rate: float = float("nan"),
                                 nn_details: dict = {}, max_steps: int = float("nan")):

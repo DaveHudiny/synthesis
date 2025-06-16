@@ -10,6 +10,7 @@ from tf_agents.policies import py_tf_eager_policy
 from environment import tf_py_environment
 
 from environment.sparse_reward_shaper import SparseRewardShaper, RewardShaperMethods, ObservationLevel
+from agents.alternative_training.active_pretraining import EntropyRewardGenerator
 
 from tf_agents.replay_buffers import tf_uniform_replay_buffer
 from tf_agents.utils import common
@@ -39,10 +40,12 @@ from reward_machines.predicate_automata import PredicateAutomata, create_dummy_p
 
 import logging
 
+from collections.abc import Callable
+
 logger = logging.getLogger(__name__)
 
 # max_num_steps * MULTIPLIER = maximum length of replay buffer for each thread.
-OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 500
+OFF_POLICY_BUFFER_SIZE_MULTIPLIER = 5000
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -119,9 +122,23 @@ class FatherAgent(AbstractAgent):
         self.agent = RandomAgent(tf_environment.time_step_spec(),
                                  tf_environment.action_spec())
         self.init_replay_buffer()
-        self.init_collector_driver(tf_environment)
+        self.init_collector_driver(tf_environment, demasked=True)
         self.init_vec_evaluation_driver(
             self.tf_environment, self.environment, self.args.max_steps)
+        
+    def change_environment(self, environment: EnvironmentWrapperVec):
+        """Change the environment of the agent.
+
+        Args:
+            environment: The new environment wrapper object, used for additional information about the environment.
+        """
+        self.environment = environment
+        self.tf_environment = tf_py_environment.TFPyEnvironment(
+            environment)
+        self.init_replay_buffer()
+        self.init_collector_driver(self.tf_environment)
+        self.tf_env_eval = None
+        self.vec_driver = None
 
     def init_replay_buffer(self, buffer_size=None):
         """Initialize the uniform replay buffer for the agent.
@@ -279,6 +296,26 @@ class FatherAgent(AbstractAgent):
                 eager,
                 observers=observers,
                 num_steps=num_steps)
+            
+    def init_pretraining_driver(self, reward_generator: EntropyRewardGenerator = None):
+        """Pretraining driver for the agent. Used for pretraining the agent."""
+        self.run_artificial_reward_buffer = []
+        self.overall_mean_artificial_reward_buffer = []
+        observer_rewarded = self.get_rewarded_observer(
+            reward_function=reward_generator.compute_entropy_reward, environment=self.environment, 
+            artificial_reward_buffer=self.run_artificial_reward_buffer
+            )
+        
+        self.reward_generator = reward_generator
+        policy = self.collect_policy_wrapper
+        policy = py_tf_eager_policy.PyTFEagerPolicy(
+            policy, use_tf_function=True, batch_time_steps=False)
+        self.reward_driver = DynamicStepDriver(
+            self.tf_environment,
+            policy,
+            observers=[observer_rewarded],
+            num_steps= self.args.trajectory_num_steps * self.args.num_environments)
+        
 
     def init_random_collector_driver(self, tf_environment: tf_py_environment.TFPyEnvironment,
                                      alternative_observer: callable = None):
@@ -402,7 +439,13 @@ class FatherAgent(AbstractAgent):
                 self.perform_jumpstart(self.switch_probability)
                 self.driver.run()
             else:
-                self.driver.run()
+                if hasattr(self, "reward_driver"):
+                    self.reward_driver.run()
+                    self.evaluation_result.add_artificial_reward(
+                        self.run_artificial_reward_buffer)
+                    self.run_artificial_reward_buffer.clear()
+                else:
+                    self.driver.run()
             if i == num_iterations // 4:
                 self.environment.unset_reward_shaper()
             data = self.replay_buffer.gather_all()
@@ -729,6 +772,23 @@ class FatherAgent(AbstractAgent):
                 reward=item.reward,
                 discount=item.discount,
             )
+            self.replay_buffer._add_batch(modified_item)
+        return _add_batch
+    
+    def get_rewarded_observer(self, reward_function : Callable[[tf.Tensor, tf.Tensor], tf.Tensor] = lambda obs, state: tf.zeros_like(obs[:, 0]), environment: EnvironmentWrapperVec = None,
+                              artificial_reward_buffer: list = []):
+        """Observer for replay buffer. Used to add the curiosity reward to the trajectory. Used with active pre-training."""
+        def _add_batch(item: Trajectory):
+            artificial_reward = reward_function(item.observation["observation"], environment.get_state())
+            modified_item = Trajectory(
+                step_type=item.step_type,
+                observation=item.observation["observation"],
+                action=item.action,
+                policy_info={"dist_params": item.policy_info["dist_params"]},
+                next_step_type=item.next_step_type,
+                reward=artificial_reward + item.reward,
+                discount=item.discount)
+            artificial_reward_buffer.append(artificial_reward.numpy())
             self.replay_buffer._add_batch(modified_item)
         return _add_batch
 
