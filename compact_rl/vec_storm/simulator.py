@@ -178,7 +178,7 @@ class Simulator:
             states=States(vertices=vertices_after_reset, steps=steps_after_reset),
             observations=observations,
             rewards=rewards,
-            done=done | trunc,
+            done=done | trunc | metalabels.reshape(-1),  # If the state is a sink or truncated or metalabels, we consider it done
             truncated=trunc,
             allowed_actions=allowed_actions,
             metalabels=metalabels,

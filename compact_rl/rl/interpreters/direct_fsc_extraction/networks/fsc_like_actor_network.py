@@ -18,7 +18,9 @@ class FSCLikeActorNetwork(models.Model):
                  gumbel_softmax_one_hot: bool = True,
                  stochastic_updates: bool = True,
                  seed: int = 42,
-                 use_matrices : bool = False 
+                 use_matrices : bool = False,
+                 use_vq_vae: bool = False,
+                 vq_commitment_cost: float = 0.25
                 ):
         super(FSCLikeActorNetwork, self).__init__()
         self.observation_shape = observation_shape
@@ -47,9 +49,13 @@ class FSCLikeActorNetwork(models.Model):
         self.temperature = 0.5
         self.seed = seed
         self.use_matrices = use_matrices
+        self.use_vq_vae = use_vq_vae
+        self.vq_commitment_cost = vq_commitment_cost
         if gumbel_softmax_one_hot and use_matrices:
             assert use_one_hot, "Gumbel softmax requires one-hot encoding."
-        if gumbel_softmax_one_hot:
+        if use_vq_vae:
+            self._set_vq_vae(use_one_hot)
+        elif gumbel_softmax_one_hot:
             self._set_gumbel_softmax_one_hot(use_one_hot, stochastic_updates, use_matrices)
         elif not use_one_hot:
 
@@ -66,6 +72,38 @@ class FSCLikeActorNetwork(models.Model):
             self.one_hot_constant = 1
         
         self.noise_level = 0.35
+
+    def _set_vq_vae(self, use_one_hot: bool):
+        """Replaces the Gumbel-Softmax relaxation with a VQ-VAE-style vector-quantized
+        bottleneck: a learned codebook of |N| embeddings, a nearest-neighbour (L2)
+        hard assignment, and a straight-through gradient estimator (van den Oord et al.,
+        2017). Unlike Gumbel-Softmax, this bottleneck has no temperature schedule and is
+        always hard (there is no continuous relaxation), so memory updates are
+        deterministic rather than stochastic.
+        """
+        assert use_one_hot, "VQ-VAE requires one-hot encoding of memory nodes."
+        self.vq_codebook = self.add_weight(
+            name="vq_codebook",
+            shape=(self.memory_len, self.memory_len),
+            initializer=tf.keras.initializers.RandomUniform(
+                minval=-1.0 / self.memory_len, maxval=1.0 / self.memory_len),
+            trainable=True,
+        )
+        self.one_hot_constant = 1
+
+    def vq_nearest_codes(self, z_e):
+        """Finds the nearest codebook entry (by squared L2 distance) for each row of
+        z_e (shape (batch, memory_len)). Returns the one-hot assignment (shape
+        (batch, memory_len)) and the corresponding codebook vectors z_q (same shape).
+        """
+        z_e_sq = tf.reduce_sum(tf.square(z_e), axis=-1, keepdims=True)  # (batch, 1)
+        codebook_sq = tf.reduce_sum(tf.square(self.vq_codebook), axis=-1)  # (memory_len,)
+        dot = tf.matmul(z_e, self.vq_codebook, transpose_b=True)  # (batch, memory_len)
+        distances = z_e_sq + codebook_sq[tf.newaxis, :] - 2.0 * dot
+        indices = tf.argmin(distances, axis=-1)
+        one_hot = tf.one_hot(indices, depth=self.memory_len, dtype=tf.float32)
+        z_q = tf.matmul(one_hot, self.vq_codebook)
+        return one_hot, z_q
 
     def _set_single_vector_gumbel_softmax(self, use_one_hot: bool, stochastic_updates: bool):
         assert use_one_hot, "Gumbel softmax requires one-hot encoding."
@@ -217,15 +255,26 @@ class FSCLikeActorNetwork(models.Model):
         # x = layers.concatenate(x1, axis=-1)
         memory = self.memory_pre_dense(memory)
         memory = self.memory_dense(memory)
-        memory = self.memory_function(memory)
-        # memory += self.generate_noise(memory)
-        if not self.return_probs:
-            x_quantized = self.quantization_layer(memory)
-            x_quantized = tf.reshape(x_quantized, (x_quantized.shape[0], -1))
-            # Straight-through estimation, where we ignore round(x).
-            memory = memory + tf.stop_gradient(x_quantized - memory)
-        
+        if self.use_vq_vae:
+            # VQ-VAE bottleneck: always a hard nearest-code assignment (no soft/temperature
+            # regime), with a straight-through estimator and the standard codebook +
+            # commitment losses (van den Oord et al., 2017) returned alongside the action.
+            one_hot, z_q = self.vq_nearest_codes(memory)
+            codebook_loss = tf.reduce_mean(tf.square(tf.stop_gradient(memory) - z_q))
+            commitment_loss = tf.reduce_mean(tf.square(memory - tf.stop_gradient(z_q)))
+            vq_loss = codebook_loss + self.vq_commitment_cost * commitment_loss
+            memory = memory + tf.stop_gradient(one_hot - memory)
+        else:
+            vq_loss = tf.constant(0.0, dtype=tf.float32)
+            memory = self.memory_function(memory)
+            # memory += self.generate_noise(memory)
+            if not self.return_probs:
+                x_quantized = self.quantization_layer(memory)
+                x_quantized = tf.reshape(x_quantized, (x_quantized.shape[0], -1))
+                # Straight-through estimation, where we ignore round(x).
+                memory = memory + tf.stop_gradient(x_quantized - memory)
+
 
         action = self.action(x)
 
-        return action, memory
+        return action, memory, vq_loss
