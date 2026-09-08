@@ -174,7 +174,7 @@ def parse_args():
     parser.add_argument(
         "--extraction-method",
         type=str,
-        choices=["alergia", "si-g"],
+        choices=["alergia", "si-g", "vq-vae"],
         default="alergia",
         help="Method to use for extraction. Default is 'alergia'.")
     parser.add_argument(

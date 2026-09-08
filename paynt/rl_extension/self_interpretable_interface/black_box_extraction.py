@@ -66,7 +66,7 @@ class BlackBoxExtractor:
                  max_episode_len = 800, 
                  optimizing_specification : SpecificationChecker.Constants = SpecificationChecker.Constants.REACHABILITY,
                  family_quotient_numpy : FamilyQuotientNumpy = None, autlearn_extraction = True,
-                 use_gumbel_softmax = False, stacked_observations = False, seed=42, non_deterministic=True):
+                 use_gumbel_softmax = False, use_vq_vae = False, stacked_observations = False, seed=42, non_deterministic=True):
         self.autlearn_extraction = autlearn_extraction
         self.iteration = 0
         self.memory_len = memory_len
@@ -87,8 +87,12 @@ class BlackBoxExtractor:
         self.aut_learn_type = AutLearn.SMM
         self.joint_action_update = False
         self.use_gumbel_softmax = use_gumbel_softmax
+        self.use_vq_vae = use_vq_vae
         self.stacked_observations = stacked_observations
         self.non_deterministic = non_deterministic
+        # VQ-VAE, like the Gumbel-Softmax bottleneck, uses one-hot memory nodes, but its
+        # nearest-code assignment is always hard, so memory updates are deterministic
+        # (complete_probs=False) rather than stochastic distributions over N.
         self.complete_probs = True if use_gumbel_softmax else False
         self.seed = seed
 
@@ -120,7 +124,7 @@ class BlackBoxExtractor:
                 find_best_policy=self.get_best_policy_flag,
                 max_episode_length=self.max_episode_len, observation_length=env.observation_spec_len, 
                 orig_env_use_stacked_observations=self.stacked_observations,
-                use_gumbel_softmax=True, seed=self.seed)
+                use_gumbel_softmax=self.use_gumbel_softmax, use_vq_vae=self.use_vq_vae, seed=self.seed)
         self.extraction_stats = ExtractionStats(original_policy_reachability=orig_eval_result.reach_probs[-1],
                                                      original_policy_reward=orig_eval_result.returns[-1],
                                                      use_one_hot=self.is_one_hot,

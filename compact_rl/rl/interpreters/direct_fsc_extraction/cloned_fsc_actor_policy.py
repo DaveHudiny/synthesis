@@ -46,6 +46,7 @@ class ClonedFSCActorPolicy(TFPolicy):
                  observation_length: int = 0,
                  orig_env_use_stacked_observations: bool = True,
                  use_gumbel_softmax: bool = False,
+                 use_vq_vae: bool = False,
                  seed=42,
                  use_matrices: bool = False):
         self.original_policy = original_policy
@@ -63,7 +64,8 @@ class ClonedFSCActorPolicy(TFPolicy):
             memory_size,
             use_one_hot=use_one_hot,
             gumbel_softmax_one_hot=use_gumbel_softmax,
-            use_matrices=use_matrices)
+            use_matrices=use_matrices,
+            use_vq_vae=use_vq_vae)
         self.model_name = model_name
         self.optimization_specification = optimization_specification
         self.find_best_policy = find_best_policy
@@ -71,6 +73,7 @@ class ClonedFSCActorPolicy(TFPolicy):
         self.observation_length = observation_length
         self.orig_env_use_stacked_observations = orig_env_use_stacked_observations
         self.use_gumbel_softmax = use_gumbel_softmax
+        self.use_vq_vae = use_vq_vae
         self.seed = tfp.util.SeedStream(seed, salt="cloned_fsc_actor_policy")
         self.optimizer = None
         self.learn_probs_regression = False
@@ -108,7 +111,7 @@ class ClonedFSCActorPolicy(TFPolicy):
         step_type = tf.reshape(time_step.step_type,
                                (time_step.step_type.shape[0], 1, -1))
         step_type = tf.cast(step_type, tf.float32)
-        action, memory = self.fsc_actor(
+        action, memory, _ = self.fsc_actor(
             observation, step_type, policy_state, training=False, seed=seed)
         action = tf.reshape(action, (action.shape[0], -1))
         # Change logits of illegal actions to -inf
@@ -172,12 +175,13 @@ class ClonedFSCActorPolicy(TFPolicy):
 
         with tf.GradientTape() as tape:
             total_loss = 0.0
+            total_vq_loss = 0.0
             for t in range(T):
                 current_obs = observations[:, t, :]
                 current_step_type = step_types[:, t, :]
                 current_obs = tf.reshape(current_obs, (current_obs.shape[0], 1, -1))
                 current_step_type = tf.reshape(current_step_type, (current_step_type.shape[0], 1, -1))
-                played_action, old_memory = self.fsc_actor(
+                played_action, old_memory, vq_loss = self.fsc_actor(
                     current_obs,
                     step_type=current_step_type,
                     old_memory=old_memory,
@@ -188,10 +192,11 @@ class ClonedFSCActorPolicy(TFPolicy):
                     current_loss = self.loss_fn(gt_actions[:, t], played_action)
                 else:
                     current_loss = self.loss_fn(gt_actions[:, t, :], played_action)
-                
-                total_loss += current_loss
 
-            total_loss /= T
+                total_loss += current_loss
+                total_vq_loss += vq_loss
+
+            total_loss = total_loss / T + total_vq_loss / T
         grads = tape.gradient(total_loss, self.fsc_actor.trainable_variables)
         grads, _ = tf.clip_by_global_norm(grads, 5.0)
         self.optimizer.apply_gradients(zip(grads, self.fsc_actor.trainable_variables))
@@ -259,7 +264,7 @@ class ClonedFSCActorPolicy(TFPolicy):
             loss = self.train_step(experience)
             loss_metric.update_state(loss)
 
-            if True:
+            if self.use_gumbel_softmax:
                 self.schedule_gumbel_temperature(i, self.fsc_actor, total_epochs=num_epochs)
             self.periodical_evaluation(i, loss_metric, cloned_actor,
                                        environment, tf_environment, extraction_stats,

@@ -104,7 +104,6 @@ class TrajectoryBuffer:
             discounted_reachability = goal_achieved * discount_cumprod[-1] if goal_achieved else 0.0
             in_episode_bad_state = np.any(
                 self.is_in_bad_state[prev_index[0], prev_index[1]:index[1]+1])
-            
 
             outcomes.add_episode_outcome(
                 in_episode_virtual_reward, in_episode_reward, goal_achieved, trap_achieved, discounted_virt_reward, in_episode_bad_state, discounted_reachability, discounted_return)

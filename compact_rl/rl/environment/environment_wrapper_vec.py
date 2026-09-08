@@ -347,6 +347,15 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
         self.truncation_values_vector = tf.constant(
             [-1.0] * self.num_envs, dtype=FLOAT_SETTING)
 
+    def set_csma_rewards(self):
+        self.reward_multiplier = 1.0
+        self.goal_values_vector = tf.constant(
+            [10.0] * self.num_envs, dtype=FLOAT_SETTING)
+        self.truncation_values_vector = tf.constant(
+            [0.0] * self.num_envs, dtype=FLOAT_SETTING)
+        self.antigoal_values_vector = tf.constant(
+            [0.0] * self.num_envs, dtype=FLOAT_SETTING)
+
     def set_reward_model(self, model_name):
         self.truncation_values_vector = tf.constant(
             [0.0] * self.num_envs, dtype=FLOAT_SETTING)
@@ -367,6 +376,7 @@ class EnvironmentWrapperVec(py_environment.PyEnvironment):
             "aco": self.set_obstacle_rewards,
             "rover": self.set_rover_rewards,
             "collect": self.set_collect_rewards,
+            "csma": self.set_csma_rewards, 
         }
         key_found = False
         for key in self.reward_models.keys():

@@ -107,7 +107,7 @@ def fsc_extraction(model, agent: FatherAgent) -> tuple[FscFactored, TableBasedPo
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_path = script_dir + "/models/models_pomdp_no_family/network-3-8-20"
+    project_path = script_dir + "/models/models_single_pomdp/network-3-8-20"
     prism_path = os.path.join(project_path, "sketch.templ")
     properties_path = os.path.join(project_path, "sketch.props")
     args = init_args(prism_path=prism_path, properties_path=properties_path,
@@ -123,6 +123,11 @@ def main():
     # This is the learning
     model = sketch.pomdp # If you don't have POMDP, you can switch to quotient mdp or some other MDP/POMDP representations.
     # model = sketch.quotient_mdp
+    # print(model)
+    # exit(0)
+    # print(f"DTMC from permissive policy has value {result.at(initial_state)} for formula {formula}.")
+    # exit(0)
+
 
     environment = EnvironmentWrapperVec(
         model, args, num_envs=args.num_environments, enforce_compilation=True)

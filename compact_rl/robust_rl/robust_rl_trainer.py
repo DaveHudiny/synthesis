@@ -48,7 +48,7 @@ class RobustTrainer:
                  pomdp_sketch=None,
                  obs_evaluator=None, quotient_state_valuations=None,
                  family_quotient_numpy: FamilyQuotientNumpy = None,
-                 use_gumbel_softmax=False):
+                 use_gumbel_softmax=False, use_vq_vae=False):
         self.args = args
         self.use_one_hot_memory = use_one_hot_memory
         self.model_name = args.model_name
@@ -65,6 +65,7 @@ class RobustTrainer:
             self.autlearn_extraction = False
         self.extraction_type = args.extraction_type
         self.use_gumbel_softmax = use_gumbel_softmax
+        self.use_vq_vae = use_vq_vae
         self.direct_extractor = self.init_extractor(
             latent_dim, self.autlearn_extraction)
         self.period_between_worst_case_evaluation = 5
@@ -90,7 +91,8 @@ class RobustTrainer:
                                                           max_episode_len=self.args.max_steps,
                                                           family_quotient_numpy=self.family_quotient_numpy,
                                                           autlearn_extraction=autlearn_extraction,
-                                                          use_gumbel_softmax=self.use_gumbel_softmax)
+                                                          use_gumbel_softmax=self.use_gumbel_softmax,
+                                                          use_vq_vae=self.use_vq_vae)
             return direct_extractor
         else:
             return None
@@ -333,9 +335,10 @@ def initialize_extractor(pomdp_sketch, args_emulated: ArgsEmulator, family_quoti
         quotient_sv = None
         quotient_obs = None
 
-    use_one_hot_memory = True if args_emulated.extraction_type == "si-g" else False
+    use_one_hot_memory = True if args_emulated.extraction_type in ("si-g", "vq-vae") else False
     use_gumbel_softmax = True if args_emulated.extraction_type == "si-g" else False
-    
+    use_vq_vae = True if args_emulated.extraction_type == "vq-vae" else False
+
 
     if "avoid-large" in args_emulated.prism_model or "drone-2-6-1" in args_emulated.prism_model or "moving-obstacles" in args_emulated.prism_model:
         latent_dim = 10  # For these models, we use larger latent dimension => usually larger FSCs
@@ -344,7 +347,8 @@ def initialize_extractor(pomdp_sketch, args_emulated: ArgsEmulator, family_quoti
 
     extractor = RobustTrainer(args_emulated, use_one_hot_memory=use_one_hot_memory, latent_dim=latent_dim, quotient_state_valuations=quotient_sv,
                               obs_evaluator=quotient_obs, pomdp_sketch=pomdp_sketch,
-                              family_quotient_numpy=family_quotient_numpy, use_gumbel_softmax=use_gumbel_softmax)
+                              family_quotient_numpy=family_quotient_numpy, use_gumbel_softmax=use_gumbel_softmax,
+                              use_vq_vae=use_vq_vae)
 
     return extractor
 
